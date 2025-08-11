@@ -1,0 +1,8559 @@
+{
+	"root_category": "reviewsite",
+	"category": [
+		{
+			"high_level_category": "Professional",
+			"subcategories": [
+				{
+					"name": "Education Professionals",
+					"subcategories": [
+						{
+							"name": "Professors and Academics (University and College)",
+							"subcategories": [
+								{
+									"name": "University Professors and Academics",
+									"subcategories": [
+										{
+										    
+											"name": "Science and Engineering Professors (University)"
+										},
+										{
+											"name": "Business Faculty Professors (University)"
+										},
+										{
+											"name": "Arts and Humanities Professors (University)"
+										},
+										{
+											"name": "Medical Professors  (University)"
+										},
+										{
+											"name": "Vice-Chancellor  (University)"
+										},
+										{
+											"name": "Pro-Vice-Chancellor  (University)"
+										},
+										{
+											"name": "Treasurer  (University)"
+										},
+										{
+											"name": "Registrar  (University)"
+										},
+										{
+											"name": "Dean  (University)"
+										},
+										{
+											"name": "Chief of Human Resources  (University)"
+										}
+									]
+								},
+								{
+									"name": "College Professors (Honors)",
+									"subcategories": [
+										{
+											"name": "Science and Engineering Professors (College/Honors)"
+										},
+										{
+											"name": "Business Faculty Professors (College/Honors)"
+										},
+										{
+											"name": "Arts and Humanities Professors (College/Honors)"
+										},
+										{
+											"name": "Principal (College/Honors)"
+										},
+										{
+											"name": "Vice Principal (College/Honors)"
+										}
+									]
+								},
+								{
+									"name": "Research Scholars",
+									"subcategories": [
+										{
+											"name": "Postdoctoral Researchers"
+										},
+										{
+											"name": "PhD Candidates"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Teachers (School and College-HSC)",
+							"subcategories": [
+								{
+									"name": "School and College Teachers",
+									"subcategories": [
+										{
+											"name": "Pre-Primary Teachers"
+										},
+										{
+											"name": "Primary School Teachers"
+										},
+										{
+											"name": "Secondary School (O-Level) Teachers",
+											"subcategories": [
+												{
+													"name": "Head Teachers (Secondary School/O-Level)"
+												},
+												{
+													"name": "Assistant Head Teachers (Secondary School/O-Level)"
+												},
+												{
+													"name": "Senior Teachers (Secondary School/O-Level)"
+												},
+												{
+													"name": "Assistant Teachers (Secondary School/O-Level)"
+												},
+												{
+													"name": "General Subject Teachers (Secondary School/O-Level)"
+												},
+												{
+													"name": "Subject-Specific Teachers (Secondary School/O-Level)"
+												}
+											]
+										},
+										{
+											"name": "Higher Secondary (A-Level) Teachers",
+											"subcategories": [
+												{
+													"name": "Principal (Higher Secondary/A-Level)"
+												},
+												{
+													"name": "Vice Principal (Higher Secondary/A-Level)"
+												},
+												{
+													"name": "Arts Stream Teachers (Higher Secondary/A-Level)"
+												},
+												{
+													"name": "Science Stream Teachers (Higher Secondary/A-Level)"
+												},
+												{
+													"name": "Commerce Stream Teachers (Higher Secondary/A-Level)"
+												}
+											]
+										}
+									]
+								},
+								{
+									"name": "Special Education",
+									"subcategories": [
+										{
+											"name": "Special Education Teachers"
+										},
+										{
+											"name": "Autism Specialists"
+										},
+										{
+											"name": "Learning Disability Educators"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Technical and Vocational Education Professionals",
+							"subcategories": [
+								{
+									"name": "Principal (Technical and Vocational)"
+								},
+								{
+									"name": "Vice Principal (Technical and Vocational)"
+								},
+								{
+									"name": "Technical Instructor (Technical and Vocational)"
+								},
+								{
+									"name": "Polytechnic Instructor (Technical and Vocational)"
+								},
+								{
+									"name": "Vocational Trainer (Technical and Vocational)"
+								},
+								{
+									"name": "Training Coordinator (Technical and Vocational)"
+								},
+								{
+									"name": "Lab Technician (Technical and Vocational)"
+								},
+								{
+									"name": "Placement Officer (Technical and Vocational)"
+								}
+							]
+						},
+						{
+							"name": "Madrasa Education Professionals",
+							"subcategories": [
+								{
+									"name": "Principal-Muhtamim (Madrasah)"
+								},
+								{
+									"name": "Vice Principal-Naib Muhtamim (Madrasah)"
+								},
+								{
+									"name": "Lecturer-Muhaddith-Mufti (Madrasah)"
+								},
+								{
+									"name": "Assistant Teacher (Madrasah)"
+								},
+								{
+									"name": "Qari/Qariah (Madrasah)"
+								},
+								{
+									"name": "Office Assistant (Madrasah)"
+								},
+								{
+									"name": "Librarian (Madrasah)"
+								},
+								{
+									"name": "Student Counselor (Madrasah)"
+								}
+							]
+						},
+						{
+							"name": "Tutors",
+							"subcategories": [
+								{
+									"name": "Private Tutors",
+									"subcategories": [
+										{
+											"name": "Bangla Medium"
+										},
+										{
+											"name": "English Medium"
+										}
+									]
+								},
+								{
+									"name": "Coaching Center Tutors",
+									"subcategories": [
+										{
+											"name": "SSC (O-Level) Exam Tutors"
+										},
+										{
+											"name": "HSC (A-Level) Exam Tutors"
+										},
+										{
+											"name": "Admission Test Tutors"
+										}
+									]
+								},
+								{
+									"name": "Online Tutors",
+									"subcategories": [
+										{
+											"name": "Language Tutors"
+										},
+										{
+											"name": "Skill-Based Tutors"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Librarians",
+							"subcategories": [
+								{
+									"name": "Public Librarians"
+								},
+								{
+									"name": "Academic Librarians"
+								},
+								{
+									"name": "Digital Librarians"
+								}
+							]
+						},
+						{
+							"name": "Counselors",
+							"subcategories": [
+								{
+									"name": "Career Counselors"
+								},
+								{
+									"name": "Academic Counselors"
+								},
+								{
+									"name": "Student Mental Health Counselors"
+								}
+							]
+						},
+						{
+							"name": "Education Support Professionals",
+							"subcategories": [
+								{
+									"name": "Curriculum Developers"
+								},
+								{
+									"name": "Educational Psychologists"
+								},
+								{
+									"name": "School Inspectors"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Healthcare Professionals",
+					"subcategories": [
+						{
+							"name": "Doctors",
+							"subcategories": [
+								{
+									"name": "General Medicine",
+									"subcategories": [
+										{
+											"name": "General Physicians"
+										},
+										{
+											"name": "Family Medicine Practitioners"
+										}
+									]
+								},
+								{
+									"name": "Specialized Medicine",
+									"subcategories": [
+										{
+											"name": "Cardiologists",
+											"subcategories": [
+												{
+													"name": "Interventional Cardiologists"
+												},
+												{
+													"name": "Pediatric Cardiologists"
+												},
+												{
+													"name": "Electrophysiologists"
+												},
+												{
+													"name": "Heart Failure Specialists"
+												}
+											]
+										},
+										{
+											"name": "Neurologists",
+											"subcategories": [
+												{
+													"name": "Adult Neurologists"
+												},
+												{
+													"name": "Pediatric Neurologists"
+												},
+												{
+													"name": "Stroke Specialists"
+												},
+												{
+													"name": "Movement Disorder Specialists"
+												}
+											]
+										},
+										{
+											"name": "Pediatricians",
+											"subcategories": [
+												{
+													"name": "Neonatologists"
+												},
+												{
+													"name": "Pediatric Oncologists"
+												}
+											]
+										},
+										{
+											"name": "Gynecologists",
+											"subcategories": [
+												{
+													"name": "Obstetricians"
+												},
+												{
+													"name": "Reproductive Endocrinologists"
+												}
+											]
+										},
+										{
+											"name": "Orthopedic Surgeons",
+											"subcategories": [
+												{
+													"name": "Spine Surgeons"
+												},
+												{
+													"name": "Joint Replacement Specialists"
+												}
+											]
+										},
+										{
+											"name": "Dentists",
+											"subcategories": [
+												{
+													"name": "Orthodontists"
+												},
+												{
+													"name": "Endodontists"
+												},
+												{
+													"name": "Prosthodontists"
+												},
+												{
+													"name": "Periodontists"
+												},
+												{
+													"name": "Pediatric Dentists"
+												}
+											]
+										},
+										{
+											"name": "Oncologists",
+											"subcategories": [
+												{
+													"name": "Medical Oncologists"
+												},
+												{
+													"name": "Surgical Oncologists"
+												},
+												{
+													"name": "Radiation Oncologists"
+												}
+											]
+										},
+										{
+											"name": "Anesthesiologists",
+											"subcategories": [
+												{
+													"name": "Pediatric Anesthesiologists"
+												},
+												{
+													"name": "Pain Management Specialists"
+												}
+											]
+										},
+										{
+											"name": "Radiologists",
+											"subcategories": [
+												{
+													"name": "Diagnostic Radiologists"
+												},
+												{
+													"name": "Interventional Radiologists"
+												}
+											]
+										},
+										{
+											"name": "Dermatologists"
+										},
+										{
+											"name": "Ophthalmologists"
+										},
+										{
+											"name": "ENT Specialists"
+										},
+										{
+											"name": "Psychiatrists"
+										}
+									]
+								},
+								{
+									"name": "Alternative Medicine",
+									"subcategories": [
+										{
+											"name": "Homeopathic Doctors"
+										},
+										{
+											"name": "Ayurvedic Practitioners"
+										},
+										{
+											"name": "Unani Practitioners"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Nurses",
+							"subcategories": [
+								{
+									"name": "General Nursing",
+									"subcategories": [
+										{
+											"name": "Registered Nurses"
+										},
+										{
+											"name": "Licensed Practical Nurses"
+										}
+									]
+								},
+								{
+									"name": "Specialized Nursing",
+									"subcategories": [
+										{
+											"name": "Critical Care Nurses"
+										},
+										{
+											"name": "Emergency Room Nurses"
+										},
+										{
+											"name": "Pediatric Nurses"
+										},
+										{
+											"name": "Oncology Nurses"
+										},
+										{
+											"name": "Psychiatric Nurses"
+										},
+										{
+											"name": "Community Health Nurses"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Pharmacists",
+							"subcategories": [
+								{
+									"name": "Retail Pharmacists"
+								},
+								{
+									"name": "Hospital Pharmacists"
+								},
+								{
+									"name": "Clinical Pharmacists"
+								},
+								{
+									"name": "Pharmaceutical Researchers"
+								}
+							]
+						},
+						{
+							"name": "Medical Technologists",
+							"subcategories": [
+								{
+									"name": "Laboratory Technicians",
+									"subcategories": [
+										{
+											"name": "Hematology Technicians"
+										},
+										{
+											"name": "Microbiology Technicians"
+										}
+									]
+								},
+								{
+									"name": "Radiology Technicians",
+									"subcategories": [
+										{
+											"name": "MRI Technicians"
+										},
+										{
+											"name": "CT Scan Technicians"
+										}
+									]
+								},
+								{
+									"name": "Pathology Technicians",
+									"subcategories": [
+										{
+											"name": "Histotechnologists"
+										},
+										{
+											"name": "Cytotechnologists"
+										}
+									]
+								},
+								{
+									"name": "Dialysis Technicians"
+								}
+							]
+						},
+						{
+							"name": "Therapists",
+							"subcategories": [
+								{
+									"name": "Physiotherapists",
+									"subcategories": [
+										{
+											"name": "Orthopedic Physiotherapists"
+										},
+										{
+											"name": "Neurological Physiotherapists"
+										}
+									]
+								},
+								{
+									"name": "Occupational Therapists",
+									"subcategories": [
+										{
+											"name": "Pediatric Occupational Therapists"
+										},
+										{
+											"name": "Geriatric Occupational Therapists"
+										}
+									]
+								},
+								{
+									"name": "Speech Therapists"
+								},
+								{
+									"name": "Rehabilitation Therapists"
+								}
+							]
+						},
+						{
+							"name": "Alternative Medicine Practitioners",
+							"subcategories": [
+								{
+									"name": "Acupuncture Specialists"
+								},
+								{
+									"name": "Naturopaths"
+								},
+								{
+									"name": "Herbal Medicine Practitioners"
+								},
+								{
+									"name": "Chiropractors"
+								}
+							]
+						},
+						{
+							"name": "Allied Health Professionals",
+							"subcategories": [
+								{
+									"name": "Dietitians",
+									"subcategories": [
+										{
+											"name": "Clinical Dietitians"
+										},
+										{
+											"name": "Community Dietitians"
+										}
+									]
+								},
+								{
+									"name": "Medical Social Workers"
+								},
+								{
+									"name": "Optometrists"
+								},
+								{
+									"name": "Audiologists"
+								},
+								{
+									"name": "Respiratory Therapists"
+								},
+								{
+									"name": "Prosthetists and Orthotists"
+								},
+								{
+									"name": "Medical Transcriptionists"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Legal Professionals",
+					"subcategories": [
+						{
+							"name": "Lawyers",
+							"subcategories": [
+								{
+									"name": "Civil Lawyers",
+									"subcategories": [
+										{
+											"name": "Property Dispute Lawyers"
+										},
+										{
+											"name": "Contract Lawyers"
+										}
+									]
+								},
+								{
+									"name": "Criminal Lawyers",
+									"subcategories": [
+										{
+											"name": "Defense Attorneys"
+										},
+										{
+											"name": "Prosecutors"
+										}
+									]
+								},
+								{
+									"name": "Corporate Lawyers",
+									"subcategories": [
+										{
+											"name": "Mergers and Acquisitions Lawyers"
+										},
+										{
+											"name": "Intellectual Property Lawyers"
+										}
+									]
+								},
+								{
+									"name": "Family Lawyers",
+									"subcategories": [
+										{
+											"name": "Divorce Lawyers"
+										},
+										{
+											"name": "Child Custody Lawyers"
+										}
+									]
+								},
+								{
+									"name": "Tax Lawyers"
+								},
+								{
+									"name": "Labor Lawyers"
+								},
+								{
+									"name": "Constitutional Lawyers"
+								},
+								{
+									"name": "Environmental Lawyers"
+								}
+							]
+						},
+						{
+							"name": "Judges",
+							"subcategories": [
+								{
+									"name": "District Judges"
+								},
+								{
+									"name": "High Court Judges"
+								},
+								{
+									"name": "Supreme Court Judges",
+									"subcategories": [
+										{
+											"name": "Appellate Division Judges"
+										},
+										{
+											"name": "High Court Division Judges"
+										}
+									]
+								},
+								{
+									"name": "Chief Justice"
+								},
+								{
+									"name": "Public Prosecutor"
+								},
+								{
+									"name": "Atorney General"
+								}
+							]
+						},
+						{
+							"name": "Notaries",
+							"subcategories": [
+								{
+									"name": "Public Notaries"
+								},
+								{
+									"name": "Oath Commissioners"
+								}
+							]
+						},
+						{
+							"name": "Legal Advisors",
+							"subcategories": [
+								{
+									"name": "Corporate Legal Advisors"
+								},
+								{
+									"name": "Government Legal Advisors"
+								},
+								{
+									"name": "NGO Legal Advisors"
+								}
+							]
+						},
+						{
+							"name": "Paralegals",
+							"subcategories": [
+								{
+									"name": "Legal Assistants"
+								},
+								{
+									"name": "Documentation Specialists"
+								},
+								{
+									"name": "Legal Researchers"
+								}
+							]
+						},
+						{
+							"name": "Mediators and Arbitrators",
+							"subcategories": [
+								{
+									"name": "Family Mediators"
+								},
+								{
+									"name": "Commercial Arbitrators"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Engineering and Technical Professionals",
+					"subcategories": [
+						{
+							"name": "Engineers",
+							"subcategories": [
+								{
+									"name": "Civil Engineers",
+									"subcategories": [
+										{
+											"name": "Structural Engineers"
+										},
+										{
+											"name": "Transportation Engineers"
+										},
+										{
+											"name": "Geotechnical Engineers"
+										},
+										{
+											"name": "Bridge Engineers"
+										},
+										{
+											"name": "Earthquake Engineers"
+										}
+									]
+								},
+								{
+									"name": "Mechanical Engineers",
+									"subcategories": [
+										{
+											"name": "Automotive Engineers"
+										},
+										{
+											"name": "HVAC Engineers"
+										},
+										{
+											"name": "Robotics Engineers"
+										},
+										{
+											"name": "Thermal Engineers"
+										}
+									]
+								},
+								{
+									"name": "Electrical Engineers",
+									"subcategories": [
+										{
+											"name": "Power System Engineers"
+										},
+										{
+											"name": "Electronics Engineers"
+										}
+									]
+								},
+								{
+									"name": "Computer/Software Engineers",
+									"subcategories": [
+										{
+											"name": "Frontend Developers"
+										},
+										{
+											"name": "Backend Developers"
+										},
+										{
+											"name": "Full-Stack Developers"
+										},
+										{
+											"name": "DevOps Engineers"
+										},
+										{
+											"name": "Blockchain Developers"
+										}
+									]
+								},
+								{
+									"name": "Telecommunication Engineers",
+									"subcategories": [
+										{
+											"name": "Network Engineers"
+										},
+										{
+											"name": "Wireless Communication Specialists"
+										}
+									]
+								},
+								{
+									"name": "Chemical Engineers",
+									"subcategories": [
+										{
+											"name": "Process Engineers"
+										},
+										{
+											"name": "Petrochemical Engineers"
+										}
+									]
+								},
+								{
+									"name": "Biomedical Engineers",
+									"subcategories": [
+										{
+											"name": "Medical Device Engineers"
+										},
+										{
+											"name": "Biomechanics Specialists"
+										}
+									]
+								},
+								{
+									"name": "Environmental Engineers",
+									"subcategories": [
+										{
+											"name": "Water Resource Engineers"
+										},
+										{
+											"name": "Waste Management Engineers"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Architects",
+							"subcategories": [
+								{
+									"name": "Residential Architects"
+								},
+								{
+									"name": "Commercial Architects"
+								},
+								{
+									"name": "Landscape Architects"
+								},
+								{
+									"name": "Urban Planners"
+								}
+							]
+						},
+						{
+							"name": "IT Professionals",
+							"subcategories": [
+								{
+									"name": "Software Developers",
+									"subcategories": [
+										{
+											"name": "Mobile App Developers"
+										},
+										{
+											"name": "Web Developers"
+										},
+										{
+											"name": "DevOps Engineers"
+										},
+										{
+											"name": "Blockchain Developers"
+										}
+									]
+								},
+								{
+									"name": "Network Administrators",
+									"subcategories": [
+										{
+											"name": "Cloud Administrators"
+										},
+										{
+											"name": "System Administrators"
+										}
+									]
+								},
+								{
+									"name": "Cybersecurity Specialists",
+									"subcategories": [
+										{
+											"name": "Ethical Hackers"
+										},
+										{
+											"name": "Security Analysts"
+										},
+										{
+											"name": "Incident Responders"
+										},
+										{
+											"name": "Cryptography Experts"
+										}
+									]
+								},
+								{
+									"name": "Data Scientists",
+									"subcategories": [
+										{
+											"name": "Machine Learning Engineers"
+										},
+										{
+											"name": "Data Analysts"
+										}
+									]
+								},
+								{
+									"name": "Database Administrators",
+									"subcategories": [
+										{
+											"name": "SQL Database Managers"
+										},
+										{
+											"name": "NoSQL Database Managers"
+										}
+									]
+								},
+								{
+									"name": "IT Support Specialists",
+									"subcategories": [
+										{
+											"name": "Help Desk Technicians"
+										},
+										{
+											"name": "Technical Support Engineers"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Technicians",
+							"subcategories": [
+								{
+									"name": "Electrical Technicians",
+									"subcategories": [
+										{
+											"name": "Wiring Technicians"
+										},
+										{
+											"name": "Power System Technicians"
+										}
+									]
+								},
+								{
+									"name": "Mechanical Technicians",
+									"subcategories": [
+										{
+											"name": "Automotive Technicians"
+										},
+										{
+											"name": "Industrial Machinery Technicians"
+										}
+									]
+								},
+								{
+									"name": "IT Support Technicians",
+									"subcategories": [
+										{
+											"name": "Hardware Technicians"
+										},
+										{
+											"name": "Software Troubleshooters"
+										}
+									]
+								},
+								{
+									"name": "Telecom Technicians",
+									"subcategories": [
+										{
+											"name": "Fiber Optic Technicians"
+										},
+										{
+											"name": "Mobile Network Technicians"
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Business and Financial Professionals",
+					"subcategories": [
+						{
+							"name": "Accountants",
+							"subcategories": [
+								{
+									"name": "Chartered Accountants"
+								},
+								{
+									"name": "Cost Accountants"
+								},
+								{
+									"name": "Tax Consultants"
+								},
+								{
+									"name": "Forensic Accountants"
+								}
+							]
+						},
+						{
+							"name": "Financial Advisors",
+							"subcategories": [
+								{
+									"name": "Investment Advisors"
+								},
+								{
+									"name": "Wealth Managers"
+								},
+								{
+									"name": "Retirement Planners"
+								}
+							]
+						},
+						{
+							"name": "Bankers",
+							"subcategories": [
+								{
+									"name": "Branch Managers"
+								},
+								{
+									"name": "Loan Officers"
+								},
+								{
+									"name": "Investment Bankers"
+								},
+								{
+									"name": "Microfinance Officers"
+								}
+							]
+						},
+						{
+							"name": "Business Consultants",
+							"subcategories": [
+								{
+									"name": "Management Consultants"
+								},
+								{
+									"name": "Marketing Consultants"
+								},
+								{
+									"name": "HR Consultants"
+								},
+								{
+									"name": "Strategy Consultants"
+								}
+							]
+						},
+						{
+							"name": "Entrepreneurs",
+							"subcategories": [
+								{
+									"name": "Startup Founders"
+								},
+								{
+									"name": "Small Business Owners"
+								},
+								{
+									"name": "Social Entrepreneurs"
+								}
+							]
+						},
+						{
+							"name": "Auditors",
+							"subcategories": [
+								{
+									"name": "Internal Auditors"
+								},
+								{
+									"name": "External Auditors"
+								},
+								{
+									"name": "Government Auditors"
+								}
+							]
+						},
+						{
+							"name": "Insurance Professionals",
+							"subcategories": [
+								{
+									"name": "Insurance Agents"
+								},
+								{
+									"name": "Actuaries"
+								},
+								{
+									"name": "Claims Adjusters"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Creative and Media Professionals",
+					"subcategories": [
+						{
+							"name": "Journalists",
+							"subcategories": [
+								{
+									"name": "Print Journalists",
+									"subcategories": [
+										{
+											"name": "Newspaper Reporters"
+										},
+										{
+											"name": "Magazine Writers"
+										}
+									]
+								},
+								{
+									"name": "Broadcast Journalists",
+									"subcategories": [
+										{
+											"name": "TV News Anchors"
+										},
+										{
+											"name": "Radio Journalists"
+										}
+									]
+								},
+								{
+									"name": "Online Journalists",
+									"subcategories": [
+										{
+											"name": "Digital News Reporters"
+										},
+										{
+											"name": "Investigative Journalists"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Photographers",
+							"subcategories": [
+								{
+									"name": "Portrait Photographers"
+								},
+								{
+									"name": "Event Photographers"
+								},
+								{
+									"name": "Wildlife Photographers"
+								},
+								{
+									"name": "Fashion Photographers"
+								},
+								{
+									"name": "Photojournalists"
+								}
+							]
+						},
+						{
+							"name": "Graphic Designers",
+							"subcategories": [
+								{
+									"name": "UI/UX Designers"
+								},
+								{
+									"name": "Print Designers"
+								},
+								{
+									"name": "Motion Graphics Designers"
+								},
+								{
+									"name": "Branding Designers"
+								}
+							]
+						},
+						{
+							"name": "Content Creators",
+							"subcategories": [
+								{
+									"name": "Bloggers",
+									"subcategories": [
+										{
+											"name": "Lifestyle Bloggers"
+										},
+										{
+											"name": "Tech Bloggers"
+										}
+									]
+								},
+								{
+									"name": "Vloggers",
+									"subcategories": [
+										{
+											"name": "Travel Vloggers"
+										},
+										{
+											"name": "Food Vloggers"
+										}
+									]
+								},
+								{
+									"name": "Social Media Influencers"
+								},
+								{
+									"name": "Podcasters"
+								}
+							]
+						},
+						{
+							"name": "Film and TV Professionals",
+							"subcategories": [
+								{
+									"name": "Directors",
+									"subcategories": [
+										{
+											"name": "Film Directors"
+										},
+										{
+											"name": "TV Show Directors"
+										}
+									]
+								},
+								{
+									"name": "Producers",
+									"subcategories": [
+										{
+											"name": "Executive Producers"
+										},
+										{
+											"name": "Line Producers"
+										}
+									]
+								},
+								{
+									"name": "Actors",
+									"subcategories": [
+										{
+											"name": "Film Actors"
+										},
+										{
+											"name": "TV Actors"
+										}
+									]
+								},
+								{
+									"name": "Scriptwriters",
+									"subcategories": [
+										{
+											"name": "Screenwriters"
+										},
+										{
+											"name": "Dialogue Writers"
+										}
+									]
+								},
+								{
+									"name": "Cinematographers"
+								},
+								{
+									"name": "Film Editors"
+								},
+								{
+									"name": "Theater"
+								}
+							]
+						},
+						{
+							"name": "Artists",
+							"subcategories": [
+								{
+									"name": "Painters",
+									"subcategories": [
+										{
+											"name": "Oil Painters"
+										},
+										{
+											"name": "Watercolor Artists"
+										}
+									]
+								},
+								{
+									"name": "Sculptors"
+								},
+								{
+									"name": "Illustrators",
+									"subcategories": [
+										{
+											"name": "Digital Illustrators"
+										},
+										{
+											"name": "Book Illustrators"
+										}
+									]
+								},
+								{
+									"name": "Cartoonists"
+								}
+							]
+						},
+						{
+							"name": "Musicians",
+							"subcategories": [
+								{
+									"name": "Vocalists"
+								},
+								{
+									"name": "Instrumentalists",
+									"subcategories": [
+										{
+											"name": "Classical Musicians"
+										},
+										{
+											"name": "Folk Musicians"
+										}
+									]
+								},
+								{
+									"name": "Music Composers"
+								},
+								{
+									"name": "Sound Engineers"
+								},
+								{
+									"name": "Music Producers"
+								},
+								{
+									"name": "Sound Designers"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Government and Public Service Professionals",
+					"subcategories": [
+						{
+							"name": "Civil Servants",
+							"subcategories": [
+								{
+									"name": "Judiciary Professionals",
+									"subcategories": [
+										{
+											"name": "Assistant Judge/Judicial Magistrate"
+										}
+									]
+								},
+								{
+									"name": "BCS Cadre Officers",
+									"subcategories": [
+										{
+											"name": "Administrative Cadre"
+										},
+										{
+											"name": "Police Cadre"
+										},
+										{
+											"name": "Health Cadre"
+										},
+										{
+											"name": "Education Cadre"
+										},
+										{
+											"name": "Customs and Excise Cadre"
+										},
+										{
+											"name": "Taxation Cadre"
+										},
+										{
+											"name": "Ansar Cadre"
+										},
+										{
+											"name": "Audit and Accounts Cadre"
+										},
+										{
+											"name": "Agriculture Cadre"
+										},
+										{
+											"name": "Forest Cadre"
+										},
+										{
+											"name": "Family Planning Cadre"
+										},
+										{
+											"name": "Postal Cadre"
+										},
+										{
+											"name": "Railway Transportation Cadre"
+										},
+										{
+											"name": "Technical Cadre"
+										},
+										{
+											"name": "Public Health Engineering Cadre"
+										},
+										{
+											"name": "Public Works Cadre"
+										},
+										{
+											"name": "Railway Engineering Cadre"
+										},
+										{
+											"name": "Roads and Highways Cadre"
+										},
+										{
+											"name": "Education Cadre"
+										},
+										{
+											"name": "Health Cadre"
+										}
+									]
+								},
+								{
+									"name": "Administrative Officers"
+								},
+								{
+									"name": "Local Government Officials"
+								}
+							]
+						},
+						{
+							"name": "Diplomats",
+							"subcategories": [
+								{
+									"name": "Ambassadors/Diplomat/Foreign Cadre"
+								},
+								{
+									"name": "Foreign Service Officers"
+								},
+								{
+									"name": "Consular Officers"
+								}
+							]
+						},
+						{
+							"name": "Public Health Officials",
+							"subcategories": [
+								{
+									"name": "Epidemiologists"
+								},
+								{
+									"name": "Health Inspectors"
+								},
+								{
+									"name": "Public Health Educators"
+								}
+							]
+						},
+						{
+							"name": "NGO Professionals",
+							"subcategories": [
+								{
+									"name": "Project Managers"
+								},
+								{
+									"name": "Field Workers"
+								},
+								{
+									"name": "Fundraisers"
+								},
+								{
+									"name": "Development Consultants"
+								},
+								{
+									"name": "Monitoring and Evaluation Specialists"
+								},
+								{
+									"name": "Grant Writers"
+								}
+							]
+						},
+						{
+							"name": "Law Enforcement Professionals",
+							"subcategories": [
+								{
+									"name": "Police Officers",
+									"subcategories": [
+										{
+											"name": "Sub-Inspectors"
+										},
+										{
+											"name": "Detectives"
+										}
+									]
+								},
+								{
+									"name": "Traffic Police"
+								},
+								{
+									"name": "Border Guard Officers"
+								}
+							]
+						},
+						{
+							"name": "Defense Professionals",
+							"subcategories": [
+								{
+									"name": "Army Officers"
+								},
+								{
+									"name": "Navy Officers"
+								},
+								{
+									"name": "Air Force Officers"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Hospitality and Service Professionals",
+					"subcategories": [
+						{
+							"name": "Chefs",
+							"subcategories": [
+								{
+									"name": "Executive Chefs"
+								},
+								{
+									"name": "Pastry Chefs"
+								},
+								{
+									"name": "Street Food Chefs"
+								},
+								{
+									"name": "Sous Chefs"
+								}
+							]
+						},
+						{
+							"name": "Hotel Managers",
+							"subcategories": [
+								{
+									"name": "General Managers"
+								},
+								{
+									"name": "Front Desk Managers"
+								},
+								{
+									"name": "Housekeeping Managers"
+								}
+							]
+						},
+						{
+							"name": "Tour Guides",
+							"subcategories": [
+								{
+									"name": "Cultural Tour Guides"
+								},
+								{
+									"name": "Adventure Tour Guides"
+								},
+								{
+									"name": "Historical Tour Guides"
+								}
+							]
+						},
+						{
+							"name": "Event Planners",
+							"subcategories": [
+								{
+									"name": "Wedding Planners"
+								},
+								{
+									"name": "Corporate Event Organizers"
+								},
+								{
+									"name": "Cultural Event Coordinators"
+								}
+							]
+						},
+						{
+							"name": "Travel Agents",
+							"subcategories": [
+								{
+									"name": "Domestic Travel Agents"
+								},
+								{
+									"name": "International Travel Agents"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Agricultural and Environmental Professionals",
+					"subcategories": [
+						{
+							"name": "Agronomists",
+							"subcategories": [
+								{
+									"name": "Crop Scientists"
+								},
+								{
+									"name": "Soil Scientists"
+								},
+								{
+									"name": "Horticulturists"
+								}
+							]
+						},
+						{
+							"name": "Foresters",
+							"subcategories": [
+								{
+									"name": "Forest Managers"
+								},
+								{
+									"name": "Wildlife Conservationists"
+								},
+								{
+									"name": "Silviculturists"
+								}
+							]
+						},
+						{
+							"name": "Environmental Scientists",
+							"subcategories": [
+								{
+									"name": "Climate Change Analysts"
+								},
+								{
+									"name": "Pollution Control Specialists"
+								},
+								{
+									"name": "Environmental Impact Assessors"
+								}
+							]
+						},
+						{
+							"name": "Fisheries Experts",
+							"subcategories": [
+								{
+									"name": "Aquaculture Specialists"
+								},
+								{
+									"name": "Marine Biologists"
+								},
+								{
+									"name": "Fisheries Managers"
+								}
+							]
+						},
+						{
+							"name": "Agricultural Extension Officers",
+							"subcategories": [
+								{
+									"name": "Rural Development Specialists"
+								},
+								{
+									"name": "Farmer Training Facilitators"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Skilled Trades Professionals",
+					"subcategories": [
+						{
+							"name": "Electricians",
+							"subcategories": [
+								{
+									"name": "Residential Electricians"
+								},
+								{
+									"name": "Industrial Electricians"
+								},
+								{
+									"name": "Maintenance Electricians"
+								}
+							]
+						},
+						{
+							"name": "Plumbers",
+							"subcategories": [
+								{
+									"name": "Residential Plumbers"
+								},
+								{
+									"name": "Commercial Plumbers"
+								},
+								{
+									"name": "Pipefitters"
+								}
+							]
+						},
+						{
+							"name": "Carpenters",
+							"subcategories": [
+								{
+									"name": "Furniture Makers"
+								},
+								{
+									"name": "Construction Carpenters"
+								},
+								{
+									"name": "Cabinet Makers"
+								}
+							]
+						},
+						{
+							"name": "Masons",
+							"subcategories": [
+								{
+									"name": "Bricklayers"
+								},
+								{
+									"name": "Concrete Specialists"
+								},
+								{
+									"name": "Tile Setters"
+								}
+							]
+						},
+						{
+							"name": "Mechanics",
+							"subcategories": [
+								{
+									"name": "Auto Mechanics",
+									"subcategories": [
+										{
+											"name": "Car Mechanics"
+										},
+										{
+											"name": "Motorcycle Mechanics"
+										}
+									]
+								},
+								{
+									"name": "Heavy Machinery Mechanics"
+								},
+								{
+									"name": "Diesel Mechanics"
+								}
+							]
+						},
+						{
+							"name": "Welders",
+							"subcategories": [
+								{
+									"name": "Arc Welders"
+								},
+								{
+									"name": "MIG Welders"
+								},
+								{
+									"name": "TIG Welders"
+								}
+							]
+						},
+						{
+							"name": "Painters",
+							"subcategories": [
+								{
+									"name": "Residential Painters"
+								},
+								{
+									"name": "Commercial Painters"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Scientific Research Professionals",
+					"subcategories": [
+						{
+							"name": "Research Scientists",
+							"subcategories": [
+								{
+									"name": "Biologists"
+								},
+								{
+									"name": "Chemists"
+								},
+								{
+									"name": "Physicists"
+								},
+								{
+									"name": "Environmental Researchers"
+								}
+							]
+						},
+						{
+							"name": "Laboratory Researchers",
+							"subcategories": [
+								{
+									"name": "Molecular Biologists"
+								},
+								{
+									"name": "Biochemists"
+								},
+								{
+									"name": "Material Scientists"
+								}
+							]
+						},
+						{
+							"name": "Clinical Researchers",
+							"subcategories": [
+								{
+									"name": "Clinical Trial Coordinators"
+								},
+								{
+									"name": "Medical Researchers"
+								}
+							]
+						},
+						{
+							"name": "Academic Researchers",
+							"subcategories": [
+								{
+									"name": "Postdoctoral Researchers"
+								},
+								{
+									"name": "Research Professors"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Human Resources Professionals",
+					"subcategories": [
+						{
+							"name": "HR Managers",
+							"subcategories": [
+								{
+									"name": "Recruitment Managers"
+								},
+								{
+									"name": "Employee Relations Managers"
+								},
+								{
+									"name": "Training and Development Managers"
+								}
+							]
+						},
+						{
+							"name": "HR Specialists",
+							"subcategories": [
+								{
+									"name": "Payroll Specialists"
+								},
+								{
+									"name": "Benefits Administrators"
+								},
+								{
+									"name": "Talent Acquisition Specialists"
+								}
+							]
+						},
+						{
+							"name": "HR Consultants"
+						},
+						{
+							"name": "Organizational Development Specialists"
+						}
+					]
+				},
+				{
+					"name": "Marketing Professionals",
+					"subcategories": [
+						{
+							"name": "Marketing Managers",
+							"subcategories": [
+								{
+									"name": "Brand Managers"
+								},
+								{
+									"name": "Product Marketing Managers"
+								},
+								{
+									"name": "Digital Marketing Managers"
+								}
+							]
+						},
+						{
+							"name": "Market Research Analysts",
+							"subcategories": [
+								{
+									"name": "Consumer Behavior Analysts"
+								},
+								{
+									"name": "Market Trend Analysts"
+								}
+							]
+						},
+						{
+							"name": "Advertising Professionals",
+							"subcategories": [
+								{
+									"name": "Copywriters"
+								},
+								{
+									"name": "Creative Directors"
+								},
+								{
+									"name": "Media Planners"
+								}
+							]
+						},
+						{
+							"name": "Digital Marketing Specialists",
+							"subcategories": [
+								{
+									"name": "SEO Specialists"
+								},
+								{
+									"name": "Social Media Marketers"
+								},
+								{
+									"name": "Content Marketers"
+								}
+							]
+						},
+						{
+							"name": "Public Relations Specialists"
+						}
+					]
+				},
+				{
+					"name": "Real Estate Professionals",
+					"subcategories": [
+						{
+							"name": "Real Estate Agents",
+							"subcategories": [
+								{
+									"name": "Residential Real Estate Agents"
+								},
+								{
+									"name": "Commercial Real Estate Agents"
+								}
+							]
+						},
+						{
+							"name": "Property Managers"
+						},
+						{
+							"name": "Real Estate Appraisers"
+						},
+						{
+							"name": "Real Estate Developers"
+						},
+						{
+							"name": "Mortgage Brokers"
+						}
+					]
+				},
+				{
+					"name": "Fashion Professionals",
+					"subcategories": [
+						{
+							"name": "Fashion Designers",
+							"subcategories": [
+								{
+									"name": "Apparel Designers"
+								},
+								{
+									"name": "Accessory Designers"
+								}
+							]
+						},
+						{
+							"name": "Fashion Stylists"
+						},
+						{
+							"name": "Textile Designers"
+						},
+						{
+							"name": "Fashion Merchandisers"
+						},
+						{
+							"name": "Fashion Buyers"
+						}
+					]
+				},
+				{
+					"name": "Social Work Professionals",
+					"subcategories": [
+						{
+							"name": "Social Workers",
+							"subcategories": [
+								{
+									"name": "Child Welfare Social Workers"
+								},
+								{
+									"name": "Medical Social Workers"
+								},
+								{
+									"name": "Community Social Workers"
+								}
+							]
+						},
+						{
+							"name": "Counselors"
+						},
+						{
+							"name": "Case Managers"
+						},
+						{
+							"name": "Community Development Workers"
+						}
+					]
+				},
+				{
+					"name": "Other/Optional",
+					"subcategories": [
+						{
+							"name": "Unspecified Professionals"
+						},
+						{
+							"name": "Freelancers"
+						},
+						{
+							"name": "Consultants"
+						},
+						{
+							"name": "Miscellaneous"
+						}
+					]
+				}
+			]
+		},
+		{
+			"high_level_category": "Company/Institute",
+			"subcategories": [
+				{
+					"name": "Private Sector Companies",
+					"subcategories": [
+						{
+							"name": "Technology Companies",
+							"subcategories": [
+								{
+									"name": "Software Development",
+									"subcategories": [
+										{
+											"name": "Enterprise Software Companies"
+										},
+										{
+											"name": "Mobile App Development Firms"
+										},
+										{
+											"name": "Web Development Companies"
+										},
+										{
+											"name": "AI and Machine Learning Companies"
+										},
+										{
+											"name": "Blockchain Technology Firms"
+										},
+										{
+											"name": "Enterprise Resource Planning (ERP) Providers"
+										},
+										{
+											"name": "Customer Relationship Management (CRM) Software Firms"
+										}
+									]
+								},
+								{
+									"name": "IT Services",
+									"subcategories": [
+										{
+											"name": "Cloud Computing Services"
+										},
+										{
+											"name": "IT Consulting Firms"
+										},
+										{
+											"name": "Managed IT Services"
+										},
+										{
+											"name": "Cybersecurity Service Providers"
+										},
+										{
+											"name": "Data Analytics Companies"
+										},
+										{
+											"name": "IT Outsourcing Companies"
+										},
+										{
+											"name": "Network Management Services"
+										}
+									]
+								},
+								{
+									"name": "Telecommunications",
+									"subcategories": [
+										{
+											"name": "Mobile Network Operators"
+										},
+										{
+											"name": "Internet Service Providers"
+										},
+										{
+											"name": "Satellite Communication Companies"
+										},
+										{
+											"name": "Telecom Infrastructure Providers"
+										},
+										{
+											"name": "VoIP Service Providers"
+										},
+										{
+											"name": "Fiber Optic Network Providers"
+										}
+									]
+								},
+								{
+									"name": "Hardware Manufacturing",
+									"subcategories": [
+										{
+											"name": "Computer Hardware Manufacturers"
+										},
+										{
+											"name": "Consumer Electronics Manufacturers"
+										},
+										{
+											"name": "Semiconductor Companies"
+										},
+										{
+											"name": "Networking Equipment Manufacturers"
+										},
+										{
+											"name": "IoT Device Manufacturers"
+										},
+										{
+											"name": "Robotics Hardware Companies"
+										}
+									]
+								},
+								{
+									"name": "Gaming and Entertainment Tech",
+									"subcategories": [
+										{
+											"name": "Video Game Development Studios"
+										},
+										{
+											"name": "AR/VR Technology Companies"
+										},
+										{
+											"name": "Gaming Hardware Manufacturers"
+										},
+										{
+											"name": "Esports Organizations"
+										},
+										{
+											"name": "Game Streaming Platforms"
+										}
+									]
+								},
+								{
+									"name": "FinTech Companies",
+									"subcategories": [
+										{
+											"name": "Mobile Payment Platforms"
+										},
+										{
+											"name": "Digital Wallets"
+										},
+										{
+											"name": "Crowdfunding Platforms"
+										},
+										{
+											"name": "Cryptocurrency Exchanges"
+										},
+										{
+											"name": "Blockchain-Based Financial Services"
+										},
+										{
+											"name": "Peer-to-Peer Lending Platforms"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Manufacturing Companies",
+							"subcategories": [
+								{
+									"name": "Textile and Garment",
+									"subcategories": [
+										{
+											"name": "Ready-Made Garment Manufacturers"
+										},
+										{
+											"name": "Textile Mills"
+										},
+										{
+											"name": "Knitwear Manufacturers"
+										},
+										{
+											"name": "Leather Goods Manufacturers"
+										},
+										{
+											"name": "Jute Product Manufacturers"
+										},
+										{
+											"name": "Textile Dyeing and Finishing Companies"
+										}
+									]
+								},
+								{
+									"name": "Pharmaceuticals",
+									"subcategories": [
+										{
+											"name": "Generic Drug Manufacturers"
+										},
+										{
+											"name": "Vaccine Producers"
+										},
+										{
+											"name": "Biopharmaceutical Companies"
+										},
+										{
+											"name": "Medical Equipment Manufacturers"
+										},
+										{
+											"name": "Herbal Medicine Manufacturers"
+										},
+										{
+											"name": "Nutraceutical Companies"
+										}
+									]
+								},
+								{
+									"name": "Food and Beverage",
+									"subcategories": [
+										{
+											"name": "Packaged Food Companies"
+										},
+										{
+											"name": "Beverage Manufacturers"
+										},
+										{
+											"name": "Dairy Product Companies"
+										},
+										{
+											"name": "Confectionery Manufacturers"
+										},
+										{
+											"name": "Frozen Food Manufacturers"
+										},
+										{
+											"name": "Organic Food Producers"
+										}
+									]
+								},
+								{
+									"name": "Heavy Industry",
+									"subcategories": [
+										{
+											"name": "Steel Manufacturers"
+										},
+										{
+											"name": "Cement Manufacturers"
+										},
+										{
+											"name": "Chemical Manufacturers"
+										},
+										{
+											"name": "Automotive Parts Manufacturers"
+										},
+										{
+											"name": "Shipbuilding Companies"
+										},
+										{
+											"name": "Heavy Machinery Manufacturers"
+										}
+									]
+								},
+								{
+									"name": "Consumer Goods",
+									"subcategories": [
+										{
+											"name": "Home Appliance Manufacturers"
+										},
+										{
+											"name": "Furniture Manufacturers"
+										},
+										{
+											"name": "Personal Care Product Companies"
+										},
+										{
+											"name": "Toy Manufacturers"
+										},
+										{
+											"name": "Stationery Manufacturers"
+										},
+										{
+											"name": "Household Goods Manufacturers"
+										}
+									]
+								},
+								{
+									"name": "Electronics and Electrical",
+									"subcategories": [
+										{
+											"name": "Consumer Electronics Manufacturers"
+										},
+										{
+											"name": "Electrical Equipment Manufacturers"
+										},
+										{
+											"name": "Battery Manufacturers"
+										},
+										{
+											"name": "Solar Panel Manufacturers"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Financial Institutions",
+							"subcategories": [
+								{
+									"name": "Banking",
+									"subcategories": [
+										{
+											"name": "Commercial Banks"
+										},
+										{
+											"name": "Islamic Banks"
+										},
+										{
+											"name": "Cooperative Banks"
+										},
+										{
+											"name": "Microfinance Banks"
+										},
+										{
+											"name": "Development Banks"
+										},
+										{
+											"name": "Rural Banks"
+										}
+									]
+								},
+								{
+									"name": "Investment Services",
+									"subcategories": [
+										{
+											"name": "Investment Banks"
+										},
+										{
+											"name": "Asset Management Firms"
+										},
+										{
+											"name": "Hedge Funds"
+										},
+										{
+											"name": "Private Equity Firms"
+										},
+										{
+											"name": "Venture Capital Firms"
+										},
+										{
+											"name": "Stock Brokerage Firms"
+										}
+									]
+								},
+								{
+									"name": "Insurance",
+									"subcategories": [
+										{
+											"name": "Life Insurance Companies"
+										},
+										{
+											"name": "General Insurance Companies"
+										},
+										{
+											"name": "Health Insurance Providers"
+										},
+										{
+											"name": "Reinsurance Companies"
+										},
+										{
+											"name": "Crop Insurance Companies"
+										},
+										{
+											"name": "Vehicle Insurance Companies"
+										}
+									]
+								},
+								{
+									"name": "Financial Consulting",
+									"subcategories": [
+										{
+											"name": "Tax Consulting Firms"
+										},
+										{
+											"name": "Wealth Management Firms"
+										},
+										{
+											"name": "Corporate Finance Consultancies"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Retail and Consumer Goods",
+							"subcategories": [
+								{
+									"name": "Supermarkets and Retail",
+									"subcategories": [
+										{
+											"name": "Grocery Chains"
+										},
+										{
+											"name": "Department Stores"
+										},
+										{
+											"name": "Specialty Retail"
+										},
+										{
+											"name": "Convenience Stores"
+										},
+										{
+											"name": "Pharmacy Retail"
+										},
+										{
+											"name": "Home Improvement Retail"
+										}
+									]
+								},
+								{
+									"name": "E-commerce",
+									"subcategories": [
+										{
+											"name": "Online Marketplaces"
+										},
+										{
+											"name": "Fashion E-commerce"
+										},
+										{
+											"name": "Electronics E-commerce"
+										},
+										{
+											"name": "Grocery Delivery Platforms"
+										},
+										{
+											"name": "Home Decor E-commerce"
+										},
+										{
+											"name": "Book and Media E-commerce"
+										}
+									]
+								},
+								{
+									"name": "Fashion and Apparel",
+									"subcategories": [
+										{
+											"name": "Clothing Retail"
+										},
+										{
+											"name": "Footwear Retail"
+										},
+										{
+											"name": "Jewelry Retail"
+										},
+										{
+											"name": "Luxury Fashion Brands"
+										},
+										{
+											"name": "Sportswear Retail"
+										},
+										{
+											"name": "Traditional Clothing Retail"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Real Estate Companies",
+							"subcategories": [
+								{
+									"name": "Residential Property Developers"
+								},
+								{
+									"name": "Commercial Property Developers"
+								},
+								{
+									"name": "Property Management Firms"
+								},
+								{
+									"name": "Real Estate Brokerages"
+								},
+								{
+									"name": "Real Estate Investment Trusts"
+								},
+								{
+									"name": "Affordable Housing Developers"
+								},
+								{
+									"name": "Real Estate Valuation Firms"
+								}
+							]
+						},
+						{
+							"name": "Hospitality and Tourism",
+							"subcategories": [
+								{
+									"name": "Hotels and Resorts",
+									"subcategories": [
+										{
+											"name": "Luxury Hotels"
+										},
+										{
+											"name": "Budget Hotels"
+										},
+										{
+											"name": "Resorts and Spas"
+										},
+										{
+											"name": "Boutique Hotels"
+										},
+										{
+											"name": "Eco-Lodges"
+										},
+										{
+											"name": "Homestays and Guesthouses"
+										}
+									]
+								},
+								{
+									"name": "Travel and Tourism",
+									"subcategories": [
+										{
+											"name": "Travel Agencies"
+										},
+										{
+											"name": "Tour Operators"
+										},
+										{
+											"name": "Cruise Lines"
+										},
+										{
+											"name": "Adventure Tourism Companies"
+										},
+										{
+											"name": "Cultural Tourism Agencies"
+										},
+										{
+											"name": "Medical Tourism Companies"
+										}
+									]
+								},
+								{
+									"name": "Food and Beverage Services",
+									"subcategories": [
+										{
+											"name": "Restaurant Chains"
+										},
+										{
+											"name": "Cafes and Coffee Shops"
+										},
+										{
+											"name": "Catering Services"
+										},
+										{
+											"name": "Food Delivery Services"
+										},
+										{
+											"name": "Bakery Chains"
+										},
+										{
+											"name": "Fast Food Chains"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Marketing and Advertising",
+							"subcategories": [
+								{
+									"name": "Advertising Agencies",
+									"subcategories": [
+										{
+											"name": "Creative Advertising Agencies"
+										},
+										{
+											"name": "Media Buying Agencies"
+										},
+										{
+											"name": "Outdoor Advertising Companies"
+										},
+										{
+											"name": "Event Marketing Agencies"
+										}
+									]
+								},
+								{
+									"name": "Digital Marketing",
+									"subcategories": [
+										{
+											"name": "SEO Agencies"
+										},
+										{
+											"name": "Social Media Marketing Firms"
+										},
+										{
+											"name": "Content Marketing Agencies"
+										},
+										{
+											"name": "Pay-Per-Click Advertising Firms"
+										},
+										{
+											"name": "Influencer Marketing Agencies"
+										},
+										{
+											"name": "Email Marketing Firms"
+										}
+									]
+								},
+								{
+									"name": "Public Relations",
+									"subcategories": [
+										{
+											"name": "Corporate PR Firms"
+										},
+										{
+											"name": "Crisis Management PR Firms"
+										},
+										{
+											"name": "Event PR Companies"
+										},
+										{
+											"name": "Political PR Firms"
+										}
+									]
+								},
+								{
+									"name": "Market Research",
+									"subcategories": [
+										{
+											"name": "Consumer Research Firms"
+										},
+										{
+											"name": "Market Trend Analysis Companies"
+										},
+										{
+											"name": "Survey and Polling Companies"
+										},
+										{
+											"name": "Brand Research Agencies"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Construction and Infrastructure",
+							"subcategories": [
+								{
+									"name": "Construction Firms",
+									"subcategories": [
+										{
+											"name": "Residential Construction Companies"
+										},
+										{
+											"name": "Commercial Construction Companies"
+										},
+										{
+											"name": "Industrial Construction Firms"
+										},
+										{
+											"name": "High-Rise Construction Companies"
+										}
+									]
+								},
+								{
+									"name": "Infrastructure Developers",
+									"subcategories": [
+										{
+											"name": "Road and Highway Contractors"
+										},
+										{
+											"name": "Bridge and Tunnel Contractors"
+										},
+										{
+											"name": "Railway Construction Companies"
+										},
+										{
+											"name": "Airport Construction Firms"
+										},
+										{
+											"name": "Port and Harbor Developers"
+										}
+									]
+								},
+								{
+									"name": "Engineering Consultancies",
+									"subcategories": [
+										{
+											"name": "Structural Engineering Firms"
+										},
+										{
+											"name": "Geotechnical Engineering Firms"
+										},
+										{
+											"name": "Environmental Engineering Consultancies"
+										},
+										{
+											"name": "Urban Planning Consultancies"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Energy and Utilities",
+							"subcategories": [
+								{
+									"name": "Energy Companies",
+									"subcategories": [
+										{
+											"name": "Oil and Gas Exploration Companies"
+										},
+										{
+											"name": "Renewable Energy Companies"
+										},
+										{
+											"name": "Power Generation Companies"
+										},
+										{
+											"name": "Energy Distribution Companies"
+										},
+										{
+											"name": "Nuclear Energy Companies"
+										},
+										{
+											"name": "Energy Storage Companies"
+										}
+									]
+								},
+								{
+									"name": "Utilities",
+									"subcategories": [
+										{
+											"name": "Water Supply Companies"
+										},
+										{
+											"name": "Waste Management Companies"
+										},
+										{
+											"name": "Sewage Treatment Companies"
+										},
+										{
+											"name": "Gas Distribution Companies"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Transportation and Logistics",
+							"subcategories": [
+								{
+									"name": "Transportation Companies",
+									"subcategories": [
+										{
+											"name": "Airlines"
+										},
+										{
+											"name": "Shipping Companies"
+										},
+										{
+											"name": "Railway Operators"
+										},
+										{
+											"name": "Bus and Coach Operators"
+										},
+										{
+											"name": "Ride-Sharing Companies"
+										},
+										{
+											"name": "Urban Transit Operators"
+										}
+									]
+								},
+								{
+									"name": "Logistics and Supply Chain",
+									"subcategories": [
+										{
+											"name": "Freight Forwarding Companies"
+										},
+										{
+											"name": "Warehousing Companies"
+										},
+										{
+											"name": "Courier and Delivery Services"
+										},
+										{
+											"name": "Supply Chain Management Firms"
+										},
+										{
+											"name": "Cold Chain Logistics Companies"
+										},
+										{
+											"name": "Last-Mile Delivery Services"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Fashion and Design",
+							"subcategories": [
+								{
+									"name": "Fashion Brands",
+									"subcategories": [
+										{
+											"name": "Apparel Brands"
+										},
+										{
+											"name": "Accessories Brands"
+										},
+										{
+											"name": "Luxury Fashion Houses"
+										},
+										{
+											"name": "Sportswear Brands"
+										},
+										{
+											"name": "Traditional Clothing Brands"
+										}
+									]
+								},
+								{
+									"name": "Design Studios",
+									"subcategories": [
+										{
+											"name": "Textile Design Studios"
+										},
+										{
+											"name": "Fashion Design Studios"
+										},
+										{
+											"name": "Interior Design Firms"
+										},
+										{
+											"name": "Graphic Design Studios"
+										}
+									]
+								},
+								{
+									"name": "Fashion Retail",
+									"subcategories": [
+										{
+											"name": "Boutique Stores"
+										},
+										{
+											"name": "Chain Retail Stores"
+										},
+										{
+											"name": "Online Fashion Retail"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Consulting Firms",
+							"subcategories": [
+								{
+									"name": "Management Consulting",
+									"subcategories": [
+										{
+											"name": "Strategy Consulting Firms"
+										},
+										{
+											"name": "Operations Consulting Firms"
+										},
+										{
+											"name": "Financial Consulting Firms"
+										},
+										{
+											"name": "Sustainability Consulting Firms"
+										}
+									]
+								},
+								{
+									"name": "HR Consulting",
+									"subcategories": [
+										{
+											"name": "Recruitment Consulting Firms"
+										},
+										{
+											"name": "Training and Development Consultancies"
+										},
+										{
+											"name": "Organizational Development Firms"
+										},
+										{
+											"name": "Employee Engagement Consultancies"
+										}
+									]
+								},
+								{
+									"name": "IT Consulting",
+									"subcategories": [
+										{
+											"name": "Digital Transformation Consultancies"
+										},
+										{
+											"name": "Cloud Consulting Firms"
+										},
+										{
+											"name": "Cybersecurity Consulting Firms"
+										},
+										{
+											"name": "ERP Implementation Consultancies"
+										}
+									]
+								},
+								{
+									"name": "Legal Consulting",
+									"subcategories": [
+										{
+											"name": "Corporate Law Consultancies"
+										},
+										{
+											"name": "Compliance Consulting Firms"
+										},
+										{
+											"name": "Intellectual Property Consultancies"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Trade and Export-Import",
+							"subcategories": [
+								{
+									"name": "Export Companies",
+									"subcategories": [
+										{
+											"name": "Textile and Garment Exporters"
+										},
+										{
+											"name": "Agricultural Product Exporters"
+										},
+										{
+											"name": "Seafood Exporters"
+										},
+										{
+											"name": "Pharmaceutical Exporters"
+										},
+										{
+											"name": "Handicraft Exporters"
+										},
+										{
+											"name": "Jute Product Exporters"
+										}
+									]
+								},
+								{
+									"name": "Import Companies",
+									"subcategories": [
+										{
+											"name": "Electronics Importers"
+										},
+										{
+											"name": "Machinery Importers"
+										},
+										{
+											"name": "Raw Material Importers"
+										},
+										{
+											"name": "Consumer Goods Importers"
+										}
+									]
+								},
+								{
+									"name": "Trading Companies",
+									"subcategories": [
+										{
+											"name": "Commodity Trading Firms"
+										},
+										{
+											"name": "Wholesale Distributors"
+										},
+										{
+											"name": "Retail Trading Companies"
+										},
+										{
+											"name": "International Trading Firms"
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Government Institutions",
+					"subcategories": [
+						{
+							"name": "Ministries and Departments",
+							"subcategories": [
+								{
+									"name": "Ministry of Health and Family Welfare"
+								},
+								{
+									"name": "Ministry of Education"
+								},
+								{
+									"name": "Ministry of Finance"
+								},
+								{
+									"name": "Ministry of Agriculture"
+								},
+								{
+									"name": "Ministry of Home Affairs"
+								},
+								{
+									"name": "Ministry of Foreign Affairs"
+								},
+								{
+									"name": "Ministry of Commerce"
+								},
+								{
+									"name": "Ministry of Information and Broadcasting"
+								},
+								{
+									"name": "Ministry of Power, Energy, and Mineral Resources"
+								},
+								{
+									"name": "Ministry of Environment, Forest, and Climate Change"
+								},
+								{
+									"name": "Ministry of Road Transport and Bridges"
+								},
+								{
+									"name": "Ministry of Railways"
+								},
+								{
+									"name": "Ministry of Shipping"
+								},
+								{
+									"name": "Ministry of Civil Aviation and Tourism"
+								},
+								{
+									"name": "Ministry of Posts, Telecommunications, and Information Technology"
+								},
+								{
+									"name": "Ministry of Water Resources"
+								},
+								{
+									"name": "Ministry of Local Government, Rural Development, and Cooperatives"
+								},
+								{
+									"name": "Ministry of Industries"
+								},
+								{
+									"name": "Ministry of Fisheries and Livestock"
+								},
+								{
+									"name": "Ministry of Social Welfare"
+								},
+								{
+									"name": "Ministry of Women and Children Affairs"
+								},
+								{
+									"name": "Ministry of Youth and Sports"
+								},
+								{
+									"name": "Ministry of Cultural Affairs"
+								},
+								{
+									"name": "Ministry of Science and Technology"
+								},
+								{
+									"name": "Ministry of Labour and Employment"
+								},
+								{
+									"name": "Ministry of Housing and Public Works"
+								},
+								{
+									"name": "Ministry of Law, Justice, and Parliamentary Affairs"
+								}
+							]
+						},
+						{
+							"name": "Regulatory Bodies",
+							"subcategories": [
+								{
+									"name": "Central Bank"
+								},
+								{
+									"name": "Securities and Exchange Commission"
+								},
+								{
+									"name": "Energy Regulatory Commission"
+								},
+								{
+									"name": "Telecommunication Regulatory Commission"
+								},
+								{
+									"name": "Competition Commission"
+								},
+								{
+									"name": "Drug Administration Authority"
+								},
+								{
+									"name": "Food Safety Authority"
+								},
+								{
+									"name": "Standards and Testing Institution"
+								},
+								{
+									"name": "Export Promotion Bureau"
+								},
+								{
+									"name": "Investment Development Authority"
+								},
+								{
+									"name": "Consumer Rights Protection Agency"
+								},
+								{
+									"name": "Environmental Regulatory Agency"
+								}
+							]
+						},
+						{
+							"name": "Public Service Agencies",
+							"subcategories": [
+								{
+									"name": "Public Works Department"
+								},
+								{
+									"name": "Local Government Engineering Department"
+								},
+								{
+									"name": "Directorate of Health Services"
+								},
+								{
+									"name": "Directorate of Secondary and Higher Education"
+								},
+								{
+									"name": "Directorate of Agriculture Extension"
+								},
+								{
+									"name": "Public Service Commission"
+								},
+								{
+									"name": "Directorate of Technical Education"
+								},
+								{
+									"name": "Directorate of Primary Education"
+								},
+								{
+									"name": "Water Development Board"
+								},
+								{
+									"name": "National Housing Authority"
+								},
+								{
+									"name": "Disaster Management Directorate"
+								},
+								{
+									"name": "Directorate of Immigration and Passports"
+								},
+								{
+									"name": "National Revenue Board"
+								}
+							]
+						},
+						{
+							"name": "Defense and Security Institutions",
+							"subcategories": [
+								{
+									"name": "Army"
+								},
+								{
+									"name": "Navy"
+								},
+								{
+									"name": "Air Force"
+								},
+								{
+									"name": "Border Guard"
+								},
+								{
+									"name": "Police Service"
+								},
+								{
+									"name": "Intelligence Agencies"
+								},
+								{
+									"name": "Coast Guard"
+								},
+								{
+									"name": "Rapid Action Battalion"
+								},
+								{
+									"name": "Ansar and Village Defence Party"
+								}
+							]
+						},
+						{
+							"name": "Judicial Institutions",
+							"subcategories": [
+								{
+									"name": "Supreme Court"
+								},
+								{
+									"name": "High Court"
+								},
+								{
+									"name": "District Courts"
+								},
+								{
+									"name": "Magistrate Courts"
+								},
+								{
+									"name": "Family Courts"
+								},
+								{
+									"name": "Labour Courts"
+								},
+								{
+									"name": "Administrative Tribunals"
+								}
+							]
+						},
+						{
+							"name": "Local Government Bodies",
+							"subcategories": [
+								{
+									"name": "City Corporations"
+								},
+								{
+									"name": "Municipalities"
+								},
+								{
+									"name": "Union Councils"
+								},
+								{
+									"name": "Upazila Parishads"
+								},
+								{
+									"name": "Zila Parishads"
+								},
+								{
+									"name": "Pourashavas"
+								}
+							]
+						},
+						{
+							"name": "Public Enterprises",
+							"subcategories": [
+								{
+									"name": "State-Owned Banks"
+								},
+								{
+									"name": "Power Development Board"
+								},
+								{
+									"name": "Gas Transmission Companies"
+								},
+								{
+									"name": "National Airlines"
+								},
+								{
+									"name": "Railway Authority"
+								},
+								{
+									"name": "Shipping Corporation"
+								},
+								{
+									"name": "Telecommunication Companies"
+								},
+								{
+									"name": "Petroleum Corporations"
+								},
+								{
+									"name": "Chemical Industries Corporation"
+								},
+								{
+									"name": "Jute Mills Corporation"
+								}
+							]
+						},
+						{
+							"name": "Statutory Bodies",
+							"subcategories": [
+								{
+									"name": "Election Commission"
+								},
+								{
+									"name": "Anti-Corruption Commission"
+								},
+								{
+									"name": "Human Rights Commission"
+								},
+								{
+									"name": "Information Commission"
+								},
+								{
+									"name": "Ombudsman Office"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Educational Institutions",
+					"subcategories": [
+						{
+							"name": "Universities",
+							"subcategories": [
+								{
+									"name": "Public Universities"
+								},
+								{
+									"name": "Private Universities"
+								},
+								{
+									"name": "Medical Universities"
+								},
+								{
+									"name": "Engineering and Technology Universities"
+								},
+								{
+									"name": "Agricultural Universities"
+								},
+								{
+									"name": "Science and Technology Universities"
+								},
+								{
+									"name": "Open Universities"
+								}
+							]
+						},
+						{
+							"name": "Colleges",
+							"subcategories": [
+								{
+									"name": "Government Colleges"
+								},
+								{
+									"name": "Private Colleges"
+								},
+								{
+									"name": "Medical Colleges"
+								},
+								{
+									"name": "Technical and Vocational Colleges"
+								},
+								{
+									"name": "Teacher Training Colleges"
+								},
+								{
+									"name": "Nursing Colleges"
+								},
+								{
+									"name": "Law Colleges"
+								}
+							]
+						},
+						{
+							"name": "Schools",
+							"subcategories": [
+								{
+									"name": "Primary Schools"
+								},
+								{
+									"name": "Secondary Schools"
+								},
+								{
+									"name": "Higher Secondary Schools"
+								},
+								{
+									"name": "International Schools"
+								},
+								{
+									"name": "Religious Schools (Madrasahs)"
+								},
+								{
+									"name": "Special Education Schools"
+								},
+								{
+									"name": "Montessori Schools"
+								},
+								{
+									"name": "Kindergartens"
+								}
+							]
+						},
+						{
+							"name": "Training and Skill Development Institutes",
+							"subcategories": [
+								{
+									"name": "Vocational Training Centers"
+								},
+								{
+									"name": "Technical Training Institutes"
+								},
+								{
+									"name": "Language Training Centers"
+								},
+								{
+									"name": "Professional Certification Institutes"
+								},
+								{
+									"name": "Computer Training Centers"
+								},
+								{
+									"name": "Entrepreneurship Training Institutes"
+								}
+							]
+						},
+						{
+							"name": "Research and Academic Centers",
+							"subcategories": [
+								{
+									"name": "Academic Research Institutes"
+								},
+								{
+									"name": "Policy Research Centers"
+								},
+								{
+									"name": "Educational Technology Centers"
+								},
+								{
+									"name": "Curriculum Development Centers"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Non-Governmental Organizations (NGOs)",
+					"subcategories": [
+						{
+							"name": "Development NGOs",
+							"subcategories": [
+								{
+									"name": "Rural Development NGOs"
+								},
+								{
+									"name": "Women Empowerment NGOs"
+								},
+								{
+									"name": "Child Welfare NGOs"
+								},
+								{
+									"name": "Poverty Alleviation NGOs"
+								},
+								{
+									"name": "Community Development NGOs"
+								},
+								{
+									"name": "Microfinance NGOs"
+								},
+								{
+									"name": "Livelihood Development NGOs"
+								}
+							]
+						},
+						{
+							"name": "Health NGOs",
+							"subcategories": [
+								{
+									"name": "Public Health NGOs"
+								},
+								{
+									"name": "Medical Relief NGOs"
+								},
+								{
+									"name": "Mental Health NGOs"
+								},
+								{
+									"name": "Reproductive Health NGOs"
+								},
+								{
+									"name": "HIV/AIDS Awareness NGOs"
+								},
+								{
+									"name": "Nutrition and Food Security NGOs"
+								}
+							]
+						},
+						{
+							"name": "Education NGOs",
+							"subcategories": [
+								{
+									"name": "Literacy Programs"
+								},
+								{
+									"name": "Scholarship Providers"
+								},
+								{
+									"name": "School Support NGOs"
+								},
+								{
+									"name": "Vocational Education NGOs"
+								},
+								{
+									"name": "Adult Education NGOs"
+								},
+								{
+									"name": "STEM Education NGOs"
+								}
+							]
+						},
+						{
+							"name": "Environmental NGOs",
+							"subcategories": [
+								{
+									"name": "Conservation NGOs"
+								},
+								{
+									"name": "Climate Change Advocacy NGOs"
+								},
+								{
+									"name": "Wildlife Protection NGOs"
+								},
+								{
+									"name": "Renewable Energy Advocacy NGOs"
+								},
+								{
+									"name": "Water Conservation NGOs"
+								},
+								{
+									"name": "Anti-Pollution NGOs"
+								}
+							]
+						},
+						{
+							"name": "Human Rights NGOs",
+							"subcategories": [
+								{
+									"name": "Legal Aid NGOs"
+								},
+								{
+									"name": "Human Rights Advocacy NGOs"
+								},
+								{
+									"name": "Refugee Support NGOs"
+								},
+								{
+									"name": "Gender Equality NGOs"
+								},
+								{
+									"name": "Child Rights NGOs"
+								},
+								{
+									"name": "Minority Rights NGOs"
+								}
+							]
+						},
+						{
+							"name": "Disaster Relief NGOs",
+							"subcategories": [
+								{
+									"name": "Emergency Response NGOs"
+								},
+								{
+									"name": "Disaster Recovery NGOs"
+								},
+								{
+									"name": "Humanitarian Aid NGOs"
+								},
+								{
+									"name": "Flood Relief NGOs"
+								},
+								{
+									"name": "Earthquake Relief NGOs"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Healthcare Institutions",
+					"subcategories": [
+						{
+							"name": "Hospitals",
+							"subcategories": [
+								{
+									"name": "General Hospitals"
+								},
+								{
+									"name": "Specialized Hospitals"
+								},
+								{
+									"name": "Public Hospitals"
+								},
+								{
+									"name": "Private Hospitals"
+								},
+								{
+									"name": "Teaching Hospitals"
+								},
+								{
+									"name": "Children’s Hospitals"
+								},
+								{
+									"name": "Cardiac Hospitals"
+								}
+							]
+						},
+						{
+							"name": "Clinics",
+							"subcategories": [
+								{
+									"name": "General Clinics"
+								},
+								{
+									"name": "Dental Clinics"
+								},
+								{
+									"name": "Eye Clinics"
+								},
+								{
+									"name": "Pediatric Clinics"
+								},
+								{
+									"name": "Diagnostic Centers"
+								},
+								{
+									"name": "Orthopedic Clinics"
+								},
+								{
+									"name": "Gynecology Clinics"
+								}
+							]
+						},
+						{
+							"name": "Pharmacies",
+							"subcategories": [
+								{
+									"name": "Retail Pharmacies"
+								},
+								{
+									"name": "Hospital Pharmacies"
+								},
+								{
+									"name": "Online Pharmacies"
+								},
+								{
+									"name": "Compounding Pharmacies"
+								}
+							]
+						},
+						{
+							"name": "Medical Research Institutes",
+							"subcategories": [
+								{
+									"name": "Clinical Research Centers"
+								},
+								{
+									"name": "Pharmaceutical Research Labs"
+								},
+								{
+									"name": "Public Health Research Institutes"
+								},
+								{
+									"name": "Genetics Research Centers"
+								}
+							]
+						},
+						{
+							"name": "Rehabilitation Centers",
+							"subcategories": [
+								{
+									"name": "Physical Rehabilitation Centers"
+								},
+								{
+									"name": "Mental Health Rehabilitation Centers"
+								},
+								{
+									"name": "Drug Rehabilitation Centers"
+								},
+								{
+									"name": "Occupational Therapy Centers"
+								}
+							]
+						},
+						{
+							"name": "Alternative Medicine Centers",
+							"subcategories": [
+								{
+									"name": "Ayurvedic Treatment Centers"
+								},
+								{
+									"name": "Homeopathy Clinics"
+								},
+								{
+									"name": "Acupuncture Centers"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Research and Scientific Institutions",
+					"subcategories": [
+						{
+							"name": "Scientific Research Centers",
+							"subcategories": [
+								{
+									"name": "Agricultural Research Institutes"
+								},
+								{
+									"name": "Environmental Research Centers"
+								},
+								{
+									"name": "Biotechnology Research Labs"
+								},
+								{
+									"name": "Physics Research Institutes"
+								},
+								{
+									"name": "Chemical Research Labs"
+								},
+								{
+									"name": "Marine Research Centers"
+								}
+							]
+						},
+						{
+							"name": "Academic Research Institutes",
+							"subcategories": [
+								{
+									"name": "Social Science Research Centers"
+								},
+								{
+									"name": "Economic Research Institutes"
+								},
+								{
+									"name": "Engineering Research Labs"
+								},
+								{
+									"name": "Medical Research Institutes"
+								},
+								{
+									"name": "Historical Research Centers"
+								}
+							]
+						},
+						{
+							"name": "Government Research Bodies",
+							"subcategories": [
+								{
+									"name": "National Research Institutes"
+								},
+								{
+									"name": "Space Research Organizations"
+								},
+								{
+									"name": "Energy Research Agencies"
+								},
+								{
+									"name": "Agricultural Research Councils"
+								}
+							]
+						},
+						{
+							"name": "Private Research Firms",
+							"subcategories": [
+								{
+									"name": "Technology Research Companies"
+								},
+								{
+									"name": "Pharmaceutical Research Firms"
+								},
+								{
+									"name": "Market Research Organizations"
+								},
+								{
+									"name": "AI Research Labs"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Media and Entertainment Companies",
+					"subcategories": [
+						{
+							"name": "Broadcasting Companies",
+							"subcategories": [
+								{
+									"name": "Television Networks"
+								},
+								{
+									"name": "Radio Stations"
+								},
+								{
+									"name": "Streaming Media Platforms"
+								},
+								{
+									"name": "Cable TV Providers"
+								}
+							]
+						},
+						{
+							"name": "Film and Video Production",
+							"subcategories": [
+								{
+									"name": "Feature Film Studios"
+								},
+								{
+									"name": "Documentary Production Houses"
+								},
+								{
+									"name": "Animation Studios"
+								},
+								{
+									"name": "Commercial Video Production Companies"
+								},
+								{
+									"name": "Short Film Production Companies"
+								}
+							]
+						},
+						{
+							"name": "Publishing Houses",
+							"subcategories": [
+								{
+									"name": "Book Publishers"
+								},
+								{
+									"name": "Magazine Publishers"
+								},
+								{
+									"name": "Newspaper Publishers"
+								},
+								{
+									"name": "Academic Publishers"
+								},
+								{
+									"name": "Children’s Book Publishers"
+								}
+							]
+						},
+						{
+							"name": "Digital Media Companies",
+							"subcategories": [
+								{
+									"name": "Online News Portals"
+								},
+								{
+									"name": "Social Media Content Creators"
+								},
+								{
+									"name": "Digital Content Platforms"
+								},
+								{
+									"name": "Podcast Production Companies"
+								},
+								{
+									"name": "Online Video Platforms"
+								}
+							]
+						},
+						{
+							"name": "Music Industry",
+							"subcategories": [
+								{
+									"name": "Record Labels"
+								},
+								{
+									"name": "Music Production Companies"
+								},
+								{
+									"name": "Music Distribution Platforms"
+								},
+								{
+									"name": "Music Event Organizers"
+								}
+							]
+						},
+						{
+							"name": "Advertising and Media Agencies",
+							"subcategories": [
+								{
+									"name": "Creative Advertising Agencies"
+								},
+								{
+									"name": "Media Planning Agencies"
+								},
+								{
+									"name": "Digital Advertising Firms"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Agricultural and Environmental Organizations",
+					"subcategories": [
+						{
+							"name": "Agricultural Companies",
+							"subcategories": [
+								{
+									"name": "Agribusiness Firms"
+								},
+								{
+									"name": "Seed and Fertilizer Companies"
+								},
+								{
+									"name": "Farm Equipment Suppliers"
+								},
+								{
+									"name": "Organic Farming Companies"
+								},
+								{
+									"name": "Agro-Chemical Companies"
+								},
+								{
+									"name": "Hydroponics Companies"
+								}
+							]
+						},
+						{
+							"name": "Fisheries and Aquaculture",
+							"subcategories": [
+								{
+									"name": "Fish Farming Companies"
+								},
+								{
+									"name": "Seafood Processing Companies"
+								},
+								{
+									"name": "Aquaculture Technology Providers"
+								},
+								{
+									"name": "Marine Fisheries Companies"
+								}
+							]
+						},
+						{
+							"name": "Environmental Organizations",
+							"subcategories": [
+								{
+									"name": "Conservation Agencies"
+								},
+								{
+									"name": "Renewable Energy Research Groups"
+								},
+								{
+									"name": "Pollution Control Organizations"
+								},
+								{
+									"name": "Wildlife Protection Organizations"
+								},
+								{
+									"name": "Water Conservation Organizations"
+								},
+								{
+									"name": "Climate Action Groups"
+								}
+							]
+						},
+						{
+							"name": "Forestry Organizations",
+							"subcategories": [
+								{
+									"name": "Forest Management Companies"
+								},
+								{
+									"name": "Reforestation Initiatives"
+								},
+								{
+									"name": "Timber Companies"
+								},
+								{
+									"name": "Forest Conservation NGOs"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Professional Associations",
+					"subcategories": [
+						{
+							"name": "Medical Associations",
+							"subcategories": [
+								{
+									"name": "Doctors' Associations"
+								},
+								{
+									"name": "Nurses' Associations"
+								},
+								{
+									"name": "Pharmacists' Associations"
+								},
+								{
+									"name": "Dentists' Associations"
+								}
+							]
+						},
+						{
+							"name": "Engineering Associations",
+							"subcategories": [
+								{
+									"name": "Civil Engineering Associations"
+								},
+								{
+									"name": "Mechanical Engineering Associations"
+								},
+								{
+									"name": "Software Engineering Associations"
+								},
+								{
+									"name": "Electrical Engineering Associations"
+								}
+							]
+						},
+						{
+							"name": "Legal Associations",
+							"subcategories": [
+								{
+									"name": "Bar Associations"
+								},
+								{
+									"name": "Lawyers' Networks"
+								},
+								{
+									"name": "Judicial Associations"
+								},
+								{
+									"name": "Notary Associations"
+								}
+							]
+						},
+						{
+							"name": "Business Associations",
+							"subcategories": [
+								{
+									"name": "Chambers of Commerce"
+								},
+								{
+									"name": "Industry Associations"
+								},
+								{
+									"name": "Entrepreneur Networks"
+								},
+								{
+									"name": "Trade Associations"
+								}
+							]
+						},
+						{
+							"name": "Academic and Research Associations",
+							"subcategories": [
+								{
+									"name": "Scientific Research Associations"
+								},
+								{
+									"name": "Academic Societies"
+								},
+								{
+									"name": "Educational Associations"
+								},
+								{
+									"name": "Social Science Associations"
+								}
+							]
+						},
+						{
+							"name": "Creative and Media Associations",
+							"subcategories": [
+								{
+									"name": "Journalists' Associations"
+								},
+								{
+									"name": "Filmmakers' Associations"
+								},
+								{
+									"name": "Artists' Networks"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Social Enterprises",
+					"subcategories": [
+						{
+							"name": "Community Development Enterprises",
+							"subcategories": [
+								{
+									"name": "Microfinance Social Enterprises"
+								},
+								{
+									"name": "Skill Development Enterprises"
+								},
+								{
+									"name": "Rural Empowerment Enterprises"
+								},
+								{
+									"name": "Youth Development Enterprises"
+								}
+							]
+						},
+						{
+							"name": "Environmental Social Enterprises",
+							"subcategories": [
+								{
+									"name": "Sustainable Product Companies"
+								},
+								{
+									"name": "Waste Recycling Enterprises"
+								},
+								{
+									"name": "Renewable Energy Enterprises"
+								}
+							]
+						},
+						{
+							"name": "Health and Education Enterprises",
+							"subcategories": [
+								{
+									"name": "Low-Cost Healthcare Providers"
+								},
+								{
+									"name": "Affordable Education Providers"
+								},
+								{
+									"name": "Health Awareness Enterprises"
+								}
+							]
+						},
+						{
+							"name": "Fair Trade Enterprises",
+							"subcategories": [
+								{
+									"name": "Handicraft Cooperatives"
+								},
+								{
+									"name": "Agricultural Fair Trade Companies"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Other/Optional",
+					"subcategories": [
+						{
+							"name": "Unspecified Companies"
+						},
+						{
+							"name": "Freelance Organizations"
+						},
+						{
+							"name": "Startups"
+						},
+						{
+							"name": "Miscellaneous Institutes"
+						},
+						{
+							"name": "Non-Profit Organizations"
+						},
+						{
+							"name": "Cooperative Societies"
+						},
+						{
+							"name": "Charitable Trusts"
+						}
+					]
+				}
+			]
+		},
+		{
+			"high_level_category": "Location",
+			"subcategories": [
+				{
+					"name": "Continents",
+					"subcategories": [
+						{
+							"name": "Asia",
+							"subcategories": [
+								{
+									"name": "Bangladesh",
+									"subcategories": [
+										{
+											"name": "Dhaka Division",
+											"subcategories": [
+												{
+													"name": "Dhaka District",
+													"subcategories": [
+														{
+															"name": "Savar Upazila"
+														},
+														{
+															"name": "Dhamrai Upazila"
+														},
+														{
+															"name": "Keraniganj Upazila"
+														},
+														{
+															"name": "Nawabganj Upazila"
+														},
+														{
+															"name": "Dohar Upazila"
+														}
+													]
+												},
+												{
+													"name": "Gazipur District",
+													"subcategories": [
+														{
+															"name": "Gazipur Sadar Upazila"
+														},
+														{
+															"name": "Kaliakair Upazila"
+														},
+														{
+															"name": "Kaliganj Upazila"
+														},
+														{
+															"name": "Kapasia Upazila"
+														},
+														{
+															"name": "Sreepur Upazila"
+														}
+													]
+												},
+												{
+													"name": "Narayanganj District",
+													"subcategories": [
+														{
+															"name": "Narayanganj Sadar Upazila"
+														},
+														{
+															"name": "Araihazar Upazila"
+														},
+														{
+															"name": "Sonargaon Upazila"
+														},
+														{
+															"name": "Rupganj Upazila"
+														},
+														{
+															"name": "Bandar Upazila"
+														}
+													]
+												},
+												{
+													"name": "Tangail District",
+													"subcategories": [
+														{
+															"name": "Tangail Sadar Upazila"
+														},
+														{
+															"name": "Sakhipur Upazila"
+														},
+														{
+															"name": "Bhuapur Upazila"
+														},
+														{
+															"name": "Gopalpur Upazila"
+														},
+														{
+															"name": "Madhupur Upazila"
+														},
+														{
+															"name": "Dhanbari Upazila"
+														},
+														{
+															"name": "Kalihati Upazila"
+														},
+														{
+															"name": "Ghatail Upazila"
+														},
+														{
+															"name": "Basail Upazila"
+														},
+														{
+															"name": "Mirzapur Upazila"
+														},
+														{
+															"name": "Nagarpur Upazila"
+														},
+														{
+															"name": "Delduar Upazila"
+														}
+													]
+												},
+												{
+													"name": "Manikganj District",
+													"subcategories": [
+														{
+															"name": "Manikganj Sadar Upazila"
+														},
+														{
+															"name": "Singair Upazila"
+														},
+														{
+															"name": "Shivalaya Upazila"
+														},
+														{
+															"name": "Harirampur Upazila"
+														},
+														{
+															"name": "Daulatpur Upazila"
+														},
+														{
+															"name": "Saturia Upazila"
+														},
+														{
+															"name": "Ghior Upazila"
+														}
+													]
+												},
+												{
+													"name": "Narsingdi District",
+													"subcategories": [
+														{
+															"name": "Narsingdi Sadar Upazila"
+														},
+														{
+															"name": "Belabo Upazila"
+														},
+														{
+															"name": "Monohardi Upazila"
+														},
+														{
+															"name": "Palash Upazila"
+														},
+														{
+															"name": "Raipura Upazila"
+														},
+														{
+															"name": "Shibpur Upazila"
+														}
+													]
+												},
+												{
+													"name": "Munshiganj District",
+													"subcategories": [
+														{
+															"name": "Munshiganj Sadar Upazila"
+														},
+														{
+															"name": "Lohajang Upazila"
+														},
+														{
+															"name": "Sreenagar Upazila"
+														},
+														{
+															"name": "Tongibari Upazila"
+														},
+														{
+															"name": "Gazaria Upazila"
+														},
+														{
+															"name": "Sirajdikhan Upazila"
+														}
+													]
+												},
+												{
+													"name": "Kishoreganj District",
+													"subcategories": [
+														{
+															"name": "Kishoreganj Sadar Upazila"
+														},
+														{
+															"name": "Hossainpur Upazila"
+														},
+														{
+															"name": "Pakundia Upazila"
+														},
+														{
+															"name": "Katiadi Upazila"
+														},
+														{
+															"name": "Bhairab Upazila"
+														},
+														{
+															"name": "Tarail Upazila"
+														},
+														{
+															"name": "Karimganj Upazila"
+														},
+														{
+															"name": "Kuliarchar Upazila"
+														},
+														{
+															"name": "Mithamain Upazila"
+														},
+														{
+															"name": "Nikli Upazila"
+														},
+														{
+															"name": "Bajitpur Upazila"
+														},
+														{
+															"name": "Itna Upazila"
+														},
+														{
+															"name": "Austagram Upazila"
+														}
+													]
+												},
+												{
+													"name": "Mymensingh District",
+													"subcategories": [
+														{
+															"name": "Mymensingh Sadar Upazila"
+														},
+														{
+															"name": "Fulbaria Upazila"
+														},
+														{
+															"name": "Trishal Upazila"
+														},
+														{
+															"name": "Bhaluka Upazila"
+														},
+														{
+															"name": "Muktagachha Upazila"
+														},
+														{
+															"name": "Dhobaura Upazila"
+														},
+														{
+															"name": "Phulpur Upazila"
+														},
+														{
+															"name": "Haluaghat Upazila"
+														},
+														{
+															"name": "Nandail Upazila"
+														},
+														{
+															"name": "Gauripur Upazila"
+														},
+														{
+															"name": "Gafargaon Upazila"
+														},
+														{
+															"name": "Ishwarganj Upazila"
+														}
+													]
+												},
+												{
+													"name": "Netrokona District",
+													"subcategories": [
+														{
+															"name": "Netrokona Sadar Upazila"
+														},
+														{
+															"name": "Atpara Upazila"
+														},
+														{
+															"name": "Barhatta Upazila"
+														},
+														{
+															"name": "Durgapur Upazila"
+														},
+														{
+															"name": "Khaliajuri Upazila"
+														},
+														{
+															"name": "Kalmakanda Upazila"
+														},
+														{
+															"name": "Madan Upazila"
+														},
+														{
+															"name": "Mohanganj Upazila"
+														},
+														{
+															"name": "Purbadhala Upazila"
+														},
+														{
+															"name": "Kendua Upazila"
+														}
+													]
+												},
+												{
+													"name": "Jamalpur District",
+													"subcategories": [
+														{
+															"name": "Jamalpur Sadar Upazila"
+														},
+														{
+															"name": "Sarishabari Upazila"
+														},
+														{
+															"name": "Melandaha Upazila"
+														},
+														{
+															"name": "Islampur Upazila"
+														},
+														{
+															"name": "Dewanganj Upazila"
+														},
+														{
+															"name": "Madarganj Upazila"
+														},
+														{
+															"name": "Baksiganj Upazila"
+														}
+													]
+												},
+												{
+													"name": "Sherpur District",
+													"subcategories": [
+														{
+															"name": "Sherpur Sadar Upazila"
+														},
+														{
+															"name": "Nalitabari Upazila"
+														},
+														{
+															"name": "Sreebardi Upazila"
+														},
+														{
+															"name": "Jhenaigati Upazila"
+														},
+														{
+															"name": "Nakla Upazila"
+														}
+													]
+												},
+												{
+													"name": "Gopalganj District",
+													"subcategories": [
+														{
+															"name": "Gopalganj Sadar Upazila"
+														},
+														{
+															"name": "Kashiani Upazila"
+														},
+														{
+															"name": "Kotalipara Upazila"
+														},
+														{
+															"name": "Muksudpur Upazila"
+														},
+														{
+															"name": "Tungipara Upazila"
+														}
+													]
+												}
+											]
+										},
+										{
+											"name": "Chittagong Division",
+											"subcategories": [
+												{
+													"name": "Chittagong District",
+													"subcategories": [
+														{
+															"name": "Chittagong Sadar Upazila"
+														},
+														{
+															"name": "Sitakunda Upazila"
+														},
+														{
+															"name": "Mirsharai Upazila"
+														},
+														{
+															"name": "Patiya Upazila"
+														},
+														{
+															"name": "Sandwip Upazila"
+														},
+														{
+															"name": "Banshkhali Upazila"
+														},
+														{
+															"name": "Boalkhali Upazila"
+														},
+														{
+															"name": "Anwara Upazila"
+														},
+														{
+															"name": "Chandanaish Upazila"
+														},
+														{
+															"name": "Satkania Upazila"
+														},
+														{
+															"name": "Lohagara Upazila"
+														},
+														{
+															"name": "Hathazari Upazila"
+														},
+														{
+															"name": "Fatikchhari Upazila"
+														},
+														{
+															"name": "Raozan Upazila"
+														},
+														{
+															"name": "Rangunia Upazila"
+														}
+													]
+												},
+												{
+													"name": "Cox’s Bazar District",
+													"subcategories": [
+														{
+															"name": "Cox’s Bazar Sadar Upazila"
+														},
+														{
+															"name": "Chakaria Upazila"
+														},
+														{
+															"name": "Moheshkhali Upazila"
+														},
+														{
+															"name": "Kutubdia Upazila"
+														},
+														{
+															"name": "Ukhiya Upazila"
+														},
+														{
+															"name": "Teknaf Upazila"
+														},
+														{
+															"name": "Ramu Upazila"
+														},
+														{
+															"name": "Pekua Upazila"
+														}
+													]
+												},
+												{
+													"name": "Rangamati District",
+													"subcategories": [
+														{
+															"name": "Rangamati Sadar Upazila"
+														},
+														{
+															"name": "Kaptai Upazila"
+														},
+														{
+															"name": "Kawkhali Upazila"
+														},
+														{
+															"name": "Baghaichhari Upazila"
+														},
+														{
+															"name": "Barkal Upazila"
+														},
+														{
+															"name": "Langadu Upazila"
+														},
+														{
+															"name": "Rajasthali Upazila"
+														},
+														{
+															"name": "Belaichhari Upazila"
+														},
+														{
+															"name": "Juraichhari Upazila"
+														},
+														{
+															"name": "Naniarchar Upazila"
+														}
+													]
+												},
+												{
+													"name": "Bandarban District",
+													"subcategories": [
+														{
+															"name": "Bandarban Sadar Upazila"
+														},
+														{
+															"name": "Thanchi Upazila"
+														},
+														{
+															"name": "Lama Upazila"
+														},
+														{
+															"name": "Naikhongchhari Upazila"
+														},
+														{
+															"name": "Ali Kadam Upazila"
+														},
+														{
+															"name": "Rowangchhari Upazila"
+														},
+														{
+															"name": "Ruma Upazila"
+														}
+													]
+												},
+												{
+													"name": "Khagrachari District",
+													"subcategories": [
+														{
+															"name": "Khagrachari Sadar Upazila"
+														},
+														{
+															"name": "Dighinala Upazila"
+														},
+														{
+															"name": "Panchhari Upazila"
+														},
+														{
+															"name": "Matiranga Upazila"
+														},
+														{
+															"name": "Mahalchhari Upazila"
+														},
+														{
+															"name": "Laxmichhari Upazila"
+														},
+														{
+															"name": "Manikchhari Upazila"
+														},
+														{
+															"name": "Ramgarh Upazila"
+														},
+														{
+															"name": "Guimara Upazila"
+														}
+													]
+												},
+												{
+													"name": "Feni District",
+													"subcategories": [
+														{
+															"name": "Feni Sadar Upazila"
+														},
+														{
+															"name": "Chhagalnaiya Upazila"
+														},
+														{
+															"name": "Fulgazi Upazila"
+														},
+														{
+															"name": "Parshuram Upazila"
+														},
+														{
+															"name": "Daganbhuiyan Upazila"
+														},
+														{
+															"name": "Sonagazi Upazila"
+														}
+													]
+												},
+												{
+													"name": "Noakhali District",
+													"subcategories": [
+														{
+															"name": "Noakhali Sadar Upazila"
+														},
+														{
+															"name": "Subarnachar Upazila"
+														},
+														{
+															"name": "Kabirhat Upazila"
+														},
+														{
+															"name": "Hatiya Upazila"
+														},
+														{
+															"name": "Begumganj Upazila"
+														},
+														{
+															"name": "Chatkhil Upazila"
+														},
+														{
+															"name": "Companiganj Upazila"
+														},
+														{
+															"name": "Senbagh Upazila"
+														},
+														{
+															"name": "Sonaimuri Upazila"
+														}
+													]
+												},
+												{
+													"name": "Comilla District",
+													"subcategories": [
+														{
+															"name": "Comilla Sadar Upazila"
+														},
+														{
+															"name": "Debidwar Upazila"
+														},
+														{
+															"name": "Barura Upazila"
+														},
+														{
+															"name": "Brahmanpara Upazila"
+														},
+														{
+															"name": "Chandina Upazila"
+														},
+														{
+															"name": "Chauddagram Upazila"
+														},
+														{
+															"name": "Daudkandi Upazila"
+														},
+														{
+															"name": "Homna Upazila"
+														},
+														{
+															"name": "Laksam Upazila"
+														},
+														{
+															"name": "Muradnagar Upazila"
+														},
+														{
+															"name": "Nangalkot Upazila"
+														},
+														{
+															"name": "Comilla Adarsha Sadar Upazila"
+														},
+														{
+															"name": "Meghna Upazila"
+														},
+														{
+															"name": "Titas Upazila"
+														},
+														{
+															"name": "Burichang Upazila"
+														},
+														{
+															"name": "Lalmai Upazila"
+														}
+													]
+												},
+												{
+													"name": "Brahmanbaria District",
+													"subcategories": [
+														{
+															"name": "Brahmanbaria Sadar Upazila"
+														},
+														{
+															"name": "Ashuganj Upazila"
+														},
+														{
+															"name": "Nasirnagar Upazila"
+														},
+														{
+															"name": "Nabinagar Upazila"
+														},
+														{
+															"name": "Sarail Upazila"
+														},
+														{
+															"name": "Bancharampur Upazila"
+														},
+														{
+															"name": "Bijoynagar Upazila"
+														},
+														{
+															"name": "Akhaura Upazila"
+														},
+														{
+															"name": "Kasba Upazila"
+														}
+													]
+												},
+												{
+													"name": "Chandpur District",
+													"subcategories": [
+														{
+															"name": "Chandpur Sadar Upazila"
+														},
+														{
+															"name": "Hajiganj Upazila"
+														},
+														{
+															"name": "Kachua Upazila"
+														},
+														{
+															"name": "Faridganj Upazila"
+														},
+														{
+															"name": "Matlab Dakshin Upazila"
+														},
+														{
+															"name": "Matlab Uttar Upazila"
+														},
+														{
+															"name": "Shahrasti Upazila"
+														},
+														{
+															"name": "Haimchar Upazila"
+														}
+													]
+												},
+												{
+													"name": "Lakshmipur District",
+													"subcategories": [
+														{
+															"name": "Lakshmipur Sadar Upazila"
+														},
+														{
+															"name": "Raipur Upazila"
+														},
+														{
+															"name": "Ramganj Upazila"
+														},
+														{
+															"name": "Ramgati Upazila"
+														},
+														{
+															"name": "Kamalnagar Upazila"
+														}
+													]
+												}
+											]
+										},
+										{
+											"name": "Khulna Division",
+											"subcategories": [
+												{
+													"name": "Khulna District",
+													"subcategories": [
+														{
+															"name": "Khulna Sadar Upazila"
+														},
+														{
+															"name": "Dacope Upazila"
+														},
+														{
+															"name": "Batiaghata Upazila"
+														},
+														{
+															"name": "Dumuria Upazila"
+														},
+														{
+															"name": "Phultala Upazila"
+														},
+														{
+															"name": "Dighalia Upazila"
+														},
+														{
+															"name": "Koyra Upazila"
+														},
+														{
+															"name": "Paikgachha Upazila"
+														},
+														{
+															"name": "Terokhada Upazila"
+														}
+													]
+												},
+												{
+													"name": "Jessore District",
+													"subcategories": [
+														{
+															"name": "Jessore Sadar Upazila"
+														},
+														{
+															"name": "Abhaynagar Upazila"
+														},
+														{
+															"name": "Bagherpara Upazila"
+														},
+														{
+															"name": "Chaugachha Upazila"
+														},
+														{
+															"name": "Jhikargachha Upazila"
+														},
+														{
+															"name": "Keshabpur Upazila"
+														},
+														{
+															"name": "Manirampur Upazila"
+														},
+														{
+															"name": "Sharsha Upazila"
+														}
+													]
+												},
+												{
+													"name": "Satkhira District",
+													"subcategories": [
+														{
+															"name": "Satkhira Sadar Upazila"
+														},
+														{
+															"name": "Assasuni Upazila"
+														},
+														{
+															"name": "Debhata Upazila"
+														},
+														{
+															"name": "Kalaroa Upazila"
+														},
+														{
+															"name": "Kaliganj Upazila"
+														},
+														{
+															"name": "Shyamnagar Upazila"
+														},
+														{
+															"name": "Tala Upazila"
+														}
+													]
+												},
+												{
+													"name": "Narail District",
+													"subcategories": [
+														{
+															"name": "Narail Sadar Upazila"
+														},
+														{
+															"name": "Lohagara Upazila"
+														},
+														{
+															"name": "Kalia Upazila"
+														}
+													]
+												},
+												{
+													"name": "Bagerhat District",
+													"subcategories": [
+														{
+															"name": "Bagerhat Sadar Upazila"
+														},
+														{
+															"name": "Chitalmari Upazila"
+														},
+														{
+															"name": "Fakirhat Upazila"
+														},
+														{
+															"name": "Kachua Upazila"
+														},
+														{
+															"name": "Mollahat Upazila"
+														},
+														{
+															"name": "Mongla Upazila"
+														},
+														{
+															"name": "Morrelganj Upazila"
+														},
+														{
+															"name": "Rampal Upazila"
+														},
+														{
+															"name": "Sarankhola Upazila"
+														}
+													]
+												},
+												{
+													"name": "Chuadanga District",
+													"subcategories": [
+														{
+															"name": "Chuadanga Sadar Upazila"
+														},
+														{
+															"name": "Alamdanga Upazila"
+														},
+														{
+															"name": "Damurhuda Upazila"
+														},
+														{
+															"name": "Jibannagar Upazila"
+														}
+													]
+												},
+												{
+													"name": "Jhenaidah District",
+													"subcategories": [
+														{
+															"name": "Jhenaidah Sadar Upazila"
+														},
+														{
+															"name": "Harinakunda Upazila"
+														},
+														{
+															"name": "Kaliganj Upazila"
+														},
+														{
+															"name": "Kotchandpur Upazila"
+														},
+														{
+															"name": "Maheshpur Upazila"
+														},
+														{
+															"name": "Shailkupa Upazila"
+														}
+													]
+												},
+												{
+													"name": "Magura District",
+													"subcategories": [
+														{
+															"name": "Magura Sadar Upazila"
+														},
+														{
+															"name": "Mohammadpur Upazila"
+														},
+														{
+															"name": "Shalikha Upazila"
+														},
+														{
+															"name": "Sreepur Upazila"
+														}
+													]
+												},
+												{
+													"name": "Kushtia District",
+													"subcategories": [
+														{
+															"name": "Kushtia Sadar Upazila"
+														},
+														{
+															"name": "Kumarkhali Upazila"
+														},
+														{
+															"name": "Khoksa Upazila"
+														},
+														{
+															"name": "Mirpur Upazila"
+														},
+														{
+															"name": "Daulatpur Upazila"
+														},
+														{
+															"name": "Bheramara Upazila"
+														}
+													]
+												},
+												{
+													"name": "Meherpur District",
+													"subcategories": [
+														{
+															"name": "Meherpur Sadar Upazila"
+														},
+														{
+															"name": "Gangni Upazila"
+														},
+														{
+															"name": "Mujibnagar Upazila"
+														}
+													]
+												}
+											]
+										},
+										{
+											"name": "Rajshahi Division",
+											"subcategories": [
+												{
+													"name": "Rajshahi District",
+													"subcategories": [
+														{
+															"name": "Rajshahi Sadar Upazila"
+														},
+														{
+															"name": "Paba Upazila"
+														},
+														{
+															"name": "Bagha Upazila"
+														},
+														{
+															"name": "Bagmara Upazila"
+														},
+														{
+															"name": "Charghat Upazila"
+														},
+														{
+															"name": "Durgapur Upazila"
+														},
+														{
+															"name": "Godagari Upazila"
+														},
+														{
+															"name": "Mohanpur Upazila"
+														},
+														{
+															"name": "Puthia Upazila"
+														},
+														{
+															"name": "Tanore Upazila"
+														}
+													]
+												},
+												{
+													"name": "Natore District",
+													"subcategories": [
+														{
+															"name": "Natore Sadar Upazila"
+														},
+														{
+															"name": "Baraigram Upazila"
+														},
+														{
+															"name": "Gurudaspur Upazila"
+														},
+														{
+															"name": "Lalpur Upazila"
+														},
+														{
+															"name": "Singra Upazila"
+														},
+														{
+															"name": "Bagatipara Upazila"
+														}
+													]
+												},
+												{
+													"name": "Naogaon District",
+													"subcategories": [
+														{
+															"name": "Naogaon Sadar Upazila"
+														},
+														{
+															"name": "Atrai Upazila"
+														},
+														{
+															"name": "Badalgachhi Upazila"
+														},
+														{
+															"name": "Manda Upazila"
+														},
+														{
+															"name": "Dhamoirhat Upazila"
+														},
+														{
+															"name": "Mohadevpur Upazila"
+														},
+														{
+															"name": "Niamatpur Upazila"
+														},
+														{
+															"name": "Patnitala Upazila"
+														},
+														{
+															"name": "Porsha Upazila"
+														},
+														{
+															"name": "Raninagar Upazila"
+														},
+														{
+															"name": "Sapahar Upazila"
+														}
+													]
+												},
+												{
+													"name": "Chapainawabganj District",
+													"subcategories": [
+														{
+															"name": "Chapainawabganj Sadar Upazila"
+														},
+														{
+															"name": "Shibganj Upazila"
+														},
+														{
+															"name": "Gomastapur Upazila"
+														},
+														{
+															"name": "Nachole Upazila"
+														},
+														{
+															"name": "Bholahat Upazila"
+														}
+													]
+												},
+												{
+													"name": "Pabna District",
+													"subcategories": [
+														{
+															"name": "Pabna Sadar Upazila"
+														},
+														{
+															"name": "Atgharia Upazila"
+														},
+														{
+															"name": "Bera Upazila"
+														},
+														{
+															"name": "Bhangura Upazila"
+														},
+														{
+															"name": "Chatmohar Upazila"
+														},
+														{
+															"name": "Faridpur Upazila"
+														},
+														{
+															"name": "Ishwardi Upazila"
+														},
+														{
+															"name": "Santhia Upazila"
+														},
+														{
+															"name": "Sujanagar Upazila"
+														}
+													]
+												},
+												{
+													"name": "Sirajganj District",
+													"subcategories": [
+														{
+															"name": "Sirajganj Sadar Upazila"
+														},
+														{
+															"name": "Belkuchi Upazila"
+														},
+														{
+															"name": "Chauhali Upazila"
+														},
+														{
+															"name": "Kamarkhanda Upazila"
+														},
+														{
+															"name": "Kazipur Upazila"
+														},
+														{
+															"name": "Royganj Upazila"
+														},
+														{
+															"name": "Shahjadpur Upazila"
+														},
+														{
+															"name": "Tarash Upazila"
+														},
+														{
+															"name": "Ullahpara Upazila"
+														}
+													]
+												},
+												{
+													"name": "Bogra District",
+													"subcategories": [
+														{
+															"name": "Bogra Sadar Upazila"
+														},
+														{
+															"name": "Adamdighi Upazila"
+														},
+														{
+															"name": "Dhunat Upazila"
+														},
+														{
+															"name": "Dhupchanchia Upazila"
+														},
+														{
+															"name": "Gabtali Upazila"
+														},
+														{
+															"name": "Kahaloo Upazila"
+														},
+														{
+															"name": "Nandigram Upazila"
+														},
+														{
+															"name": "Sariakandi Upazila"
+														},
+														{
+															"name": "Shajahanpur Upazila"
+														},
+														{
+															"name": "Sherpur Upazila"
+														},
+														{
+															"name": "Shibganj Upazila"
+														},
+														{
+															"name": "Sonatola Upazila"
+														}
+													]
+												},
+												{
+													"name": "Joypurhat District",
+													"subcategories": [
+														{
+															"name": "Joypurhat Sadar Upazila"
+														},
+														{
+															"name": "Akkelpur Upazila"
+														},
+														{
+															"name": "Kalai Upazila"
+														},
+														{
+															"name": "Khetlal Upazila"
+														},
+														{
+															"name": "Panchbibi Upazila"
+														}
+													]
+												}
+											]
+										},
+										{
+											"name": "Sylhet Division",
+											"subcategories": [
+												{
+													"name": "Sylhet District",
+													"subcategories": [
+														{
+															"name": "Sylhet Sadar Upazila"
+														},
+														{
+															"name": "Beanibazar Upazila"
+														},
+														{
+															"name": "Bishwanath Upazila"
+														},
+														{
+															"name": "Companiganj Upazila"
+														},
+														{
+															"name": "Fenchuganj Upazila"
+														},
+														{
+															"name": "Golapganj Upazila"
+														},
+														{
+															"name": "Gowainghat Upazila"
+														},
+														{
+															"name": "Jaintiapur Upazila"
+														},
+														{
+															"name": "Kanaighat Upazila"
+														},
+														{
+															"name": "Zakiganj Upazila"
+														},
+														{
+															"name": "Balaganj Upazila"
+														},
+														{
+															"name": "Osmaninagar Upazila"
+														}
+													]
+												},
+												{
+													"name": "Moulvibazar District",
+													"subcategories": [
+														{
+															"name": "Moulvibazar Sadar Upazila"
+														},
+														{
+															"name": "Barlekha Upazila"
+														},
+														{
+															"name": "Juri Upazila"
+														},
+														{
+															"name": "Kamalganj Upazila"
+														},
+														{
+															"name": "Kulaura Upazila"
+														},
+														{
+															"name": "Rajnagar Upazila"
+														},
+														{
+															"name": "Sreemangal Upazila"
+														}
+													]
+												},
+												{
+													"name": "Habiganj District",
+													"subcategories": [
+														{
+															"name": "Habiganj Sadar Upazila"
+														},
+														{
+															"name": "Ajmiriganj Upazila"
+														},
+														{
+															"name": "Bahubal Upazila"
+														},
+														{
+															"name": "Baniyachong Upazila"
+														},
+														{
+															"name": "Chunarughat Upazila"
+														},
+														{
+															"name": "Lakhai Upazila"
+														},
+														{
+															"name": "Madhabpur Upazila"
+														},
+														{
+															"name": "Nabiganj Upazila"
+														}
+													]
+												},
+												{
+													"name": "Sunamganj District",
+													"subcategories": [
+														{
+															"name": "Sunamganj Sadar Upazila"
+														},
+														{
+															"name": "Bishwamvarpur Upazila"
+														},
+														{
+															"name": "Chhatak Upazila"
+														},
+														{
+															"name": "Dakshin Sunamganj Upazila"
+														},
+														{
+															"name": "Derai Upazila"
+														},
+														{
+															"name": "Dharampasha Upazila"
+														},
+														{
+															"name": "Dowarabazar Upazila"
+														},
+														{
+															"name": "Jagannathpur Upazila"
+														},
+														{
+															"name": "Jamalganj Upazila"
+														},
+														{
+															"name": "Sullah Upazila"
+														},
+														{
+															"name": "Tahirpur Upazila"
+														},
+														{
+															"name": "Madhyanagar Upazila"
+														}
+													]
+												}
+											]
+										},
+										{
+											"name": "Barisal Division",
+											"subcategories": [
+												{
+													"name": "Barisal District",
+													"subcategories": [
+														{
+															"name": "Barisal Sadar Upazila"
+														},
+														{
+															"name": "Agailjhara Upazila"
+														},
+														{
+															"name": "Babuganj Upazila"
+														},
+														{
+															"name": "Bakerganj Upazila"
+														},
+														{
+															"name": "Banaripara Upazila"
+														},
+														{
+															"name": "Gournadi Upazila"
+														},
+														{
+															"name": "Hizla Upazila"
+														},
+														{
+															"name": "Mehendiganj Upazila"
+														},
+														{
+															"name": "Muladi Upazila"
+														},
+														{
+															"name": "Wazirpur Upazila"
+														}
+													]
+												},
+												{
+													"name": "Barguna District",
+													"subcategories": [
+														{
+															"name": "Barguna Sadar Upazila"
+														},
+														{
+															"name": "Amtali Upazila"
+														},
+														{
+															"name": "Bamna Upazila"
+														},
+														{
+															"name": "Betagi Upazila"
+														},
+														{
+															"name": "Patharghata Upazila"
+														},
+														{
+															"name": "Taltali Upazila"
+														}
+													]
+												},
+												{
+													"name": "Bhola District",
+													"subcategories": [
+														{
+															"name": "Bhola Sadar Upazila"
+														},
+														{
+															"name": "Burhanuddin Upazila"
+														},
+														{
+															"name": "Char Fasson Upazila"
+														},
+														{
+															"name": "Daulatkhan Upazila"
+														},
+														{
+															"name": "Lalmohan Upazila"
+														},
+														{
+															"name": "Manpura Upazila"
+														},
+														{
+															"name": "Tazumuddin Upazila"
+														}
+													]
+												},
+												{
+													"name": "Jhalokati District",
+													"subcategories": [
+														{
+															"name": "Jhalokati Sadar Upazila"
+														},
+														{
+															"name": "Kathalia Upazila"
+														},
+														{
+															"name": "Nalchity Upazila"
+														},
+														{
+															"name": "Rajapur Upazila"
+														}
+													]
+												},
+												{
+													"name": "Patuakhali District",
+													"subcategories": [
+														{
+															"name": "Patuakhali Sadar Upazila"
+														},
+														{
+															"name": "Bauphal Upazila"
+														},
+														{
+															"name": "Dashmina Upazila"
+														},
+														{
+															"name": "Galachipa Upazila"
+														},
+														{
+															"name": "Kalapara Upazila"
+														},
+														{
+															"name": "Mirzaganj Upazila"
+														},
+														{
+															"name": "Rangabali Upazila"
+														},
+														{
+															"name": "Dumki Upazila"
+														}
+													]
+												},
+												{
+													"name": "Pirojpur District",
+													"subcategories": [
+														{
+															"name": "Pirojpur Sadar Upazila"
+														},
+														{
+															"name": "Bhandaria Upazila"
+														},
+														{
+															"name": "Kawkhali Upazila"
+														},
+														{
+															"name": "Mathbaria Upazila"
+														},
+														{
+															"name": "Nazirpur Upazila"
+														},
+														{
+															"name": "Nesarabad Upazila"
+														},
+														{
+															"name": "Zianagar Upazila"
+														}
+													]
+												}
+											]
+										},
+										{
+											"name": "Rangpur Division",
+											"subcategories": [
+												{
+													"name": "Rangpur District",
+													"subcategories": [
+														{
+															"name": "Rangpur Sadar Upazila"
+														},
+														{
+															"name": "Badarganj Upazila"
+														},
+														{
+															"name": "Gangachhara Upazila"
+														},
+														{
+															"name": "Kaunia Upazila"
+														},
+														{
+															"name": "Mithapukur Upazila"
+														},
+														{
+															"name": "Pirgachha Upazila"
+														},
+														{
+															"name": "Pirganj Upazila"
+														},
+														{
+															"name": "Taraganj Upazila"
+														}
+													]
+												},
+												{
+													"name": "Dinajpur District",
+													"subcategories": [
+														{
+															"name": "Dinajpur Sadar Upazila"
+														},
+														{
+															"name": "Birampur Upazila"
+														},
+														{
+															"name": "Birganj Upazila"
+														},
+														{
+															"name": "Biral Upazila"
+														},
+														{
+															"name": "Bochaganj Upazila"
+														},
+														{
+															"name": "Chirirbandar Upazila"
+														},
+														{
+															"name": "Fulbari Upazila"
+														},
+														{
+															"name": "Ghoraghat Upazila"
+														},
+														{
+															"name": "Hakimpur Upazila"
+														},
+														{
+															"name": "Kaharole Upazila"
+														},
+														{
+															"name": "Khansama Upazila"
+														},
+														{
+															"name": "Nawabganj Upazila"
+														},
+														{
+															"name": "Parbatipur Upazila"
+														}
+													]
+												},
+												{
+													"name": "Kurigram District",
+													"subcategories": [
+														{
+															"name": "Kurigram Sadar Upazila"
+														},
+														{
+															"name": "Bhurungamari Upazila"
+														},
+														{
+															"name": "Chilmari Upazila"
+														},
+														{
+															"name": "Phulbari Upazila"
+														},
+														{
+															"name": "Nageshwari Upazila"
+														},
+														{
+															"name": "Rajarhat Upazila"
+														},
+														{
+															"name": "Raumari Upazila"
+														},
+														{
+															"name": "Ulipur Upazila"
+														},
+														{
+															"name": "Char Rajibpur Upazila"
+														}
+													]
+												},
+												{
+													"name": "Lalmonirhat District",
+													"subcategories": [
+														{
+															"name": "Lalmonirhat Sadar Upazila"
+														},
+														{
+															"name": "Aditmari Upazila"
+														},
+														{
+															"name": "Hatibandha Upazila"
+														},
+														{
+															"name": "Kaliganj Upazila"
+														},
+														{
+															"name": "Patgram Upazila"
+														}
+													]
+												},
+												{
+													"name": "Nilphamari District",
+													"subcategories": [
+														{
+															"name": "Nilphamari Sadar Upazila"
+														},
+														{
+															"name": "Dimla Upazila"
+														},
+														{
+															"name": "Domar Upazila"
+														},
+														{
+															"name": "Jaldhaka Upazila"
+														},
+														{
+															"name": "Kishoreganj Upazila"
+														},
+														{
+															"name": "Saidpur Upazila"
+														}
+													]
+												},
+												{
+													"name": "Gaibandha District",
+													"subcategories": [
+														{
+															"name": "Gaibandha Sadar Upazila"
+														},
+														{
+															"name": "Fulchhari Upazila"
+														},
+														{
+															"name": "Gobindaganj Upazila"
+														},
+														{
+															"name": "Palashbari Upazila"
+														},
+														{
+															"name": "Sadullapur Upazila"
+														},
+														{
+															"name": "Saghata Upazila"
+														},
+														{
+															"name": "Sundarganj Upazila"
+														}
+													]
+												},
+												{
+													"name": "Thakurgaon District",
+													"subcategories": [
+														{
+															"name": "Thakurgaon Sadar Upazila"
+														},
+														{
+															"name": "Baliadangi Upazila"
+														},
+														{
+															"name": "Haripur Upazila"
+														},
+														{
+															"name": "Pirganj Upazila"
+														},
+														{
+															"name": "Ranisankail Upazila"
+														}
+													]
+												},
+												{
+													"name": "Panchagarh District",
+													"subcategories": [
+														{
+															"name": "Panchagarh Sadar Upazila"
+														},
+														{
+															"name": "Atwari Upazila"
+														},
+														{
+															"name": "Boda Upazila"
+														},
+														{
+															"name": "Debiganj Upazila"
+														},
+														{
+															"name": "Tetulia Upazila"
+														}
+													]
+												}
+											]
+										},
+										{
+											"name": "Mymensingh Division",
+											"subcategories": [
+												{
+													"name": "Mymensingh District",
+													"subcategories": [
+														{
+															"name": "Mymensingh Sadar Upazila"
+														},
+														{
+															"name": "Fulbaria Upazila"
+														},
+														{
+															"name": "Trishal Upazila"
+														},
+														{
+															"name": "Bhaluka Upazila"
+														},
+														{
+															"name": "Muktagachha Upazila"
+														},
+														{
+															"name": "Dhobaura Upazila"
+														},
+														{
+															"name": "Phulpur Upazila"
+														},
+														{
+															"name": "Haluaghat Upazila"
+														},
+														{
+															"name": "Nandail Upazila"
+														},
+														{
+															"name": "Gauripur Upazila"
+														},
+														{
+															"name": "Gafargaon Upazila"
+														},
+														{
+															"name": "Ishwarganj Upazila"
+														}
+													]
+												},
+												{
+													"name": "Netrokona District",
+													"subcategories": [
+														{
+															"name": "Netrokona Sadar Upazila"
+														},
+														{
+															"name": "Atpara Upazila"
+														},
+														{
+															"name": "Barhatta Upazila"
+														},
+														{
+															"name": "Durgapur Upazila"
+														},
+														{
+															"name": "Khaliajuri Upazila"
+														},
+														{
+															"name": "Kalmakanda Upazila"
+														},
+														{
+															"name": "Madan Upazila"
+														},
+														{
+															"name": "Mohanganj Upazila"
+														},
+														{
+															"name": "Purbadhala Upazila"
+														},
+														{
+															"name": "Kendua Upazila"
+														}
+													]
+												},
+												{
+													"name": "Jamalpur District",
+													"subcategories": [
+														{
+															"name": "Jamalpur Sadar Upazila"
+														},
+														{
+															"name": "Sarishabari Upazila"
+														},
+														{
+															"name": "Melandaha Upazila"
+														},
+														{
+															"name": "Islampur Upazila"
+														},
+														{
+															"name": "Dewanganj Upazila"
+														},
+														{
+															"name": "Madarganj Upazila"
+														},
+														{
+															"name": "Baksiganj Upazila"
+														}
+													]
+												},
+												{
+													"name": "Sherpur District",
+													"subcategories": [
+														{
+															"name": "Sherpur Sadar Upazila"
+														},
+														{
+															"name": "Nalitabari Upazila"
+														},
+														{
+															"name": "Sreebardi Upazila"
+														},
+														{
+															"name": "Jhenaigati Upazila"
+														},
+														{
+															"name": "Nakla Upazila"
+														}
+													]
+												}
+											]
+										}
+									]
+								},
+								{
+									"name": "India",
+									"subcategories": [
+										{
+											"name": "Delhi State",
+											"subcategories": [
+												{
+													"name": "New Delhi District"
+												},
+												{
+													"name": "North Delhi District"
+												},
+												{
+													"name": "South Delhi District"
+												}
+											]
+										},
+										{
+											"name": "Maharashtra State",
+											"subcategories": [
+												{
+													"name": "Mumbai District"
+												},
+												{
+													"name": "Pune District"
+												},
+												{
+													"name": "Nagpur District"
+												}
+											]
+										},
+										{
+											"name": "Karnataka State",
+											"subcategories": [
+												{
+													"name": "Bengaluru District"
+												},
+												{
+													"name": "Mysore District"
+												}
+											]
+										},
+										{
+											"name": "West Bengal State",
+											"subcategories": [
+												{
+													"name": "Kolkata District"
+												},
+												{
+													"name": "Darjeeling District"
+												}
+											]
+										},
+										{
+											"name": "Tamil Nadu State",
+											"subcategories": [
+												{
+													"name": "Chennai District"
+												},
+												{
+													"name": "Coimbatore District"
+												}
+											]
+										}
+									]
+								},
+								{
+									"name": "Pakistan",
+									"subcategories": [
+										{
+											"name": "Punjab Province",
+											"subcategories": [
+												{
+													"name": "Lahore District"
+												},
+												{
+													"name": "Faisalabad District"
+												}
+											]
+										},
+										{
+											"name": "Sindh Province",
+											"subcategories": [
+												{
+													"name": "Karachi District"
+												},
+												{
+													"name": "Hyderabad District"
+												}
+											]
+										}
+									]
+								},
+								{
+									"name": "Sri Lanka",
+									"subcategories": [
+										{
+											"name": "Western Province",
+											"subcategories": [
+												{
+													"name": "Colombo District"
+												},
+												{
+													"name": "Gampaha District"
+												}
+											]
+										},
+										{
+											"name": "Central Province",
+											"subcategories": [
+												{
+													"name": "Kandy District"
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "North America",
+							"subcategories": [
+								{
+									"name": "United States",
+									"subcategories": [
+										{
+											"name": "California State",
+											"subcategories": [
+												{
+													"name": "Los Angeles County"
+												},
+												{
+													"name": "San Francisco County"
+												},
+												{
+													"name": "Santa Clara County"
+												}
+											]
+										},
+										{
+											"name": "New York State",
+											"subcategories": [
+												{
+													"name": "New York County"
+												},
+												{
+													"name": "Kings County"
+												}
+											]
+										},
+										{
+											"name": "Texas State",
+											"subcategories": [
+												{
+													"name": "Harris County"
+												},
+												{
+													"name": "Travis County"
+												}
+											]
+										}
+									]
+								},
+								{
+									"name": "Canada",
+									"subcategories": [
+										{
+											"name": "Ontario Province",
+											"subcategories": [
+												{
+													"name": "Toronto Division"
+												},
+												{
+													"name": "Ottawa Division"
+												}
+											]
+										},
+										{
+											"name": "British Columbia Province",
+											"subcategories": [
+												{
+													"name": "Vancouver District"
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Europe",
+							"subcategories": [
+								{
+									"name": "United Kingdom",
+									"subcategories": [
+										{
+											"name": "England Region",
+											"subcategories": [
+												{
+													"name": "Greater London"
+												},
+												{
+													"name": "Greater Manchester"
+												}
+											]
+										},
+										{
+											"name": "Scotland Region",
+											"subcategories": [
+												{
+													"name": "Edinburgh District"
+												}
+											]
+										}
+									]
+								},
+								{
+									"name": "Germany",
+									"subcategories": [
+										{
+											"name": "Bavaria State",
+											"subcategories": [
+												{
+													"name": "Munich District"
+												}
+											]
+										},
+										{
+											"name": "Berlin State",
+											"subcategories": [
+												{
+													"name": "Berlin District"
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Africa",
+							"subcategories": [
+								{
+									"name": "South Africa",
+									"subcategories": [
+										{
+											"name": "Gauteng Province",
+											"subcategories": [
+												{
+													"name": "Johannesburg District"
+												},
+												{
+													"name": "Pretoria District"
+												}
+											]
+										},
+										{
+											"name": "Western Cape Province",
+											"subcategories": [
+												{
+													"name": "Cape Town District"
+												}
+											]
+										}
+									]
+								},
+								{
+									"name": "Nigeria",
+									"subcategories": [
+										{
+											"name": "Lagos State",
+											"subcategories": [
+												{
+													"name": "Lagos District"
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "South America",
+							"subcategories": [
+								{
+									"name": "Brazil",
+									"subcategories": [
+										{
+											"name": "São Paulo State",
+											"subcategories": [
+												{
+													"name": "São Paulo District"
+												}
+											]
+										},
+										{
+											"name": "Rio de Janeiro State",
+											"subcategories": [
+												{
+													"name": "Rio de Janeiro District"
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Australia and Oceania",
+							"subcategories": [
+								{
+									"name": "Australia",
+									"subcategories": [
+										{
+											"name": "New South Wales State",
+											"subcategories": [
+												{
+													"name": "Sydney District"
+												}
+											]
+										},
+										{
+											"name": "Victoria State",
+											"subcategories": [
+												{
+													"name": "Melbourne District"
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Middle East",
+							"subcategories": [
+								{
+									"name": "United Arab Emirates",
+									"subcategories": [
+										{
+											"name": "Dubai Emirate",
+											"subcategories": [
+												{
+													"name": "Dubai District"
+												}
+											]
+										},
+										{
+											"name": "Abu Dhabi Emirate",
+											"subcategories": [
+												{
+													"name": "Abu Dhabi District"
+												}
+											]
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Other/Optional",
+					"subcategories": [
+						{
+							"name": "Unspecified Locations"
+						},
+						{
+							"name": "Remote/Online Locations"
+						},
+						{
+							"name": "Miscellaneous Locations"
+						}
+					]
+				}
+			]
+		},
+		{
+			"high_level_category": "Product",
+			"subcategories": [
+				{
+					"name": "Electronics",
+					"subcategories": [
+						{
+							"name": "Mobile Phones and Accessories",
+							"subcategories": [
+								{
+									"name": "Smartphones",
+									"subcategories": [
+										{
+											"name": "Android Phones"
+										},
+										{
+											"name": "iOS Phones"
+										},
+										{
+											"name": "Foldable Phones"
+										}
+									]
+								},
+								{
+									"name": "Feature Phones",
+									"subcategories": [
+										{
+											"name": "Basic Phones"
+										},
+										{
+											"name": "Senior-Friendly Phones"
+										}
+									]
+								},
+								{
+									"name": "Phone Accessories",
+									"subcategories": [
+										{
+											"name": "Chargers and Cables"
+										},
+										{
+											"name": "Cases and Covers"
+										},
+										{
+											"name": "Screen Protectors"
+										},
+										{
+											"name": "Power Banks"
+										},
+										{
+											"name": "Wireless Earbuds"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Computers and Laptops",
+							"subcategories": [
+								{
+									"name": "Laptops",
+									"subcategories": [
+										{
+											"name": "Gaming Laptops"
+										},
+										{
+											"name": "Ultrabooks"
+										},
+										{
+											"name": "Business Laptops"
+										},
+										{
+											"name": "Convertible Laptops"
+										}
+									]
+								},
+								{
+									"name": "Desktops",
+									"subcategories": [
+										{
+											"name": "All-in-One PCs"
+										},
+										{
+											"name": "Gaming PCs"
+										},
+										{
+											"name": "Workstation PCs"
+										}
+									]
+								},
+								{
+									"name": "Tablets",
+									"subcategories": [
+										{
+											"name": "Android Tablets"
+										},
+										{
+											"name": "iOS Tablets"
+										},
+										{
+											"name": "Windows Tablets"
+										}
+									]
+								},
+								{
+									"name": "Computer Accessories",
+									"subcategories": [
+										{
+											"name": "Keyboards"
+										},
+										{
+											"name": "Mice"
+										},
+										{
+											"name": "Monitors"
+										},
+										{
+											"name": "Webcams"
+										},
+										{
+											"name": "External Storage"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Home Appliances",
+							"subcategories": [
+								{
+									"name": "Large Appliances",
+									"subcategories": [
+										{
+											"name": "Refrigerators"
+										},
+										{
+											"name": "Washing Machines"
+										},
+										{
+											"name": "Air Conditioners"
+										},
+										{
+											"name": "Dishwashers"
+										}
+									]
+								},
+								{
+									"name": "Small Appliances",
+									"subcategories": [
+										{
+											"name": "Microwave Ovens"
+										},
+										{
+											"name": "Toasters"
+										},
+										{
+											"name": "Blenders"
+										},
+										{
+											"name": "Electric Kettles"
+										},
+										{
+											"name": "Air Purifiers"
+										}
+									]
+								},
+								{
+									"name": "Smart Home Devices",
+									"subcategories": [
+										{
+											"name": "Smart Speakers"
+										},
+										{
+											"name": "Smart Lights"
+										},
+										{
+											"name": "Smart Thermostats"
+										},
+										{
+											"name": "Smart Security Systems"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Audio and Video",
+							"subcategories": [
+								{
+									"name": "Audio Devices",
+									"subcategories": [
+										{
+											"name": "Headphones"
+										},
+										{
+											"name": "Earbuds"
+										},
+										{
+											"name": "Bluetooth Speakers"
+										},
+										{
+											"name": "Soundbars"
+										}
+									]
+								},
+								{
+									"name": "Video Devices",
+									"subcategories": [
+										{
+											"name": "Televisions"
+										},
+										{
+											"name": "Projectors"
+										},
+										{
+											"name": "Streaming Devices"
+										},
+										{
+											"name": "DVD/Blu-ray Players"
+										}
+									]
+								},
+								{
+									"name": "Cameras",
+									"subcategories": [
+										{
+											"name": "DSLR Cameras"
+										},
+										{
+											"name": "Mirrorless Cameras"
+										},
+										{
+											"name": "Point-and-Shoot Cameras"
+										},
+										{
+											"name": "Action Cameras"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Wearable Technology",
+							"subcategories": [
+								{
+									"name": "Smartwatches"
+								},
+								{
+									"name": "Fitness Trackers"
+								},
+								{
+									"name": "Smart Glasses"
+								},
+								{
+									"name": "Health Monitors"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Clothing and Fashion",
+					"subcategories": [
+						{
+							"name": "Men's Clothing",
+							"subcategories": [
+								{
+									"name": "Casual Clothing",
+									"subcategories": [
+										{
+											"name": "T-Shirts"
+										},
+										{
+											"name": "Polo Shirts"
+										},
+										{
+											"name": "Jeans"
+										},
+										{
+											"name": "Casual Pants"
+										}
+									]
+								},
+								{
+									"name": "Formal Clothing",
+									"subcategories": [
+										{
+											"name": "Dress Shirts"
+										},
+										{
+											"name": "Suits"
+										},
+										{
+											"name": "Blazers"
+										},
+										{
+											"name": "Formal Trousers"
+										}
+									]
+								},
+								{
+									"name": "Traditional Clothing",
+									"subcategories": [
+										{
+											"name": "Panjabi"
+										},
+										{
+											"name": "Sherwani"
+										},
+										{
+											"name": "Kurta"
+										}
+									]
+								},
+								{
+									"name": "Outerwear",
+									"subcategories": [
+										{
+											"name": "Jackets"
+										},
+										{
+											"name": "Coats"
+										},
+										{
+											"name": "Sweaters"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Women's Clothing",
+							"subcategories": [
+								{
+									"name": "Casual Clothing",
+									"subcategories": [
+										{
+											"name": "Tops"
+										},
+										{
+											"name": "Jeans"
+										},
+										{
+											"name": "Skirts"
+										},
+										{
+											"name": "Leggings"
+										}
+									]
+								},
+								{
+									"name": "Formal Clothing",
+									"subcategories": [
+										{
+											"name": "Dresses"
+										},
+										{
+											"name": "Blouses"
+										},
+										{
+											"name": "Formal Skirts"
+										},
+										{
+											"name": "Business Suits"
+										}
+									]
+								},
+								{
+									"name": "Traditional Clothing",
+									"subcategories": [
+										{
+											"name": "Sarees"
+										},
+										{
+											"name": "Salwar Kameez"
+										},
+										{
+											"name": "Lehenga"
+										},
+										{
+											"name": "Anarkali Suits"
+										}
+									]
+								},
+								{
+									"name": "Outerwear",
+									"subcategories": [
+										{
+											"name": "Jackets"
+										},
+										{
+											"name": "Coats"
+										},
+										{
+											"name": "Shawls"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Kids' Clothing",
+							"subcategories": [
+								{
+									"name": "Boys' Clothing",
+									"subcategories": [
+										{
+											"name": "T-Shirts"
+										},
+										{
+											"name": "Pants"
+										},
+										{
+											"name": "Traditional Outfits"
+										}
+									]
+								},
+								{
+									"name": "Girls' Clothing",
+									"subcategories": [
+										{
+											"name": "Dresses"
+										},
+										{
+											"name": "Tops"
+										},
+										{
+											"name": "Traditional Outfits"
+										}
+									]
+								},
+								{
+									"name": "Baby Clothing",
+									"subcategories": [
+										{
+											"name": "Onesies"
+										},
+										{
+											"name": "Rompers"
+										},
+										{
+											"name": "Sleepwear"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Accessories",
+							"subcategories": [
+								{
+									"name": "Jewelry",
+									"subcategories": [
+										{
+											"name": "Necklaces"
+										},
+										{
+											"name": "Earrings"
+										},
+										{
+											"name": "Bracelets"
+										},
+										{
+											"name": "Rings"
+										}
+									]
+								},
+								{
+									"name": "Watches",
+									"subcategories": [
+										{
+											"name": "Analog Watches"
+										},
+										{
+											"name": "Digital Watches"
+										},
+										{
+											"name": "Smart Watches"
+										}
+									]
+								},
+								{
+									"name": "Bags",
+									"subcategories": [
+										{
+											"name": "Handbags"
+										},
+										{
+											"name": "Backpacks"
+										},
+										{
+											"name": "Wallets"
+										}
+									]
+								},
+								{
+									"name": "Sunglasses"
+								},
+								{
+									"name": "Belts"
+								},
+								{
+									"name": "Scarves"
+								}
+							]
+						},
+						{
+							"name": "Footwear",
+							"subcategories": [
+								{
+									"name": "Men's Footwear",
+									"subcategories": [
+										{
+											"name": "Casual Shoes"
+										},
+										{
+											"name": "Formal Shoes"
+										},
+										{
+											"name": "Sneakers"
+										},
+										{
+											"name": "Sandals"
+										}
+									]
+								},
+								{
+									"name": "Women's Footwear",
+									"subcategories": [
+										{
+											"name": "Heels"
+										},
+										{
+											"name": "Flats"
+										},
+										{
+											"name": "Sneakers"
+										},
+										{
+											"name": "Sandals"
+										}
+									]
+								},
+								{
+									"name": "Kids' Footwear",
+									"subcategories": [
+										{
+											"name": "Sneakers"
+										},
+										{
+											"name": "Sandals"
+										},
+										{
+											"name": "School Shoes"
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Food and Beverages",
+					"subcategories": [
+						{
+							"name": "Packaged Foods",
+							"subcategories": [
+								{
+									"name": "Snacks",
+									"subcategories": [
+										{
+											"name": "Chips"
+										},
+										{
+											"name": "Biscuits"
+										},
+										{
+											"name": "Local Snacks"
+										},
+										{
+											"name": "Nuts and Seeds"
+										}
+									]
+								},
+								{
+									"name": "Cereals and Grains",
+									"subcategories": [
+										{
+											"name": "Breakfast Cereals"
+										},
+										{
+											"name": "Rice"
+										},
+										{
+											"name": "Flour"
+										},
+										{
+											"name": "Pulses"
+										}
+									]
+								},
+								{
+									"name": "Pasta and Noodles",
+									"subcategories": [
+										{
+											"name": "Instant Noodles"
+										},
+										{
+											"name": "Pasta"
+										},
+										{
+											"name": "Vermicelli"
+										}
+									]
+								},
+								{
+									"name": "Canned and Preserved Foods",
+									"subcategories": [
+										{
+											"name": "Canned Vegetables"
+										},
+										{
+											"name": "Canned Fruits"
+										},
+										{
+											"name": "Canned Fish"
+										}
+									]
+								},
+								{
+									"name": "Spices and Seasonings",
+									"subcategories": [
+										{
+											"name": "Whole Spices"
+										},
+										{
+											"name": "Ground Spices"
+										},
+										{
+											"name": "Seasoning Mixes"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Beverages",
+							"subcategories": [
+								{
+									"name": "Hot Beverages",
+									"subcategories": [
+										{
+											"name": "Tea"
+										},
+										{
+											"name": "Coffee"
+										},
+										{
+											"name": "Hot Chocolate"
+										}
+									]
+								},
+								{
+									"name": "Cold Beverages",
+									"subcategories": [
+										{
+											"name": "Soft Drinks"
+										},
+										{
+											"name": "Juices"
+										},
+										{
+											"name": "Energy Drinks"
+										},
+										{
+											"name": "Bottled Water"
+										}
+									]
+								},
+								{
+									"name": "Traditional Drinks",
+									"subcategories": [
+										{
+											"name": "Lassi"
+										},
+										{
+											"name": "Sherbet"
+										},
+										{
+											"name": "Herbal Drinks"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Fresh Foods",
+							"subcategories": [
+								{
+									"name": "Fruits and Vegetables",
+									"subcategories": [
+										{
+											"name": "Fresh Fruits"
+										},
+										{
+											"name": "Fresh Vegetables"
+										},
+										{
+											"name": "Organic Produce"
+										}
+									]
+								},
+								{
+									"name": "Dairy Products",
+									"subcategories": [
+										{
+											"name": "Milk"
+										},
+										{
+											"name": "Cheese"
+										},
+										{
+											"name": "Yogurt"
+										},
+										{
+											"name": "Butter"
+										}
+									]
+								},
+								{
+									"name": "Meat and Poultry",
+									"subcategories": [
+										{
+											"name": "Chicken"
+										},
+										{
+											"name": "Beef"
+										},
+										{
+											"name": "Mutton"
+										}
+									]
+								},
+								{
+									"name": "Seafood",
+									"subcategories": [
+										{
+											"name": "Fish"
+										},
+										{
+											"name": "Shrimp"
+										},
+										{
+											"name": "Crab"
+										}
+									]
+								},
+								{
+									"name": "Bakery Items",
+									"subcategories": [
+										{
+											"name": "Bread"
+										},
+										{
+											"name": "Cakes"
+										},
+										{
+											"name": "Pastries"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Sweets and Confectionery",
+							"subcategories": [
+								{
+									"name": "Traditional Sweets",
+									"subcategories": [
+										{
+											"name": "Rasgulla"
+										},
+										{
+											"name": "Gulab Jamun"
+										},
+										{
+											"name": "Sandesh"
+										},
+										{
+											"name": "Mishti Doi"
+										}
+									]
+								},
+								{
+									"name": "Chocolates and Candies",
+									"subcategories": [
+										{
+											"name": "Chocolates"
+										},
+										{
+											"name": "Hard Candies"
+										},
+										{
+											"name": "Gummies"
+										}
+									]
+								},
+								{
+									"name": "Desserts",
+									"subcategories": [
+										{
+											"name": "Cakes"
+										},
+										{
+											"name": "Puddings"
+										},
+										{
+											"name": "Ice Cream"
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Home and Kitchen",
+					"subcategories": [
+						{
+							"name": "Furniture",
+							"subcategories": [
+								{
+									"name": "Living Room Furniture",
+									"subcategories": [
+										{
+											"name": "Sofas"
+										},
+										{
+											"name": "Coffee Tables"
+										},
+										{
+											"name": "TV Units"
+										},
+										{
+											"name": "Recliners"
+										}
+									]
+								},
+								{
+									"name": "Bedroom Furniture",
+									"subcategories": [
+										{
+											"name": "Beds"
+										},
+										{
+											"name": "Mattresses"
+										},
+										{
+											"name": "Wardrobes"
+										},
+										{
+											"name": "Dressing Tables"
+										}
+									]
+								},
+								{
+									"name": "Dining Room Furniture",
+									"subcategories": [
+										{
+											"name": "Dining Tables"
+										},
+										{
+											"name": "Dining Chairs"
+										},
+										{
+											"name": "Buffet Tables"
+										}
+									]
+								},
+								{
+									"name": "Office Furniture",
+									"subcategories": [
+										{
+											"name": "Desks"
+										},
+										{
+											"name": "Office Chairs"
+										},
+										{
+											"name": "Filing Cabinets"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Kitchen Appliances",
+							"subcategories": [
+								{
+									"name": "Cooking Appliances",
+									"subcategories": [
+										{
+											"name": "Gas Stoves"
+										},
+										{
+											"name": "Induction Cookers"
+										},
+										{
+											"name": "Microwave Ovens"
+										},
+										{
+											"name": "Ovens"
+										}
+									]
+								},
+								{
+									"name": "Small Kitchen Appliances",
+									"subcategories": [
+										{
+											"name": "Blenders"
+										},
+										{
+											"name": "Mixers"
+										},
+										{
+											"name": "Toasters"
+										},
+										{
+											"name": "Electric Kettles"
+										}
+									]
+								},
+								{
+									"name": "Specialty Appliances",
+									"subcategories": [
+										{
+											"name": "Coffee Makers"
+										},
+										{
+											"name": "Rice Cookers"
+										},
+										{
+											"name": "Air Fryers"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Home Decor",
+							"subcategories": [
+								{
+									"name": "Textiles",
+									"subcategories": [
+										{
+											"name": "Curtains"
+										},
+										{
+											"name": "Bed Sheets"
+										},
+										{
+											"name": "Carpets"
+										},
+										{
+											"name": "Rugs"
+										}
+									]
+								},
+								{
+									"name": "Decorative Items",
+									"subcategories": [
+										{
+											"name": "Wall Art"
+										},
+										{
+											"name": "Photo Frames"
+										},
+										{
+											"name": "Vases"
+										},
+										{
+											"name": "Sculptures"
+										}
+									]
+								},
+								{
+									"name": "Lighting",
+									"subcategories": [
+										{
+											"name": "Ceiling Lights"
+										},
+										{
+											"name": "Table Lamps"
+										},
+										{
+											"name": "Floor Lamps"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Kitchenware",
+							"subcategories": [
+								{
+									"name": "Cookware",
+									"subcategories": [
+										{
+											"name": "Pots and Pans"
+										},
+										{
+											"name": "Pressure Cookers"
+										},
+										{
+											"name": "Woks"
+										}
+									]
+								},
+								{
+									"name": "Utensils",
+									"subcategories": [
+										{
+											"name": "Spoons and Forks"
+										},
+										{
+											"name": "Knives"
+										},
+										{
+											"name": "Ladles"
+										}
+									]
+								},
+								{
+									"name": "Dinnerware",
+									"subcategories": [
+										{
+											"name": "Plates"
+										},
+										{
+											"name": "Bowls"
+										},
+										{
+											"name": "Cups and Mugs"
+										}
+									]
+								},
+								{
+									"name": "Storage",
+									"subcategories": [
+										{
+											"name": "Containers"
+										},
+										{
+											"name": "Jars"
+										},
+										{
+											"name": "Canisters"
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Health and Beauty",
+					"subcategories": [
+						{
+							"name": "Personal Care",
+							"subcategories": [
+								{
+									"name": "Skincare",
+									"subcategories": [
+										{
+											"name": "Cleansers"
+										},
+										{
+											"name": "Moisturizers"
+										},
+										{
+											"name": "Sunscreens"
+										},
+										{
+											"name": "Face Masks"
+										}
+									]
+								},
+								{
+									"name": "Haircare",
+									"subcategories": [
+										{
+											"name": "Shampoos"
+										},
+										{
+											"name": "Conditioners"
+										},
+										{
+											"name": "Hair Oils"
+										},
+										{
+											"name": "Hair Treatments"
+										}
+									]
+								},
+								{
+									"name": "Oral Care",
+									"subcategories": [
+										{
+											"name": "Toothpastes"
+										},
+										{
+											"name": "Toothbrushes"
+										},
+										{
+											"name": "Mouthwashes"
+										}
+									]
+								},
+								{
+									"name": "Body Care",
+									"subcategories": [
+										{
+											"name": "Body Lotions"
+										},
+										{
+											"name": "Soaps"
+										},
+										{
+											"name": "Body Scrubs"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Cosmetics",
+							"subcategories": [
+								{
+									"name": "Makeup",
+									"subcategories": [
+										{
+											"name": "Foundations"
+										},
+										{
+											"name": "Lipsticks"
+										},
+										{
+											"name": "Eyeliners"
+										},
+										{
+											"name": "Mascaras"
+										}
+									]
+								},
+								{
+									"name": "Nail Care",
+									"subcategories": [
+										{
+											"name": "Nail Polishes"
+										},
+										{
+											"name": "Nail Tools"
+										},
+										{
+											"name": "Nail Treatments"
+										}
+									]
+								},
+								{
+									"name": "Perfumes",
+									"subcategories": [
+										{
+											"name": "Eau de Parfum"
+										},
+										{
+											"name": "Eau de Toilette"
+										},
+										{
+											"name": "Body Mists"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Health Products",
+							"subcategories": [
+								{
+									"name": "Supplements",
+									"subcategories": [
+										{
+											"name": "Vitamins"
+										},
+										{
+											"name": "Minerals"
+										},
+										{
+											"name": "Protein Powders"
+										}
+									]
+								},
+								{
+									"name": "Fitness Equipment",
+									"subcategories": [
+										{
+											"name": "Yoga Mats"
+										},
+										{
+											"name": "Dumbbells"
+										},
+										{
+											"name": "Treadmills"
+										}
+									]
+								},
+								{
+									"name": "Medical Devices",
+									"subcategories": [
+										{
+											"name": "Blood Pressure Monitors"
+										},
+										{
+											"name": "Glucometers"
+										},
+										{
+											"name": "Thermometers"
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Books and Stationery",
+					"subcategories": [
+						{
+							"name": "Books",
+							"subcategories": [
+								{
+									"name": "Fiction",
+									"subcategories": [
+										{
+											"name": "Novels"
+										},
+										{
+											"name": "Short Stories"
+										},
+										{
+											"name": "Fantasy"
+										},
+										{
+											"name": "Mystery"
+										}
+									]
+								},
+								{
+									"name": "Non-Fiction",
+									"subcategories": [
+										{
+											"name": "Biographies"
+										},
+										{
+											"name": "Self-Help"
+										},
+										{
+											"name": "History"
+										},
+										{
+											"name": "Business"
+										}
+									]
+								},
+								{
+									"name": "Academic Books",
+									"subcategories": [
+										{
+											"name": "Textbooks"
+										},
+										{
+											"name": "Reference Books"
+										},
+										{
+											"name": "Study Guides"
+										}
+									]
+								},
+								{
+									"name": "Children's Books",
+									"subcategories": [
+										{
+											"name": "Picture Books"
+										},
+										{
+											"name": "Story Books"
+										},
+										{
+											"name": "Educational Books"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Stationery",
+							"subcategories": [
+								{
+									"name": "Writing Instruments",
+									"subcategories": [
+										{
+											"name": "Pens"
+										},
+										{
+											"name": "Pencils"
+										},
+										{
+											"name": "Markers"
+										}
+									]
+								},
+								{
+									"name": "Paper Products",
+									"subcategories": [
+										{
+											"name": "Notebooks"
+										},
+										{
+											"name": "Journals"
+										},
+										{
+											"name": "Sticky Notes"
+										}
+									]
+								},
+								{
+									"name": "Art Supplies",
+									"subcategories": [
+										{
+											"name": "Paints"
+										},
+										{
+											"name": "Brushes"
+										},
+										{
+											"name": "Canvases"
+										}
+									]
+								},
+								{
+									"name": "Office Supplies",
+									"subcategories": [
+										{
+											"name": "Staplers"
+										},
+										{
+											"name": "Paper Clips"
+										},
+										{
+											"name": "Organizers"
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Handicrafts and Traditional Items",
+					"subcategories": [
+						{
+							"name": "Handwoven Products",
+							"subcategories": [
+								{
+									"name": "Textiles",
+									"subcategories": [
+										{
+											"name": "Nakshi Kantha"
+										},
+										{
+											"name": "Jamdani Sarees"
+										},
+										{
+											"name": "Handwoven Shawls"
+										},
+										{
+											"name": "Silk Fabrics"
+										}
+									]
+								},
+								{
+									"name": "Bags and Mats",
+									"subcategories": [
+										{
+											"name": "Jute Bags"
+										},
+										{
+											"name": "Woven Mats"
+										},
+										{
+											"name": "Handwoven Baskets"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Pottery and Ceramics",
+							"subcategories": [
+								{
+									"name": "Clay Products",
+									"subcategories": [
+										{
+											"name": "Clay Pots"
+										},
+										{
+											"name": "Terracotta Decor"
+										},
+										{
+											"name": "Clay Figurines"
+										}
+									]
+								},
+								{
+									"name": "Ceramic Products",
+									"subcategories": [
+										{
+											"name": "Ceramic Vases"
+										},
+										{
+											"name": "Ceramic Plates"
+										},
+										{
+											"name": "Ceramic Bowls"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Handmade Jewelry",
+							"subcategories": [
+								{
+									"name": "Traditional Jewelry",
+									"subcategories": [
+										{
+											"name": "Gold Jewelry"
+										},
+										{
+											"name": "Silver Jewelry"
+										},
+										{
+											"name": "Beaded Jewelry"
+										}
+									]
+								},
+								{
+									"name": "Contemporary Jewelry",
+									"subcategories": [
+										{
+											"name": "Minimalist Jewelry"
+										},
+										{
+											"name": "Statement Pieces"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Wood and Bamboo Crafts",
+							"subcategories": [
+								{
+									"name": "Wooden Items",
+									"subcategories": [
+										{
+											"name": "Wooden Furniture"
+										},
+										{
+											"name": "Wooden Decor"
+										},
+										{
+											"name": "Wooden Utensils"
+										}
+									]
+								},
+								{
+									"name": "Bamboo Items",
+									"subcategories": [
+										{
+											"name": "Bamboo Baskets"
+										},
+										{
+											"name": "Bamboo Mats"
+										},
+										{
+											"name": "Bamboo Furniture"
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Sports and Outdoors",
+					"subcategories": [
+						{
+							"name": "Sports Equipment",
+							"subcategories": [
+								{
+									"name": "Team Sports",
+									"subcategories": [
+										{
+											"name": "Cricket Gear"
+										},
+										{
+											"name": "Football Equipment"
+										},
+										{
+											"name": "Hockey Equipment"
+										}
+									]
+								},
+								{
+									"name": "Individual Sports",
+									"subcategories": [
+										{
+											"name": "Badminton Equipment"
+										},
+										{
+											"name": "Tennis Equipment"
+										},
+										{
+											"name": "Table Tennis Equipment"
+										}
+									]
+								},
+								{
+									"name": "Fitness Equipment",
+									"subcategories": [
+										{
+											"name": "Treadmills"
+										},
+										{
+											"name": "Exercise Bikes"
+										},
+										{
+											"name": "Dumbbells"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Outdoor Gear",
+							"subcategories": [
+								{
+									"name": "Camping",
+									"subcategories": [
+										{
+											"name": "Tents"
+										},
+										{
+											"name": "Sleeping Bags"
+										},
+										{
+											"name": "Camping Stoves"
+										}
+									]
+								},
+								{
+									"name": "Hiking",
+									"subcategories": [
+										{
+											"name": "Backpacks"
+										},
+										{
+											"name": "Hiking Boots"
+										},
+										{
+											"name": "Trekking Poles"
+										}
+									]
+								},
+								{
+									"name": "Fishing",
+									"subcategories": [
+										{
+											"name": "Fishing Rods"
+										},
+										{
+											"name": "Fishing Reels"
+										},
+										{
+											"name": "Baits and Lures"
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Toys and Games",
+					"subcategories": [
+						{
+							"name": "Toys",
+							"subcategories": [
+								{
+									"name": "Action and Adventure",
+									"subcategories": [
+										{
+											"name": "Action Figures"
+										},
+										{
+											"name": "Toy Vehicles"
+										},
+										{
+											"name": "Building Sets"
+										}
+									]
+								},
+								{
+									"name": "Educational Toys",
+									"subcategories": [
+										{
+											"name": "Science Kits"
+										},
+										{
+											"name": "Math Toys"
+										},
+										{
+											"name": "Learning Games"
+										}
+									]
+								},
+								{
+									"name": "Dolls and Stuffed Toys",
+									"subcategories": [
+										{
+											"name": "Dolls"
+										},
+										{
+											"name": "Stuffed Animals"
+										},
+										{
+											"name": "Puppets"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Games",
+							"subcategories": [
+								{
+									"name": "Board Games",
+									"subcategories": [
+										{
+											"name": "Strategy Games"
+										},
+										{
+											"name": "Family Games"
+										},
+										{
+											"name": "Trivia Games"
+										}
+									]
+								},
+								{
+									"name": "Card Games",
+									"subcategories": [
+										{
+											"name": "Trading Card Games"
+										},
+										{
+											"name": "Classic Card Games"
+										}
+									]
+								},
+								{
+									"name": "Video Games",
+									"subcategories": [
+										{
+											"name": "Console Games"
+										},
+										{
+											"name": "PC Games"
+										},
+										{
+											"name": "Mobile Games"
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Automotive",
+					"subcategories": [
+						{
+							"name": "Car Accessories",
+							"subcategories": [
+								{
+									"name": "Interior Accessories",
+									"subcategories": [
+										{
+											"name": "Car Mats"
+										},
+										{
+											"name": "Seat Covers"
+										},
+										{
+											"name": "Steering Wheel Covers"
+										}
+									]
+								},
+								{
+									"name": "Exterior Accessories",
+									"subcategories": [
+										{
+											"name": "Car Covers"
+										},
+										{
+											"name": "Window Tints"
+										},
+										{
+											"name": "Roof Racks"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Motorcycle Accessories",
+							"subcategories": [
+								{
+									"name": "Helmets"
+								},
+								{
+									"name": "Riding Gear"
+								},
+								{
+									"name": "Motorcycle Covers"
+								}
+							]
+						},
+						{
+							"name": "Automotive Tools",
+							"subcategories": [
+								{
+									"name": "Car Cleaning Products"
+								},
+								{
+									"name": "Repair Tools"
+								},
+								{
+									"name": "Diagnostic Tools"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Pet Supplies",
+					"subcategories": [
+						{
+							"name": "Pet Food",
+							"subcategories": [
+								{
+									"name": "Dog Food"
+								},
+								{
+									"name": "Cat Food"
+								},
+								{
+									"name": "Fish Food"
+								},
+								{
+									"name": "Bird Food"
+								}
+							]
+						},
+						{
+							"name": "Pet Accessories",
+							"subcategories": [
+								{
+									"name": "Collars and Leashes"
+								},
+								{
+									"name": "Pet Beds"
+								},
+								{
+									"name": "Pet Toys"
+								}
+							]
+						},
+						{
+							"name": "Pet Grooming",
+							"subcategories": [
+								{
+									"name": "Shampoos"
+								},
+								{
+									"name": "Brushes"
+								},
+								{
+									"name": "Nail Clippers"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Gardening and Outdoor Living",
+					"subcategories": [
+						{
+							"name": "Gardening Tools",
+							"subcategories": [
+								{
+									"name": "Shovels"
+								},
+								{
+									"name": "Pruners"
+								},
+								{
+									"name": "Watering Cans"
+								}
+							]
+						},
+						{
+							"name": "Plants and Seeds",
+							"subcategories": [
+								{
+									"name": "Flower Seeds"
+								},
+								{
+									"name": "Vegetable Seeds"
+								},
+								{
+									"name": "Potted Plants"
+								}
+							]
+						},
+						{
+							"name": "Outdoor Furniture",
+							"subcategories": [
+								{
+									"name": "Patio Sets"
+								},
+								{
+									"name": "Garden Benches"
+								},
+								{
+									"name": "Hammocks"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Agricultural Products",
+					"subcategories": [
+						{
+							"name": "Crops and Produce",
+							"subcategories": [
+								{
+									"name": "Rice Varieties"
+								},
+								{
+									"name": "Wheat Products"
+								},
+								{
+									"name": "Vegetable Crops"
+								}
+							]
+						},
+						{
+							"name": "Agricultural Tools",
+							"subcategories": [
+								{
+									"name": "Hand Tools"
+								},
+								{
+									"name": "Irrigation Equipment"
+								},
+								{
+									"name": "Fertilizers"
+								}
+							]
+						},
+						{
+							"name": "Livestock Products",
+							"subcategories": [
+								{
+									"name": "Animal Feed"
+								},
+								{
+									"name": "Veterinary Supplies"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Cottage Industry Products",
+					"subcategories": [
+						{
+							"name": "Handmade Textiles",
+							"subcategories": [
+								{
+									"name": "Handwoven Sarees"
+								},
+								{
+									"name": "Embroidered Fabrics"
+								},
+								{
+									"name": "Block Printed Textiles"
+								}
+							]
+						},
+						{
+							"name": "Handcrafted Home Goods",
+							"subcategories": [
+								{
+									"name": "Woven Baskets"
+								},
+								{
+									"name": "Handmade Rugs"
+								},
+								{
+									"name": "Clay Lamps"
+								}
+							]
+						},
+						{
+							"name": "Local Food Products",
+							"subcategories": [
+								{
+									"name": "Homemade Pickles"
+								},
+								{
+									"name": "Traditional Snacks"
+								},
+								{
+									"name": "Organic Honey"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Industrial Products",
+					"subcategories": [
+						{
+							"name": "Tools and Equipment",
+							"subcategories": [
+								{
+									"name": "Power Tools"
+								},
+								{
+									"name": "Hand Tools"
+								},
+								{
+									"name": "Safety Gear"
+								}
+							]
+						},
+						{
+							"name": "Machinery",
+							"subcategories": [
+								{
+									"name": "Agricultural Machinery"
+								},
+								{
+									"name": "Construction Machinery"
+								},
+								{
+									"name": "Manufacturing Equipment"
+								}
+							]
+						},
+						{
+							"name": "Raw Materials",
+							"subcategories": [
+								{
+									"name": "Metals"
+								},
+								{
+									"name": "Plastics"
+								},
+								{
+									"name": "Chemicals"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Other/Optional",
+					"subcategories": [
+						{
+							"name": "Miscellaneous Products",
+							"subcategories": [
+								{
+									"name": "Unspecified Items"
+								},
+								{
+									"name": "Seasonal Products"
+								},
+								{
+									"name": "Promotional Items"
+								}
+							]
+						},
+						{
+							"name": "Specialized Products",
+							"subcategories": [
+								{
+									"name": "Collectibles"
+								},
+								{
+									"name": "Vintage Items"
+								},
+								{
+									"name": "Customized Products"
+								}
+							]
+						},
+						{
+							"name": "Gift Items",
+							"subcategories": [
+								{
+									"name": "Gift Baskets"
+								},
+								{
+									"name": "Personalized Gifts"
+								},
+								{
+									"name": "Gift Cards"
+								}
+							]
+						}
+					]
+				}
+			]
+		}
+	]
+}

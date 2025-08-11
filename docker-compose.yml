@@ -1,0 +1,83 @@
+
+services:
+  # Database
+  db:
+    image: postgres:17
+    container_name: reviewinn_database
+    restart: always
+    environment:
+      POSTGRES_USER: reviewinn_user
+      POSTGRES_PASSWORD: Munna1992
+      POSTGRES_DB: reviewinn_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reviewinn_user -d reviewinn_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: reviewinn_cache
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI Backend
+  backend:
+    build: ./reviewinn-backend
+    container_name: reviewinn_backend
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./reviewinn-backend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - ./reviewinn-backend/.env
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/api/v1/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # React Frontend
+  frontend:
+    build: ./reviewinn-frontend
+    container_name: reviewinn_frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    env_file:
+      - ./reviewinn-frontend/.env
+
+  # Django Admin Panel
+  admin:
+    build: ./reviewinn-admin
+    container_name: reviewinn_admin
+    command: python manage.py runserver 0.0.0.0:8001
+    volumes:
+      - ./reviewinn-admin:/app
+    ports:
+      - "8001:8001"
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - ./reviewinn-admin/.env
+
+volumes:
+  postgres_data: 

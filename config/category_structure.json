@@ -1,0 +1,478 @@
+{
+  "name": "reviewinn",
+  "category": [
+    {
+      "name": "Professionals",
+      "category": [
+        {
+          "name": "Education",
+          "category": [
+            "University Professors",
+            "School Teachers",
+            "Special Education Teachers",
+            "Tutors",
+            "Librarians",
+            "Academic Counselors",
+            "Online Instructors",
+            "Coaches/Trainers",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Healthcare",
+          "category": [
+            "General Physicians",
+            "Specialist Doctors",
+            "Surgeons",
+            "Nurses",
+            "Pharmacists",
+            "Therapists",
+            "Dentists",
+            "Veterinarians",
+            "Nutritionists",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Legal",
+          "category": [
+            "Lawyers",
+            "Judges",
+            "Notaries",
+            "Legal Advisors",
+            "Paralegals",
+            "Mediators",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Engineering",
+          "category": [
+            "Computer Engineers",
+            "Civil Engineers",
+            "Mechanical Engineers",
+            "Electrical Engineers",
+            "Chemical Engineers",
+            "Aerospace Engineers",
+            "Water Resources Engineers",
+            "Industry Productions Engineers",
+            "Environmental Engineers",
+            "Architects",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Information Technology",
+          "category": [
+            "Software Engineers",
+            "Data Scientists",
+            "Cybersecurity Experts",
+            "IT Support Specialists",
+            "Network Administrators",
+            "Web Developers",
+            "Cloud Engineers",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Business",
+          "category": [
+            "Accountants",
+            "Financial Advisors",
+            "Business Consultants",
+            "Marketing Specialists",
+            "Human Resources Managers",
+            "Entrepreneurs",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Finance",
+          "category": [
+            "Bankers",
+            "Investment Brokers",
+            "Insurance Agents",
+            "Actuaries",
+            "Financial Analysts",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Creative Arts",
+          "category": [
+            "Artists",
+            "Musicians",
+            "Writers",
+            "Filmmakers",
+            "Photographers",
+            "Graphic Designers",
+            "Content Creators",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Media",
+          "category": [
+            "Journalists",
+            "Broadcasters",
+            "Editors",
+            "Public Relations Specialists",
+            "Social Media Managers",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Public Services",
+          "category": [
+            "Civil Servants",
+            "Army Officer",
+            "Navy Officer",
+            "Air Force Officer",
+            "Diplomats",
+            "Police Officers",
+            "Firefighters",
+            "Social Workers",
+            "Urban Planners",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Hospitality",
+          "category": [
+            "Chefs",
+            "Hotel Managers",
+            "Tour Guides",
+            "Event Planners",
+            "Baristas",
+            "Bartenders",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Skilled Trades",
+          "category": [
+            "Electricians",
+            "Plumbers",
+            "Carpenters",
+            "Mechanics",
+            "Construction Workers",
+            "Welders",
+            "Masons",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Other",
+          "category": [
+            "Freelancers",
+            "Consultants",
+            "Custom"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Companies/Institutes",
+      "category": [
+        {
+          "name": "Education",
+          "category": [
+            "Universities",
+            "Schools",
+            "Training Institutes",
+            "Online Education Platforms",
+            "Language Schools",
+            "Vocational Training Centers",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Technology",
+          "category": [
+            "Software Companies",
+            "IT Services",
+            "Telecommunications",
+            "Hardware Manufacturers",
+            "AI & Machine Learning",
+            "Gaming Companies",
+            "Cloud Computing",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Manufacturing",
+          "category": [
+            "Textiles",
+            "Pharmaceuticals",
+            "Food & Beverage",
+            "Automotive",
+            "Electronics",
+            "Heavy Machinery",
+            "Consumer Goods",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Retail",
+          "category": [
+            "Supermarkets",
+            "Fashion Retail",
+            "Electronics Stores",
+            "Online Marketplaces",
+            "Department Stores",
+            "Specialty Retail",
+            "Pharmacies",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Healthcare",
+          "category": [
+            "Hospitals",
+            "Clinics",
+            "Diagnostic Centers",
+            "Nursing Homes",
+            "Mental Health Facilities",
+            "Rehabilitation Centers",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Finance",
+          "category": [
+            "Banks",
+            "Insurance Companies",
+            "Investment Firms",
+            "Accounting Firms",
+            "Microfinance Institutions",
+            "Credit Unions",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Government Agencies",
+          "category": [
+            "Local Government",
+            "National Government",
+            "Regulatory Bodies",
+            "Public Utilities",
+            "Embassies",
+            "Tax Authorities",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Non-Profits",
+          "category": [
+            "NGOs",
+            "Charities",
+            "Community Organizations",
+            "Environmental Organizations",
+            "Humanitarian Agencies",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Other",
+          "category": [
+            "Startups",
+            "Cooperatives",
+            "Custom"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Places",
+      "category": [
+        {
+          "name": "Hospitality",
+          "category": [
+            "Hotels",
+            "Restaurants",
+            "Cafes",
+            "Resorts",
+            "Hostels",
+            "Bed & Breakfasts",
+            "Drinks and Bars ",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Tourism",
+          "category": [
+            "Tourist Attractions",
+            "Museums",
+            "Historical Sites",
+            "National Parks",
+            "Travel Agencies",
+            "Adventure Parks",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Public Services",
+          "category": [
+            "Hospitals",
+            "Schools",
+            "Government Offices",
+            "Public Libraries",
+            "Police Stations",
+            "Post Offices",
+            "Fire Stations",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Retail",
+          "category": [
+            "Shopping Malls",
+            "Supermarkets",
+            "Local Markets",
+            "Specialty Stores",
+            "Boutiques",
+            "Bookstores",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Recreation",
+          "category": [
+            "Parks",
+            "Sports Facilities",
+            "Gyms",
+            "Theaters",
+            "Cinemas",
+            "Amusement Parks",
+            "Community Centers",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Other",
+          "category": [
+            "Religious Sites",
+            "Coworking Spaces",
+            "Event Venues",
+            "Custom"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "category": [
+        {
+          "name": "Electronics",
+          "category": [
+            "Smartphones",
+            "Laptops",
+            "Tablets",
+            "Home Appliances",
+            "Audio Devices",
+            "Wearables",
+            "Cameras",
+            "Gaming Consoles",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Fashion",
+          "category": [
+            "Men's Clothing",
+            "Women's Clothing",
+            "Children's Clothing",
+            "Footwear",
+            "Accessories",
+            "Traditional Clothing",
+            "Jewelry",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Food & Beverages",
+          "category": [
+            "Packaged Foods",
+            "Beverages",
+            "Fresh Foods",
+            "Sweets",
+            "Organic Foods",
+            "Specialty Foods",
+            "Dietary Supplements",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Home & Kitchen",
+          "category": [
+            "Furniture",
+            "Kitchen Appliances",
+            "Home Decor",
+            "Kitchenware",
+            "Bedding",
+            "Gardening Supplies",
+            "Lighting",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Health & Beauty",
+          "category": [
+            "Skincare",
+            "Haircare",
+            "Cosmetics",
+            "Health Supplements",
+            "Personal Care Devices",
+            "Fitness Equipment",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Automotive",
+          "category": [
+            "Cars",
+            "Motorcycles",
+            "Bicycles",
+            "Auto Accessories",
+            "Car Care Products",
+            "Electric Vehicles",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Sports & Outdoors",
+          "category": [
+            "Sports Equipment",
+            "Camping Gear",
+            "Fitness Gear",
+            "Outdoor Apparel",
+            "Bicycles",
+            "Custom"
+          ]
+        },
+        {
+          "name": "Other",
+          "category": [
+            "Books",
+            "Toys",
+            "Stationery",
+            "Pet Supplies",
+            "Handcrafted Goods",
+            "Custom"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Other",
+      "category": [
+        {
+          "name": "Custom",
+          "category": [
+            "Custom"
+          ]
+        }
+      ]
+    }
+  ]
+}

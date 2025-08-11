@@ -1,0 +1,17 @@
+[flake8]
+max-line-length = 88
+extend-ignore = 
+    E203,  # whitespace before ':'
+    E501,  # line too long (handled by black)
+    W503,  # line break before binary operator
+exclude = 
+    .git,
+    __pycache__,
+    .pytest_cache,
+    .mypy_cache,
+    venv,
+    archive,
+    migrations
+per-file-ignores =
+    __init__.py:F401  # ignore unused imports in __init__.py files
+max-complexity = 10

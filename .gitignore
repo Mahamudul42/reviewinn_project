@@ -1,0 +1,167 @@
+# Dependencies
+node_modules/
+venv/
+env/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.production
+.env.development
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+*.tmp
+*.temp
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploads
+uploads/
+media/
+*/uploads/
+
+# Security & Environment Files
+*.pem
+*.key
+*.crt
+*.csr
+
+# Environment files with secrets (DO NOT COMMIT)
+reviewinn-backend/.env               # Backend secrets
+reviewinn-frontend/.env              # Frontend secrets  
+reviewinn-admin/.env                 # Admin secrets
+.env.development                     # Development overrides
+.env.production                      # Production overrides
+.env.staging                         # Staging overrides
+.env.local                           # Local overrides
+.env.*.local                         # Any local overrides
+
+# Keep template files (SAFE TO COMMIT)
+!.env.example                        # Template with documentation
+!reviewinn-backend/.env.example      # Backend template
+!reviewinn-frontend/.env.example     # Frontend template
+!reviewinn-admin/.env.example        # Admin template
+
+# Backup files
+*.backup
+*.bak
+backups/
+*.sql.backup
+
+# Docker
+.dockerignore
+
+# Process IDs and logs
+*.pid
+dev.pid
+server*.log
+backend*.log
+dev-server.log
+
+# TypeScript cache
+*.tsbuildinfo
+.eslintcache
+
+# Prevent root directory clutter
+/*.sql
+/*.py
+/*.js
+/*.html
+/*.json
+!package.json
+!tsconfig.json
+!docker-compose.yml
+!.gitignore
+
+# Keep important root files
+!README.md
+!CONTRIBUTING.md
+!LICENSE
+!Dockerfile
+!*.md
+
+# Temporary and debug files
+debug-*.js
+test_*.html
+*.temp.*
+.keep

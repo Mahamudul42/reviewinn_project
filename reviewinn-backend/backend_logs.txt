@@ -1,0 +1,60 @@
+reviewinn_backend  | WebSocket connection attempt with token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxN...
+reviewinn_backend  | INFO:     ('172.18.0.1', 37068) - "WebSocket /ws/messenger/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxNyIsImVtYWlsIjoicmV2aWV3aW5uLmNvbUBnbWFpbC5jb20iLCJleHAiOjE3NTQ4MDc5NTEsImlhdCI6MTc1NDgwNDM1MSwiaXNzIjoicmV2aWV3aW5uLWFwaSIsImF1ZCI6InJldmlld2lubi1mcm9udGVuZCIsInR5cGUiOiJhY2Nlc3MiLCJqdGkiOiJoUDF4RTRraXR4WVRPWlBYTFliNlZnIn0.qN_Hu2JSx36FxNn1dHz2LuqmPoH7T7lxMkJXAZzSQxA" [accepted]
+reviewinn_backend  | WebSocket accepted, now authenticating...
+reviewinn_backend  | WebSocket auth failed: 401: Token has expired
+reviewinn_backend  | Authentication failed - invalid token or user not found
+reviewinn_backend  | INFO:     connection open
+reviewinn_backend  | INFO:     connection closed
+reviewinn_backend  | WebSocket connection attempt with token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxN...
+reviewinn_backend  | INFO:     ('172.18.0.1', 37078) - "WebSocket /ws/messenger/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxNyIsImVtYWlsIjoicmV2aWV3aW5uLmNvbUBnbWFpbC5jb20iLCJleHAiOjE3NTQ4MDc5NTEsImlhdCI6MTc1NDgwNDM1MSwiaXNzIjoicmV2aWV3aW5uLWFwaSIsImF1ZCI6InJldmlld2lubi1mcm9udGVuZCIsInR5cGUiOiJhY2Nlc3MiLCJqdGkiOiJoUDF4RTRraXR4WVRPWlBYTFliNlZnIn0.qN_Hu2JSx36FxNn1dHz2LuqmPoH7T7lxMkJXAZzSQxA" [accepted]
+reviewinn_backend  | WebSocket accepted, now authenticating...
+reviewinn_backend  | WebSocket auth failed: 401: Token has expired
+reviewinn_backend  | Authentication failed - invalid token or user not found
+reviewinn_backend  | INFO:     connection open
+reviewinn_backend  | INFO:     connection closed
+reviewinn_backend  | WebSocket connection attempt with token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxN...
+reviewinn_backend  | INFO:     ('172.18.0.1', 37084) - "WebSocket /ws/messenger/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxNyIsImVtYWlsIjoicmV2aWV3aW5uLmNvbUBnbWFpbC5jb20iLCJleHAiOjE3NTQ4MDc5NTEsImlhdCI6MTc1NDgwNDM1MSwiaXNzIjoicmV2aWV3aW5uLWFwaSIsImF1ZCI6InJldmlld2lubi1mcm9udGVuZCIsInR5cGUiOiJhY2Nlc3MiLCJqdGkiOiJoUDF4RTRraXR4WVRPWlBYTFliNlZnIn0.qN_Hu2JSx36FxNn1dHz2LuqmPoH7T7lxMkJXAZzSQxA" [accepted]
+reviewinn_backend  | WebSocket accepted, now authenticating...
+reviewinn_backend  | WebSocket auth failed: 401: Token has expired
+reviewinn_backend  | Authentication failed - invalid token or user not found
+reviewinn_backend  | INFO:     connection open
+reviewinn_backend  | INFO:     connection closed
+reviewinn_backend  | WebSocket connection attempt with token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxN...
+reviewinn_backend  | INFO:     ('172.18.0.1', 37100) - "WebSocket /ws/messenger/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxNyIsImVtYWlsIjoicmV2aWV3aW5uLmNvbUBnbWFpbC5jb20iLCJleHAiOjE3NTQ4MDc5NTEsImlhdCI6MTc1NDgwNDM1MSwiaXNzIjoicmV2aWV3aW5uLWFwaSIsImF1ZCI6InJldmlld2lubi1mcm9udGVuZCIsInR5cGUiOiJhY2Nlc3MiLCJqdGkiOiJoUDF4RTRraXR4WVRPWlBYTFliNlZnIn0.qN_Hu2JSx36FxNn1dHz2LuqmPoH7T7lxMkJXAZzSQxA" [accepted]
+reviewinn_backend  | WebSocket accepted, now authenticating...
+reviewinn_backend  | WebSocket auth failed: 401: Token has expired
+reviewinn_backend  | Authentication failed - invalid token or user not found
+reviewinn_backend  | INFO:     connection open
+reviewinn_backend  | INFO:     connection closed
+reviewinn_backend  | [JWTAuthMiddleware] Path: /api/v1/entities/, Normalized: /api/v1/entities, Is public: False
+reviewinn_backend  | 2025-08-10 07:08:26 - routers.entity_service - ERROR - Unexpected error in list_entities: EntityListParams.__init__() got an unexpected keyword argument 'category'
+reviewinn_backend  | INFO:     172.18.0.1:37106 - "GET /api/v1/entities/?limit=3&sortBy=trending&sortOrder=desc&verified=true&hasReviews=true HTTP/1.1" 500 Internal Server Error
+reviewinn_backend  | WebSocket connection attempt with token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxN...
+reviewinn_backend  | INFO:     ('172.18.0.1', 37110) - "WebSocket /ws/messenger/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxNyIsImVtYWlsIjoicmV2aWV3aW5uLmNvbUBnbWFpbC5jb20iLCJleHAiOjE3NTQ4MDc5NTEsImlhdCI6MTc1NDgwNDM1MSwiaXNzIjoicmV2aWV3aW5uLWFwaSIsImF1ZCI6InJldmlld2lubi1mcm9udGVuZCIsInR5cGUiOiJhY2Nlc3MiLCJqdGkiOiJoUDF4RTRraXR4WVRPWlBYTFliNlZnIn0.qN_Hu2JSx36FxNn1dHz2LuqmPoH7T7lxMkJXAZzSQxA" [accepted]
+reviewinn_backend  | WebSocket accepted, now authenticating...
+reviewinn_backend  | WebSocket auth failed: 401: Token has expired
+reviewinn_backend  | Authentication failed - invalid token or user not found
+reviewinn_backend  | INFO:     connection open
+reviewinn_backend  | INFO:     connection closed
+reviewinn_backend  | WebSocket connection attempt with token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxN...
+reviewinn_backend  | WebSocket accepted, now authenticating...
+reviewinn_backend  | INFO:     ('172.18.0.1', 37126) - "WebSocket /ws/messenger/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxNyIsImVtYWlsIjoicmV2aWV3aW5uLmNvbUBnbWFpbC5jb20iLCJleHAiOjE3NTQ4MDc5NTEsImlhdCI6MTc1NDgwNDM1MSwiaXNzIjoicmV2aWV3aW5uLWFwaSIsImF1ZCI6InJldmlld2lubi1mcm9udGVuZCIsInR5cGUiOiJhY2Nlc3MiLCJqdGkiOiJoUDF4RTRraXR4WVRPWlBYTFliNlZnIn0.qN_Hu2JSx36FxNn1dHz2LuqmPoH7T7lxMkJXAZzSQxA" [accepted]
+reviewinn_backend  | WebSocket auth failed: 401: Token has expired
+reviewinn_backend  | Authentication failed - invalid token or user not found
+reviewinn_backend  | INFO:     connection open
+reviewinn_backend  | INFO:     connection closed
+reviewinn_backend  | WebSocket connection attempt with token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxN...
+reviewinn_backend  | INFO:     ('172.18.0.1', 37136) - "WebSocket /ws/messenger/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxNyIsImVtYWlsIjoicmV2aWV3aW5uLmNvbUBnbWFpbC5jb20iLCJleHAiOjE3NTQ4MDc5NTEsImlhdCI6MTc1NDgwNDM1MSwiaXNzIjoicmV2aWV3aW5uLWFwaSIsImF1ZCI6InJldmlld2lubi1mcm9udGVuZCIsInR5cGUiOiJhY2Nlc3MiLCJqdGkiOiJoUDF4RTRraXR4WVRPWlBYTFliNlZnIn0.qN_Hu2JSx36FxNn1dHz2LuqmPoH7T7lxMkJXAZzSQxA" [accepted]
+reviewinn_backend  | WebSocket accepted, now authenticating...
+reviewinn_backend  | WebSocket auth failed: 401: Token has expired
+reviewinn_backend  | Authentication failed - invalid token or user not found
+reviewinn_backend  | INFO:     connection open
+reviewinn_backend  | INFO:     connection closed
+reviewinn_backend  | WebSocket connection attempt with token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxN...
+reviewinn_backend  | INFO:     ('172.18.0.1', 37148) - "WebSocket /ws/messenger/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxNyIsImVtYWlsIjoicmV2aWV3aW5uLmNvbUBnbWFpbC5jb20iLCJleHAiOjE3NTQ4MDc5NTEsImlhdCI6MTc1NDgwNDM1MSwiaXNzIjoicmV2aWV3aW5uLWFwaSIsImF1ZCI6InJldmlld2lubi1mcm9udGVuZCIsInR5cGUiOiJhY2Nlc3MiLCJqdGkiOiJoUDF4RTRraXR4WVRPWlBYTFliNlZnIn0.qN_Hu2JSx36FxNn1dHz2LuqmPoH7T7lxMkJXAZzSQxA" [accepted]
+reviewinn_backend  | WebSocket accepted, now authenticating...
+reviewinn_backend  | WebSocket auth failed: 401: Token has expired
+reviewinn_backend  | Authentication failed - invalid token or user not found
+reviewinn_backend  | INFO:     connection open
+reviewinn_backend  | INFO:     connection closed
+
