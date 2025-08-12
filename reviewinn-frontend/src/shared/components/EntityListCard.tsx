@@ -211,14 +211,14 @@ const EntityListCard: React.FC<EntityListCardProps> = ({
           </div>
         )}
         
-        <div className="flex items-start gap-3">
+        <div className="flex flex-row items-start gap-2 min-w-0">
           {/* Entity Image */}
-          <div className="relative group">
+          <div className="relative group flex-shrink-0" style={{width: '160px', height: '110px'}}>
             <img 
               src={displayAvatar} 
               alt={entityName} 
               className={`rounded-lg object-cover border-2 border-white shadow-md group-hover:scale-105 transition-transform duration-200 ${!hasRealImage ? 'opacity-80' : ''}`}
-              style={imageSize}
+              style={{width: '160px', height: '110px'}}
             />
             {!hasRealImage && (
               <div className="absolute top-1 right-1 bg-yellow-400 text-yellow-800 text-xs px-1 py-0.5 rounded text-center font-semibold">
@@ -227,17 +227,17 @@ const EntityListCard: React.FC<EntityListCardProps> = ({
             )}
           </div>
           
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 overflow-hidden">
             {/* Title and Badges */}
-            <div className="flex flex-wrap items-center gap-2 mb-2">
+            <div className="flex flex-wrap items-center gap-2 mb-2 min-w-0">
               <button 
                 onClick={(e) => {
                   e.stopPropagation();
                   handleEntityClick();
                 }}
-                className="text-lg font-bold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer transition-colors duration-200 group-hover:text-blue-800 bg-transparent border-none p-0"
+                className="text-lg font-bold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer transition-colors duration-200 group-hover:text-blue-800 bg-transparent border-none p-0 break-words text-left min-w-0 flex-shrink"
               >
-                {entityName}
+                <span className="break-words">{entityName}</span>
               </button>
               
               {/* Verification Badge */}
@@ -264,9 +264,9 @@ const EntityListCard: React.FC<EntityListCardProps> = ({
             
             {/* Category Breadcrumb on Next Line */}
             {showCategories && (
-              <div className="flex flex-col gap-1 mb-2">
+              <div className="flex flex-col gap-1 mb-2 min-w-0">
                 {/* Always show category information if available */}
-                <div className="flex flex-wrap gap-1.5 items-center">
+                <div className="flex flex-wrap gap-1.5 items-center min-w-0">
                   {/* Root Category */}
                   {rootCategory && (
                     <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full border border-blue-200 shadow-sm hover:shadow-md transition-all duration-200">
@@ -320,13 +320,13 @@ const EntityListCard: React.FC<EntityListCardProps> = ({
             
             {/* Description */}
             {entityDescription && (
-              <p className="text-sm text-gray-600 mb-2 line-clamp-2 leading-relaxed">
+              <p className="text-sm text-gray-600 mb-2 line-clamp-2 leading-relaxed break-words min-w-0">
                 {entityDescription}
               </p>
             )}
             
             {/* Rating and Review Count - Always show */}
-            <div className="flex items-center gap-3 mt-2">
+            <div className="flex items-center gap-3 mt-2 flex-wrap min-w-0">
               {/* Rating */}
               {entityAvgRating > 0 && (
                 <div className="flex items-center gap-1.5 px-2 py-0.5 bg-green-100 text-green-800 rounded-full border border-green-200 shadow-sm hover:shadow-md transition-all duration-200">
@@ -336,9 +336,9 @@ const EntityListCard: React.FC<EntityListCardProps> = ({
               )}
               
               {/* Review Count - Show even if 0 or missing */}
-              <div className="flex items-center gap-1.5 px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full border border-blue-200 shadow-sm hover:shadow-md transition-all duration-200">
-                <span className="text-sm font-medium">{entityReviewCount.toLocaleString()}</span>
-                <span className="text-xs font-medium ml-1">review{entityReviewCount !== 1 ? 's' : ''}</span>
+              <div className="flex items-center gap-1.5 px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full border border-blue-200 shadow-sm hover:shadow-md transition-all duration-200 flex-shrink-0">
+                <span className="text-sm font-medium whitespace-nowrap">{entityReviewCount.toLocaleString()}</span>
+                <span className="text-xs font-medium ml-1 whitespace-nowrap">review{entityReviewCount !== 1 ? 's' : ''}</span>
               </div>
             </div>
 

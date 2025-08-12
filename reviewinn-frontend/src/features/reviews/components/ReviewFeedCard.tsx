@@ -138,15 +138,15 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
   return (
     <>
       <div 
-        className="w-full bg-white rounded-lg shadow-sm border border-gray-200 relative overflow-visible transition-all duration-300 group hover:shadow-md hover:border-gray-300"
+        className="w-full bg-white rounded-lg shadow-sm border border-gray-200 relative overflow-hidden transition-all duration-300 group hover:shadow-md hover:border-gray-300"
         style={{ transform: 'translateZ(0)' }}
         data-review-id={review.id}
         data-review-card="true"
       >
-        <div className="p-4 space-y-3">
+        <div className="p-3 sm:p-4 space-y-3 min-w-0 w-full">
           {/* Header Row - Unified Design */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow duration-200">
-            <div className="flex items-center gap-4">
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-2 sm:p-3 flex items-center justify-between gap-2 shadow-sm hover:shadow-md transition-shadow duration-200">
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
               {/* User Info */}
               <ReviewCardUserInfo
                 reviewerName={review.reviewerName || 'Anonymous'}
@@ -167,7 +167,7 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
             </div>
 
             {/* Action Buttons - Cohesive Design */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 flex-shrink-0">
               <button
                 onClick={(e) => {
                   e.stopPropagation();

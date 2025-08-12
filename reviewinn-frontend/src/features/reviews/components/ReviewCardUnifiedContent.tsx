@@ -27,8 +27,8 @@ const ReviewCardUnifiedContent: React.FC<ReviewCardUnifiedContentProps> = ({
             <svg className="w-4 h-4 text-gray-500 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
             </svg>
-            <h3 className="text-lg font-semibold text-gray-900 transition-colors duration-200 inline-flex items-center gap-2 group flex-1">
-              <span>{review.title}</span>
+            <h3 className="text-sm sm:text-lg font-semibold text-gray-900 transition-colors duration-200 inline-flex items-center gap-2 group flex-1 min-w-0">
+              <span className="break-words">{review.title}</span>
               <svg className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
               </svg>
@@ -63,8 +63,8 @@ const ReviewCardUnifiedContent: React.FC<ReviewCardUnifiedContentProps> = ({
           <svg className="w-4 h-4 text-gray-500 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          <div className="flex-1">
-            <div className="text-base text-gray-700 leading-relaxed">
+          <div className="flex-1 min-w-0">
+            <div className="text-sm sm:text-base text-gray-700 leading-relaxed break-words">
               {truncated}
             </div>
             

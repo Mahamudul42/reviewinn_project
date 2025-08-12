@@ -569,7 +569,13 @@ const Layout: React.FC = () => {
         .main-nav {
           display: flex;
           align-items: center;
-          gap: 2rem;
+          gap: 1rem;
+        }
+
+        @media (min-width: 1024px) {
+          .main-nav {
+            gap: 2rem;
+          }
         }
 
         .nav-link {
@@ -718,10 +724,30 @@ const Layout: React.FC = () => {
 
         @media (max-width: 768px) {
           .header-content {
-            gap: 1rem;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+          }
+
+          .header-container {
+            padding: 0 0.5rem;
           }
 
           .main-nav {
+            order: 3;
+            width: 100%;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            margin-top: 0.5rem;
+          }
+
+          .nav-link {
+            font-size: 0.875rem;
+            padding: 0.4rem 0.8rem;
+          }
+
+          .nav-link svg {
             display: none;
           }
 
@@ -729,8 +755,27 @@ const Layout: React.FC = () => {
             display: none;
           }
 
+          .header-actions {
+            gap: 0.5rem;
+          }
+
+          .logo h1 {
+            font-size: 1.5rem;
+          }
+
           .main-content {
-            padding: 1rem;
+            padding: 0.5rem;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .main-nav {
+            justify-content: center;
+          }
+          
+          .nav-link {
+            font-size: 0.8rem;
+            padding: 0.3rem 0.6rem;
           }
         }
       `}</style>

@@ -55,8 +55,10 @@ const TestHomePage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-        <LoadingSpinner size="lg" text="Loading test home data..." />
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-4">
+        <div className="text-center">
+          <LoadingSpinner size="lg" text="Loading test home data..." />
+        </div>
       </div>
     );
   }
@@ -67,13 +69,14 @@ const TestHomePage: React.FC = () => {
 
   return (
     <HomepageErrorBoundary>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100" style={{ zoom: '0.9' }}>
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-          <HomepageHeader reviewCount={reviews.length} />
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <HomepageHeader reviewCount={reviews.length} />
 
-          {/* Main content area with center panel only */}
+        {/* Main content area - Fully responsive */}
+        <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 max-w-7xl">
           <div className="flex justify-center w-full">
-            <div className="w-full max-w-4xl">
+            {/* Responsive width container */}
+            <div className="w-full max-w-xs sm:max-w-sm md:max-w-2xl lg:max-w-4xl xl:max-w-5xl">
               {isAuthenticated ? (
                 <MiddlePanelAuth
                   userAvatar={displayUser.avatar || ''}
@@ -111,7 +114,7 @@ const TestHomePage: React.FC = () => {
               )}
             </div>
           </div>
-        </div>
+        </main>
       </div>
     </HomepageErrorBoundary>
   );
