@@ -334,11 +334,11 @@ const RightPanelReviewinn: React.FC<RightPanelReviewinnProps> = ({
           {/* Top Categories */}
           <div>
             <h4 className="font-medium text-gray-900 mb-2 text-sm">Top Categories</h4>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-1.5 justify-start">
               {formattedActivitySummary.categories.map((category, index) => (
                 <span
                   key={index}
-                  className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full font-medium"
+                  className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full font-medium whitespace-nowrap"
                 >
                   {category}
                 </span>
@@ -357,7 +357,7 @@ const RightPanelReviewinn: React.FC<RightPanelReviewinnProps> = ({
             <p className="text-sm text-gray-600">
               Be part of our growing community of {formattedActivitySummary.stats[0].value}+ users sharing authentic reviews!
             </p>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <button 
                 onClick={() => {
                   const event = new CustomEvent('openAuthModal', { detail: { mode: 'register' } });

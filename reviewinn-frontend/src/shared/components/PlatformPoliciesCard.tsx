@@ -26,17 +26,21 @@ const PlatformPoliciesCard: React.FC<PlatformPoliciesCardProps> = ({
       {/* Card Content */}
     <div className="p-4 shadow-md rounded-lg bg-white hover:shadow-2xl transition-all duration-500 transform hover:scale-[1.02]">
       <div className={`${cardBg} p-4 rounded-xl bg-gradient-to-br from-green-50 via-white to-emerald-50`}>
-      <div className="text-center mb-4">
-        <div className="relative inline-block">
-          <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full blur-lg opacity-30 animate-pulse"></div>
-          <div className="relative bg-gradient-to-r from-green-500 to-emerald-600 text-white p-2.5 rounded-full shadow-lg">
-            <span className="text-xl font-bold">📋</span>
+      <div className="text-left mb-4">
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full blur-lg opacity-30 animate-pulse"></div>
+            <div className="relative bg-gradient-to-r from-green-500 to-emerald-600 text-white p-2.5 rounded-full shadow-lg">
+              <span className="text-xl font-bold">📋</span>
+            </div>
+          </div>
+          <div>
+            <h3 className="text-lg font-black bg-gradient-to-r from-green-600 via-emerald-600 to-green-800 bg-clip-text text-transparent">
+              Platform Policies
+            </h3>
+            <div className="w-10 h-0.5 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full mt-1"></div>
           </div>
         </div>
-        <h3 className="text-lg font-black bg-gradient-to-r from-green-600 via-emerald-600 to-green-800 bg-clip-text text-transparent mt-3">
-          Platform Policies
-        </h3>
-        <div className="w-10 h-0.5 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full mx-auto mt-2"></div>
       </div>
 
       <div className="space-y-2">

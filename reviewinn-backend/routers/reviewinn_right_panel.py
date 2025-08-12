@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, Request
+from core.auth_dependencies import AuthDependencies
 from sqlalchemy.orm import Session
 from sqlalchemy import text, func, desc
 from database import get_db
@@ -91,8 +92,8 @@ class ReviewInnRightPanelAuthResponse(BaseModel):
 
 @router.get("/", response_model=dict)
 async def get_reviewinn_right_panel_data(
-    request: Request,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user = Depends(AuthDependencies.get_current_user_optional)
 ):
     """
     Get ReviewInn right panel data - returns authenticated or public data based on user status
@@ -101,13 +102,10 @@ async def get_reviewinn_right_panel_data(
     """
     
     try:
-        # Check if user is authenticated (simplified check - in real implementation use proper auth)
-        authorization = request.headers.get("authorization")
-        is_authenticated = bool(authorization and authorization.startswith("Bearer "))
-        
-        if is_authenticated:
-            # Return authenticated data
-            return await get_authenticated_data_internal(db)
+        # Use proper authentication like left panel
+        if current_user:
+            # Return authenticated data with real user ID
+            return await get_authenticated_data_internal(db, user_id=current_user.user_id)
         else:
             # Return public data
             return await get_public_data_internal(db)
@@ -225,14 +223,12 @@ async def get_public_data_internal(db: Session) -> dict:
 async def get_authenticated_data_internal(db: Session, user_id: int = None) -> dict:
     """Internal function to get authenticated data from real database tables"""
     
-    # Use a default user ID for demo purposes if none provided
+    # Ensure we have a valid user_id for authenticated requests
     if not user_id:
-        # Get first user as demo user
-        first_user = db.query(User).first()
-        if first_user:
-            user_id = first_user.user_id
-        else:
-            user_id = 1  # Fallback
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication required for user-specific data"
+        )
     
     # Get user progress from user_progress table
     user_progress_record = db.query(UserProgress).filter(
