@@ -16,20 +16,7 @@ const ReviewInnLeftPanel: React.FC = () => {
   const cardBg = "bg-white bg-gradient-to-br from-yellow-50 to-white border border-yellow-300 w-full max-w-full overflow-hidden";
   const cardWrapper = "p-4 shadow-md rounded-lg bg-white w-full max-w-full overflow-hidden";
 
-  if (loading) {
-    return (
-      <div className="flex flex-col gap-4">
-        <div className={`${cardWrapper}`}>
-          <div className={`${cardBg} rounded-lg p-5`}>
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading engagement data...</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Removed internal loading spinner - handled by parent component
 
   if (error) {
     return (

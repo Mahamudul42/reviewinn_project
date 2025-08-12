@@ -12,6 +12,7 @@ import PanelLoadingState from '../components/PanelLoadingState';
 
 interface RightPanelPublicProps {
   className?: string;
+  hideInternalLoading?: boolean;
 }
 
 /**
@@ -19,7 +20,8 @@ interface RightPanelPublicProps {
  * Shows community highlights, featured entities, and join prompts for unauthenticated users
  */
 const RightPanelPublic: React.FC<RightPanelPublicProps> = ({ 
-  className = ""
+  className = "",
+  hideInternalLoading = false
 }) => {
   const [featuredEntities, setFeaturedEntities] = useState<Entity[]>([]);
   const [recentReviews, setRecentReviews] = useState<Review[]>([]);
@@ -71,7 +73,7 @@ const RightPanelPublic: React.FC<RightPanelPublicProps> = ({
     loadPublicData();
   }, [loadPublicData]);
 
-  if (loading) {
+  if (loading && !hideInternalLoading) {
     return (
       <PanelLoadingState
         title="Community Highlights"

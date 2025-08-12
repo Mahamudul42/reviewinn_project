@@ -17,6 +17,7 @@ import PanelLoadingState from '../components/PanelLoadingState';
 
 interface RightPanelReviewinnProps {
   className?: string;
+  hideInternalLoading?: boolean;
 }
 
 /**
@@ -25,7 +26,8 @@ interface RightPanelReviewinnProps {
  * Uses unified endpoint that automatically returns appropriate data based on authentication
  */
 const RightPanelReviewinn: React.FC<RightPanelReviewinnProps> = ({ 
-  className = ""
+  className = "",
+  hideInternalLoading = false
 }) => {
   const { user } = useUnifiedAuth();
   const { data, loading, error, isAuthenticated, refetch } = useReviewinnRightPanelSingle();
@@ -41,8 +43,8 @@ const RightPanelReviewinn: React.FC<RightPanelReviewinnProps> = ({
   const userName = user?.name || user?.username || 'User';
   const userUsername = user?.username || '';
 
-  // Show loading state
-  if (loading) {
+  // Show loading state - skip if hideInternalLoading is true
+  if (loading && !hideInternalLoading) {
     return (
       <PanelLoadingState
         title={data?.type === 'authenticated' ? "Your Progress" : "ReviewInn Insights"}

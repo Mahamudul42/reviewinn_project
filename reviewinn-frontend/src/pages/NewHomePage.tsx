@@ -256,7 +256,7 @@ const NewHomePage: React.FC = () => {
                     <div style={{ animation: 'spin 1s linear infinite', borderRadius: '50%', width: '48px', height: '48px', border: '2px solid #e5e7eb', borderTopColor: '#2563eb' }}></div>
                   </div>
                 ) : (
-                  <RightPanelReviewinn />
+                  <RightPanelReviewinn hideInternalLoading={true} />
                 )}
               </div>
             </div>

@@ -16,6 +16,7 @@ import PanelLoadingState from '../components/PanelLoadingState';
 interface RightPanelAuthProps {
   className?: string;
   user: User;
+  hideInternalLoading?: boolean;
 }
 
 /**
@@ -24,7 +25,8 @@ interface RightPanelAuthProps {
  */
 const RightPanelAuth: React.FC<RightPanelAuthProps> = ({ 
   className = "",
-  user
+  user,
+  hideInternalLoading = false
 }) => {
   const [dashboardData, setDashboardData] = useState<GamificationDashboard | null>(null);
   const [loading, setLoading] = useState(true);
@@ -99,8 +101,8 @@ const RightPanelAuth: React.FC<RightPanelAuthProps> = ({
   const userName = user?.name || user?.username || 'User';
   const userUsername = user?.username || '';
 
-  // Show loading state
-  if (loading) {
+  // Show loading state - skip if hideInternalLoading is true
+  if (loading && !hideInternalLoading) {
     return (
       <PanelLoadingState
         title="Your Progress"
@@ -178,8 +180,8 @@ const RightPanelAuth: React.FC<RightPanelAuthProps> = ({
     );
   }
 
-  // Show loading state while dashboard data is loading
-  if (loading || !dashboardData || !dashboardData.user_progress) {
+  // Show loading state while dashboard data is loading - skip if hideInternalLoading is true
+  if ((loading || !dashboardData || !dashboardData.user_progress) && !hideInternalLoading) {
     return (
       <PanelLoadingState
         title="Your Progress"
