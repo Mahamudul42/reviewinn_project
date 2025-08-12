@@ -57,7 +57,7 @@ const MiddlePanelAuth: React.FC<MiddlePanelAuthProps> = ({
 
   if (loading) {
     return (
-      <div className="w-full max-w-2xl py-8 h-full">
+      <div className="w-full max-w-2xl py-8" style={{ minHeight: '100%' }}>
         <PanelLoadingState
           title="Your Feed"
           subtitle="Loading personalized reviews..."
@@ -69,7 +69,7 @@ const MiddlePanelAuth: React.FC<MiddlePanelAuthProps> = ({
   }
 
   return (
-    <div className="w-full max-w-2xl py-8 h-full">
+    <div className="w-full max-w-2xl py-8" style={{ minHeight: '100%' }}>
       <div className="space-y-6">
         <AddReviewStatusBar 
           userAvatar={userAvatar} 
@@ -93,7 +93,7 @@ const MiddlePanelAuth: React.FC<MiddlePanelAuthProps> = ({
             onCommentReaction={onCommentReaction}
           />
         ) : (
-          <div className="relative px-8">
+          <div className="relative">
             <ReviewFeed 
               reviews={reviews} 
               entities={entities}

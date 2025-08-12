@@ -270,7 +270,11 @@ export interface EntityContext {
 
 export interface Review {
   id: string;
+  review_id?: number; // Database primary key
   entityId: string;
+  entity_id?: number; // Database foreign key
+  user_id?: number; // Database foreign key
+  role_id?: number; // Database foreign key
   reviewerId: string;
   reviewerName: string;
   reviewerUsername?: string;
@@ -282,26 +286,34 @@ export interface Review {
   title?: string;
   content: string;
   overallRating: number;
+  overall_rating?: number; // Database field name
   ratings: Record<string, number>;
   criteria: Record<string, any>;
   pros: string[];
   cons: string[];
   images?: string[];
   isAnonymous: boolean;
+  is_anonymous?: boolean; // Database field name
   isVerified: boolean;
+  is_verified?: boolean; // Database field name
   is_verified_purchase?: boolean;
   view_count?: number;
   comment_count?: number;
+  reaction_count?: number; // Database field name
   reactions?: Record<string, number>;
   user_reaction?: string;
   top_reactions?: string[];
   total_reactions?: number;
   helpfulCount?: number;
   createdAt: string;
+  created_at?: string; // Database field name
   updatedAt?: string;
+  updated_at?: string; // Database field name
   comments?: Comment[];
-  entity_id?: string;
   entity?: Entity; // Complete entity object like user reviews
+  entity_summary?: any; // Database JSONB field
+  user_summary?: any; // Database JSONB field
+  reports_summary?: any; // Database JSONB field
 }
 
 export interface Comment {

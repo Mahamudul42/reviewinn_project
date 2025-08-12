@@ -756,7 +756,11 @@ async def create_comment(
         comment = Comment(
             review_id=review_id,
             user_id=current_user.user_id,
-            content=comment_request.content
+            content=comment_request.content,
+            is_anonymous=False,
+            is_verified=False,
+            reaction_count=0,
+            helpful_votes=0
         )
         
         db.add(comment)
@@ -772,11 +776,11 @@ async def create_comment(
             comment_id=comment.comment_id,
             review_id=comment.review_id,
             user_id=comment.user_id,
-            user_name=comment_user.name if comment_user else "Anonymous",
+            user_name=comment_user.display_name or comment_user.username if comment_user else "Anonymous",
             user_avatar=comment_user.avatar if comment_user else None,
             content=comment.content,
             created_at=comment.created_at,
-            likes=comment.likes or 0,
+            likes=comment.reaction_count or 0,
             reactions=comment_reaction_summary["reactions"],
             user_reaction=comment_reaction_summary["user_reaction"]
         )

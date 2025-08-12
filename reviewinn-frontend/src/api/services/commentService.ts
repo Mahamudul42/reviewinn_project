@@ -4,7 +4,6 @@ import type { Comment } from '../../types';
 
 export interface CommentCreateData {
   content: string;
-  parentId?: string;
 }
 
 export interface CommentListParams {
@@ -168,8 +167,7 @@ export class CommentService {
     
     try {
       const response = await httpClient.post<ApiCommentResponse>(url, {
-        content: commentData.content,
-        parent_id: commentData.parentId ? parseInt(commentData.parentId) : undefined
+        content: commentData.content
       });
       
       if (!response.data) {

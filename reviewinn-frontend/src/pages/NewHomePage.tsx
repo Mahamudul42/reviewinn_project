@@ -108,7 +108,7 @@ const NewHomePage: React.FC = () => {
           </h1>
         </div>
 
-        {/* Three Columns with Independent Scrolling */}
+        {/* Three Columns with Facebook-Style Independent Scrolling */}
         <div style={{ 
           display: 'flex', 
           gap: '24px', 
@@ -116,23 +116,30 @@ const NewHomePage: React.FC = () => {
           margin: '0 auto',
           justifyContent: 'space-between',
           alignItems: 'flex-start',
-          height: 'calc(100vh - 200px)', // Fixed height for independent scrolling
-          overflow: 'hidden' // Prevent parent overflow
+          minHeight: 'calc(100vh - 200px)', // Minimum height, can expand
+          maxHeight: 'calc(100vh - 200px)', // Maximum viewport height for scrolling
+          position: 'relative' // For proper positioning
         }}>
           
-          {/* Left Panel - Independent Scrolling */}
-          <div style={{ width: '350px', flexShrink: 0, height: '100%' }}>
+          {/* Left Panel - Facebook-Style Infinite Scrolling */}
+          <div style={{ 
+            width: '350px', 
+            flexShrink: 0, 
+            height: 'calc(100vh - 200px)',
+            position: 'sticky',
+            top: '0'
+          }}>
             <div className="left-panel-container" style={{ 
               background: 'white', 
               borderRadius: '16px', 
-              padding: '20px', 
+              padding: '16px', 
               boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
               border: '1px solid #e5e7eb',
               height: '100%',
               overflowY: 'auto',
               overflowX: 'hidden',
               scrollBehavior: 'smooth',
-              paddingRight: '12px' // Space for scrollbar
+              position: 'relative'
             }}>
               <h2 style={{ 
                 fontSize: '18px', 
@@ -152,25 +159,27 @@ const NewHomePage: React.FC = () => {
               }}>
                 {/* Global CSS for left panel overflow fixes and scrollbar styling */}
                 <style>{`
-                  /* Facebook-style scrollbar styling for all panels */
+                  /* Facebook-style scrollbar styling for infinite content */
                   .left-panel-container,
                   .right-panel-container,
                   .center-panel-container {
+                    /* Firefox scrollbar styling */
                     scrollbar-width: thin;
                     scrollbar-color: transparent transparent;
-                    transition: scrollbar-color 0.3s ease;
+                    transition: scrollbar-color 0.2s ease;
                   }
                   
                   .left-panel-container:hover,
                   .right-panel-container:hover,
                   .center-panel-container:hover {
-                    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+                    scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
                   }
                   
+                  /* Webkit scrollbar styling (Chrome, Safari, Edge) */
                   .left-panel-container::-webkit-scrollbar,
                   .right-panel-container::-webkit-scrollbar,
                   .center-panel-container::-webkit-scrollbar {
-                    width: 8px;
+                    width: 6px;
                     background: transparent;
                   }
                   
@@ -178,38 +187,50 @@ const NewHomePage: React.FC = () => {
                   .right-panel-container::-webkit-scrollbar-track,
                   .center-panel-container::-webkit-scrollbar-track {
                     background: transparent;
-                    border-radius: 4px;
+                    margin: 2px;
                   }
                   
                   .left-panel-container::-webkit-scrollbar-thumb,
                   .right-panel-container::-webkit-scrollbar-thumb,
                   .center-panel-container::-webkit-scrollbar-thumb {
                     background: transparent;
-                    border-radius: 4px;
-                    border: 2px solid transparent;
+                    border-radius: 10px;
+                    border: 1px solid transparent;
                     background-clip: content-box;
-                    transition: all 0.3s ease;
+                    transition: all 0.2s ease;
+                    min-height: 20px;
                   }
                   
+                  /* Show scrollbar on hover (Facebook-style) */
                   .left-panel-container:hover::-webkit-scrollbar-thumb,
                   .right-panel-container:hover::-webkit-scrollbar-thumb,
                   .center-panel-container:hover::-webkit-scrollbar-thumb {
-                    background: rgba(0, 0, 0, 0.2);
+                    background: rgba(0, 0, 0, 0.15);
                     background-clip: content-box;
                   }
                   
+                  /* Darker on thumb hover */
                   .left-panel-container::-webkit-scrollbar-thumb:hover,
                   .right-panel-container::-webkit-scrollbar-thumb:hover,
                   .center-panel-container::-webkit-scrollbar-thumb:hover {
+                    background: rgba(0, 0, 0, 0.25) !important;
+                    background-clip: content-box;
+                  }
+                  
+                  /* Active state */
+                  .left-panel-container::-webkit-scrollbar-thumb:active,
+                  .right-panel-container::-webkit-scrollbar-thumb:active,
+                  .center-panel-container::-webkit-scrollbar-thumb:active {
                     background: rgba(0, 0, 0, 0.4) !important;
                     background-clip: content-box;
                   }
                   
-                  .left-panel-container::-webkit-scrollbar-thumb:active,
-                  .right-panel-container::-webkit-scrollbar-thumb:active,
-                  .center-panel-container::-webkit-scrollbar-thumb:active {
-                    background: rgba(0, 0, 0, 0.6) !important;
-                    background-clip: content-box;
+                  /* Smooth transitions for infinite content */
+                  .left-panel-container,
+                  .right-panel-container,
+                  .center-panel-container {
+                    -webkit-overflow-scrolling: touch;
+                    scroll-behavior: smooth;
                   }
                   
                   .left-panel-container h3,
@@ -250,15 +271,17 @@ const NewHomePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Center Panel - Independent Scrolling */}
+          {/* Center Panel - Facebook-Style Infinite Content Scrolling */}
           <div className="center-panel-container" style={{ 
             width: '600px', 
             flexShrink: 0, 
-            height: '100%', 
+            height: 'calc(100vh - 200px)',
             overflowY: 'auto', 
             overflowX: 'hidden',
             scrollBehavior: 'smooth',
-            paddingRight: '8px' // Space for scrollbar
+            position: 'relative',
+            // Allow content to be as long as needed
+            minHeight: 'calc(100vh - 200px)'
           }}>
             {centerError ? (
               <div style={{ textAlign: 'center', padding: '32px', background: 'white', borderRadius: '16px' }}>
@@ -306,19 +329,25 @@ const NewHomePage: React.FC = () => {
             )}
           </div>
 
-          {/* Right Panel - Independent Scrolling */}
-          <div style={{ width: '350px', flexShrink: 0, height: '100%' }}>
+          {/* Right Panel - Facebook-Style Infinite Scrolling */}
+          <div style={{ 
+            width: '350px', 
+            flexShrink: 0, 
+            height: 'calc(100vh - 200px)',
+            position: 'sticky',
+            top: '0'
+          }}>
             <div className="right-panel-container" style={{ 
               background: 'white', 
               borderRadius: '16px', 
-              padding: '20px', 
+              padding: '16px', 
               boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
               border: '1px solid #e5e7eb',
               height: '100%',
               overflowY: 'auto',
               overflowX: 'hidden',
               scrollBehavior: 'smooth',
-              paddingRight: '12px' // Space for scrollbar
+              position: 'relative'
             }}>
               <h2 style={{ 
                 fontSize: '18px', 

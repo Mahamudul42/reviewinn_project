@@ -276,7 +276,7 @@ export const useReviewManagement = () => {
     }
     
     try {
-      const newComment = await commentService.createComment(reviewId, { content, parentId });
+      const newComment = await commentService.createComment(reviewId, { content });
       
       setLocalReviews(prevReviews => 
         prevReviews.map(review => {

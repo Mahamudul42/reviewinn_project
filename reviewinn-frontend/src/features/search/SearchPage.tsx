@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import SearchPageLayout from './components/SearchPageLayout';
 import ReviewSearchHeader from './components/ReviewSearchHeader';
-import ModernSearchResults from './components/ModernSearchResults';
+import SearchResults from './components/SearchResults';
 import SearchFilterModal from './components/SearchFilterModal';
 import { searchService } from '../../api/services/searchService';
 import { useConfirmation } from '../../shared/components/ConfirmationSystem';
@@ -215,7 +215,7 @@ const SearchPage: React.FC = () => {
           )}
 
           {searchResults && searchResults.total > 0 && (
-            <ModernSearchResults
+            <SearchResults
               results={searchResults}
               searchType={searchType}
               query={query}

@@ -53,7 +53,6 @@ class Review(Base):
     entity = relationship("Entity", back_populates="reviews")
     reactions = relationship("ReviewReaction", back_populates="review", cascade="all, delete-orphan")
     comments = relationship("Comment", back_populates="review", cascade="all, delete-orphan")
-    comment_reactions = relationship("CommentReaction", secondary="comments", viewonly=True)
     views = relationship("ReviewView", back_populates="review", cascade="all, delete-orphan")
     
     def __repr__(self):
