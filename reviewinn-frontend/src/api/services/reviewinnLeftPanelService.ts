@@ -1,6 +1,7 @@
 import { httpClient } from '../httpClient';
+import { API_CONFIG } from '../config';
 
-export interface AnalyticsReview {
+export interface ReviewInnLeftPanelReview {
   review_id: number;
   title: string;
   content: string;
@@ -48,7 +49,7 @@ export interface AnalyticsReview {
   };
 }
 
-export interface AnalyticsCategory {
+export interface ReviewInnLeftPanelCategory {
   category: {
     id: number;
     icon: string;
@@ -59,7 +60,7 @@ export interface AnalyticsCategory {
   avg_rating: number;
 }
 
-export interface AnalyticsReviewer {
+export interface ReviewInnLeftPanelReviewer {
   user_id: number;
   name: string;
   username: string;
@@ -70,33 +71,27 @@ export interface AnalyticsReviewer {
   is_verified: boolean;
 }
 
-export interface AnalyticsLeftPanelData {
-  top_reviews: AnalyticsReview[];
-  top_categories: AnalyticsCategory[];
-  top_reviewers: AnalyticsReviewer[];
+export interface ReviewInnLeftPanelData {
+  top_reviews: ReviewInnLeftPanelReview[];
+  top_categories: ReviewInnLeftPanelCategory[];
+  top_reviewers: ReviewInnLeftPanelReviewer[];
 }
 
-export interface AnalyticsLeftPanelResponse {
+export interface ReviewInnLeftPanelResponse {
   success: boolean;
-  data: AnalyticsLeftPanelData;
+  data: ReviewInnLeftPanelData;
   message: string;
 }
 
-/**
- * Analytics Left Panel Service
- * Independent service for analytics-based left panel data
- * Can be used across any page without dependencies
- */
-export class AnalyticsLeftPanelService {
+export class ReviewInnLeftPanelService {
   private baseUrl = `http://localhost:8000/api/v1/homepage`;
 
   /**
-   * Get analytics-based left panel data
-   * Returns top reviews, categories, and reviewers based on analytics metrics
+   * Get ReviewInn left panel data with top reviews, categories, and reviewers
    */
-  async getAnalyticsData(): Promise<AnalyticsLeftPanelData> {
+  async getReviewInnLeftPanelData(): Promise<ReviewInnLeftPanelData> {
     try {
-      const url = `${this.baseUrl}/test_left_panel`;
+      const url = `${this.baseUrl}/reviewinn_left_panel`;
       
       const response = await fetch(url, {
         method: 'GET',
@@ -107,10 +102,10 @@ export class AnalyticsLeftPanelService {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch analytics data: ${response.statusText}`);
+        throw new Error(`Failed to fetch ReviewInn left panel data: ${response.statusText}`);
       }
 
-      const result: AnalyticsLeftPanelResponse = await response.json();
+      const result: ReviewInnLeftPanelResponse = await response.json();
       
       if (result.success && result.data) {
         return result.data;
@@ -118,16 +113,15 @@ export class AnalyticsLeftPanelService {
         throw new Error(result.message || 'API returned error');
       }
     } catch (error) {
-      console.error('AnalyticsLeftPanelService: Failed to fetch data:', error);
+      console.error('ReviewInnLeftPanelService: Failed to fetch data:', error);
       throw error;
     }
   }
 
   /**
    * Transform API review data to frontend format for compatibility
-   * Maintains consistency with existing review interfaces
    */
-  transformReviewToFrontend(apiReview: AnalyticsReview) {
+  transformReviewToFrontend(apiReview: ReviewInnLeftPanelReview) {
     return {
       id: apiReview.review_id.toString(),
       review_id: apiReview.review_id,
@@ -168,4 +162,4 @@ export class AnalyticsLeftPanelService {
 }
 
 // Export singleton instance
-export const analyticsLeftPanelService = new AnalyticsLeftPanelService();
+export const reviewinnLeftPanelService = new ReviewInnLeftPanelService();

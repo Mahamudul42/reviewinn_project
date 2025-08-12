@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { useAnalyticsLeftPanel } from '../hooks/useAnalyticsLeftPanel';
+import { useReviewInnLeftPanel } from '../hooks/useReviewInnLeftPanel';
 
 /**
- * Analytics Left Panel Component
+ * ReviewInn Left Panel Component
  * Uses the exact same double card system as existing left panel
- * Displays analytics-based data in the same styled cards
+ * Displays engagement-based data in the same styled cards
  */
-const AnalyticsLeftPanel: React.FC = () => {
-  const { data, loading, error, refetch } = useAnalyticsLeftPanel();
+const ReviewInnLeftPanel: React.FC = () => {
+  const { data, loading, error, refetch } = useReviewInnLeftPanel();
   const [showContactModal, setShowContactModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
@@ -23,7 +23,7 @@ const AnalyticsLeftPanel: React.FC = () => {
           <div className={`${cardBg} rounded-lg p-5`}>
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading analytics data...</p>
+              <p className="text-gray-600">Loading engagement data...</p>
             </div>
           </div>
         </div>
@@ -161,7 +161,7 @@ const AnalyticsLeftPanel: React.FC = () => {
                   </p>
                 </div>
 
-                {/* Analytics Metrics */}
+                {/* Engagement Metrics */}
                 <div className="flex items-center gap-4 text-xs text-gray-600 mb-3">
                   <span className="flex items-center gap-1 bg-green-50 px-2 py-1 rounded-full">
                     <span>🎯</span>
@@ -360,7 +360,7 @@ const AnalyticsLeftPanel: React.FC = () => {
               <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                 <span className="text-white text-sm">📞</span>
               </div>
-              <div className="ml-2.5 flex-1">
+              <div className="ml-2.5 flex-1 text-left">
                 <span className="text-blue-800 font-bold text-sm block group-hover:translate-x-1 transition-transform duration-300">Contact Us</span>
                 <span className="text-blue-600 text-xs">Get in touch with our team</span>
               </div>
@@ -373,7 +373,7 @@ const AnalyticsLeftPanel: React.FC = () => {
               <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                 <span className="text-white text-sm">❓</span>
               </div>
-              <div className="ml-2.5 flex-1">
+              <div className="ml-2.5 flex-1 text-left">
                 <span className="text-green-800 font-bold text-sm block group-hover:translate-x-1 transition-transform duration-300">Help Center</span>
                 <span className="text-green-600 text-xs">Find answers and guides</span>
               </div>
@@ -386,7 +386,7 @@ const AnalyticsLeftPanel: React.FC = () => {
               <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-red-500 to-rose-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                 <span className="text-white text-sm">⚠️</span>
               </div>
-              <div className="ml-2.5 flex-1">
+              <div className="ml-2.5 flex-1 text-left">
                 <span className="text-red-800 font-bold text-sm block group-hover:translate-x-1 transition-transform duration-300">Report Abuse</span>
                 <span className="text-red-600 text-xs">Report inappropriate content</span>
               </div>
@@ -398,4 +398,4 @@ const AnalyticsLeftPanel: React.FC = () => {
   );
 };
 
-export default AnalyticsLeftPanel;
+export default ReviewInnLeftPanel;
