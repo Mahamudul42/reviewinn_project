@@ -84,14 +84,14 @@ export interface ReviewInnLeftPanelResponse {
 }
 
 export class ReviewInnLeftPanelService {
-  private baseUrl = `http://localhost:8000/api/v1/homepage`;
+  private baseUrl = `http://localhost:8000/api/v1/reviewinn-left-panel`;
 
   /**
    * Get ReviewInn left panel data with top reviews, categories, and reviewers
    */
   async getReviewInnLeftPanelData(): Promise<ReviewInnLeftPanelData> {
     try {
-      const url = `${this.baseUrl}/reviewinn_left_panel`;
+      const url = `${this.baseUrl}/data`;
       
       const response = await fetch(url, {
         method: 'GET',
