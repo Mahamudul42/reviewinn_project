@@ -680,6 +680,64 @@ async def get_similar_entities(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
+@router.post("/search", response_model=EntityListResponse)
+async def search_entities_post(
+    search_data: dict = Body(...),
+    db: Session = Depends(get_db)
+):
+    """
+    Search entities using POST request (for frontend compatibility).
+    
+    Supports the same search functionality as GET /entities/ but with POST body.
+    This endpoint is added for frontend compatibility with existing search modal.
+    """
+    try:
+        # Extract search parameters from POST body
+        query = search_data.get('query', '')
+        limit = search_data.get('limit', 20)
+        category = search_data.get('category')
+        
+        # Build list parameters
+        params = EntityListParams(
+            page=1,
+            limit=min(limit, 100),  # Cap at 100
+            search_query=query,
+            sort_by=EntitySortBy.RATING,
+            sort_order=EntitySortOrder.DESC
+        )
+        
+        # If category is provided, try to map it
+        if category:
+            # For now, treat category as a search term too
+            if query:
+                params.search_query = f"{query} {category}"
+            else:
+                params.search_query = category
+        
+        # Get entities from service
+        result = await unified_entity_service.list_entities(db, params)
+        
+        return EntityListResponse(
+            success=True,
+            data=result.entities,
+            pagination={
+                "page": result.page,
+                "limit": result.limit,
+                "total": result.total,
+                "pages": (result.total + result.limit - 1) // result.limit if result.total > 0 else 0
+            },
+            message=f"Found {len(result.entities)} entities matching '{query}'"
+        )
+        
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except BusinessLogicError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        logger.error(f"Unexpected error in search_entities_post: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
 @router.get("/health/check")
 async def health_check():
     """

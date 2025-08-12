@@ -357,8 +357,8 @@ class UnifiedEntityService(BaseService[Entity, dict, dict]):
             search_filter = or_(
                 Entity.name.ilike(f"%{params.search_query}%"),
                 Entity.description.ilike(f"%{params.search_query}%"),
-                # Entity.context can be searched as JSON text
-                func.cast(Entity.context, String).ilike(f"%{params.search_query}%")
+                # Entity.entity_metadata can be searched as JSON text
+                func.cast(Entity.entity_metadata, String).ilike(f"%{params.search_query}%")
             )
             query = query.filter(search_filter)
         
@@ -538,7 +538,7 @@ class UnifiedEntityService(BaseService[Entity, dict, dict]):
             "createdAt": entity.created_at.isoformat() if entity.created_at else None,  # Frontend compatibility
             "updatedAt": entity.updated_at.isoformat() if entity.updated_at else None,  # Frontend compatibility
             "review_stats": review_stats,
-            "context": entity.context or {},
+            "context": entity.entity_metadata or {},
             # Add missing fields that frontend expects
             "avatar": entity.avatar,  # Entity image URL from database
             "imageUrl": entity.avatar,  # Alternative field name for compatibility

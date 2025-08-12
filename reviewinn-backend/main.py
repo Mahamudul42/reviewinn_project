@@ -229,7 +229,7 @@ class APIApplication(LoggerMixin):
         app.include_router(reviewinn_right_panel_router, tags=["reviewinn-right-panel"])
         
         
-        # Legacy entity endpoints for backward compatibility (disabled to avoid conflicts)
+        # Legacy entity endpoints for backward compatibility (keeping disabled to avoid conflicts)
         # app.include_router(entities_router, prefix="/api/v1/entities-legacy", tags=["entities-legacy"])
         
         # Use the fixed router (excluding auth to avoid conflicts)

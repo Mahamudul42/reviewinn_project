@@ -2,8 +2,7 @@ import React, { useLayoutEffect, useState } from 'react';
 import { Modal } from '../../../shared/design-system/components/Modal';
 import SearchBar from '../../../shared/organisms/SearchBar';
 import ReviewForm from '../../../shared/organisms/ReviewForm';
-import type { Entity, SubcategoryConfig, ReviewFormData, EntityCategory } from '../../../types';
-import { getSubcategoryConfig } from '../../../utils/subcategoryMatcher';
+import type { Entity, SubcategoryConfig, ReviewFormData } from '../../../types';
 
 
 interface AddReviewModalProps {
@@ -16,7 +15,7 @@ interface AddReviewModalProps {
   preselectedEntity?: Entity; // NEW: Optional pre-selected entity
 }
 
-const AddReviewModal: React.FC<AddReviewModalProps> = ({ open, onClose, onReviewSubmit, subcategories = [], userName, userAvatar, preselectedEntity }) => {
+const AddReviewModal: React.FC<AddReviewModalProps> = ({ open, onClose, onReviewSubmit, userName, userAvatar, preselectedEntity }) => {
   const [step, setStep] = useState<'search' | 'review'>('search');
   const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null);
 
@@ -69,9 +68,12 @@ const AddReviewModal: React.FC<AddReviewModalProps> = ({ open, onClose, onReview
           {/* User Info */}
           <div className="flex items-center gap-3 mb-4">
             <img 
-              src={userAvatar} 
+              src={userAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=gray&color=ffffff`} 
               alt={userName} 
-              className="w-8 h-8 rounded-full object-cover border-2 border-gray-200" 
+              className="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=gray&color=ffffff`;
+              }}
             />
             <span className="font-medium text-gray-900 text-sm">{userName}</span>
           </div>

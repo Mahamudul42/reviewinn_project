@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useUnifiedAuth } from '../hooks/useUnifiedAuth';
 
 // Left Panel Components
@@ -6,13 +6,19 @@ import ReviewInnLeftPanel from '../features/common/components/ReviewInnLeftPanel
 
 // Center Content (Test Home)
 import { useTestHomeData } from '../features/common/hooks/useTestHomeData';
+import { useReviewManagement } from '../features/common/hooks/useReviewManagement';
 import { MiddlePanelPublic, MiddlePanelAuth } from '../shared/panels/MiddlePanel';
+import type { Entity } from '../types';
 
 // Right Panel Components
 import RightPanelReviewinn from '../shared/panels/RightPanel/RightPanelReviewinn';
 
+// Modal Components
+import AddReviewModal from '../features/reviews/components/AddReviewModal';
+import type { ReviewFormData } from '../types';
+
 const NewHomePage: React.FC = () => {
-  const { user, isAuthenticated } = useUnifiedAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useUnifiedAuth();
   
   // Data hooks - using the same pattern as TestHomePage
   const {
@@ -24,21 +30,67 @@ const NewHomePage: React.FC = () => {
     handleLoadMore
   } = useTestHomeData();
 
-  // Test Home handlers - same as TestHomePage
-  const handleCommentAdd = async (reviewId: string, content: string, parentId?: string) => {
-    console.log('Comment add not implemented in test page:', reviewId, content, parentId);
+  // Review management hooks
+  const {
+    reviewBarRef,
+    handleReviewSubmit,
+    handleCommentAdd: reviewHandleCommentAdd,
+    handleCommentDelete: reviewHandleCommentDelete,
+    handleCommentReaction: reviewHandleCommentReaction,
+  } = useReviewManagement();
+
+  // Modal state
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [preselectedEntity, setPreselectedEntity] = useState<Entity | null>(null);
+
+  // Modal handlers
+  const handleShowReviewModal = () => {
+    // Don't do anything if auth is still loading
+    if (authLoading) {
+      return;
+    }
+    
+    // Check if user is authenticated before showing review modal
+    if (!isAuthenticated || !user) {
+      // Trigger auth modal instead
+      window.dispatchEvent(new CustomEvent('openAuthModal'));
+      return;
+    }
+    setShowReviewModal(true);
   };
 
-  const handleCommentDelete = async (reviewId: string, commentId: string) => {
-    console.log('Comment delete not implemented in test page:', reviewId, commentId);
+  const handleCloseReviewModal = () => {
+    setShowReviewModal(false);
+    setPreselectedEntity(null);
   };
 
-  const handleCommentReaction = async (reviewId: string, commentId: string, reaction: string | null) => {
-    console.log('Comment reaction not implemented in test page:', reviewId, commentId, reaction);
+  const handleGiveReviewClick = (entity: Entity) => {
+    if (!isAuthenticated || !user) {
+      window.dispatchEvent(new CustomEvent('openAuthModal'));
+      return;
+    }
+    setPreselectedEntity(entity);
+    setShowReviewModal(true);
   };
 
-  const handleAddReviewClick = () => {
-    console.log('Add review modal would open here');
+  // Comment handlers - use the review management ones
+  const handleCommentAdd = reviewHandleCommentAdd;
+  const handleCommentDelete = reviewHandleCommentDelete;
+  const handleCommentReaction = reviewHandleCommentReaction;
+
+  // Review submission handler
+  const handleModalReviewSubmit = async (entity: Entity, reviewData: ReviewFormData) => {
+    try {
+      const result = await handleReviewSubmit(entity, reviewData);
+      if (result.success) {
+        handleCloseReviewModal();
+        return { success: true };
+      } else {
+        return { success: false, error: result.error || 'Failed to submit review' };
+      }
+    } catch (error) {
+      return { success: false, error: 'An unexpected error occurred' };
+    }
   };
 
   const displayUser = user || {
@@ -164,8 +216,8 @@ const NewHomePage: React.FC = () => {
                   <MiddlePanelAuth
                     userAvatar={displayUser.avatar || ''}
                     userName={displayUser.name || 'Guest'}
-                    onAddReviewClick={handleAddReviewClick}
-                    reviewBarRef={React.createRef()}
+                    onAddReviewClick={handleShowReviewModal}
+                    reviewBarRef={reviewBarRef}
                     reviews={reviews}
                     entities={[]} // No entities for test page
                     hasMoreReviews={hasMoreReviews}
@@ -175,14 +227,14 @@ const NewHomePage: React.FC = () => {
                     onCommentAdd={handleCommentAdd}
                     onCommentDelete={handleCommentDelete}
                     onCommentReaction={handleCommentReaction}
-                    onGiveReviewClick={() => console.log('Give review would open here')}
+                    onGiveReviewClick={handleGiveReviewClick}
                   />
                 ) : (
                   <MiddlePanelPublic
                     userAvatar={displayUser.avatar || ''}
                     userName={displayUser.name || 'Guest'}
-                    onAddReviewClick={handleAddReviewClick}
-                    reviewBarRef={React.createRef()}
+                    onAddReviewClick={handleShowReviewModal}
+                    reviewBarRef={reviewBarRef}
                     reviews={reviews}
                     entities={[]} // No entities for test page
                     hasMoreReviews={hasMoreReviews}
@@ -192,7 +244,7 @@ const NewHomePage: React.FC = () => {
                     onCommentAdd={handleCommentAdd}
                     onCommentDelete={handleCommentDelete}
                     onCommentReaction={handleCommentReaction}
-                    onGiveReviewClick={() => console.log('Give review would open here')}
+                    onGiveReviewClick={handleGiveReviewClick}
                   />
                 )}
               </div>
@@ -263,6 +315,16 @@ const NewHomePage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Write Review Modal */}
+      <AddReviewModal
+        open={showReviewModal}
+        onClose={handleCloseReviewModal}
+        onReviewSubmit={handleModalReviewSubmit}
+        userName={displayUser.name || 'Guest'}
+        userAvatar={displayUser.avatar || 'https://ui-avatars.com/api/?name=Guest&background=gray&color=ffffff'}
+        preselectedEntity={preselectedEntity || undefined}
+      />
     </div>
   );
 };
