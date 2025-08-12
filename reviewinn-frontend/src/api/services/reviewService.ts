@@ -397,32 +397,80 @@ export class ReviewService {
   }> {
     const searchParams = new URLSearchParams();
     searchParams.append('q', query);
-    
-    if (params.entityId) searchParams.append('entity_id', params.entityId);
-    if (params.userId) searchParams.append('user_id', params.userId);
-    if (params.category) searchParams.append('category', params.category);
-    if (params.rating) searchParams.append('rating', params.rating.toString());
-    if (params.dateRange) {
-      searchParams.append('start_date', params.dateRange.start);
-      searchParams.append('end_date', params.dateRange.end);
-    }
-    if (params.page) searchParams.append('page', params.page.toString());
     if (params.limit) searchParams.append('limit', Math.min(params.limit, this.MAX_LIMIT).toString());
 
     try {
-      const url = `${API_CONFIG.BASE_URL}/reviews/search?${searchParams.toString()}`;
+      // Use the same optimized endpoint as homepage for consistent data structure
+      const url = `${API_CONFIG.BASE_URL}/homepage/search_reviews?${searchParams.toString()}`;
       const response = await httpClient.get<{
-        reviews: any[];
-        total: number;
-        hasMore: boolean;
+        success: boolean;
+        data: any[];
+        pagination: {
+          limit: number;
+          has_more: boolean;
+          total: number | null;
+        };
+        message: string;
       }>(url, true);
 
-      const result = response.data || { reviews: [], total: 0, hasMore: false };
+      if (!response.success || !response.data) {
+        throw new Error('Search response was not successful');
+      }
+
+      // Transform the homepage-style response to frontend format using the same logic as useTestHomeData
+      const transformedReviews = response.data.map((apiReview: any): Review => {
+        return {
+          id: apiReview.review_id.toString(),
+          entityId: apiReview.entity?.entity_id?.toString() || '',
+          reviewerId: apiReview.user?.user_id?.toString() || '',
+          reviewerName: apiReview.user?.name || 'Anonymous',
+          reviewerUsername: apiReview.user?.username,
+          reviewerAvatar: apiReview.user?.avatar,
+          userId: apiReview.user?.user_id?.toString(),
+          title: apiReview.title || '',
+          content: apiReview.content || '',
+          overallRating: apiReview.overall_rating || 0,
+          ratings: apiReview.ratings || {},
+          criteria: apiReview.ratings || {},
+          pros: apiReview.pros || [],
+          cons: apiReview.cons || [],
+          images: apiReview.images || [],
+          isAnonymous: apiReview.is_anonymous || false,
+          isVerified: apiReview.is_verified || false,
+          view_count: apiReview.view_count || 0,
+          total_reactions: apiReview.reaction_count || 0,
+          comment_count: apiReview.comment_count || 0,
+          commentCount: apiReview.comment_count || 0,
+          reactions: apiReview.top_reactions || {},
+          top_reactions: Object.keys(apiReview.top_reactions || {}),
+          createdAt: apiReview.created_at,
+          updatedAt: apiReview.updated_at,
+          entity: {
+            id: apiReview.entity?.entity_id?.toString() || '',
+            name: apiReview.entity?.name || 'Unknown Entity',
+            description: apiReview.entity?.description || '',
+            avatar: apiReview.entity?.avatar,
+            imageUrl: apiReview.entity?.imageUrl || apiReview.entity?.avatar,
+            category: apiReview.entity?.root_category?.name,
+            averageRating: apiReview.entity?.average_rating || 0,
+            reviewCount: apiReview.entity?.review_count || 0,
+            view_count: apiReview.entity?.view_count || 0,
+            is_verified: apiReview.entity?.is_verified || false,
+            is_claimed: apiReview.entity?.is_claimed || false,
+            root_category: apiReview.entity?.root_category,
+            final_category: apiReview.entity?.final_category,
+            root_category_name: apiReview.entity?.root_category?.name,
+            final_category_name: apiReview.entity?.final_category?.name,
+            root_category_id: apiReview.entity?.root_category?.id,
+            final_category_id: apiReview.entity?.final_category?.id,
+          }
+        };
+      });
       
       return {
-        reviews: result.reviews.map(review => this.mapReviewApiToFrontend(review)),
-        total: result.total,
-        hasMore: result.hasMore
+        reviews: transformedReviews,
+        total: response.pagination.total || transformedReviews.length,
+        hasMore: response.pagination.has_more || false
       };
     } catch (error) {
       console.log('Review search API failed, using fallback with existing reviews:', error);

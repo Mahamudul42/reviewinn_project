@@ -792,6 +792,113 @@ async def get_test_left_panel_data(
 
 
 
+@router.get("/search_reviews", response_model=None)
+async def search_reviews_with_entities(
+    q: str = Query(..., description="Search query"),
+    limit: int = Query(20, ge=1, le=100, description="Number of reviews to fetch"),
+    db: Session = Depends(get_db),
+    current_user = Depends(AuthDependencies.get_current_user_optional)
+):
+    """
+    Search reviews using the same review_main table structure as homepage.
+    Returns reviews with complete entity data including category breadcrumbs.
+    """
+    try:
+        from sqlalchemy import text
+        from fastapi.responses import JSONResponse
+        
+        # Debug logging
+        import logging
+        logging.info(f"[REVIEW SEARCH] Request received with query: {q}, limit: {limit}")
+        
+        # Use the same optimized query as homepage but with search filter
+        query = text("""
+            SELECT 
+                review_id,
+                title,
+                content,
+                overall_rating,
+                view_count,
+                comment_count,
+                reaction_count,
+                is_verified,
+                is_anonymous,
+                pros,
+                cons,
+                images,
+                ratings,
+                top_reactions,
+                created_at,
+                updated_at,
+                -- Pre-populated JSONB entity data (same as homepage)
+                entity_summary as entity,
+                user_summary as user
+            FROM review_main 
+            WHERE entity_summary IS NOT NULL 
+              AND user_summary IS NOT NULL
+              AND (
+                title ILIKE :search_term 
+                OR content ILIKE :search_term
+                OR entity_summary->>'name' ILIKE :search_term
+                OR entity_summary->'root_category'->>'name' ILIKE :search_term
+                OR entity_summary->'final_category'->>'name' ILIKE :search_term
+              )
+            ORDER BY created_at DESC 
+            LIMIT :limit
+        """)
+        
+        search_term = f"%{q}%"
+        result = db.execute(query, {"search_term": search_term, "limit": limit})
+        reviews_data = result.fetchall()
+        
+        # Transform to API response format (identical to homepage)
+        result_reviews = []
+        for row in reviews_data:
+            review_response = {
+                "review_id": row.review_id,
+                "title": row.title or "",
+                "content": row.content or "",
+                "overall_rating": float(row.overall_rating) if row.overall_rating else 0.0,
+                "view_count": row.view_count or 0,
+                "reaction_count": row.reaction_count or 0,
+                "comment_count": row.comment_count or 0,
+                "is_verified": row.is_verified or False,
+                "is_anonymous": row.is_anonymous or False,
+                "pros": row.pros or [],
+                "cons": row.cons or [],
+                "images": row.images or [],
+                "ratings": row.ratings or {},
+                "top_reactions": row.top_reactions or {},
+                "created_at": row.created_at.isoformat() if row.created_at else None,
+                "updated_at": row.updated_at.isoformat() if row.updated_at else None,
+                
+                # JSONB entity and user data (includes category breadcrumbs!)
+                "entity": row.entity,
+                "user": row.user
+            }
+            
+            result_reviews.append(review_response)
+        
+        return JSONResponse(content={
+            "success": True,
+            "data": result_reviews,
+            "pagination": {
+                "limit": limit,
+                "has_more": len(result_reviews) == limit,
+                "total": None
+            },
+            "message": f"Found {len(result_reviews)} reviews matching '{q}'"
+        })
+        
+    except Exception as e:
+        import logging
+        logging.error(f"[REVIEW SEARCH ERROR] {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to search reviews: {str(e)}"
+        )
+
+
 @router.get("/stats", response_model=PlatformStatsResponse)
 async def get_platform_stats(
     db: Session = Depends(get_db),

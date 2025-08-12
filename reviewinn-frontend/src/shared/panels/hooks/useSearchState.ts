@@ -7,14 +7,16 @@ import type { Review } from '../../../types';
  */
 export const useSearchState = () => {
   const [searchResults, setSearchResults] = useState<Review[]>([]);
+  const [searchEntities, setSearchEntities] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showingSearchResults, setShowingSearchResults] = useState(false);
   const [searchHasMore, setSearchHasMore] = useState(false);
   const [searchLoadingMore, setSearchLoadingMore] = useState(false);
   const [searchPage, setSearchPage] = useState(1);
 
-  const handleSearchResults = (results: Review[], searchEntities: any[], query: string, hasMore = false) => {
+  const handleSearchResults = (results: Review[], entities: any[], query: string, hasMore = false) => {
     setSearchResults(results);
+    setSearchEntities(entities);
     setSearchQuery(query);
     setSearchHasMore(hasMore);
     setSearchPage(1);
@@ -23,6 +25,7 @@ export const useSearchState = () => {
 
   const handleCloseSearch = () => {
     setSearchResults([]);
+    setSearchEntities([]);
     setSearchQuery('');
     setShowingSearchResults(false);
     setSearchHasMore(false);
@@ -41,6 +44,7 @@ export const useSearchState = () => {
   return {
     // State
     searchResults,
+    searchEntities,
     searchQuery,
     showingSearchResults,
     searchHasMore,

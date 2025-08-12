@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Loader2, Search } from 'lucide-react';
+import { Loader2, Search, Plus } from 'lucide-react';
 import EntityListCard from '../components/EntityListCard';
+import { PurpleButton } from '../design-system/components/PurpleButton';
 import type { Entity, SearchResult } from '../../types';
 import { entityService } from '../../api/services/entityService';
 
@@ -59,6 +60,36 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
   return (
     <div className="relative w-full max-w-3xl mx-auto">
+      <style>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .search-dropdown {
+          scrollbar-width: thin;
+          scrollbar-color: #cbd5e1 #f8fafc;
+        }
+        .search-dropdown::-webkit-scrollbar {
+          width: 6px;
+        }
+        .search-dropdown::-webkit-scrollbar-track {
+          background: #f8fafc;
+          border-radius: 3px;
+        }
+        .search-dropdown::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 3px;
+        }
+        .search-dropdown::-webkit-scrollbar-thumb:hover {
+          background: #94a3b8;
+        }
+      `}</style>
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
           {isLoading ? (
@@ -78,23 +109,34 @@ const SearchBar: React.FC<SearchBarProps> = ({
       </div>
       {/* Search Results Dropdown */}
       {showSuggestions && searchResults && (
-        <div className="absolute z-[2000] w-full mt-2 bg-white border border-gray-200 rounded-2xl shadow-2xl max-h-96 overflow-y-auto animate-fade-in-up">
+        <div className="search-dropdown absolute z-[2000] w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl max-h-[500px] overflow-y-auto" style={{ 
+          animation: 'fadeInUp 0.2s ease-out'
+        }}>
           {entitiesToShow.length > 0 && (
-            <div className="px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-50 border-b rounded-t-2xl">
-              Found Entities
+            <div className="px-6 py-4 text-sm font-semibold text-gray-900 bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-100 rounded-t-2xl">
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h3M9 7h6m-6 4h6m-6 4h6" />
+                </svg>
+                Found {entitiesToShow.length} Entit{entitiesToShow.length === 1 ? 'y' : 'ies'}
+              </div>
             </div>
           )}
-          {entitiesToShow.map((entity) => (
-            <div key={entity.id} className="px-4 py-2 hover:bg-blue-50 rounded-xl transition-colors">
-              <EntityListCard
-                entity={entity}
-                onClick={() => handleEntityClick(entity)}
-                variant="compact"
-                showEngagementMetrics={false}
-                showActions={false}
-              />
-            </div>
-          ))}
+          <div className="p-2 space-y-2">
+            {entitiesToShow.map((entity) => (
+              <div key={entity.id} className="hover:bg-blue-50 rounded-xl transition-colors p-1">
+                <EntityListCard
+                  entity={entity}
+                  onClick={() => handleEntityClick(entity)}
+                  variant="default"
+                  showEngagementMetrics={true}
+                  showActions={false}
+                  showCategories={true}
+                  className="!border-gray-200 !shadow-sm hover:!shadow-md hover:!border-blue-300 transition-all duration-200"
+                />
+              </div>
+            ))}
+          </div>
           {hasMore && onShowAdvancedSearch && (
             <div className="px-4 py-3 text-center">
               <button
@@ -106,20 +148,30 @@ const SearchBar: React.FC<SearchBarProps> = ({
             </div>
           )}
           {entitiesToShow.length === 0 && query.length > 0 && (
-            <div className="px-4 py-6 text-center">
-              <div className="text-sm text-gray-500 mb-2">
-                No entities found for "{query}"
+            <div className="px-6 py-8 text-center">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h3M9 7h6m-6 4h6m-6 4h6" />
+                </svg>
               </div>
-              <button
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+              <div className="text-lg font-semibold text-gray-900 mb-2">
+                No entities found
+              </div>
+              <div className="text-sm text-gray-500 mb-4">
+                No entities match "{query}". Try different keywords or add a new entity.
+              </div>
+              <PurpleButton
+                size="sm"
                 onClick={() => {
                   setShowSuggestions(false);
                   // Navigate to add entity page with pre-filled search term
                   window.location.href = `/add-entity?name=${encodeURIComponent(query)}`;
                 }}
+                className="inline-flex items-center gap-2 transform hover:scale-105 transition-all duration-200"
               >
+                <Plus className="w-4 h-4" />
                 Add "{query}" as a new entity
-              </button>
+              </PurpleButton>
             </div>
           )}
         </div>

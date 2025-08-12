@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Search, Edit3, X, ArrowRight } from 'lucide-react';
+import { PurpleButton } from '../../../shared/design-system/components/PurpleButton';
 import { searchService } from '../../../api/services/searchService';
 import type { Review } from '../../../types';
 
@@ -80,15 +81,13 @@ const AddReviewStatusBar: React.FC<AddReviewStatusBarProps> = ({
         }
       });
       
-      // Filter entities to only include those with reviews
-      const entitiesWithReviews = (results.entities || []).filter(entity => 
-        entity.reviewCount && entity.reviewCount > 0
-      );
+      // Don't filter entities - pass all entities so reviews can find their entities
+      const entities = results.entities || [];
       
       const reviews = results.reviews || [];
       const hasMore = results.hasMore || reviews.length >= 20; // Assume more if we got 20 results
       setSearchResults(reviews);
-      onSearchResultsRef.current?.(reviews, entitiesWithReviews, query.trim(), hasMore);
+      onSearchResultsRef.current?.(reviews, entities, query.trim(), hasMore);
     } catch (error) {
       console.error('Search failed:', error);
       setSearchResults([]);
@@ -241,21 +240,22 @@ const AddReviewStatusBar: React.FC<AddReviewStatusBarProps> = ({
             
             {/* Show search button when typing */}
             {searchQuery.trim().length >= 2 && !isSearching && (
-              <button
+              <PurpleButton
                 onClick={triggerSearch}
-                className="px-3 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-lg flex items-center gap-1.5 text-sm font-medium h-10"
+                size="sm"
+                className="h-10 px-3 py-2 transform hover:scale-105 transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-1.5 text-sm font-medium"
                 title="Click to search"
               >
                 <Search className="w-4 h-4" />
                 <span>Search</span>
-              </button>
+              </PurpleButton>
             )}
             
             {/* Show clear button when there's text */}
             {searchQuery && (
               <button
                 onClick={clearSearch}
-                className="p-2 text-gray-400 hover:text-gray-600 transition-colors duration-200 h-10 w-10 flex items-center justify-center rounded-lg hover:bg-gray-100"
+                className="p-2 text-gray-400 hover:text-purple-600 transition-colors duration-200 h-10 w-10 flex items-center justify-center rounded-lg hover:bg-purple-50"
                 title="Clear search"
               >
                 <X className="w-4 h-4" />
@@ -272,7 +272,7 @@ const AddReviewStatusBar: React.FC<AddReviewStatusBarProps> = ({
           <div className="flex items-center space-x-2">
             <button
               onClick={clearSearch}
-              className="p-2 text-gray-400 hover:text-yellow-600 transition-colors duration-200 rounded-lg hover:bg-yellow-50 h-10 w-10 flex items-center justify-center"
+              className="p-2 text-gray-400 hover:text-purple-600 transition-colors duration-200 rounded-lg hover:bg-purple-50 h-10 w-10 flex items-center justify-center"
               title="Back to options"
             >
               <Edit3 className="w-4 h-4" />

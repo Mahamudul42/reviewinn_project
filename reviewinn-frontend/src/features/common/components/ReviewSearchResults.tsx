@@ -28,9 +28,17 @@ const ReviewSearchResults: React.FC<ReviewSearchResultsProps> = ({
   onCommentDelete,
   onCommentReaction
 }) => {
-  // Create entity lookup for quick access
+  // Create entity lookup for quick access - handle both id formats like homepage
   const entityLookup = entities.reduce((acc, entity) => {
-    acc[entity.id] = entity;
+    // Support both entity.id and entity.entity_id formats
+    const entityId = entity.id || entity.entity_id;
+    if (entityId) {
+      acc[entityId] = entity;
+      acc[entity.id] = entity; // Also map by .id
+      if (entity.entity_id) {
+        acc[entity.entity_id] = entity; // Also map by .entity_id
+      }
+    }
     return acc;
   }, {} as Record<string, Entity>);
   if (reviews.length === 0) {
@@ -55,8 +63,7 @@ const ReviewSearchResults: React.FC<ReviewSearchResultsProps> = ({
   );
 
   return (
-    <div className="w-full max-w-2xl py-8 h-full">
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Search Results Header - With card background */}
         <div className="bg-white bg-gradient-to-br from-yellow-50 to-white border-2 border-yellow-300 outline outline-2 outline-yellow-500 shadow-lg rounded-xl p-6 mb-6">
           <div className="flex items-center justify-between">
@@ -83,16 +90,38 @@ const ReviewSearchResults: React.FC<ReviewSearchResultsProps> = ({
         </div>
 
         {/* Reviews Feed - Identical to homepage */}
-        {uniqueReviews.map((review, index) => (
-          <ReviewFeedCard
-            key={`search-result-${review.id}-${index}`}
-            review={review}
-            entity={entityLookup[review.entityId || ''] || review.entity}
-            onCommentAdd={onCommentAdd}
-            onCommentDelete={onCommentDelete}
-            onCommentReaction={onCommentReaction}
-          />
-        ))}
+        {uniqueReviews.map((review, index) => {
+          // Use the same entity lookup logic as homepage
+          const reviewEntity = review.entity || 
+            entityLookup[review.entityId || ''] || 
+            entityLookup[review.entity_id || ''] ||
+            (entities || []).find(e => (e.id === review.entityId) || (e.entity_id === review.entityId) || (e.id === review.entity_id) || (e.entity_id === review.entity_id));
+          
+          // Debug logging in development
+          if (import.meta.env.DEV) {
+            console.log('🔍 ReviewSearchResults - Review & Entity Debug:', {
+              reviewId: review.id,
+              reviewEntityId: review.entityId,
+              reviewEntityIdAlt: review.entity_id,
+              reviewEntityDirect: !!review.entity,
+              foundEntity: !!reviewEntity,
+              entityName: reviewEntity?.name,
+              totalEntities: entities.length,
+              entityLookupKeys: Object.keys(entityLookup)
+            });
+          }
+          
+          return (
+            <ReviewFeedCard
+              key={`search-result-${review.id}-${index}`}
+              review={review}
+              entity={reviewEntity}
+              onCommentAdd={onCommentAdd}
+              onCommentDelete={onCommentDelete}
+              onCommentReaction={onCommentReaction}
+            />
+          );
+        })}
       
         {/* Load More Button - Identical to homepage */}
         {hasMoreResults && (
@@ -133,7 +162,6 @@ const ReviewSearchResults: React.FC<ReviewSearchResultsProps> = ({
             <p className="text-gray-500">Try different keywords or browse recent reviews!</p>
           </div>
         )}
-      </div>
     </div>
   );
 };

@@ -108,24 +108,31 @@ const NewHomePage: React.FC = () => {
           </h1>
         </div>
 
-        {/* Three Columns with Proper Alignment - Height Auto */}
+        {/* Three Columns with Independent Scrolling */}
         <div style={{ 
           display: 'flex', 
           gap: '24px', 
           maxWidth: '1400px',
           margin: '0 auto',
           justifyContent: 'space-between',
-          alignItems: 'flex-start'
+          alignItems: 'flex-start',
+          height: 'calc(100vh - 200px)', // Fixed height for independent scrolling
+          overflow: 'hidden' // Prevent parent overflow
         }}>
           
-          {/* Left Panel - Auto Height Based on Content */}
-          <div style={{ width: '350px', flexShrink: 0 }}>
+          {/* Left Panel - Independent Scrolling */}
+          <div style={{ width: '350px', flexShrink: 0, height: '100%' }}>
             <div className="left-panel-container" style={{ 
               background: 'white', 
               borderRadius: '16px', 
               padding: '20px', 
               boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
-              border: '1px solid #e5e7eb'
+              border: '1px solid #e5e7eb',
+              height: '100%',
+              overflowY: 'auto',
+              overflowX: 'hidden',
+              scrollBehavior: 'smooth',
+              paddingRight: '12px' // Space for scrollbar
             }}>
               <h2 style={{ 
                 fontSize: '18px', 
@@ -145,24 +152,64 @@ const NewHomePage: React.FC = () => {
               }}>
                 {/* Global CSS for left panel overflow fixes and scrollbar styling */}
                 <style>{`
-                  /* Custom scrollbar styling for panels */
+                  /* Facebook-style scrollbar styling for all panels */
+                  .left-panel-container,
+                  .right-panel-container,
+                  .center-panel-container {
+                    scrollbar-width: thin;
+                    scrollbar-color: transparent transparent;
+                    transition: scrollbar-color 0.3s ease;
+                  }
+                  
+                  .left-panel-container:hover,
+                  .right-panel-container:hover,
+                  .center-panel-container:hover {
+                    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+                  }
+                  
                   .left-panel-container::-webkit-scrollbar,
-                  .right-panel-container::-webkit-scrollbar {
-                    width: 6px;
+                  .right-panel-container::-webkit-scrollbar,
+                  .center-panel-container::-webkit-scrollbar {
+                    width: 8px;
+                    background: transparent;
                   }
+                  
                   .left-panel-container::-webkit-scrollbar-track,
-                  .right-panel-container::-webkit-scrollbar-track {
-                    background: #f1f5f9;
-                    border-radius: 3px;
+                  .right-panel-container::-webkit-scrollbar-track,
+                  .center-panel-container::-webkit-scrollbar-track {
+                    background: transparent;
+                    border-radius: 4px;
                   }
+                  
                   .left-panel-container::-webkit-scrollbar-thumb,
-                  .right-panel-container::-webkit-scrollbar-thumb {
-                    background: #cbd5e1;
-                    border-radius: 3px;
+                  .right-panel-container::-webkit-scrollbar-thumb,
+                  .center-panel-container::-webkit-scrollbar-thumb {
+                    background: transparent;
+                    border-radius: 4px;
+                    border: 2px solid transparent;
+                    background-clip: content-box;
+                    transition: all 0.3s ease;
                   }
+                  
+                  .left-panel-container:hover::-webkit-scrollbar-thumb,
+                  .right-panel-container:hover::-webkit-scrollbar-thumb,
+                  .center-panel-container:hover::-webkit-scrollbar-thumb {
+                    background: rgba(0, 0, 0, 0.2);
+                    background-clip: content-box;
+                  }
+                  
                   .left-panel-container::-webkit-scrollbar-thumb:hover,
-                  .right-panel-container::-webkit-scrollbar-thumb:hover {
-                    background: #94a3b8;
+                  .right-panel-container::-webkit-scrollbar-thumb:hover,
+                  .center-panel-container::-webkit-scrollbar-thumb:hover {
+                    background: rgba(0, 0, 0, 0.4) !important;
+                    background-clip: content-box;
+                  }
+                  
+                  .left-panel-container::-webkit-scrollbar-thumb:active,
+                  .right-panel-container::-webkit-scrollbar-thumb:active,
+                  .center-panel-container::-webkit-scrollbar-thumb:active {
+                    background: rgba(0, 0, 0, 0.6) !important;
+                    background-clip: content-box;
                   }
                   
                   .left-panel-container h3,
@@ -203,8 +250,16 @@ const NewHomePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Center Panel - Fixed Width for Perfect Centering */}
-          <div style={{ width: '600px', flexShrink: 0 }}>
+          {/* Center Panel - Independent Scrolling */}
+          <div className="center-panel-container" style={{ 
+            width: '600px', 
+            flexShrink: 0, 
+            height: '100%', 
+            overflowY: 'auto', 
+            overflowX: 'hidden',
+            scrollBehavior: 'smooth',
+            paddingRight: '8px' // Space for scrollbar
+          }}>
             {centerError ? (
               <div style={{ textAlign: 'center', padding: '32px', background: 'white', borderRadius: '16px' }}>
                 <div style={{ fontSize: '60px', marginBottom: '16px' }}>😔</div>
@@ -219,7 +274,7 @@ const NewHomePage: React.FC = () => {
                     onAddReviewClick={handleShowReviewModal}
                     reviewBarRef={reviewBarRef}
                     reviews={reviews}
-                    entities={[]} // No entities for test page
+                    entities={[]} // TODO: Get entities from reviews or fetch separately
                     hasMoreReviews={hasMoreReviews}
                     loadingMore={loadingMore}
                     loading={centerLoading}
@@ -236,7 +291,7 @@ const NewHomePage: React.FC = () => {
                     onAddReviewClick={handleShowReviewModal}
                     reviewBarRef={reviewBarRef}
                     reviews={reviews}
-                    entities={[]} // No entities for test page
+                    entities={[]} // TODO: Get entities from reviews or fetch separately
                     hasMoreReviews={hasMoreReviews}
                     loadingMore={loadingMore}
                     loading={centerLoading}
@@ -251,14 +306,19 @@ const NewHomePage: React.FC = () => {
             )}
           </div>
 
-          {/* Right Panel - Auto Height Based on Content */}
-          <div style={{ width: '350px', flexShrink: 0 }}>
+          {/* Right Panel - Independent Scrolling */}
+          <div style={{ width: '350px', flexShrink: 0, height: '100%' }}>
             <div className="right-panel-container" style={{ 
               background: 'white', 
               borderRadius: '16px', 
               padding: '20px', 
               boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
-              border: '1px solid #e5e7eb'
+              border: '1px solid #e5e7eb',
+              height: '100%',
+              overflowY: 'auto',
+              overflowX: 'hidden',
+              scrollBehavior: 'smooth',
+              paddingRight: '12px' // Space for scrollbar
             }}>
               <h2 style={{ 
                 fontSize: '18px', 

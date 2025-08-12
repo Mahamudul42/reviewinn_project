@@ -45,6 +45,7 @@ const MiddlePanelAuth: React.FC<MiddlePanelAuthProps> = ({
 }) => {
   const {
     searchResults,
+    searchEntities,
     searchQuery,
     showingSearchResults,
     searchHasMore,
@@ -81,7 +82,7 @@ const MiddlePanelAuth: React.FC<MiddlePanelAuthProps> = ({
         {showingSearchResults ? (
           <ReviewSearchResults 
             reviews={searchResults}
-            entities={entities}
+            entities={searchEntities}
             query={searchQuery}
             hasMoreResults={searchHasMore}
             isLoadingMore={searchLoadingMore}

@@ -46,6 +46,7 @@ const MiddlePanelPublic: React.FC<MiddlePanelPublicProps> = ({
 }) => {
   const {
     searchResults,
+    searchEntities,
     searchQuery,
     showingSearchResults,
     searchHasMore,
@@ -82,7 +83,7 @@ const MiddlePanelPublic: React.FC<MiddlePanelPublicProps> = ({
         {showingSearchResults ? (
           <ReviewSearchResults 
             reviews={searchResults}
-            entities={entities}
+            entities={searchEntities}
             query={searchQuery}
             hasMoreResults={searchHasMore}
             isLoadingMore={searchLoadingMore}
