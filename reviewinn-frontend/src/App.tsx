@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Suspense, lazy, useEffect } from 'react';
+// Combined Homepage Components
+const NewHomePage = lazy(() => import('./pages/NewHomePage'));
 import Layout from './shared/layouts/Layout';
 import ProtectedRoute from './shared/components/ProtectedRoute';
 import { ConfirmationProvider } from './shared/components/ConfirmationSystem';
@@ -73,6 +75,7 @@ function App() {
               <Route path="test-left-panel" element={<TestLeftPanelPage />} />
               <Route path="reviewinn-left-panel" element={<ReviewInnLeftPanelPage />} />
               <Route path="reviewinn-right-panel" element={<ReviewInnRightPanelPage />} />
+              <Route path="new-home" element={<NewHomePage />} />
               <Route path="login" element={<LoginPage />} />
               <Route path="search" element={<SearchPage />} />
               <Route path="dashboard" element={
