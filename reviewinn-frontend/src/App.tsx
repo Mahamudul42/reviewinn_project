@@ -36,6 +36,7 @@ const ShareableReviewPage = lazy(() => import('./features/reviews/ShareableRevie
 const NotificationsPage = lazy(() => import('./features/notifications/NotificationsPage'));
 const TestLeftPanelPage = lazy(() => import('./pages/TestLeftPanelPage'));
 const ReviewInnLeftPanelPage = lazy(() => import('./pages/ReviewInnLeftPanelPage'));
+const ReviewInnRightPanelPage = lazy(() => import('./pages/ReviewInnRightPanelPage'));
 
 // Legal pages  
 const AboutPage = lazy(() => import('./features/legal/AboutPage'));
@@ -71,6 +72,7 @@ function App() {
               <Route path="test_home" element={<TestHomePage />} />
               <Route path="test-left-panel" element={<TestLeftPanelPage />} />
               <Route path="reviewinn-left-panel" element={<ReviewInnLeftPanelPage />} />
+              <Route path="reviewinn-right-panel" element={<ReviewInnRightPanelPage />} />
               <Route path="login" element={<LoginPage />} />
               <Route path="search" element={<SearchPage />} />
               <Route path="dashboard" element={

@@ -9,8 +9,8 @@ import { useUnifiedAuth } from '../../../hooks/useUnifiedAuth';
 import type { Review, Entity } from '../../../types';
 
 interface ReviewFeedProps {
-  reviews: Review[];
-  entities: Entity[];
+  reviews?: Review[];
+  entities?: Entity[];
   hasMoreReviews?: boolean;
   loadingMore?: boolean;
   onLoadMore?: () => void;
@@ -38,8 +38,8 @@ const ReviewFeed: React.FC<ReviewFeedProps> = ({
   publicReviewsLimit = getPublicLimit('reviews'),
   onAuthRequired
 }) => {
-  // Remove duplicates and ensure unique reviews
-  const uniqueReviews = reviews.filter((review, index, self) => 
+  // Remove duplicates and ensure unique reviews - handle undefined reviews
+  const uniqueReviews = (reviews || []).filter((review, index, self) => 
     index === self.findIndex(r => r.id === review.id)
   );
 
@@ -110,7 +110,7 @@ const ReviewFeed: React.FC<ReviewFeedProps> = ({
             <ReviewFeedCard
               key={`review-${review.id}-${index}`}
               review={review}
-              entity={review.entity || entities.find(e => e.id === review.entityId)}
+              entity={review.entity || (entities || []).find(e => e.id === review.entityId)}
               onCommentAdd={onCommentAdd}
               onCommentDelete={onCommentDelete}
               onCommentReaction={onCommentReaction}

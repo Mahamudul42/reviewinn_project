@@ -1,20 +1,17 @@
 import React from 'react';
 import { Cookie, Settings, Eye, BarChart3, Shield, Trash2 } from 'lucide-react';
+import LegalPageLayout from './components/LegalPageLayout';
 
 const CookiesPolicyPage: React.FC = () => {
   const lastUpdated = "January 11, 2025";
   
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <Cookie className="h-16 w-16 text-orange-600 mx-auto mb-4" />
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Cookies Policy</h1>
-          <p className="text-lg text-gray-800">
-            Last Updated: {lastUpdated}
-          </p>
-        </div>
+    <LegalPageLayout
+      title="🍪 Cookies Policy"
+      subtitle="Website preferences"
+      description={`Last Updated: ${lastUpdated}`}
+    >
+      <div>
 
         {/* Main Content */}
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
@@ -210,7 +207,7 @@ const CookiesPolicyPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+    </LegalPageLayout>
   );
 };
 

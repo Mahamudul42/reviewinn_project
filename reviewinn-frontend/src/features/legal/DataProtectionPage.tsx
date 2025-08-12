@@ -1,20 +1,17 @@
 import React from 'react';
 import { Shield, Database, Lock, Key, Eye, AlertCircle } from 'lucide-react';
+import LegalPageLayout from './components/LegalPageLayout';
 
 const DataProtectionPage: React.FC = () => {
   const lastUpdated = "January 11, 2025";
   
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <Shield className="h-16 w-16 text-green-600 mx-auto mb-4" />
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Data Protection</h1>
-          <p className="text-lg text-gray-600">
-            Last Updated: {lastUpdated}
-          </p>
-        </div>
+    <LegalPageLayout
+      title="🛡️ Data Protection"
+      subtitle="GDPR compliance"
+      description={`Last Updated: ${lastUpdated}`}
+    >
+      <div>
 
         {/* Main Content */}
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
@@ -179,7 +176,7 @@ const DataProtectionPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+    </LegalPageLayout>
   );
 };
 

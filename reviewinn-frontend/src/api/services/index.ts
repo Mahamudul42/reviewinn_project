@@ -31,6 +31,12 @@ export type {
   CircleInviteResponse,
   CircleActionResponse
 } from './circleService';
+export type {
+  TrendingTopic,
+  PopularEntity,
+  ActivitySummary,
+  ReviewInnRightPanelData
+} from './reviewinnRightPanelService';
 
 // Import services
 import { entityService as _entityService } from './entityService';
@@ -42,11 +48,12 @@ import { gamificationService } from './gamificationService';
 import { homepageService } from './homepageService';
 import { messengerService } from './messengerService';
 import { circleService } from './circleService';
+import { reviewinnRightPanelService } from './reviewinnRightPanelService';
 
 // Export service instances
 export const entityService = _entityService;
 export const reviewService = new ReviewService();
 export const userService = new UserService();
 export const commentService = new CommentService();
-export { userInteractionService, gamificationService, homepageService, messengerService, circleService };
+export { userInteractionService, gamificationService, homepageService, messengerService, circleService, reviewinnRightPanelService };
 // entityServiceFactory removed - use entityService directly 

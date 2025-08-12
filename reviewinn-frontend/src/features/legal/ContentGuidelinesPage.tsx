@@ -1,20 +1,17 @@
 import React from 'react';
 import { BookOpen, CheckCircle, XCircle, AlertTriangle, Flag, Star } from 'lucide-react';
+import LegalPageLayout from './components/LegalPageLayout';
 
 const ContentGuidelinesPage: React.FC = () => {
   const lastUpdated = "January 11, 2025";
   
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <BookOpen className="h-16 w-16 text-blue-600 mx-auto mb-4" />
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Content Guidelines</h1>
-          <p className="text-lg text-gray-600">
-            Last Updated: {lastUpdated}
-          </p>
-        </div>
+    <LegalPageLayout
+      title="📝 Content Guidelines"
+      subtitle="Community standards"
+      description={`Last Updated: ${lastUpdated}`}
+    >
+      <div>
 
         {/* Important Notice */}
         <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 mb-8">
@@ -192,7 +189,7 @@ const ContentGuidelinesPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+    </LegalPageLayout>
   );
 };
 

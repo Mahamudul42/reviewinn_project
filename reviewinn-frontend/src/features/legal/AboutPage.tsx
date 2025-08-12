@@ -1,17 +1,16 @@
 import React from 'react';
 import { Users, Shield, Target, Heart, Star, Globe } from 'lucide-react';
+import LegalPageLayout from './components/LegalPageLayout';
 
 const AboutPage: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">About ReviewInn</h1>
-          <p className="text-xl text-gray-800 max-w-2xl mx-auto">
-            Your trusted platform for authentic reviews and informed decisions. We connect people with genuine experiences to help build a more transparent marketplace.
-          </p>
-        </div>
+    <LegalPageLayout
+      title="📋 About Us"
+      subtitle="Learn our story"
+      description="Your trusted platform for authentic reviews and informed decisions. We connect people with genuine experiences to help build a more transparent marketplace."
+    >
+      <div>
+        {/* Header - removed since it's now handled by LegalPageLayout */}
 
         {/* Mission Section */}
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
@@ -108,7 +107,7 @@ const AboutPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+    </LegalPageLayout>
   );
 };
 

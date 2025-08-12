@@ -1,12 +1,20 @@
 import React from 'react';
 
+interface Badge {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  unlocked_at?: string;
+}
+
 interface UserProfileCardProps {
   name: string;
   username: string;
   level: number;
   dailyStreak: number;
   getSessionDuration: () => string;
-  badges: string[];
+  badges: string[] | Badge[];
   points: number;
 }
 
@@ -30,7 +38,7 @@ const UserProfileCard: React.FC<UserProfileCardProps> = ({ name, username, level
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm text-gray-700 mt-3">
         <p>🔥 Daily Streak: <span className="text-orange-600 font-medium">{dailyStreak}</span></p>
         <p>⏱️ Session: <span className="font-medium">{getSessionDuration()}</span></p>
-        <p>🏅 Last Badge: <span className="font-medium">{badges.length > 0 ? badges[badges.length - 1] : 'None'}</span></p>
+        <p>🏅 Last Badge: <span className="font-medium">{badges && badges.length > 0 ? (typeof badges[badges.length - 1] === 'string' ? badges[badges.length - 1] : (badges[badges.length - 1] as Badge).name) : 'None'}</span></p>
         <p>✨ Points: <span className="font-medium text-purple-600">{points}</span></p>
         <p>👥 Followers: <span className="font-semibold">128</span></p>
         <p>📌 Following: <span className="font-semibold">204</span></p>
