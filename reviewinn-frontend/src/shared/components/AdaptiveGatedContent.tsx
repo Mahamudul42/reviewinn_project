@@ -1,5 +1,5 @@
 import React from 'react';
-import EnhancedGatedContent from './EnhancedGatedContent';
+import GatedContent from './GatedContent';
 import { calculateAdaptiveLimit } from '../../config/gating';
 import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
 
@@ -37,16 +37,14 @@ const AdaptiveGatedContent: React.FC<AdaptiveGatedContentProps> = ({
   }
 
   return (
-    <EnhancedGatedContent
+    <GatedContent
       publicItemsLimit={adaptiveLimit}
       totalItems={totalItems}
       onAuthSuccess={onAuthSuccess}
       gateMessage={gateMessage}
-      showProgressBar={true}
-      autoTriggerOnScroll={true}
     >
       {children}
-    </EnhancedGatedContent>
+    </GatedContent>
   );
 };
 

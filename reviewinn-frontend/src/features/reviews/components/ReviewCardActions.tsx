@@ -46,6 +46,14 @@ const ReviewCardActions: React.FC<ReviewCardActionsProps> = ({
   review,
   entity
 }) => {
+  // Debug logging for comment count
+  console.log('🔍 ReviewCardActions: Received props', {
+    reviewId,
+    commentCount,
+    views,
+    totalReactions
+  });
+  
   const { isAuthenticated, requireAuth } = useUnifiedAuth();
   const { showSuccess, showError } = useConfirmation();
   const [showImageShareModal, setShowImageShareModal] = useState(false);

@@ -70,7 +70,6 @@ class ReviewResponse(BaseModel):
     reviewer_name: str
     reviewer_username: Optional[str] = None
     reviewer_avatar: Optional[str] = None
-    category: Optional[str] = None
     title: Optional[str] = None
     content: str
     overall_rating: float
@@ -78,7 +77,6 @@ class ReviewResponse(BaseModel):
     quality_rating: Optional[float] = None
     service_rating: Optional[float] = None
     ratings: Optional[dict] = None
-    criteria: Optional[dict] = None
     pros: Optional[List[str]] = None
     cons: Optional[List[str]] = None
     images: Optional[List[str]] = None
@@ -241,7 +239,6 @@ async def create_review(
             "cons": review_data.cons or [],
             "images": review_data.images or [],
             "is_anonymous": review_data.is_anonymous,
-            "category": entity.category,
             # Store dynamic criteria ratings
             "ratings": {},
         }
@@ -287,15 +284,12 @@ async def create_review(
                 cons=review_dict["cons"],
                 images=review_dict["images"],
                 is_anonymous=review_dict["is_anonymous"],
-                category=review_dict["category"],
                 ratings=review_dict["ratings"],
-                criteria=review_dict.get("criteria", {}),
                 created_at=datetime.now(timezone.utc)
             )
             
             logger.info(f"🎯 Created Review object:")
             logger.info(f"   - new_review.ratings: {new_review.ratings}")
-            logger.info(f"   - new_review.criteria: {new_review.criteria}")
             
             logger.info(f"Review object created: {new_review}")
             db.add(new_review)
@@ -336,7 +330,6 @@ async def create_review(
             "content": new_review.content,
             "overall_rating": new_review.overall_rating,
             "ratings": new_review.ratings or {},
-            "criteria": new_review.criteria or {},
             "pros": new_review.pros,
             "cons": new_review.cons,
             "images": new_review.images or [],
@@ -344,14 +337,12 @@ async def create_review(
             "created_at": new_review.created_at.isoformat() if new_review.created_at else None,
             "entity": {
                 "name": entity.name,
-                "category": entity.category,
                 "avatar": entity.avatar
             }
         }
         
         logger.info(f"🎯 Review response being sent to frontend:")
         logger.info(f"   - ratings in response: {review_response['ratings']}")
-        logger.info(f"   - criteria in response: {review_response['criteria']}")
         
         # Final verification - query all reviews to see if our review exists
         all_reviews = db.query(Review).all()
@@ -434,7 +425,6 @@ def get_recent_reviews(
             # Debug: Log what's in the database for this review (recent reviews)
             logger.info(f"🎯 Recent Review {r.review_id} from database:")
             logger.info(f"   - r.ratings: {r.ratings}")
-            logger.info(f"   - r.criteria: {r.criteria}")
             
             # Create review response
             review_response = ReviewResponse(
@@ -444,7 +434,6 @@ def get_recent_reviews(
                 reviewer_name=r.user.name if r.user else "Anonymous",
                 reviewer_username=r.user.username if r.user else None,
                 reviewer_avatar=r.user.avatar if r.user else None,
-                category=r.category,
                 title=r.title,
                 content=r.content,
                 overall_rating=r.overall_rating,
@@ -452,7 +441,6 @@ def get_recent_reviews(
                 quality_rating=getattr(r, 'quality_rating', None),
                 service_rating=getattr(r, 'service_rating', None),
                 ratings=r.ratings or {},
-                criteria=r.criteria or {},
                 pros=r.pros or [],
                 cons=r.cons or [],
                 images=r.images or [],
@@ -606,9 +594,7 @@ def get_reviews(
             # Debug: Log what's in the database for this review
             logger.info(f"🎯 Review {r.review_id} from database:")
             logger.info(f"   - r.ratings: {r.ratings}")
-            logger.info(f"   - r.criteria: {r.criteria}")
             logger.info(f"   - ratings type: {type(r.ratings)}")
-            logger.info(f"   - criteria type: {type(r.criteria)}")
             
             # Create review response
             review_response = ReviewResponse(
@@ -618,7 +604,6 @@ def get_reviews(
                 reviewer_name=user.name if user else "Anonymous",
                 reviewer_username=user.username if user else None,
                 reviewer_avatar=user.avatar if user else None,
-                category=r.category,
                 title=r.title,
                 content=r.content,
                 overall_rating=r.overall_rating,
@@ -626,7 +611,6 @@ def get_reviews(
                 quality_rating=getattr(r, 'quality_rating', None),
                 service_rating=getattr(r, 'service_rating', None),
                 ratings=r.ratings or {},
-                criteria=r.criteria or {},
                 pros=r.pros or [],
                 cons=r.cons or [],
                 images=r.images or [],
@@ -914,12 +898,10 @@ def search_reviews(
                 reviewer_name=r.user.name if r.user else "Anonymous",
                 reviewer_username=r.user.username if r.user else None,
                 reviewer_avatar=r.user.avatar if r.user else None,
-                category=r.category,
                 title=r.title,
                 content=r.content,
                 overall_rating=r.overall_rating,
                 ratings=r.ratings or {},
-                criteria=r.criteria or {},
                 pros=r.pros or [],
                 cons=r.cons or [],
                 images=r.images or [],
@@ -1471,12 +1453,10 @@ async def get_review_by_id(
             reviewer_name=review.user.name if review.user else "Anonymous",
             reviewer_username=review.user.username if review.user else None,
             reviewer_avatar=review.user.avatar if review.user else None,
-            category=review.category,
             title=review.title,
             content=review.content,
             overall_rating=review.overall_rating,
             ratings=review.ratings or {},
-            criteria=review.criteria or {},
             pros=review.pros or [],
             cons=review.cons or [],
             is_anonymous=review.is_anonymous,

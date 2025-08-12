@@ -20,6 +20,7 @@ from services.cache_service import cache_service
 router = APIRouter()
 
 
+
 # Pydantic models for API responses
 class ReviewResponse(BaseModel):
     review_id: int
@@ -30,17 +31,13 @@ class ReviewResponse(BaseModel):
     created_at: datetime
     is_verified: bool
     is_anonymous: bool
-    user_name: str
-    user_avatar: Optional[str]
-    entity_name: str
-    entity_root_category: Optional[str] = None
-    entity_final_category: Optional[str] = None
     comment_count: int
     reaction_count: int
     pros: List[str]
     cons: List[str]
-    # NEW: Complete entity object like user reviews
+    # Complete entity and user objects
     entity: Optional[Dict[str, Any]] = None
+    user: Optional[Dict[str, Any]] = None
 
     class Config:
         from_attributes = True
@@ -50,9 +47,6 @@ class EntityResponse(BaseModel):
     entity_id: int
     name: str
     description: Optional[str]
-    # Use hierarchical category system exclusively
-    root_category_name: Optional[str] = None  # Root category name for display
-    final_category_name: Optional[str] = None  # Final category name for display
     avatar: Optional[str]
     is_verified: bool
     is_claimed: bool
@@ -60,14 +54,10 @@ class EntityResponse(BaseModel):
     review_count: int
     view_count: int
     created_at: datetime
-    # OPTIMIZED: Cached engagement metrics for performance
-    reaction_count: int = 0  # Total reactions across all reviews
-    comment_count: int = 0   # Total comments across all reviews
-    # Hierarchical category fields
-    root_category_id: Optional[int] = None
-    final_category_id: Optional[int] = None
-    category_breadcrumb: Optional[List[Dict[str, Any]]] = None
-    category_display: Optional[str] = None
+    # Cached engagement metrics
+    reaction_count: int = 0
+    comment_count: int = 0
+    # Complete category objects
     root_category: Optional[Dict[str, Any]] = None
     final_category: Optional[Dict[str, Any]] = None
 
@@ -108,17 +98,13 @@ def convert_review_data_to_response(review_data: ReviewData) -> ReviewResponse:
             created_at=review_data.created_at or datetime.now(),
             is_verified=bool(getattr(review_data, 'is_verified', False)),
             is_anonymous=bool(getattr(review_data, 'is_anonymous', False)),
-            user_name=review_data.user_name or 'Anonymous',
-            user_avatar=getattr(review_data, 'user_avatar', None),
-            entity_name=review_data.entity_name or '',
-            entity_root_category=getattr(review_data, 'entity_root_category', None),
-            entity_final_category=getattr(review_data, 'entity_final_category', None),
             comment_count=review_data.comment_count or 0,
             reaction_count=review_data.reaction_count or 0,
             pros=review_data.pros or [],
             cons=review_data.cons or [],
-            # NEW: Include complete entity object like user reviews
-            entity=getattr(review_data, 'entity', None)
+            # Complete entity and user objects
+            entity=getattr(review_data, 'entity', None),
+            user=getattr(review_data, 'user', None)
         )
     except Exception as e:
         logging.error(f"[REVIEW CONVERSION ERROR] {e}")
@@ -131,15 +117,12 @@ def convert_review_data_to_response(review_data: ReviewData) -> ReviewResponse:
             created_at=datetime.now(),
             is_verified=False,
             is_anonymous=True,
-            user_name='Error',
-            user_avatar=None,
-            entity_name='Error',
-            entity_root_category='Error',
-            entity_final_category=None,
             comment_count=0,
             reaction_count=0,
             pros=[],
-            cons=[]
+            cons=[],
+            entity=None,
+            user=None
         )
 
 
@@ -150,25 +133,19 @@ def convert_entity_data_to_response(entity_data: EntityData) -> EntityResponse:
             entity_id=entity_data.entity_id,
             name=entity_data.name or '',
             description=entity_data.description or '',
-            root_category_name=getattr(entity_data, 'root_category_name', None),
-            final_category_name=getattr(entity_data, 'final_category_name', None),
-            # Include hierarchical category data
-            root_category_id=getattr(entity_data, 'root_category_id', None),
-            final_category_id=getattr(entity_data, 'final_category_id', None),
-            category_breadcrumb=getattr(entity_data, 'category_breadcrumb', None),
-            category_display=getattr(entity_data, 'category_display', None),
-            root_category=getattr(entity_data, 'root_category', None),
-            final_category=getattr(entity_data, 'final_category', None),
-            # OPTIMIZED: Cached engagement metrics
-            reaction_count=getattr(entity_data, 'reaction_count', 0),
-            comment_count=getattr(entity_data, 'comment_count', 0),
             avatar=entity_data.avatar or None,
             is_verified=bool(getattr(entity_data, 'is_verified', False)),
             is_claimed=bool(getattr(entity_data, 'is_claimed', False)),
             average_rating=entity_data.average_rating or 0.0,
             review_count=entity_data.review_count or 0,
             view_count=getattr(entity_data, 'view_count', 0) or 0,
-            created_at=entity_data.created_at
+            created_at=entity_data.created_at,
+            # Cached engagement metrics
+            reaction_count=getattr(entity_data, 'reaction_count', 0),
+            comment_count=getattr(entity_data, 'comment_count', 0),
+            # Complete category objects
+            root_category=getattr(entity_data, 'root_category', None),
+            final_category=getattr(entity_data, 'final_category', None)
         )
     except Exception as e:
         logging.error(f"[ENTITY CONVERSION ERROR] {e}")
@@ -176,15 +153,17 @@ def convert_entity_data_to_response(entity_data: EntityData) -> EntityResponse:
             entity_id=-1,
             name='Error',
             description=str(e),
-            root_category_name='Error',
-            final_category_name=None,
             avatar=None,
             is_verified=False,
             is_claimed=False,
             average_rating=0.0,
             review_count=0,
             view_count=0,
-            created_at=datetime.now()
+            created_at=datetime.now(),
+            reaction_count=0,
+            comment_count=0,
+            root_category=None,
+            final_category=None
         )
 
 
@@ -235,21 +214,14 @@ async def get_left_panel_data(
                 entity_id=entity.entity_id,
                 name=entity.name,
                 description=entity.description,
-                # Use hierarchical category system exclusively
-                root_category_name=entity.root_category.name if entity.root_category else None,
-                final_category_name=entity.final_category.name if entity.final_category else None,
                 avatar=entity.avatar,
                 is_verified=entity.is_verified,
                 is_claimed=entity.is_claimed,
                 average_rating=entity.average_rating or 0.0,
-                review_count=entity.review_count,  # Use cached count for performance
+                review_count=entity.review_count,
                 view_count=entity.view_count or 0,
                 created_at=entity.created_at,
-                # Include hierarchical category data (same as middle panel)
-                root_category_id=entity_dict.get('root_category_id'),
-                final_category_id=entity_dict.get('final_category_id'),
-                category_breadcrumb=entity_dict.get('category_breadcrumb'),
-                category_display=entity_dict.get('category_display'),
+                # Complete category objects
                 root_category=entity_dict.get('root_category'),
                 final_category=entity_dict.get('final_category'),
                 # Engagement metrics from cached fields
@@ -333,106 +305,95 @@ def get_homepage_reviews(
     Single API call with all required data - no N+1 queries, no expensive count().
     """
     try:
-        # Import necessary models and functions
-        from models.review import Review
-        from models.unified_category import UnifiedCategory
-        from sqlalchemy.orm import joinedload
-        from sqlalchemy import desc
+        from sqlalchemy import text
         from fastapi.responses import JSONResponse
         
-        # OPTIMIZED: Single query with eager loading for all related data including categories
-        query = db.query(Review).options(
-            joinedload(Review.user),
-            joinedload(Review.entity).joinedload(Entity.root_category),
-            joinedload(Review.entity).joinedload(Entity.final_category)
-        )
+        # Get entity and user as JSONB from their respective tables to build complete objects
+        query = text("""
+            SELECT 
+                rm.review_id,
+                rm.title,
+                rm.content,
+                rm.overall_rating,
+                rm.view_count,
+                rm.comment_count,
+                rm.reaction_count,
+                rm.is_verified,
+                rm.is_anonymous,
+                rm.pros,
+                rm.cons,
+                rm.images,
+                rm.ratings,
+                rm.top_reactions,
+                rm.created_at,
+                rm.updated_at,
+                -- Entity data as complete JSONB object
+                jsonb_build_object(
+                    'entity_id', ce.entity_id,
+                    'name', ce.name,
+                    'description', ce.description,
+                    'avatar', ce.avatar,
+                    'imageUrl', ce.avatar,
+                    'is_verified', ce.is_verified,
+                    'is_claimed', ce.is_claimed,
+                    'average_rating', ce.average_rating,
+                    'review_count', ce.review_count,
+                    'view_count', ce.view_count,
+                    'root_category', ce.root_category,
+                    'final_category', ce.final_category,
+                    'created_at', ce.created_at,
+                    'updated_at', ce.updated_at
+                ) as entity,
+                -- User data as complete JSONB object
+                jsonb_build_object(
+                    'user_id', cu.user_id,
+                    'name', COALESCE(cu.display_name, cu.username, 'Anonymous'),
+                    'username', cu.username,
+                    'avatar', cu.avatar,
+                    'level', cu.level,
+                    'is_verified', cu.is_verified
+                ) as user
+            FROM review_main rm
+            LEFT JOIN core_entities ce ON rm.entity_id = ce.entity_id
+            LEFT JOIN core_users cu ON rm.user_id = cu.user_id
+            ORDER BY rm.created_at DESC 
+            LIMIT :limit OFFSET :offset
+        """)
         
-        # Sort by creation date (most recent first)
-        query = query.order_by(desc(Review.created_at))
-        
-        # PERFORMANCE FIX: Use limit+1 to check for more records efficiently
-        reviews = query.offset((page - 1) * limit).limit(limit + 1).all()
+        offset = (page - 1) * limit
+        result = db.execute(query, {"limit": limit + 1, "offset": offset})
+        reviews_data = result.fetchall()
         
         # Check if there are more records
-        has_more = len(reviews) > limit
+        has_more = len(reviews_data) > limit
         if has_more:
-            reviews = reviews[:limit]  # Remove the extra record
+            reviews_data = reviews_data[:limit]  # Remove the extra record
         
-        # Transform to API response format with complete entity data
+        # Transform to API response format using JSONB data directly
         result_reviews = []
-        for review in reviews:
-            # Build entity object with complete data (like user profile)
-            entity_data = {
-                "entity_id": review.entity.entity_id if review.entity else None,
-                "name": review.entity.name if review.entity else "Unknown Entity",
-                "description": review.entity.description if review.entity else "",
-                "avatar": review.entity.avatar if review.entity else None,
-                "imageUrl": review.entity.avatar if review.entity else None,  # For frontend compatibility
-                "is_verified": review.entity.is_verified if review.entity else False,
-                "is_claimed": review.entity.is_claimed if review.entity else False,
-                "average_rating": float(review.entity.average_rating) if review.entity and review.entity.average_rating else 0.0,
-                "review_count": review.entity.review_count if review.entity else 0,
-                "view_count": review.entity.view_count if review.entity else 0,
-                # Category information for breadcrumbs
-                "root_category_id": review.entity.root_category_id if review.entity else None,
-                "final_category_id": review.entity.final_category_id if review.entity else None,
-                # FIXED: Include category names for proper breadcrumb display
-                "root_category_name": review.entity.root_category.name if review.entity and review.entity.root_category else None,
-                "final_category_name": review.entity.final_category.name if review.entity and review.entity.final_category else None,
-                # Additional category objects for advanced breadcrumb generation
-                "root_category": {
-                    "id": review.entity.root_category.id,
-                    "name": review.entity.root_category.name,
-                    "slug": getattr(review.entity.root_category, 'slug', ''),
-                    "level": getattr(review.entity.root_category, 'level', 0)
-                } if review.entity and review.entity.root_category else None,
-                "final_category": {
-                    "id": review.entity.final_category.id,
-                    "name": review.entity.final_category.name,
-                    "slug": getattr(review.entity.final_category, 'slug', ''),
-                    "level": getattr(review.entity.final_category, 'level', 0)
-                } if review.entity and review.entity.final_category else None,
-                "created_at": review.entity.created_at.isoformat() if review.entity and review.entity.created_at else None,
-                "updated_at": review.entity.updated_at.isoformat() if review.entity and review.entity.updated_at else None
-            }
-            
-            # Build user data
-            user_data = {
-                "user_id": review.user.user_id if review.user else None,
-                "name": review.user.name if review.user else "Anonymous",
-                "username": review.user.username if review.user else None,
-                "avatar": review.user.avatar if review.user else None,
-                "level": review.user.level if review.user else 1,
-                "is_verified": review.user.is_verified if review.user else False
-            }
-            
-            # Build review response with complete entity object
+        for row in reviews_data:
+            # Build review response using JSONB entity and user data
             review_response = {
-                "review_id": review.review_id,
-                "title": review.title,
-                "content": review.content,
-                "overall_rating": float(review.overall_rating) if review.overall_rating else 0.0,
-                "view_count": review.view_count or 0,
-                "reaction_count": review.reaction_count or 0,
-                "comment_count": review.comment_count or 0,
-                "is_verified": review.is_verified or False,
-                "is_anonymous": review.is_anonymous or False,
-                "pros": review.pros or [],
-                "cons": review.cons or [],
-                "images": review.images or [],
-                "criteria": review.criteria or {},
-                "ratings": review.ratings or {},
-                "top_reactions_json": review.top_reactions_json or {},
-                "created_at": review.created_at.isoformat() if review.created_at else None,
-                "updated_at": review.updated_at.isoformat() if review.updated_at else None,
-                # Complete entity object (same as user profile)
-                "entity": entity_data,
-                # User data
-                "user": user_data,
-                # Legacy fields for backward compatibility
-                "user_name": user_data["name"],
-                "user_avatar": user_data["avatar"],
-                "entity_name": entity_data["name"]
+                "review_id": row.review_id,
+                "title": row.title or "",
+                "content": row.content or "",
+                "overall_rating": float(row.overall_rating) if row.overall_rating else 0.0,
+                "view_count": row.view_count or 0,
+                "reaction_count": row.reaction_count or 0,
+                "comment_count": row.comment_count or 0,
+                "is_verified": row.is_verified or False,
+                "is_anonymous": row.is_anonymous or False,
+                "pros": row.pros or [],
+                "cons": row.cons or [],
+                "images": row.images or [],
+                "ratings": row.ratings or {},
+                "top_reactions": row.top_reactions or {},
+                "created_at": row.created_at.isoformat() if row.created_at else None,
+                "updated_at": row.updated_at.isoformat() if row.updated_at else None,
+                
+                # JSONB entity and user data directly from review_main
+                "entity": row.entity,
+                "user": row.user
             }
             
             result_reviews.append(review_response)
@@ -476,6 +437,213 @@ async def get_homepage_entities(
         raise HTTPException(
             status_code=500,
             detail=f"Failed to fetch homepage entities: {str(e)}"
+        )
+
+
+@router.post("/migrate_to_single_table")
+async def migrate_to_single_table(db: Session = Depends(get_db)):
+    """
+    Migrate review_main to use JSONB columns for single-table queries
+    """
+    try:
+        from sqlalchemy import text
+        
+        # Step 1: Add columns
+        db.execute(text("""
+            ALTER TABLE review_main 
+            ADD COLUMN IF NOT EXISTS entity_summary JSONB,
+            ADD COLUMN IF NOT EXISTS user_summary JSONB;
+        """))
+        db.commit()
+        
+        # Step 2: Populate entity_summary with EXACT structure from review_data.json
+        db.execute(text("""
+            UPDATE review_main rm
+            SET entity_summary = subquery.entity_data
+            FROM (
+                SELECT rm2.review_id,
+                    jsonb_build_object(
+                        'entity_id', ce.entity_id,
+                        'name', ce.name,
+                        'description', ce.description,
+                        'avatar', ce.avatar,
+                        'is_verified', ce.is_verified,
+                        'is_claimed', ce.is_claimed,
+                        'average_rating', ce.average_rating,
+                        'review_count', ce.review_count,
+                        'view_count', ce.view_count,
+                        'root_category', CASE WHEN rc.id IS NOT NULL THEN
+                            jsonb_build_object(
+                                'id', rc.id,
+                                'name', rc.name,
+                                'slug', rc.slug,
+                                'icon', rc.icon,
+                                'color', rc.color,
+                                'level', rc.level
+                            ) ELSE NULL END,
+                        'final_category', CASE WHEN fc.id IS NOT NULL THEN
+                            jsonb_build_object(
+                                'id', fc.id,
+                                'name', fc.name,
+                                'slug', fc.slug,
+                                'icon', fc.icon,
+                                'color', fc.color,
+                                'level', fc.level
+                            ) ELSE NULL END
+                    ) as entity_data
+                FROM review_main rm2
+                LEFT JOIN core_entities ce ON rm2.entity_id = ce.entity_id
+                LEFT JOIN unified_categories rc ON ce.root_category_id = rc.id
+                LEFT JOIN unified_categories fc ON ce.final_category_id = fc.id
+                ORDER BY rm2.created_at DESC
+                LIMIT 20
+            ) as subquery
+            WHERE rm.review_id = subquery.review_id;
+        """))
+        db.commit()
+        
+        # Step 3: Populate user_summary with EXACT structure from review_data.json
+        db.execute(text("""
+            UPDATE review_main rm
+            SET user_summary = subquery.user_data
+            FROM (
+                SELECT rm2.review_id,
+                    jsonb_build_object(
+                        'user_id', cu.user_id,
+                        'name', COALESCE(cu.display_name, cu.username, 'Anonymous'),
+                        'username', cu.username,
+                        'avatar', cu.avatar,
+                        'level', cu.level,
+                        'is_verified', cu.is_verified
+                    ) as user_data
+                FROM review_main rm2
+                LEFT JOIN core_users cu ON rm2.user_id = cu.user_id
+                ORDER BY rm2.created_at DESC
+                LIMIT 20
+            ) as subquery
+            WHERE rm.review_id = subquery.review_id;
+        """))
+        db.commit()
+        
+        # Verify
+        result = db.execute(text("""
+            SELECT 
+                COUNT(*) as total,
+                COUNT(entity_summary) as with_entity,
+                COUNT(user_summary) as with_user
+            FROM review_main;
+        """))
+        stats = result.fetchone()
+        
+        return {
+            "success": True,
+            "message": "Migration completed for recent reviews",
+            "stats": {
+                "total_reviews": stats[0],
+                "reviews_with_entity_summary": stats[1],
+                "reviews_with_user_summary": stats[2]
+            }
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Migration failed: {str(e)}")
+
+@router.get("/test_home", response_model=None)
+async def get_test_home_data(
+    limit: int = Query(15, ge=1, le=100, description="Number of reviews to fetch"),
+    db: Session = Depends(get_db),
+    current_user = Depends(AuthDependencies.get_current_user_optional)
+):
+    """
+    Simplified test endpoint for homepage data using only review_main table.
+    No complex joins - just basic review data for testing.
+    """
+    try:
+        from sqlalchemy import text, desc
+        from fastapi.responses import JSONResponse
+        
+        # Debug logging
+        import logging
+        logging.info(f"[TEST HOME] Request received with limit: {limit}")
+        
+        # ULTRA-OPTIMIZED: Single table query using pre-populated JSONB columns (NO JOINS!)
+        query = text("""
+            SELECT 
+                review_id,
+                title,
+                content,
+                overall_rating,
+                view_count,
+                comment_count,
+                reaction_count,
+                is_verified,
+                is_anonymous,
+                pros,
+                cons,
+                images,
+                ratings,
+                top_reactions,
+                created_at,
+                updated_at,
+                -- Pre-populated JSONB data (no computation needed!)
+                entity_summary as entity,
+                user_summary as user
+            FROM review_main 
+            WHERE entity_summary IS NOT NULL 
+              AND user_summary IS NOT NULL
+            ORDER BY created_at DESC 
+            LIMIT :limit
+        """)
+        
+        result = db.execute(query, {"limit": limit})
+        reviews_data = result.fetchall()
+        
+        # Transform to API response format using JSONB data (much simpler!)
+        result_reviews = []
+        for row in reviews_data:
+            # Build review response using JSONB entity and user data directly
+            review_response = {
+                "review_id": row.review_id,
+                "title": row.title or "",
+                "content": row.content or "",
+                "overall_rating": float(row.overall_rating) if row.overall_rating else 0.0,
+                "view_count": row.view_count or 0,
+                "reaction_count": row.reaction_count or 0,
+                "comment_count": row.comment_count or 0,
+                "is_verified": row.is_verified or False,
+                "is_anonymous": row.is_anonymous or False,
+                "pros": row.pros or [],
+                "cons": row.cons or [],
+                "images": row.images or [],
+                "ratings": row.ratings or {},
+                "top_reactions": row.top_reactions or {},
+                "created_at": row.created_at.isoformat() if row.created_at else None,
+                "updated_at": row.updated_at.isoformat() if row.updated_at else None,
+                
+                # JSONB entity and user data directly from review_main (no transformation needed!)
+                "entity": row.entity,
+                "user": row.user
+            }
+            
+            result_reviews.append(review_response)
+        
+        return JSONResponse(content={
+            "success": True,
+            "data": result_reviews,
+            "pagination": {
+                "limit": limit,
+                "has_more": len(result_reviews) == limit,
+                "total": None
+            },
+            "message": "Test home data retrieved successfully from review_main table"
+        })
+        
+    except Exception as e:
+        import logging
+        logging.error(f"[TEST HOME ERROR] {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to fetch test home data: {str(e)}"
         )
 
 

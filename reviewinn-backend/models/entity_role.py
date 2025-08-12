@@ -7,7 +7,7 @@ class EntityRole(Base):
     __tablename__ = 'entity_roles'
 
     role_id = Column(BigInteger, primary_key=True, index=True)
-    entity_id = Column(BigInteger, ForeignKey('entities.entity_id', ondelete='CASCADE'))
+    entity_id = Column(BigInteger, ForeignKey('core_entities.entity_id', ondelete='CASCADE'))
     title = Column(String, nullable=False)
     organization = Column(String)
     start_date = Column(DateTime)

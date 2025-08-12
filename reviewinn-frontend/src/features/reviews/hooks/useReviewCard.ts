@@ -45,8 +45,17 @@ export const useReviewCard = ({ review, entity, onEntityClick, onReactionChange,
 
   // Comment count state
   const [commentCount, setCommentCount] = useState<number>(
-    review.comment_count || (review.comments ? review.comments.length : 0)
+    review.comment_count || (review as any).commentCount || (review.comments ? review.comments.length : 0)
   );
+  
+  // Debug logging for comment count
+  console.log('🔍 useReviewCard: Comment count initialization', {
+    reviewId: review.id,
+    review_comment_count: review.comment_count,
+    review_commentCount: (review as any).commentCount,
+    comments_length: review.comments?.length,
+    final_commentCount: commentCount
+  });
 
   // Functions to update comment count
   const updateCommentCount = (count: number) => {
@@ -106,20 +115,8 @@ export const useReviewCard = ({ review, entity, onEntityClick, onReactionChange,
 
   // Auth is now handled by context, no need for manual subscription
 
-  // Fetch real comment count from backend
-  useEffect(() => {
-    const fetchCommentCount = async () => {
-      try {
-        const count = await commentService.getCommentCount(review.id);
-        setCommentCount(count);
-      } catch (error) {
-        console.error('Failed to fetch comment count:', error);
-        // Keep using the fallback from review.comments.length
-      }
-    };
-
-    fetchCommentCount();
-  }, [review.id]);
+  // Skip separate comment count fetch since we already have it from the API response
+  // The comment count is already properly initialized from review.comment_count above
 
   // View tracking function with session-based prevention - only for modal opening
   const trackView = async () => {

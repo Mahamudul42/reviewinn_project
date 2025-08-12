@@ -1,5 +1,5 @@
 import React from 'react';
-import EnhancedReviewFeedCard from '../../reviews/components/EnhancedReviewFeedCard';
+import ReviewFeedCard from '../../reviews/components/ReviewFeedCard';
 import AdaptiveGatedContent from '../../../shared/components/AdaptiveGatedContent';
 import FloatingAuthPrompt from '../../../shared/components/FloatingAuthPrompt';
 import GatingErrorBoundary from '../../../shared/components/GatingErrorBoundary';
@@ -107,7 +107,7 @@ const ReviewFeed: React.FC<ReviewFeedProps> = ({
       >
         <div className="space-y-6">
           {visibleReviews.map((review, index) => (
-            <EnhancedReviewFeedCard
+            <ReviewFeedCard
               key={`review-${review.id}-${index}`}
               review={review}
               entity={review.entity || entities.find(e => e.id === review.entityId)}

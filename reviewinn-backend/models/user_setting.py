@@ -6,7 +6,7 @@ from database import Base
 class UserSetting(Base):
     __tablename__ = 'user_settings'
 
-    user_id = Column(BigInteger, ForeignKey('users.user_id', ondelete='CASCADE'), primary_key=True)
+    user_id = Column(BigInteger, ForeignKey('core_users.user_id', ondelete='CASCADE'), primary_key=True)
     privacy_settings = Column(JSON)
     notification_settings = Column(JSON)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

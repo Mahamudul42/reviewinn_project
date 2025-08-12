@@ -6,7 +6,7 @@ from database import Base
 class Message(Base):
     __tablename__ = 'messages'
     message_id = Column(BigInteger, primary_key=True, index=True)
-    sender_id = Column(BigInteger, ForeignKey('users.user_id'), nullable=False)
+    sender_id = Column(BigInteger, ForeignKey('core_users.user_id'), nullable=False)
     conversation_id = Column(BigInteger, ForeignKey('conversations.conversation_id'), nullable=False)
     content = Column(Text, nullable=False)
     message_type = Column(String(20), default='text')  # text, image, file, system
@@ -27,7 +27,7 @@ class Message(Base):
 class MessageStatus(Base):
     __tablename__ = 'message_status'
     message_id = Column(BigInteger, ForeignKey('messages.message_id'), primary_key=True)
-    user_id = Column(BigInteger, ForeignKey('users.user_id'), primary_key=True)
+    user_id = Column(BigInteger, ForeignKey('core_users.user_id'), primary_key=True)
     status = Column(String(20), default='sent')  # sent, delivered, read
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     

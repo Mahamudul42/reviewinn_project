@@ -21,8 +21,8 @@ class ConnectionStatusEnum(str, enum.Enum):
 class UserConnection(Base):
     __tablename__ = 'user_connections'
 
-    user_id = Column(BigInteger, ForeignKey('users.user_id', ondelete='CASCADE'), primary_key=True)
-    target_user_id = Column(BigInteger, ForeignKey('users.user_id', ondelete='CASCADE'), primary_key=True)
+    user_id = Column(BigInteger, ForeignKey('core_users.user_id', ondelete='CASCADE'), primary_key=True)
+    target_user_id = Column(BigInteger, ForeignKey('core_users.user_id', ondelete='CASCADE'), primary_key=True)
     connection_type = Column(PgEnum(ConnectionTypeEnum, name='connection_type_enum'), nullable=False)
     status = Column(PgEnum(ConnectionStatusEnum, name='connection_status_enum'), default=ConnectionStatusEnum.PENDING)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

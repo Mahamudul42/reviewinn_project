@@ -7,7 +7,7 @@ class WeeklyEngagement(Base):
     __tablename__ = 'weekly_engagement'
 
     engagement_id = Column(BigInteger, primary_key=True, index=True)
-    user_id = Column(BigInteger, ForeignKey('users.user_id', ondelete='CASCADE'))
+    user_id = Column(BigInteger, ForeignKey('core_users.user_id', ondelete='CASCADE'))
     engagement_date = Column(Date, nullable=False)
     reviews = Column(Integer, default=0, nullable=False)
     reactions = Column(Integer, default=0, nullable=False)

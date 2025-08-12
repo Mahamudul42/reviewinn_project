@@ -18,20 +18,15 @@ class ReactionType(enum.Enum):
     eyes = "eyes"
 
 class Review(Base):
-    __tablename__ = "reviews"
+    __tablename__ = "review_main"
     
     review_id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
-    entity_id = Column(Integer, ForeignKey("entities.entity_id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("core_users.user_id", ondelete="CASCADE"), nullable=False)
+    entity_id = Column(Integer, ForeignKey("core_entities.entity_id", ondelete="CASCADE"), nullable=False)
+    role_id = Column(Integer)
     title = Column(String(200))
     content = Column(Text, nullable=False)
-    category = Column(String(20))
     overall_rating = Column(Float, nullable=False)
-    criteria = Column(JSON, default={})
-    ratings = Column(JSON, default={})
-    pros = Column(JSON, default=[])
-    cons = Column(JSON, default=[])
-    images = Column(JSON, default=[])
     is_anonymous = Column(Boolean, default=False)
     is_verified = Column(Boolean, default=False)
     
@@ -40,10 +35,15 @@ class Review(Base):
     reaction_count = Column(Integer, default=0, nullable=False)
     comment_count = Column(Integer, default=0, nullable=False)
     
-    # 🚀 ULTRA-OPTIMIZATION: Pre-computed top reactions (Industry Standard)
-    # Stores top 3-5 reactions with counts: {"love": 45, "thumbs_up": 23, "haha": 12}
-    # Eliminates GROUP BY queries for 95% faster loading - Used by Facebook, Instagram, Twitter
-    top_reactions_json = Column(JSON, default={}, nullable=False)
+    # JSONB fields from actual database schema
+    ratings = Column(JSON, default={})
+    pros = Column(JSON, default=[])
+    cons = Column(JSON, default=[])
+    images = Column(JSON, default=[])
+    top_reactions = Column(JSON, default={}, nullable=False)
+    entity_summary = Column(JSON, default={})
+    user_summary = Column(JSON, default={})
+    reports_summary = Column(JSON, default={})
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
@@ -64,11 +64,10 @@ class Review(Base):
             "review_id": self.review_id,
             "user_id": self.user_id,
             "entity_id": self.entity_id,
+            "role_id": self.role_id,
             "title": self.title,
             "content": self.content,
-            "category": self.category,
             "overall_rating": self.overall_rating,
-            "criteria": self.criteria,
             "ratings": self.ratings,
             "pros": self.pros,
             "cons": self.cons,
@@ -78,7 +77,10 @@ class Review(Base):
             "view_count": self.view_count,
             "reaction_count": self.reaction_count,
             "comment_count": self.comment_count,
-            "top_reactions_json": self.top_reactions_json,
+            "top_reactions": self.top_reactions,
+            "entity_summary": self.entity_summary,
+            "user_summary": self.user_summary,
+            "reports_summary": self.reports_summary,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None
         } 

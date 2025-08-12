@@ -84,7 +84,7 @@ class BadgeAward(Base):
     __tablename__ = 'badge_awards'
 
     award_id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('core_users.user_id'), nullable=False)
     badge_definition_id = Column(Integer, ForeignKey('badge_definitions.badge_definition_id'), nullable=False)
     
     # Award details

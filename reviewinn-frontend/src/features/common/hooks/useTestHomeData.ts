@@ -1,0 +1,157 @@
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import type { Review } from '../../../types';
+
+interface TestHomeData {
+  reviews: any[];
+  hasMore: boolean;
+}
+
+interface UseTestHomeDataReturn {
+  reviews: Review[];
+  loading: boolean;
+  error: string | null;
+  hasMoreReviews: boolean;
+  loadingMore: boolean;
+  loadInitialData: () => Promise<void>;
+  handleLoadMore: () => Promise<void>;
+}
+
+// Optimized data transformation with memoization
+const transformApiReview = (apiReview: any): Review => {
+  return {
+    id: apiReview.review_id.toString(),
+    entityId: apiReview.entity?.entity_id?.toString() || '',
+    reviewerId: apiReview.user?.user_id?.toString() || '',
+    reviewerName: apiReview.user?.name || 'Anonymous',
+    reviewerUsername: apiReview.user?.username,
+    reviewerAvatar: apiReview.user?.avatar,
+    userId: apiReview.user?.user_id?.toString(),
+    title: apiReview.title || '',
+    content: apiReview.content || '',
+    overallRating: apiReview.overall_rating || 0,
+    ratings: apiReview.ratings || {},
+    criteria: apiReview.ratings || {},
+    pros: apiReview.pros || [],
+    cons: apiReview.cons || [],
+    images: apiReview.images || [],
+    isAnonymous: apiReview.is_anonymous || false,
+    isVerified: apiReview.is_verified || false,
+    view_count: apiReview.view_count || 0,
+    total_reactions: apiReview.reaction_count || 0,
+    comment_count: apiReview.comment_count || 0,
+    commentCount: apiReview.comment_count || 0,
+    reactions: apiReview.top_reactions || {},
+    top_reactions: Object.keys(apiReview.top_reactions || {}),
+    createdAt: apiReview.created_at,
+    updatedAt: apiReview.updated_at,
+    entity: {
+      id: apiReview.entity?.entity_id?.toString() || '',
+      name: apiReview.entity?.name || 'Unknown Entity',
+      description: apiReview.entity?.description || '',
+      avatar: apiReview.entity?.avatar,
+      imageUrl: apiReview.entity?.imageUrl || apiReview.entity?.avatar,
+      category: apiReview.entity?.root_category?.name,
+      averageRating: apiReview.entity?.average_rating || 0,
+      reviewCount: apiReview.entity?.review_count || 0,
+      view_count: apiReview.entity?.view_count || 0,
+      is_verified: apiReview.entity?.is_verified || false,
+      is_claimed: apiReview.entity?.is_claimed || false,
+      root_category: apiReview.entity?.root_category,
+      final_category: apiReview.entity?.final_category,
+      root_category_name: apiReview.entity?.root_category?.name,
+      final_category_name: apiReview.entity?.final_category?.name,
+      root_category_id: apiReview.entity?.root_category?.id,
+      final_category_id: apiReview.entity?.final_category?.id,
+    }
+  };
+};
+
+// Optimized API fetch function
+const fetchTestHomeData = async (limit: number = 15): Promise<TestHomeData> => {
+  const response = await fetch(`http://localhost:8000/api/v1/homepage/test_home?limit=${limit}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch test home data: ${response.statusText}`);
+  }
+
+  const result = await response.json();
+  
+  if (result.success) {
+    return {
+      reviews: result.data || [],
+      hasMore: result.pagination?.has_more || false
+    };
+  } else {
+    throw new Error('API returned error');
+  }
+};
+
+export const useTestHomeData = (): UseTestHomeDataReturn => {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [hasMoreReviews, setHasMoreReviews] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  // Memoized transformation function
+  const transformReviews = useCallback((apiReviews: any[]): Review[] => {
+    return apiReviews.map(transformApiReview);
+  }, []);
+
+  // Load initial data
+  const loadInitialData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const data = await fetchTestHomeData(15);
+      const transformedReviews = transformReviews(data.reviews);
+      
+      setReviews(transformedReviews);
+      setHasMoreReviews(data.hasMore);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load data');
+    } finally {
+      setLoading(false);
+    }
+  }, [transformReviews]);
+
+  // Load more reviews
+  const handleLoadMore = useCallback(async () => {
+    if (loadingMore || !hasMoreReviews) return;
+    
+    setLoadingMore(true);
+    try {
+      const data = await fetchTestHomeData(reviews.length + 10);
+      const transformedReviews = transformReviews(data.reviews);
+      
+      setReviews(transformedReviews);
+      setHasMoreReviews(data.hasMore);
+    } catch (err) {
+      console.error('Error loading more reviews:', err);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, hasMoreReviews, reviews.length, transformReviews]);
+
+  // Initial load effect
+  useEffect(() => {
+    loadInitialData();
+  }, [loadInitialData]);
+
+  return {
+    reviews,
+    loading,
+    error,
+    hasMoreReviews,
+    loadingMore,
+    loadInitialData,
+    handleLoadMore,
+  };
+};

@@ -1,6 +1,6 @@
 import React from 'react';
 import { MessageCircle } from 'lucide-react';
-import EnhancedReviewFeedCard from '../../reviews/components/EnhancedReviewFeedCard';
+import ReviewFeedCard from '../../reviews/components/ReviewFeedCard';
 import type { Review, Entity } from '../../../types';
 
 interface ReviewSearchResultsProps {
@@ -84,7 +84,7 @@ const ReviewSearchResults: React.FC<ReviewSearchResultsProps> = ({
 
         {/* Reviews Feed - Identical to homepage */}
         {uniqueReviews.map((review, index) => (
-          <EnhancedReviewFeedCard
+          <ReviewFeedCard
             key={`search-result-${review.id}-${index}`}
             review={review}
             entity={entityLookup[review.entityId || ''] || review.entity}

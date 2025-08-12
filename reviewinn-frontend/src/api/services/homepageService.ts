@@ -125,7 +125,7 @@ export class HomepageService {
     
     return {
       id: review.review_id?.toString() || review.id?.toString() || '',
-      entityId: review.entity_id?.toString() || review.entityId?.toString() || '',
+      entityId: review.entity?.entity_id?.toString() || review.entity_id?.toString() || review.entityId?.toString() || '',
       reviewerId: review.user_id?.toString() || review.reviewerId?.toString() || '',
       reviewerName: review.user?.name || review.user_name || review.reviewerName || '',
       reviewerUsername: review.user?.username || review.reviewerUsername || undefined,

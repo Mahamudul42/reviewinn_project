@@ -7,7 +7,7 @@ class UserSession(Base):
     __tablename__ = 'user_sessions'
 
     session_id = Column(BigInteger, primary_key=True, index=True)
-    user_id = Column(BigInteger, ForeignKey('users.user_id', ondelete='CASCADE'), nullable=False)
+    user_id = Column(BigInteger, ForeignKey('core_users.user_id', ondelete='CASCADE'), nullable=False)
     token_hash = Column(String(64), unique=True, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     expires_at = Column(DateTime(timezone=True), nullable=False)

@@ -11,7 +11,7 @@ class Conversation(Base):
     group_description = Column(Text)
     group_image = Column(String(500))
     is_group = Column(Boolean, default=False)
-    created_by = Column(BigInteger, ForeignKey('users.user_id'))
+    created_by = Column(BigInteger, ForeignKey('core_users.user_id'))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     last_message_at = Column(DateTime(timezone=True))
@@ -25,7 +25,7 @@ class ConversationParticipant(Base):
     __tablename__ = 'conversation_participants'
 
     conversation_id = Column(BigInteger, ForeignKey('conversations.conversation_id', ondelete='CASCADE'), primary_key=True)
-    user_id = Column(BigInteger, ForeignKey('users.user_id', ondelete='CASCADE'), primary_key=True)
+    user_id = Column(BigInteger, ForeignKey('core_users.user_id', ondelete='CASCADE'), primary_key=True)
     joined_at = Column(DateTime(timezone=True), server_default=func.now())
     left_at = Column(DateTime(timezone=True))
     role = Column(String(20), default='member')  # admin, member

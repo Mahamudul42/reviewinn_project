@@ -6,7 +6,7 @@ from database import Base
 class UserProgress(Base):
     __tablename__ = 'user_progress'
 
-    user_id = Column(BigInteger, ForeignKey('users.user_id', ondelete='CASCADE'), primary_key=True)
+    user_id = Column(BigInteger, ForeignKey('core_users.user_id', ondelete='CASCADE'), primary_key=True)
     points = Column(Integer, default=0, nullable=False)
     level = Column(Integer, default=1, nullable=False)
     progress_to_next_level = Column(Integer, default=0, nullable=False)

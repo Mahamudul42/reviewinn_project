@@ -29,7 +29,7 @@ class ReviewCircle(Base):
     description = Column(Text)
     is_public = Column(Boolean, default=True)
     max_members = Column(Integer, default=50)
-    creator_id = Column(Integer, ForeignKey('users.user_id', ondelete='CASCADE'), nullable=False)
+    creator_id = Column(Integer, ForeignKey('core_users.user_id', ondelete='CASCADE'), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
@@ -43,8 +43,8 @@ class CircleInvite(Base):
 
     invite_id = Column(Integer, primary_key=True, index=True)
     circle_id = Column(Integer, ForeignKey('review_circles.circle_id', ondelete='CASCADE'), nullable=False)
-    requester_id = Column(Integer, ForeignKey('users.user_id', ondelete='CASCADE'), nullable=False)
-    receiver_id = Column(Integer, ForeignKey('users.user_id', ondelete='CASCADE'), nullable=False)
+    requester_id = Column(Integer, ForeignKey('core_users.user_id', ondelete='CASCADE'), nullable=False)
+    receiver_id = Column(Integer, ForeignKey('core_users.user_id', ondelete='CASCADE'), nullable=False)
     note = Column(Text)
     status = Column(PgEnum(CircleInviteStatusEnum, name='circle_invite_status_enum'), default=CircleInviteStatusEnum.PENDING)
     taste_match_score = Column(Float, default=0.0)
@@ -69,7 +69,7 @@ class CircleConnection(Base):
     )
 
     connection_id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey('users.user_id', ondelete='CASCADE'), nullable=False)
+    user_id = Column(Integer, ForeignKey('core_users.user_id', ondelete='CASCADE'), nullable=False)
     circle_id = Column(Integer, ForeignKey('review_circles.circle_id', ondelete='CASCADE'), nullable=False)
     trust_level = Column(PgEnum(TrustLevelEnum, name='trust_level_enum'), default=TrustLevelEnum.REVIEWER)
     taste_match_score = Column(Float, default=0.0)
@@ -95,8 +95,8 @@ class CircleRequest(Base):
     )
 
     request_id = Column(Integer, primary_key=True, index=True)
-    requester_id = Column(Integer, ForeignKey('users.user_id', ondelete='CASCADE'), nullable=False)
-    receiver_id = Column(Integer, ForeignKey('users.user_id', ondelete='CASCADE'), nullable=False)
+    requester_id = Column(Integer, ForeignKey('core_users.user_id', ondelete='CASCADE'), nullable=False)
+    receiver_id = Column(Integer, ForeignKey('core_users.user_id', ondelete='CASCADE'), nullable=False)
     message = Column(Text)
     status = Column(String(20), default='pending')  # pending, accepted, declined
     created_at = Column(DateTime(timezone=True), server_default=func.now())

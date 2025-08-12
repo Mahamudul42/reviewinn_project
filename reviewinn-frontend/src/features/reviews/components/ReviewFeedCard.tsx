@@ -13,7 +13,7 @@ import ReviewDetailModal from './ReviewDetailModal';
 import ReviewEditModal from './ReviewEditModal';
 import ReviewDeleteModal from './ReviewDeleteModal';
 
-interface EnhancedReviewFeedCardProps {
+interface ReviewFeedCardProps {
   review: Review & {
     reactions?: Record<string, number>;
     user_reaction?: string;
@@ -31,7 +31,7 @@ interface EnhancedReviewFeedCardProps {
   onGiveReviewClick?: (entity: Entity) => void; // NEW: Callback for give review button
 }
 
-const EnhancedReviewFeedCard: React.FC<EnhancedReviewFeedCardProps> = ({ 
+const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({ 
   review, 
   entity,
   hideEntityInfo = false,
@@ -306,4 +306,4 @@ const EnhancedReviewFeedCard: React.FC<EnhancedReviewFeedCardProps> = ({
   );
 };
 
-export default EnhancedReviewFeedCard;
+export default ReviewFeedCard;

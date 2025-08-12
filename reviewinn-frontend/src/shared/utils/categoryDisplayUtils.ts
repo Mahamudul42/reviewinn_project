@@ -120,6 +120,19 @@ export function normalizeEntityCategoryData(entity: any): {
   rootCategory?: CategoryInfo;
   finalCategory?: CategoryInfo;
 } {
+  // Debug logging in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔍 normalizeEntityCategoryData input:', {
+      entityName: entity.name,
+      root_category: entity.root_category,
+      final_category: entity.final_category,
+      root_category_name: entity.root_category_name,
+      final_category_name: entity.final_category_name,
+      root_category_id: entity.root_category_id,
+      final_category_id: entity.final_category_id
+    });
+  }
+
   // Handle different possible field names from API responses
   let rootCategory = entity.root_category || entity.rootCategory as CategoryInfo | undefined;
   let finalCategory = entity.final_category || entity.finalCategory as CategoryInfo | undefined;
@@ -148,10 +161,23 @@ export function normalizeEntityCategoryData(entity: any): {
     };
   }
 
-  return {
+  const result = {
     categoryBreadcrumb: buildCategoryBreadcrumb(rootCategory, finalCategory, providedBreadcrumb),
     categoryDisplay: buildCategoryDisplay(rootCategory, finalCategory, providedDisplay),
     rootCategory,
     finalCategory
   };
+
+  // Debug logging in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔍 normalizeEntityCategoryData output:', {
+      entityName: entity.name,
+      rootCategory: result.rootCategory,
+      finalCategory: result.finalCategory,
+      categoryDisplay: result.categoryDisplay,
+      breadcrumbLength: result.categoryBreadcrumb.length
+    });
+  }
+
+  return result;
 }

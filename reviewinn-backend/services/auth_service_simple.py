@@ -452,13 +452,12 @@ class AuthService:
         
         # Create user with sanitized data
         logger.info("Creating user object...")
-        full_name = f"{registration_data.first_name.strip()} {registration_data.last_name.strip()}"
         user = User(
             email=email,
             username=username,
-            name=full_name,
+            first_name=registration_data.first_name.strip(),
+            last_name=registration_data.last_name.strip(),
             hashed_password=self.hash_password(registration_data.password),
-            role=UserRole.USER,
             is_active=True,
             is_verified=False
         )

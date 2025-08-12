@@ -240,12 +240,29 @@ export class HttpClient {
       const dataObj = data as Record<string, unknown>;
       if (typeof dataObj.detail === 'string') {
         message = dataObj.detail;
+      } else if (typeof dataObj.detail === 'object' && dataObj.detail !== null) {
+        // Handle structured validation errors
+        const detailObj = dataObj.detail as Record<string, unknown>;
+        if (typeof detailObj.message === 'string') {
+          message = detailObj.message;
+          // If there are specific errors, append them
+          if (Array.isArray(detailObj.errors) && detailObj.errors.length > 0) {
+            const errorList = detailObj.errors.filter(err => typeof err === 'string').join(', ');
+            if (errorList) {
+              message += `: ${errorList}`;
+            }
+          }
+        }
       } else if (typeof dataObj.message === 'string') {
         message = dataObj.message;
       }
     }
 
     switch (status) {
+      case HTTP_STATUS.BAD_REQUEST:
+        type = API_ERROR_TYPES.VALIDATION_ERROR;
+        if (message === 'An unknown error occurred') message = 'Invalid request';
+        break;
       case HTTP_STATUS.UNAUTHORIZED:
         type = API_ERROR_TYPES.AUTHENTICATION_ERROR;
         if (message === 'An unknown error occurred') message = 'Authentication required';

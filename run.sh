@@ -14,7 +14,7 @@ NC='\033[0m' # No Color
 
 # Project Configuration
 PROJECT_NAME="ReviewInn"
-DB_NAME="reviewinn_db"
+DB_NAME="reviewinn_database"
 DB_USER="reviewinn_user"
 DB_PASSWORD="Munna1992"
 DB_HOST="localhost"

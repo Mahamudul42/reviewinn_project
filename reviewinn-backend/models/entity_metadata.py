@@ -7,7 +7,7 @@ class EntityMetadata(Base):
     __tablename__ = 'entity_metadata'
 
     metadata_id = Column(BigInteger, primary_key=True, index=True)
-    entity_id = Column(BigInteger, ForeignKey('entities.entity_id', ondelete='CASCADE'))
+    entity_id = Column(BigInteger, ForeignKey('core_entities.entity_id', ondelete='CASCADE'))
     field_name = Column(String, nullable=False)
     field_type = Column(String)
     options = Column(JSON)

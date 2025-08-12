@@ -21,6 +21,7 @@ const authManager = initializeAuthManager(reviewInnAuthService);
 
 // Lazy load components for better performance
 const HomePage = lazy(() => import('./features/common/HomePage'));
+const TestHomePage = lazy(() => import('./features/common/TestHomePage'));
 const LoginPage = lazy(() => import('./features/auth/LoginPage'));
 const AddEntityPage = lazy(() => import('./features/entities/AddEntityPageModular'));
 const EntityListPage = lazy(() => import('./features/entities/EntityListPage'));
@@ -65,6 +66,7 @@ function App() {
             <Route path="/" element={<Layout />}>
               <Route index element={<HomePage />} />
               <Route path="home" element={<HomePage />} />
+              <Route path="test_home" element={<TestHomePage />} />
               <Route path="login" element={<LoginPage />} />
               <Route path="search" element={<SearchPage />} />
               <Route path="dashboard" element={

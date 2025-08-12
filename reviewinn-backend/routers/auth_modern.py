@@ -102,7 +102,7 @@ async def register(
             username=user.username,
             is_verified=user.is_verified,
             is_active=user.is_active,
-            role=user.role.value,
+            role="user",  # Default role since core_users table doesn't have role field
             created_at=user.created_at,
             message="Registration successful! Please check your email to verify your account."
         )
@@ -178,7 +178,7 @@ async def login(
                 username=user.username,
                 is_verified=user.is_verified,
                 is_active=user.is_active,
-                role=user.role.value,
+                role="user",
                 last_login=user.last_login,
                 created_at=user.created_at
             )
@@ -470,7 +470,7 @@ async def get_current_user_info(
         avatar=getattr(current_user, 'avatar', None),
         is_verified=current_user.is_verified,
         is_active=current_user.is_active,
-        role=current_user.role.value,
+        role="user",
         last_login=current_user.last_login,
         created_at=current_user.created_at
     )
@@ -493,7 +493,7 @@ async def get_user_profile(
         avatar=getattr(current_user, 'avatar', None),
         is_verified=current_user.is_verified,
         is_active=current_user.is_active,
-        role=current_user.role.value,
+        role="user",
         permissions=getattr(current_user, 'permissions', []),
         last_login=current_user.last_login,
         created_at=current_user.created_at

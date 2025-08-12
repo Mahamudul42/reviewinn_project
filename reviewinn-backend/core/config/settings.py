@@ -14,8 +14,8 @@ class DatabaseConfig(BaseSettings):
     
     host: str = Field(default="localhost", env="POSTGRES_HOST")
     port: int = Field(default=5432, env="POSTGRES_PORT")
-    database: str = Field(default="review_platform", env="POSTGRES_DB")
-    username: str = Field(default="review_user", env="POSTGRES_USER")
+    database: str = Field(default="reviewinn_database", env="POSTGRES_DB")
+    username: str = Field(default="reviewinn_user", env="POSTGRES_USER")
     password: str = Field(default="", env="POSTGRES_PASSWORD")
     
     @property
@@ -137,6 +137,7 @@ class CORSConfig(BaseSettings):
             "http://localhost:8080",
             "http://localhost:8845",
             "http://localhost:9167",
+            "http://localhost:2148",
             "http://127.0.0.1:3000",
             "http://127.0.0.1:5173",
             "http://127.0.0.1:5174",
@@ -146,6 +147,7 @@ class CORSConfig(BaseSettings):
             "http://127.0.0.1:8080",
             "http://127.0.0.1:8845",
             "http://127.0.0.1:9167",
+            "http://127.0.0.1:2148",
             # Add production domains for domain mapping
             "https://reviewinn.com",
             "https://www.reviewinn.com",

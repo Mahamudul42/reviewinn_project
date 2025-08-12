@@ -7,8 +7,8 @@ class ReviewVersion(Base):
     __tablename__ = 'review_versions'
 
     version_id = Column(BigInteger, primary_key=True, index=True)
-    review_id = Column(BigInteger, ForeignKey('reviews.review_id', ondelete='CASCADE'))
-    user_id = Column(BigInteger, ForeignKey('users.user_id'))
+    review_id = Column(BigInteger, ForeignKey('review_main.review_id', ondelete='CASCADE'))
+    user_id = Column(BigInteger, ForeignKey('core_users.user_id'))
     rating = Column(Integer)
     comment = Column(String)
     updated_at = Column(DateTime(timezone=True), server_default=func.now())

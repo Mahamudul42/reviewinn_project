@@ -21,8 +21,8 @@ class ReactionType(enum.Enum):
 class Comment(Base):
     __tablename__ = "comments"
     comment_id = Column(Integer, primary_key=True, index=True)
-    review_id = Column(Integer, ForeignKey("reviews.review_id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
+    review_id = Column(Integer, ForeignKey("review_main.review_id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("core_users.user_id"), nullable=False)
     content = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     likes = Column(Integer, default=0)
@@ -43,7 +43,7 @@ class CommentReaction(Base):
     __tablename__ = "comment_reactions"
     reaction_id = Column(Integer, primary_key=True, index=True)
     comment_id = Column(Integer, ForeignKey("comments.comment_id", ondelete="CASCADE"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("core_users.user_id"), nullable=False)
     reaction_type = Column(SqlEnum(ReactionType, name="comment_reaction_type"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

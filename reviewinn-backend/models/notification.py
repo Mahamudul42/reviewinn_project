@@ -59,8 +59,8 @@ class Notification(Base):
     __tablename__ = "notifications"
 
     notification_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False, index=True)
-    actor_id = Column(Integer, ForeignKey("users.user_id", ondelete="SET NULL"), nullable=True)
+    user_id = Column(Integer, ForeignKey("core_users.user_id", ondelete="CASCADE"), nullable=False, index=True)
+    actor_id = Column(Integer, ForeignKey("core_users.user_id", ondelete="SET NULL"), nullable=True)
     
     notification_type = Column(String(50), nullable=False)
     entity_type = Column(String(50), nullable=True)

@@ -13,8 +13,8 @@ class ReviewView(Base):
     __tablename__ = 'review_views'
 
     view_id = Column(BigInteger, primary_key=True, index=True)
-    review_id = Column(Integer, ForeignKey('reviews.review_id'), nullable=False)
-    user_id = Column(Integer, ForeignKey('users.user_id'), nullable=True)  # Nullable for anonymous tracking
+    review_id = Column(Integer, ForeignKey('review_main.review_id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('core_users.user_id'), nullable=True)  # Nullable for anonymous tracking
     
     # Rate limiting and fraud prevention
     ip_address = Column(String(45))  # IPv6 support
@@ -47,8 +47,8 @@ class EntityView(Base):
     __tablename__ = 'entity_views'
 
     view_id = Column(BigInteger, primary_key=True, index=True)
-    entity_id = Column(Integer, ForeignKey('entities.entity_id'), nullable=False)
-    user_id = Column(Integer, ForeignKey('users.user_id'), nullable=True)
+    entity_id = Column(Integer, ForeignKey('core_entities.entity_id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('core_users.user_id'), nullable=True)
     
     # Rate limiting and fraud prevention
     ip_address = Column(String(45))

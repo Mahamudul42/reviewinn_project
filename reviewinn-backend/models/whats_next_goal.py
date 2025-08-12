@@ -7,7 +7,7 @@ class WhatsNextGoal(Base):
     __tablename__ = 'whats_next_goals'
 
     goal_id = Column(BigInteger, primary_key=True, index=True)
-    user_id = Column(BigInteger, ForeignKey('users.user_id', ondelete='CASCADE'))
+    user_id = Column(BigInteger, ForeignKey('core_users.user_id', ondelete='CASCADE'))
     description = Column(String(255), nullable=False)
     target_type = Column(String(50), nullable=False)
     target_value = Column(Integer, nullable=False)

@@ -104,23 +104,26 @@ const HomePageLayout: React.FC<HomePageLayoutProps> = ({
 
   return (
     <DashboardLayout>
-      <PanelFactory
-        position="middle"
-        userAvatar={displayUser.avatar}
-        userName={displayUser.name}
-        onAddReviewClick={onShowReviewModal}
-        reviewBarRef={reviewBarRef}
-        reviews={reviews}
-        entities={entities}
-        hasMoreReviews={hasMoreReviews}
-        loadingMore={loadingMore}
-        loading={loading}
-        onLoadMore={onLoadMore}
-        onCommentAdd={onCommentAdd}
-        onCommentDelete={onCommentDelete}
-        onCommentReaction={onCommentReaction}
-        onGiveReviewClick={onGiveReviewClick}
-      />
+      {/* Temporarily comment out left and right panels - only show middle panel */}
+      <div className="flex justify-center w-full min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <PanelFactory
+          position="middle"
+          userAvatar={displayUser.avatar}
+          userName={displayUser.name}
+          onAddReviewClick={onShowReviewModal}
+          reviewBarRef={reviewBarRef}
+          reviews={reviews}
+          entities={entities}
+          hasMoreReviews={hasMoreReviews}
+          loadingMore={loadingMore}
+          loading={loading}
+          onLoadMore={onLoadMore}
+          onCommentAdd={onCommentAdd}
+          onCommentDelete={onCommentDelete}
+          onCommentReaction={onCommentReaction}
+          onGiveReviewClick={onGiveReviewClick}
+        />
+      </div>
       <AddReviewModal
         open={showReviewModal}
         onClose={onCloseReviewModal}

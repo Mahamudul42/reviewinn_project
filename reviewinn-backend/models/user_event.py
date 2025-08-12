@@ -7,7 +7,7 @@ class UserEvent(Base):
     __tablename__ = 'user_events'
 
     event_id = Column(BigInteger, primary_key=True, index=True)
-    user_id = Column(BigInteger, ForeignKey('users.user_id'))
+    user_id = Column(BigInteger, ForeignKey('core_users.user_id'))
     event_type = Column(String)
     event_data = Column(JSON)
     occurred_at = Column(DateTime(timezone=True), server_default=func.now())
