@@ -127,23 +127,33 @@ class EntityService {
         throw new Error('Failed to fetch entities');
       }
       
-      const entityData = response.data as any;
+      // Backend returns: { success: true, data: [entities], pagination: {...} }
+      const entitiesArray = response.data as any[];
+      const pagination = (response as any).pagination || {};
       
       console.log('🏢 OPTIMIZED Entity Service: Received comprehensive data:', {
-        totalEntities: entityData?.entities?.length || 0,
-        hasMore: entityData?.has_more,
-        engagementSummary: entityData?.engagement_summary,
-        sampleEntity: entityData?.entities?.[0] ? {
-          name: entityData.entities[0].name,
-          reviewCount: entityData.entities[0].reviewCount,
-          reactionCount: entityData.entities[0].reactionCount,  // NEW
-          commentCount: entityData.entities[0].commentCount,   // NEW
-          viewCount: entityData.entities[0].viewCount
+        totalEntities: entitiesArray?.length || 0,
+        pagination: pagination,
+        sampleEntity: entitiesArray?.[0] ? {
+          name: entitiesArray[0].name,
+          id: entitiesArray[0].id,
+          entity_id: entitiesArray[0].entity_id,
+          reviewCount: entitiesArray[0].reviewCount,
+          reactionCount: entitiesArray[0].reactionCount,  // NEW
+          commentCount: entitiesArray[0].commentCount,   // NEW
+          viewCount: entitiesArray[0].viewCount
         } : null
       });
       
+      console.log('🔧 DEBUG: Raw response structure:', {
+        responseSuccess: response.success,
+        dataIsArray: Array.isArray(response.data),
+        dataLength: Array.isArray(response.data) ? response.data.length : 'not array',
+        hasPagination: !!(response as any).pagination
+      });
+      
       // OPTIMIZED: Backend now provides comprehensive entity data from core_entities table
-      const rawEntities = entityData?.entities || [];
+      const rawEntities = entitiesArray || [];
       const transformedEntities = rawEntities.map((entity: any) => ({
         ...entity,
         // Ensure consistent ID field mapping
@@ -187,11 +197,20 @@ class EntityService {
         enhanceEntityWithHierarchicalCategories(entity)
       );
       
-      return {
+      const result = {
         entities: enhancedEntities,
-        total: entityData?.total || 0,
-        hasMore: entityData?.has_more || false  // Use efficient backend flag
+        total: pagination?.total || 0,
+        hasMore: pagination?.pages > pagination?.page || false  // Use efficient backend flag
       };
+      
+      console.log('🔧 DEBUG: EntityService returning:', {
+        entitiesCount: result.entities.length,
+        total: result.total,
+        hasMore: result.hasMore,
+        firstEntityName: result.entities[0]?.name || 'none'
+      });
+      
+      return result;
       
     } catch (error) {
       console.error('Error fetching entities:', error);
@@ -248,12 +267,12 @@ class EntityService {
   async getEntityById(id: string): Promise<Entity | null> {
     try {
       // First try the direct endpoint
-      const response = await httpClient.get<{ success: boolean; data: Entity }>(
+      const response = await httpClient.get<{ success: boolean; data: any }>(
         `${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.GET_BY_ID(id)}`
       );
       
       if (response.success && response.data) {
-        const entity = response.data;
+        const entity = response.data as any;
         
         return {
           ...entity,
