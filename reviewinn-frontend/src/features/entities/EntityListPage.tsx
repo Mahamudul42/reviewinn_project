@@ -7,6 +7,7 @@ import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
 import EntitySearchBar from './components/EntitySearchBar';
 import EntityGrid from './components/EntityGrid';
 import EntitySearchResults from './components/EntitySearchResults';
+import PanelLoadingState from '../../shared/panels/components/PanelLoadingState';
 import type { Entity, SearchResult } from '../../types/index';
 
 // Local type definition to fix import issue
@@ -162,12 +163,12 @@ const EntityListPage: React.FC = () => {
         rightPanelTitle="💡 Insights & New Entities"
       >
         <div className="w-full py-8 h-full">
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading entities...</p>
-            </div>
-          </div>
+          <PanelLoadingState
+            title="Browse Entities"
+            subtitle="Loading businesses, services, and organizations..."
+            cardCount={6}
+            className=""
+          />
         </div>
       </ThreePanelLayout>
     );
