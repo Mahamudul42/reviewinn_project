@@ -3,6 +3,7 @@ Review circle models for the Review Platform.
 """
 import enum
 from sqlalchemy import Column, Integer, String, DateTime, Text, Enum as PgEnum, Boolean, ForeignKey, Table, Float, UniqueConstraint, Index
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
@@ -19,7 +20,7 @@ class CircleInviteStatusEnum(str, enum.Enum):
     DECLINED = 'declined'
     EXPIRED = 'expired'
 
-# Note: circle_members_table removed - using CircleConnection model instead for better data integrity
+# Note: Using new social_circle database structure with optimized tables
 
 class ReviewCircle(Base):
     __tablename__ = 'review_circles'
@@ -35,73 +36,115 @@ class ReviewCircle(Base):
 
     # Relationships
     creator = relationship('User', foreign_keys=[creator_id])
-    connections = relationship('CircleConnection', back_populates='circle', cascade='all, delete-orphan')
-    invites = relationship('CircleInvite', back_populates='circle', cascade='all, delete-orphan')
+    members = relationship('SocialCircleMember', back_populates='circle', cascade='all, delete-orphan')
+    # Legacy alias for backward compatibility  
+    connections = relationship('SocialCircleMember', back_populates='circle', cascade='all, delete-orphan')
 
-class CircleInvite(Base):
-    __tablename__ = 'circle_invites'
-
-    invite_id = Column(Integer, primary_key=True, index=True)
-    circle_id = Column(Integer, ForeignKey('review_circles.circle_id', ondelete='CASCADE'), nullable=False)
-    requester_id = Column(Integer, ForeignKey('core_users.user_id', ondelete='CASCADE'), nullable=False)
-    receiver_id = Column(Integer, ForeignKey('core_users.user_id', ondelete='CASCADE'), nullable=False)
-    note = Column(Text)
-    status = Column(PgEnum(CircleInviteStatusEnum, name='circle_invite_status_enum'), default=CircleInviteStatusEnum.PENDING)
-    taste_match_score = Column(Float, default=0.0)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    expires_at = Column(DateTime(timezone=True), nullable=True)
-    responded_at = Column(DateTime(timezone=True), nullable=True)
-
-    # Relationships
-    circle = relationship('ReviewCircle', back_populates='invites')
-    requester = relationship('User', foreign_keys=[requester_id])
-    receiver = relationship('User', foreign_keys=[receiver_id])
-
-class CircleConnection(Base):
-    __tablename__ = 'circle_connections'
+class SocialCircleBlock(Base):
+    __tablename__ = 'social_circle_blocks'
     __table_args__ = (
-        # Ensure a user can only be connected to a circle once
-        UniqueConstraint('user_id', 'circle_id', name='unique_user_circle_connection'),
         # Add indexes for performance
-        Index('idx_circle_connections_user_id', 'user_id'),
-        Index('idx_circle_connections_circle_id', 'circle_id'),
-        Index('idx_circle_connections_trust_level', 'trust_level'),
+        Index('idx_social_circle_blocks_blocker', 'blocker_id'),
+        Index('idx_social_circle_blocks_blocked', 'blocked_user_id'),
     )
 
-    connection_id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey('core_users.user_id', ondelete='CASCADE'), nullable=False)
-    circle_id = Column(Integer, ForeignKey('review_circles.circle_id', ondelete='CASCADE'), nullable=False)
-    trust_level = Column(PgEnum(TrustLevelEnum, name='trust_level_enum'), default=TrustLevelEnum.REVIEWER)
-    taste_match_score = Column(Float, default=0.0)
-    connected_since = Column(DateTime(timezone=True), server_default=func.now())
-    last_interaction = Column(DateTime(timezone=True))
-    interaction_count = Column(Integer, default=0)
+    block_id = Column(Integer, primary_key=True, index=True)
+    blocker_id = Column(Integer, ForeignKey('core_users.user_id', ondelete='CASCADE'), nullable=True)
+    blocked_user_id = Column(Integer, ForeignKey('core_users.user_id', ondelete='CASCADE'), nullable=True)
+    block_reason = Column(String(500), nullable=True)
+    block_type = Column(String(20), default='full')
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     # Relationships
-    user = relationship('User', foreign_keys=[user_id])
-    circle = relationship('ReviewCircle', back_populates='connections')
+    blocker = relationship('User', foreign_keys=[blocker_id])
+    blocked_user = relationship('User', foreign_keys=[blocked_user_id])
 
-class CircleRequest(Base):
-    __tablename__ = 'circle_requests'
+# Legacy CircleInvite class removed - using SocialCircleRequest instead
+
+class SocialCircleMember(Base):
+    __tablename__ = 'social_circle_members'
+    __table_args__ = (
+        # Ensure a user can only be connected to a circle once
+        UniqueConstraint('member_id', 'circle_id', name='unique_member_circle_connection'),
+        # Add indexes for performance
+        Index('idx_social_circle_members_member_id', 'member_id'),
+        Index('idx_social_circle_members_circle_id', 'circle_id'),
+        Index('idx_social_circle_members_membership_type', 'membership_type'),
+    )
+
+    circle_id = Column(Integer, ForeignKey('review_circles.circle_id', ondelete='CASCADE'), primary_key=True, index=True)
+    owner_id = Column(Integer, ForeignKey('core_users.user_id', ondelete='CASCADE'), nullable=True)
+    member_id = Column(Integer, ForeignKey('core_users.user_id', ondelete='CASCADE'), nullable=True)
+    membership_type = Column(String(50), nullable=False, default='member')
+    joined_at = Column(DateTime(timezone=True), server_default=func.now())
+    can_see_private_reviews = Column(Boolean, default=False)
+    notification_preferences = Column(JSONB, nullable=True, default=lambda: {})
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    # Relationships
+    member = relationship('User', foreign_keys=[member_id], back_populates='circle_connections')
+    owner = relationship('User', foreign_keys=[owner_id])
+    circle = relationship('ReviewCircle', back_populates='members')
+    
+    @property
+    def trust_level(self):
+        """Map membership_type to legacy trust_level for compatibility."""
+        mapping = {
+            'owner': TrustLevelEnum.REVIEW_MENTOR,
+            'admin': TrustLevelEnum.REVIEW_MENTOR,
+            'member': TrustLevelEnum.REVIEWER,
+            'trusted': TrustLevelEnum.TRUSTED_REVIEWER
+        }
+        return mapping.get(self.membership_type, TrustLevelEnum.REVIEWER)
+
+# Legacy alias for backward compatibility
+CircleConnection = SocialCircleMember
+
+class SocialCircleRequest(Base):
+    __tablename__ = 'social_circle_requests'
     __table_args__ = (
         # Prevent duplicate pending requests between same users
-        UniqueConstraint('requester_id', 'receiver_id', 'status', name='unique_pending_request'),
+        UniqueConstraint('requester_id', 'recipient_id', 'status', name='unique_pending_request'),
         # Add indexes for performance
-        Index('idx_circle_requests_receiver_status', 'receiver_id', 'status'),
-        Index('idx_circle_requests_requester', 'requester_id'),
-        Index('idx_circle_requests_created_at', 'created_at'),
+        Index('idx_social_circle_requests_recipient_status', 'recipient_id', 'status'),
+        Index('idx_social_circle_requests_requester', 'requester_id'),
+        Index('idx_social_circle_requests_created_at', 'created_at'),
     )
 
     request_id = Column(Integer, primary_key=True, index=True)
-    requester_id = Column(Integer, ForeignKey('core_users.user_id', ondelete='CASCADE'), nullable=False)
-    receiver_id = Column(Integer, ForeignKey('core_users.user_id', ondelete='CASCADE'), nullable=False)
-    message = Column(Text)
+    requester_id = Column(Integer, ForeignKey('core_users.user_id', ondelete='CASCADE'), nullable=True)
+    recipient_id = Column(Integer, ForeignKey('core_users.user_id', ondelete='CASCADE'), nullable=True)
+    request_message = Column(Text, nullable=True)
+    request_type = Column(String(20), default='circle')
     status = Column(String(20), default='pending')  # pending, accepted, declined
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    response_type = Column(String(20), nullable=True)
+    response_message = Column(Text, nullable=True)
+    requested_at = Column(DateTime(timezone=True), server_default=func.now())
     responded_at = Column(DateTime(timezone=True), nullable=True)
+    expires_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     # Relationships
     requester = relationship('User', foreign_keys=[requester_id])
-    receiver = relationship('User', foreign_keys=[receiver_id])
+    recipient = relationship('User', foreign_keys=[recipient_id])
+    
+    @property
+    def receiver(self):
+        """Legacy property for backward compatibility."""
+        return self.recipient
+    
+    @property
+    def receiver_id(self):
+        """Legacy property for backward compatibility."""
+        return self.recipient_id
+        
+    @property
+    def message(self):
+        """Legacy property for backward compatibility."""
+        return self.request_message
+
+# Legacy alias for backward compatibility
+CircleRequest = SocialCircleRequest

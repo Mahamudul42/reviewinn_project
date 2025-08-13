@@ -30,9 +30,9 @@ from .entity_analytics import EntityAnalytics
 from .review_template import ReviewTemplate
 from .entity_comparison import EntityComparison
 from .view_tracking import ReviewView, EntityView
-from .review_circle import ReviewCircle, CircleInvite, CircleConnection, TrustLevelEnum, CircleInviteStatusEnum
+from .review_circle import ReviewCircle, SocialCircleMember, SocialCircleRequest, SocialCircleBlock, CircleConnection, TrustLevelEnum, CircleInviteStatusEnum
 from .category_question import CategoryQuestion
 
 __all__ = [
-    "User", "Review", "Entity", "EntityCategory", "Comment", "Badge", "ReviewReaction", "Notification", "Conversation", "ConversationParticipant", "Message", "UserProfile", "UserConnection", "UserSession", "UserSetting", "UnifiedCategory", "EntityRole", "EntityMetadata", "ReviewVersion", "UserEvent", "UserSearchHistory", "UserEntityView", "UserProgress", "BadgeDefinition", "BadgeAward", "WeeklyEngagement", "DailyTask", "WhatsNextGoal", "SearchAnalytics", "EntityAnalytics", "ReviewTemplate", "EntityComparison", "ReviewView", "EntityView", "ReviewCircle", "CircleInvite", "CircleConnection", "TrustLevelEnum", "CircleInviteStatusEnum", "CategoryQuestion"
+    "User", "Review", "Entity", "EntityCategory", "Comment", "Badge", "ReviewReaction", "Notification", "Conversation", "ConversationParticipant", "Message", "UserProfile", "UserConnection", "UserSession", "UserSetting", "UnifiedCategory", "EntityRole", "EntityMetadata", "ReviewVersion", "UserEvent", "UserSearchHistory", "UserEntityView", "UserProgress", "BadgeDefinition", "BadgeAward", "WeeklyEngagement", "DailyTask", "WhatsNextGoal", "SearchAnalytics", "EntityAnalytics", "ReviewTemplate", "EntityComparison", "ReviewView", "EntityView", "ReviewCircle", "SocialCircleMember", "SocialCircleRequest", "SocialCircleBlock", "CircleConnection", "TrustLevelEnum", "CircleInviteStatusEnum", "CategoryQuestion"
 ] 

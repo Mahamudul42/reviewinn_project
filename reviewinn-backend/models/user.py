@@ -103,7 +103,7 @@ class User(Base):
     )
     profile = relationship("UserProfile", back_populates="user", uselist=False)
     notifications = relationship("Notification", back_populates="user", foreign_keys="Notification.user_id")
-    circle_connections = relationship("CircleConnection", back_populates="user", foreign_keys="CircleConnection.user_id")
+    circle_connections = relationship("SocialCircleMember", back_populates="member", foreign_keys="SocialCircleMember.member_id")
     
     def __repr__(self):
         return f"<User(user_id={self.user_id}, name='{self.name}', username='{self.username}')>" 
