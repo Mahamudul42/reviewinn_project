@@ -201,7 +201,7 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
         set_local_reactions(result.reactions || {});
         set_local_user_reaction(result.user_reaction || undefined);
         set_top_reactions(result.top_reactions || []);
-        set_total_reactions(result.total || 0);
+        set_total_reactions(result.total_reactions || result.total || 0);
         
         // Update parent component with the updated review data
         if (onReviewUpdate) {
@@ -210,8 +210,8 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
             reactions: result.reactions || {},
             user_reaction: result.user_reaction || undefined,
             top_reactions: result.top_reactions || [],
-            total_reactions: result.total || 0,
-            reaction_count: result.total || 0
+            total_reactions: result.total_reactions || result.total || 0,
+            reaction_count: result.total_reactions || result.total || 0
           };
           onReviewUpdate(updatedReview);
         }
@@ -715,7 +715,7 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
                         </div>
                       )}
                       <span className="text-sm text-gray-700 font-semibold">
-                        {local_review.reaction_count || 0} reaction{(local_review.reaction_count || 0) !== 1 ? 's' : ''}
+                        {total_reactions} reaction{total_reactions !== 1 ? 's' : ''}
                       </span>
                     </div>
                     {/* Comments */}

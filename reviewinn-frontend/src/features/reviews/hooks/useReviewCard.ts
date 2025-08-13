@@ -274,7 +274,7 @@ export const useReviewCard = ({ review, entity, onEntityClick, onReactionChange,
         setLocalReactions(responseData.reactions || {});
         setLocalUserReaction(responseData.user_reaction || undefined);
         setTopReactions(responseData.top_reactions || []);
-        setTotalReactions(responseData.total || responseData.total_reactions || 0);
+        setTotalReactions(responseData.total_reactions || responseData.total || 0);
       } else {
         // fallback: fetch latest
         console.log('⚠️ Backend response missing data, fetching latest');
@@ -283,7 +283,7 @@ export const useReviewCard = ({ review, entity, onEntityClick, onReactionChange,
         setLocalReactions(latestData.reactions || {});
         setLocalUserReaction(latestData.user_reaction || undefined);
         setTopReactions(latestData.top_reactions || []);
-        setTotalReactions(latestData.total || latestData.total_reactions || 0);
+        setTotalReactions(latestData.total_reactions || latestData.total || 0);
       }
       
       // Call parent handler
