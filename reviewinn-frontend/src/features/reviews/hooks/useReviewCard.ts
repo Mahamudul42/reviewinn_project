@@ -136,6 +136,7 @@ export const useReviewCard = ({ review, entity, onEntityClick, onReactionChange,
       // Update view count if tracking was successful
       if (result && result.tracked && result.view_count) {
         setViewCount(result.view_count);
+        // No need to call updateViewCount here since it's the same state
       }
     } catch (error) {
       console.error('Failed to track view:', error);
@@ -387,6 +388,12 @@ export const useReviewCard = ({ review, entity, onEntityClick, onReactionChange,
     }
   };
 
+  // Function to update view count from external sources (like modal or view tracking)
+  const updateViewCount = (newViewCount: number) => {
+    console.log('🔄 Updating view count from external source:', newViewCount);
+    setViewCount(newViewCount);
+  };
+
   return {
     // State
     isHidden,
@@ -427,6 +434,9 @@ export const useReviewCard = ({ review, entity, onEntityClick, onReactionChange,
     refreshCommentCount,
     
     // Reaction data management
-    updateReactionData
+    updateReactionData,
+    
+    // View count management
+    updateViewCount
   };
 }; 

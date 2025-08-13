@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useReviewInnLeftPanel } from '../hooks/useReviewInnLeftPanel';
+import ReviewDetailModal from '../../reviews/components/ReviewDetailModal';
+import type { ReviewInnLeftPanelReview } from '../../../api/services/reviewinnLeftPanelService';
 
 /**
  * ReviewInn Left Panel Component
@@ -11,10 +13,65 @@ const ReviewInnLeftPanel: React.FC = () => {
   const [showContactModal, setShowContactModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [selectedReview, setSelectedReview] = useState<ReviewInnLeftPanelReview | null>(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
 
   // Consistent styling from existing Sidebar component
   const cardBg = "bg-white bg-gradient-to-br from-yellow-50 to-white border border-yellow-300 w-full max-w-full overflow-hidden";
   const cardWrapper = "p-4 shadow-md rounded-lg bg-white w-full max-w-full overflow-hidden";
+
+  // Handle review click to open modal
+  const handleReviewClick = (review: ReviewInnLeftPanelReview) => {
+    setSelectedReview(review);
+    setShowReviewModal(true);
+  };
+
+  // Transform left panel review data to format expected by ReviewDetailModal
+  const transformToModalFormat = (review: ReviewInnLeftPanelReview) => {
+    return {
+      id: review.review_id.toString(),
+      review_id: review.review_id,
+      title: review.title,
+      content: review.content,
+      overall_rating: review.overall_rating,
+      view_count: review.view_count,
+      reaction_count: review.reaction_count,
+      comment_count: review.comment_count,
+      reactions: review.top_reactions || {},
+      top_reactions: Object.entries(review.top_reactions || {}).map(([type, count]) => ({ type, count })),
+      total_reactions: review.reaction_count,
+      user_reaction: undefined, // We don't have this data in left panel
+      created_at: review.created_at,
+      updated_at: review.created_at,
+      is_anonymous: false,
+      is_verified: false,
+      pros: [],
+      cons: [],
+      images: [],
+      ratings: {},
+      user_id: review.user.user_id,
+      entity_id: review.entity.entity_id,
+      reviewerId: review.user.user_id,
+      reviewerName: review.user.name,
+      reviewerAvatar: review.user.avatar,
+      user_summary: {
+        name: review.user.name,
+        avatar: review.user.avatar,
+        level: review.user.level,
+        is_verified: review.user.is_verified,
+      },
+      entity_summary: {
+        name: review.entity.name,
+        avatar: review.entity.avatar,
+        description: review.entity.description,
+        is_verified: review.entity.is_verified,
+        average_rating: review.entity.average_rating,
+        review_count: review.entity.review_count,
+        final_category: review.entity.final_category,
+        root_category: review.entity.root_category,
+      }
+    };
+  };
 
   // Removed internal loading spinner - handled by parent component
 
@@ -65,7 +122,9 @@ const ReviewInnLeftPanel: React.FC = () => {
             {data.top_reviews.map((review) => (
               <div
                 key={review.review_id}
-                className={`${cardBg} rounded-lg p-4 hover:shadow-lg transition-all duration-300 cursor-pointer group`}
+                className={`${cardBg} rounded-lg p-4 hover:shadow-lg hover:scale-[1.02] transition-all duration-300 cursor-pointer group border-2 border-transparent hover:border-blue-200`}
+                onClick={() => handleReviewClick(review)}
+                title="Click to view full review"
               >
                 <div className="flex items-center gap-3 mb-3 w-full max-w-full overflow-hidden">
                   <div className="flex-1 min-w-0 overflow-hidden">
@@ -149,18 +208,24 @@ const ReviewInnLeftPanel: React.FC = () => {
                 </div>
 
                 {/* Engagement Metrics */}
-                <div className="flex items-center gap-4 text-xs text-gray-600 mb-3">
-                  <span className="flex items-center gap-1 bg-green-50 px-2 py-1 rounded-full">
-                    <span>🎯</span>
-                    <span className="font-medium">{review.engagement_score}</span>
-                  </span>
-                  <span className="flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-full">
-                    <span>👁️</span>
-                    <span className="font-medium">{review.view_count}</span>
-                  </span>
-                  <span className="flex items-center gap-1 bg-red-50 px-2 py-1 rounded-full">
-                    <span>❤️</span>
-                    <span className="font-medium">{review.reaction_count}</span>
+                <div className="flex items-center justify-between text-xs text-gray-600 mb-3">
+                  <div className="flex items-center gap-4">
+                    <span className="flex items-center gap-1 bg-green-50 px-2 py-1 rounded-full">
+                      <span>🎯</span>
+                      <span className="font-medium">{review.engagement_score}</span>
+                    </span>
+                    <span className="flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-full">
+                      <span>👁️</span>
+                      <span className="font-medium">{review.view_count}</span>
+                    </span>
+                    <span className="flex items-center gap-1 bg-red-50 px-2 py-1 rounded-full">
+                      <span>❤️</span>
+                      <span className="font-medium">{review.reaction_count}</span>
+                    </span>
+                  </div>
+                  <span className="text-blue-600 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-1">
+                    <span>👆</span>
+                    <span>View Details</span>
                   </span>
                 </div>
               </div>
@@ -381,6 +446,32 @@ const ReviewInnLeftPanel: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Review Detail Modal */}
+      {selectedReview && (
+        <ReviewDetailModal
+          open={showReviewModal}
+          onClose={() => {
+            setShowReviewModal(false);
+            setSelectedReview(null);
+          }}
+          review={transformToModalFormat(selectedReview)}
+          entity={{
+            id: selectedReview.entity.entity_id.toString(),
+            entity_id: selectedReview.entity.entity_id,
+            name: selectedReview.entity.name,
+            avatar: selectedReview.entity.avatar,
+            description: selectedReview.entity.description,
+            is_verified: selectedReview.entity.is_verified,
+            is_claimed: selectedReview.entity.is_claimed,
+            average_rating: selectedReview.entity.average_rating,
+            review_count: selectedReview.entity.review_count,
+            view_count: selectedReview.entity.view_count,
+            final_category: selectedReview.entity.final_category,
+            root_category: selectedReview.entity.root_category,
+          }}
+        />
+      )}
     </div>
   );
 };

@@ -29,6 +29,8 @@ interface ReviewDetailModalProps {
   onCommentCountIncrement?: () => void;
   onCommentCountDecrement?: () => void;
   onRefreshCommentCount?: () => Promise<number>;
+  // View count management callbacks
+  onViewCountUpdate?: (count: number) => void;
 }
 
 const SORT_OPTIONS = [
@@ -61,7 +63,8 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
   onCommentCountUpdate,
   onCommentCountIncrement,
   onCommentCountDecrement,
-  onRefreshCommentCount
+  onRefreshCommentCount,
+  onViewCountUpdate
 }) => {
   const navigate = useNavigate();
   const { isAuthenticated, requireAuth } = useUnifiedAuth();
@@ -75,6 +78,7 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
   const [comment_sort, set_comment_sort] = useState('most_relevant');
   const [show_sort_menu, set_show_sort_menu] = useState(false);
   const [comment_count, set_comment_count] = useState(review.comment_count || 0);
+  const [view_count, set_view_count] = useState(review.view_count || 0);
   const sort_menu_ref = React.useRef<HTMLDivElement>(null);
 
   // Update local state when review prop changes
@@ -85,6 +89,7 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
     set_top_reactions(review.top_reactions || []);
     set_total_reactions(review.total_reactions || 0);
     set_comment_count(review.comment_count || 0);
+    set_view_count(review.view_count || 0);
   }, [review]);
 
   // Close modal when Escape key is pressed
@@ -282,6 +287,13 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
     } catch (error) {
       console.error('Failed to update comment reaction:', error);
     }
+  };
+
+  // View count update handler
+  const handle_view_count_update = (new_count: number) => {
+    set_view_count(new_count);
+    // Update parent component's view count
+    onViewCountUpdate?.(new_count);
   };
 
   const handle_user_click = (e: React.MouseEvent) => {
@@ -720,7 +732,7 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
                       <span className="text-sm text-gray-600 font-medium">
-                        {local_review.view_count || 0} view{(local_review.view_count || 0) !== 1 ? 's' : ''}
+                        {view_count} view{view_count !== 1 ? 's' : ''}
                       </span>
                     </div>
                   </div>

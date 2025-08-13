@@ -80,7 +80,9 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
     decrementCommentCount,
     refreshCommentCount,
     // Reaction data management
-    updateReactionData
+    updateReactionData,
+    // View count management
+    updateViewCount
   } = useReviewCard({
     review,
     entity,
@@ -137,6 +139,17 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
 
   // Don't render if hidden
   if (isHidden) return null;
+
+  // Create updated review object with latest counts for modal
+  const updatedReview = {
+    ...review,
+    view_count: viewCount,
+    comment_count: commentCount,
+    reactions: localReactions,
+    user_reaction: localUserReaction,
+    top_reactions: topReactions,
+    total_reactions: totalReactions
+  };
 
   // Map backend topReactions (array of strings) to expected frontend format for ReviewCardActions
   const mappedTopReactions = Array.isArray(topReactions)
@@ -286,7 +299,7 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
       <ReviewDetailModal 
         open={showReviewDetailModal} 
         onClose={() => setShowReviewDetailModal(false)} 
-        review={review}
+        review={updatedReview}
         entity={entity}
         onReviewUpdate={handleReviewUpdateFromModal}
         onCommentAdd={onCommentAdd}
@@ -296,6 +309,7 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
         onCommentCountIncrement={incrementCommentCount}
         onCommentCountDecrement={decrementCommentCount}
         onRefreshCommentCount={refreshCommentCount}
+        onViewCountUpdate={updateViewCount}
       />
 
       {/* Edit Review Modal */}
