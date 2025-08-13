@@ -73,11 +73,11 @@ const ThreePanelLayout: React.FC<ThreePanelLayoutProps> = ({
   const getLayoutDimensions = () => {
     switch (variant) {
       case 'compact':
-        return { containerPadding: 'px-2 py-4', maxWidth: '1200px', gap: '16px' };
+        return { containerPadding: 'px-2 py-2', maxWidth: '1200px', gap: '16px' };
       case 'full-width':
-        return { containerPadding: 'px-6 py-6', maxWidth: '1600px', gap: '32px' };
+        return { containerPadding: 'px-6 py-3', maxWidth: '1600px', gap: '32px' };
       default:
-        return { containerPadding: 'px-4 py-6', maxWidth: '1400px', gap: '24px' };
+        return { containerPadding: 'px-4 py-3', maxWidth: '1400px', gap: '24px' };
     }
   };
 
@@ -88,8 +88,8 @@ const ThreePanelLayout: React.FC<ThreePanelLayoutProps> = ({
       <div className={`container mx-auto ${containerPadding}`}>
         {/* Page Header */}
         {showPageHeader && (
-          <div className="text-center mb-8">
-            <h1 className={`text-4xl md:text-5xl font-bold bg-gradient-to-r ${headerGradient} bg-clip-text text-transparent mb-4`}>
+          <div className="text-center mb-4">
+            <h1 className={`text-4xl md:text-5xl font-bold bg-gradient-to-r ${headerGradient} bg-clip-text text-transparent mb-2`}>
               {pageTitle}
             </h1>
           </div>
@@ -103,7 +103,7 @@ const ThreePanelLayout: React.FC<ThreePanelLayoutProps> = ({
           margin: '0 auto',
           justifyContent: 'space-between',
           alignItems: 'flex-start',
-          minHeight: 'calc(100vh - 200px)',
+          minHeight: 'calc(100vh - 140px)',
           position: 'relative'
         }}>
           
@@ -112,7 +112,7 @@ const ThreePanelLayout: React.FC<ThreePanelLayoutProps> = ({
             width: '350px', 
             flexShrink: 0, 
             position: 'sticky',
-            top: '20px',
+            top: '10px',
             alignSelf: 'flex-start',
             minHeight: 'fit-content'
           }}>
@@ -266,7 +266,7 @@ const ThreePanelLayout: React.FC<ThreePanelLayoutProps> = ({
             flexShrink: 0, 
             overflowX: 'hidden',
             position: 'relative',
-            minHeight: 'calc(100vh - 200px)'
+            minHeight: 'calc(100vh - 140px)'
           }}>
             {children}
           </div>
@@ -276,7 +276,7 @@ const ThreePanelLayout: React.FC<ThreePanelLayoutProps> = ({
             width: '350px', 
             flexShrink: 0, 
             position: 'sticky',
-            top: '20px',
+            top: '10px',
             alignSelf: 'flex-start',
             minHeight: 'fit-content'
           }}>
