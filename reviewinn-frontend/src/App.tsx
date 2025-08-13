@@ -5,6 +5,7 @@ import Layout from './shared/layouts/Layout';
 import ProtectedRoute from './shared/components/ProtectedRoute';
 import { ConfirmationProvider } from './shared/components/ConfirmationSystem';
 import { AuthProvider } from './contexts/AuthContext';
+import { PanelDataProvider } from './contexts/PanelDataContext';
 import { authService } from './api/auth';
 import { initializeAuthManager } from './services/authInterface';
 import { ReviewInnAuthService } from './services/ReviewInnAuthService';
@@ -60,10 +61,11 @@ const PageLoader = () => (
 function App() {
   return (
     <AuthProvider>
-      <ConfirmationProvider>
-        <Router>
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
+      <PanelDataProvider>
+        <ConfirmationProvider>
+          <Router>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
             <Route path="/" element={<Layout />}>
               <Route index element={<HomePage />} />
               <Route path="home" element={<HomePage />} />
@@ -146,10 +148,11 @@ function App() {
               <Route path="report-abuse" element={<ReportAbusePage />} />
               <Route path="feedback" element={<FeedbackPage />} />
             </Route>
-            </Routes>
-          </Suspense>
-        </Router>
-      </ConfirmationProvider>
+              </Routes>
+            </Suspense>
+          </Router>
+        </ConfirmationProvider>
+      </PanelDataProvider>
     </AuthProvider>
   );
 }

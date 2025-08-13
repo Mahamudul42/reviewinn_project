@@ -142,23 +142,44 @@ class EntityService {
         } : null
       });
       
-      // OPTIMIZED: Backend now provides comprehensive entity data with cached engagement metrics
+      // OPTIMIZED: Backend now provides comprehensive entity data from core_entities table
       const rawEntities = entityData?.entities || [];
       const transformedEntities = rawEntities.map((entity: any) => ({
         ...entity,
         // Ensure consistent ID field mapping
         id: entity.id || entity.entity_id,
-        // NEW: Enhanced engagement stats (cached for performance)
+        entity_id: entity.id || entity.entity_id,
+        // Map core_entities fields to consistent interface
+        isVerified: entity.is_verified ?? entity.isVerified ?? false,
+        is_verified: entity.is_verified ?? entity.isVerified ?? false,
+        is_active: entity.is_active ?? true,
+        // Map review stats from core_entities table
+        reviewCount: entity.review_count || entity.reviewCount || 0,
+        review_count: entity.review_count || entity.reviewCount || 0,
+        averageRating: entity.average_rating || entity.averageRating || 0,
+        average_rating: entity.average_rating || entity.averageRating || 0,
+        viewCount: entity.total_views || entity.view_count || entity.viewCount || 0,
+        view_count: entity.total_views || entity.view_count || entity.viewCount || 0,
+        total_views: entity.total_views || entity.view_count || entity.viewCount || 0,
+        // Enhanced engagement stats (if provided by backend)
         review_stats: {
-          total_reviews: entity.reviewCount || 0,
-          average_rating: entity.averageRating || 0,
-          total_reactions: entity.reactionCount || 0,     // NEW: Total reactions across all reviews
-          total_comments: entity.commentCount || 0,      // NEW: Total comments across all reviews
-          total_views: entity.viewCount || 0
+          total_reviews: entity.review_count || entity.reviewCount || 0,
+          average_rating: entity.average_rating || entity.averageRating || 0,
+          total_reactions: entity.reactionCount || 0,
+          total_comments: entity.commentCount || 0,
+          total_views: entity.total_views || entity.view_count || entity.viewCount || 0
         },
-        // Add image handling
+        // Category mapping (handle both JSON and legacy formats)
+        final_category: entity.final_category || (entity.final_category_id ? { id: entity.final_category_id, name: entity.final_category_name } : null),
+        root_category: entity.root_category || (entity.root_category_id ? { id: entity.root_category_id, name: entity.root_category_name } : null),
+        // Image handling
         imageUrl: entity.imageUrl || entity.avatar || this.generateEntityImage(entity),
-        hasRealImage: Boolean(entity.avatar && !entity.avatar.includes('ui-avatars.com'))
+        hasRealImage: Boolean(entity.avatar && !entity.avatar.includes('ui-avatars.com')),
+        // Timestamp mapping
+        createdAt: entity.created_at || entity.createdAt,
+        updatedAt: entity.updated_at || entity.updatedAt,
+        created_at: entity.created_at || entity.createdAt,
+        updated_at: entity.updated_at || entity.updatedAt
       }));
       
       // Enhance entities with hierarchical categories (already optimized from backend)
@@ -236,12 +257,33 @@ class EntityService {
         
         return {
           ...entity,
-          // Ensure consistent ID field
+          // Ensure consistent ID field mapping
           id: entity.id || entity.entity_id || id,
+          entity_id: entity.id || entity.entity_id || id,
+          // Map core_entities fields to consistent interface
+          isVerified: entity.is_verified ?? entity.isVerified ?? false,
+          is_verified: entity.is_verified ?? entity.isVerified ?? false,
+          is_active: entity.is_active ?? true,
+          // Map review stats from core_entities table
+          reviewCount: entity.review_count || entity.reviewCount || 0,
+          review_count: entity.review_count || entity.reviewCount || 0,
+          averageRating: entity.average_rating || entity.averageRating || 0,
+          average_rating: entity.average_rating || entity.averageRating || 0,
+          viewCount: entity.total_views || entity.view_count || entity.viewCount || 0,
+          view_count: entity.total_views || entity.view_count || entity.viewCount || 0,
+          total_views: entity.total_views || entity.view_count || entity.viewCount || 0,
+          // Category mapping (handle both JSON and legacy formats)
+          final_category: entity.final_category || (entity.final_category_id ? { id: entity.final_category_id, name: entity.final_category_name } : null),
+          root_category: entity.root_category || (entity.root_category_id ? { id: entity.root_category_id, name: entity.root_category_name } : null),
           // Preserve both avatar and imageUrl for compatibility
           avatar: entity.avatar,
           imageUrl: entity.imageUrl || entity.avatar || this.generateEntityImage(entity),
-          hasRealImage: Boolean(entity.avatar && !entity.avatar.includes('ui-avatars.com'))
+          hasRealImage: Boolean(entity.avatar && !entity.avatar.includes('ui-avatars.com')),
+          // Timestamp mapping
+          createdAt: entity.created_at || entity.createdAt,
+          updatedAt: entity.updated_at || entity.updatedAt,
+          created_at: entity.created_at || entity.createdAt,
+          updated_at: entity.updated_at || entity.updatedAt
         };
       }
     } catch (error) {
@@ -258,8 +300,10 @@ class EntityService {
       if (targetEntity) {
         return {
           ...targetEntity,
-          // Ensure consistent ID field
+          // Ensure consistent ID field mapping  
           id: targetEntity.id || targetEntity.entity_id || id,
+          entity_id: targetEntity.id || targetEntity.entity_id || id,
+          // Core entities mapping is already handled by getEntities transformation
           imageUrl: targetEntity.imageUrl || targetEntity.avatar || this.generateEntityImage(targetEntity),
           hasRealImage: Boolean(targetEntity.avatar && !targetEntity.avatar.includes('ui-avatars.com'))
         };

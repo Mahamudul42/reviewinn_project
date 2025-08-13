@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import EntityListPageLayout from './components/EntityListPageLayout';
+import ThreePanelLayout from '../../shared/layouts/ThreePanelLayout';
 import { entityService, reviewService } from '../../api/services';
 import { enhanceEntityWithVerification } from '../../shared/utils/verificationUtils';
 import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
@@ -28,11 +28,27 @@ const EntityListPage: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        // Load entities from enhanced entity service (with review stats and engagement metrics)
+        // Load entities from core_entities table via enhanced entity service
+        console.log('🏢 EntityListPage: Loading entities from core_entities table...');
         const entityData = await entityService.getEntities({
           limit: 20,
           sortBy: 'name',
           sortOrder: 'asc'
+        });
+        
+        console.log('🏢 EntityListPage: Raw entity data received:', {
+          totalEntities: entityData?.entities?.length || 0,
+          sampleEntity: entityData?.entities?.[0] ? {
+            id: entityData.entities[0].id,
+            name: entityData.entities[0].name,
+            is_verified: entityData.entities[0].is_verified,
+            review_count: entityData.entities[0].review_count,
+            average_rating: entityData.entities[0].average_rating,
+            total_views: entityData.entities[0].total_views,
+            final_category: entityData.entities[0].final_category,
+            root_category: entityData.entities[0].root_category,
+            created_at: entityData.entities[0].created_at
+          } : null
         });
         
         if (entityData && entityData.entities && entityData.entities.length > 0) {
@@ -41,10 +57,22 @@ const EntityListPage: React.FC = () => {
             enhanceEntityWithVerification(entity)
           );
           
-          console.log('📊 Enhanced entities loaded:', basicEntities.length, 'entities');
-          console.log('📊 Sample entity data (all fields):', JSON.stringify(basicEntities[0], null, 2));
-          console.log('📊 Sample entity keys:', Object.keys(basicEntities[0]));
-          console.log('📊 Raw entityData:', entityData);
+          console.log('🏢 Core entities loaded and enhanced:', basicEntities.length, 'entities');
+          console.log('🏢 Sample core entity data (all fields):', JSON.stringify(basicEntities[0], null, 2));
+          console.log('🏢 Sample core entity keys:', Object.keys(basicEntities[0]));
+          console.log('🏢 Core entity verification status mapping:', {
+            is_verified: basicEntities[0]?.is_verified,
+            isVerified: basicEntities[0]?.isVerified,
+            verification_status: basicEntities[0]?.verification_status
+          });
+          console.log('🏢 Core entity stats mapping:', {
+            review_count: basicEntities[0]?.review_count,
+            reviewCount: basicEntities[0]?.reviewCount,
+            average_rating: basicEntities[0]?.average_rating,
+            averageRating: basicEntities[0]?.averageRating,
+            total_views: basicEntities[0]?.total_views,
+            viewCount: basicEntities[0]?.viewCount
+          });
           
           setEntities(basicEntities);
           setFilteredEntities(basicEntities);
@@ -112,8 +140,11 @@ const EntityListPage: React.FC = () => {
 
   if (loading) {
     return (
-      <EntityListPageLayout>
-        <div className="w-full max-w-2xl py-8 h-full">
+      <ThreePanelLayout 
+        leftPanelTitle="🌟 Community Highlights"
+        rightPanelTitle="💡 Insights & New Entities"
+      >
+        <div className="w-full py-8 h-full">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -121,14 +152,17 @@ const EntityListPage: React.FC = () => {
             </div>
           </div>
         </div>
-      </EntityListPageLayout>
+      </ThreePanelLayout>
     );
   }
 
   if (error) {
     return (
-      <EntityListPageLayout>
-        <div className="w-full max-w-2xl py-8 h-full">
+      <ThreePanelLayout 
+        leftPanelTitle="🌟 Community Highlights"
+        rightPanelTitle="💡 Insights & New Entities"
+      >
+        <div className="w-full py-8 h-full">
           <div className="text-center py-12">
             <h2 className="text-xl font-semibold text-red-600 mb-2">Error</h2>
             <p className="text-gray-600">{error}</p>
@@ -140,14 +174,23 @@ const EntityListPage: React.FC = () => {
             </button>
           </div>
         </div>
-      </EntityListPageLayout>
+      </ThreePanelLayout>
     );
   }
 
   return (
-    <EntityListPageLayout>
+    <ThreePanelLayout 
+      leftPanelTitle="🌟 Community Highlights"
+      rightPanelTitle="💡 Insights & New Entities"
+    >
       {/* Entity List Middle Panel Content */}
       <div className="w-full space-y-6 px-8">
+        {/* Page Title */}
+        <div className="text-center mb-6">
+          <h2 className="text-3xl font-bold text-gray-800 mb-2">Browse Entities</h2>
+          <p className="text-gray-600">Discover and explore businesses, services, and organizations</p>
+        </div>
+
         {/* Search Bar */}
         <div className="bg-white border-2 border-gray-800 shadow-lg rounded-xl p-6">
           <EntitySearchBar
@@ -184,7 +227,7 @@ const EntityListPage: React.FC = () => {
           />
         </div>
       </div>
-    </EntityListPageLayout>
+    </ThreePanelLayout>
   );
 };
 

@@ -239,10 +239,25 @@ export interface Entity {
   final_category_name?: string; // Final category name for display
   category_breadcrumb?: CategoryBreadcrumb[]; // Category hierarchy path
   category_display?: string; // Human-readable category path (e.g., "Professionals > Doctors > Cardiologists")
-  root_category?: CategoryInfo; // Root category information
-  final_category?: CategoryInfo; // Final category information
   avatar?: string;
   imageUrl?: string;
+  // Core entities fields
+  is_verified?: boolean;
+  is_active?: boolean;
+  verification_status?: string;
+  verification_date?: string;
+  verified_by?: number;
+  // Review and engagement stats (from core_entities table)
+  review_count?: number;
+  average_rating?: number;
+  total_views?: number;
+  view_count?: number;
+  interaction_count?: number;
+  // Enhanced category info (JSON fields in core_entities) - overrides CategoryInfo types above
+  final_category?: any; // JSON field storing category details
+  root_category?: any; // JSON field storing root category details
+  category_path?: string; // String representation of category path
+  // Legacy compatibility
   isVerified?: boolean;
   isClaimed?: boolean;
   claimedBy?: number;
@@ -251,11 +266,16 @@ export interface Entity {
   relatedEntityIds?: string[];
   averageRating?: number;
   reviewCount?: number;
-  view_count?: number;
   createdAt: string;
   updatedAt: string;
+  created_at?: string; // Database field name
+  updated_at?: string; // Database field name
   fields?: Record<string, any>;
   customFields?: Record<string, any>;
+  // Additional metadata
+  metadata?: Record<string, any>;
+  search_vector?: string; // For search optimization
+  slug?: string; // URL-friendly identifier
 }
 
 export interface EntityContext {
