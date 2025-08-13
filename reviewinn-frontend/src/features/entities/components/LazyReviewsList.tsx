@@ -2,7 +2,7 @@ import React, { Suspense, lazy, memo } from 'react';
 import type { Review } from '../../../types';
 
 // Lazy load the heavy review components
-const EnhancedReviewFeedCard = lazy(() => import('../../reviews/components/EnhancedReviewFeedCard'));
+const ReviewFeedCard = lazy(() => import('../../reviews/components/ReviewFeedCard'));
 
 interface LazyReviewsListProps {
   reviews: Review[];
@@ -46,7 +46,7 @@ const ReviewsListSkeleton: React.FC = () => (
 // Memoized review item to prevent unnecessary re-renders
 const ReviewItem: React.FC<{ review: Review; index: number }> = memo(({ review, index }) => (
   <Suspense fallback={<ReviewCardSkeleton />}>
-    <EnhancedReviewFeedCard
+    <ReviewFeedCard
       review={review}
       hideEntityInfo={true}
       showFullContent={index < 2} // Auto-expand first 2 reviews

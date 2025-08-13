@@ -1,37 +1,56 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import HomePageLayout from './components/HomePageLayout';
-import { useReviewManagement } from './hooks/useReviewManagement';
+import React, { useState } from 'react';
 import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
-import { entityService, reviewService, homepageService } from '../../api/services';
-import type { Entity, Review } from '../../types';
-import PageLoader from '../../shared/atoms/PageLoader';
-import { useUnifiedCategories } from '../../hooks/useUnifiedCategories';
+
+// Left Panel Components
+import ReviewInnLeftPanel from './components/ReviewInnLeftPanel';
+import { useReviewInnLeftPanel } from './hooks/useReviewInnLeftPanel';
+
+// Center Content (Test Home)
+import { useTestHomeData } from './hooks/useTestHomeData';
+import { useReviewManagement } from './hooks/useReviewManagement';
+import { MiddlePanelPublic, MiddlePanelAuth } from '../../shared/panels/MiddlePanel';
+import type { Entity } from '../../types';
+
+// Right Panel Components
+import RightPanelReviewinn from '../../shared/panels/RightPanel/RightPanelReviewinn';
+
+// Modal Components
+import AddReviewModal from '../reviews/components/AddReviewModal';
+import type { ReviewFormData } from '../../types';
+
+// Loading Components
+import PanelLoadingState from '../../shared/panels/components/PanelLoadingState';
 
 const HomePage: React.FC = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { user: currentUser, isAuthenticated, isLoading: authLoading } = useUnifiedAuth();
-  const [initialData, setInitialData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<any>(null);
-
+  const { user, isAuthenticated, isLoading: authLoading } = useUnifiedAuth();
+  
+  // Left panel data
+  const { data: leftPanelData, loading: leftLoading, error: leftError } = useReviewInnLeftPanel();
+  
+  // Data hooks - using the same pattern as TestHomePage
   const {
-    reviewBarRef,
-    loadMoreReviews,
-    fetchInitialReviews,
-    localReviews,
+    reviews,
+    loading: centerLoading,
+    error: centerError,
     hasMoreReviews,
     loadingMore,
+    handleLoadMore
+  } = useTestHomeData();
+
+  // Review management hooks
+  const {
+    reviewBarRef,
     handleReviewSubmit,
-    handleCommentAdd,
-    handleCommentDelete,
-    handleCommentReaction,
+    handleCommentAdd: reviewHandleCommentAdd,
+    handleCommentDelete: reviewHandleCommentDelete,
+    handleCommentReaction: reviewHandleCommentReaction,
   } = useReviewManagement();
 
+  // Modal state
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [preselectedEntity, setPreselectedEntity] = useState<Entity | null>(null);
 
+  // Modal handlers
   const handleShowReviewModal = () => {
     // Don't do anything if auth is still loading
     if (authLoading) {
@@ -39,23 +58,21 @@ const HomePage: React.FC = () => {
     }
     
     // Check if user is authenticated before showing review modal
-    if (!isAuthenticated || !currentUser) {
-      // Trigger auth modal instead of navigation
+    if (!isAuthenticated || !user) {
+      // Trigger auth modal instead
       window.dispatchEvent(new CustomEvent('openAuthModal'));
       return;
     }
     setShowReviewModal(true);
   };
 
+  const handleCloseReviewModal = () => {
+    setShowReviewModal(false);
+    setPreselectedEntity(null);
+  };
+
   const handleGiveReviewClick = (entity: Entity) => {
-    // Don't do anything if auth is still loading
-    if (authLoading) {
-      return;
-    }
-    
-    // Check if user is authenticated before showing review modal
-    if (!isAuthenticated || !currentUser) {
-      // Trigger auth modal instead of navigation
+    if (!isAuthenticated || !user) {
       window.dispatchEvent(new CustomEvent('openAuthModal'));
       return;
     }
@@ -63,124 +80,344 @@ const HomePage: React.FC = () => {
     setShowReviewModal(true);
   };
 
-  const handleCloseReviewModal = () => {
-    setShowReviewModal(false);
-    setPreselectedEntity(null); // Clear preselected entity when modal closes
+  // Comment handlers - use the review management ones
+  const handleCommentAdd = reviewHandleCommentAdd;
+  const handleCommentDelete = reviewHandleCommentDelete;
+  const handleCommentReaction = reviewHandleCommentReaction;
+
+  // Review submission handler
+  const handleModalReviewSubmit = async (entity: Entity, reviewData: ReviewFormData) => {
+    try {
+      const result = await handleReviewSubmit(entity, reviewData);
+      if (result.success) {
+        handleCloseReviewModal();
+        return { success: true };
+      } else {
+        return { success: false, error: result.error || 'Failed to submit review' };
+      }
+    } catch (error) {
+      return { success: false, error: 'An unexpected error occurred' };
+    }
   };
 
-  // Initial load for panels/entities
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        // Use the EXACT SAME entity service as entity list page to ensure identical data
-        const entityData = await entityService.getEntities({
-          limit: 20,
-          sortBy: 'name',
-          sortOrder: 'asc'
-        });
-        
-        setInitialData({
-          entities: entityData.entities || []
-        });
-        // Fetch initial reviews for center feed
-        fetchInitialReviews();
-      } catch (err) {
-        setError(err);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [isAuthenticated]); // Re-run when auth state changes
-
-  // Listen for auth events to refresh content instead of reloading page
-  useEffect(() => {
-    const handleAuthSuccess = () => {
-      console.log('HomePage: Auth success detected - avoiding page reload to allow navigation');
-      // Don't reload the page - this allows users to navigate to protected routes
-      // after login without being forced back to homepage
-    };
-
-    const handleAuthLogout = () => {
-      console.log('HomePage: Logout event detected - refreshing homepage content');
-      // Refresh the homepage to show public version
-      window.location.reload();
-    };
-
-    window.addEventListener('authLoginSuccess', handleAuthSuccess);
-    window.addEventListener('authLogout', handleAuthLogout);
-    
-    return () => {
-      window.removeEventListener('authLoginSuccess', handleAuthSuccess);
-      window.removeEventListener('authLogout', handleAuthLogout);
-    };
-  }, []);
-
-  // Handle state from navigation after login (e.g., show review modal)
-  useEffect(() => {
-    const state = location.state as any;
-    if (state?.showReviewModal && currentUser) {
-      // Clear the navigation state
-      navigate('/', { replace: true });
-      
-      // Set the preselected entity if available
-      if (state.preselectedEntity) {
-        setPreselectedEntity(state.preselectedEntity);
-      }
-      
-      // Show the review modal
-      setShowReviewModal(true);
-    }
-  }, [location.state, currentUser, navigate]);
-
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-6">
-          <div className="flex justify-center mb-4">
-            <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <polygon points="32,8 60,56 4,56" fill="#FFEB3B" stroke="#222" strokeWidth="3" />
-              <rect x="29" y="24" width="6" height="16" rx="3" fill="#222" />
-              <rect x="29" y="44" width="6" height="6" rx="3" fill="#222" />
-            </svg>
-          </div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Oops! Something went wrong</h2>
-          <p className="text-gray-600 mb-4">{error.message || 'Failed to load content. Please try again.'}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const displayUser = user || {
+    name: 'Guest',
+    avatar: 'https://ui-avatars.com/api/?name=Guest&background=gray&color=ffffff'
+  };
 
   return (
-    <HomePageLayout
-      currentUser={currentUser}
-      reviews={localReviews}
-      entities={initialData?.entities || []}
-      hasMoreReviews={hasMoreReviews}
-      loadingMore={loadingMore}
-      loading={loading}
-      onLoadMore={loadMoreReviews}
-      onCommentAdd={handleCommentAdd}
-      onCommentDelete={handleCommentDelete}
-      onCommentReaction={handleCommentReaction}
-      showReviewModal={showReviewModal}
-      onShowReviewModal={handleShowReviewModal}
-      onCloseReviewModal={handleCloseReviewModal}
-      onReviewSubmit={handleReviewSubmit}
-      reviewBarRef={reviewBarRef}
-      subcategories={[]}
-      onGiveReviewClick={handleGiveReviewClick}
-      preselectedEntity={preselectedEntity || undefined}
-      isAuthenticated={isAuthenticated}
-    />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+      <div className="container mx-auto px-4 py-6">
+        {/* Welcome Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent mb-4">
+            Welcome to ReviewInn
+          </h1>
+        </div>
+
+        {/* Three Columns with Facebook-Style Independent Scrolling */}
+        <div style={{ 
+          display: 'flex', 
+          gap: '24px', 
+          maxWidth: '1400px',
+          margin: '0 auto',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          minHeight: 'calc(100vh - 200px)', // Minimum height, can expand
+          maxHeight: 'calc(100vh - 200px)', // Maximum viewport height for scrolling
+          position: 'relative' // For proper positioning
+        }}>
+          
+          {/* Left Panel - Facebook-Style Infinite Scrolling */}
+          <div style={{ 
+            width: '350px', 
+            flexShrink: 0, 
+            height: 'calc(100vh - 200px)',
+            position: 'sticky',
+            top: '0'
+          }}>
+            <div className="left-panel-container" style={{ 
+              background: 'white', 
+              borderRadius: '16px', 
+              padding: '16px', 
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
+              border: '1px solid #e5e7eb',
+              height: '100%',
+              overflowY: 'auto',
+              overflowX: 'hidden',
+              scrollBehavior: 'smooth',
+              position: 'relative'
+            }}>
+              <h2 style={{ 
+                fontSize: '18px', 
+                fontWeight: 'bold', 
+                marginBottom: '16px', 
+                color: '#111827',
+                wordWrap: 'break-word',
+                overflow: 'hidden'
+              }}>
+                🌟 Community Highlights
+              </h2>
+              <div style={{ 
+                overflow: 'hidden',
+                wordWrap: 'break-word',
+                wordBreak: 'break-word',
+                maxWidth: '100%'
+              }}>
+                {/* Global CSS for left panel overflow fixes and scrollbar styling */}
+                <style>{`
+                  /* Facebook-style scrollbar styling for infinite content */
+                  .left-panel-container,
+                  .right-panel-container,
+                  .center-panel-container {
+                    /* Firefox scrollbar styling */
+                    scrollbar-width: thin;
+                    scrollbar-color: transparent transparent;
+                    transition: scrollbar-color 0.2s ease;
+                  }
+                  
+                  .left-panel-container:hover,
+                  .right-panel-container:hover,
+                  .center-panel-container:hover {
+                    scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+                  }
+                  
+                  /* Webkit scrollbar styling (Chrome, Safari, Edge) */
+                  .left-panel-container::-webkit-scrollbar,
+                  .right-panel-container::-webkit-scrollbar,
+                  .center-panel-container::-webkit-scrollbar {
+                    width: 6px;
+                    background: transparent;
+                  }
+                  
+                  .left-panel-container::-webkit-scrollbar-track,
+                  .right-panel-container::-webkit-scrollbar-track,
+                  .center-panel-container::-webkit-scrollbar-track {
+                    background: transparent;
+                    margin: 2px;
+                  }
+                  
+                  .left-panel-container::-webkit-scrollbar-thumb,
+                  .right-panel-container::-webkit-scrollbar-thumb,
+                  .center-panel-container::-webkit-scrollbar-thumb {
+                    background: transparent;
+                    border-radius: 10px;
+                    border: 1px solid transparent;
+                    background-clip: content-box;
+                    transition: all 0.2s ease;
+                    min-height: 20px;
+                  }
+                  
+                  /* Show scrollbar on hover (Facebook-style) */
+                  .left-panel-container:hover::-webkit-scrollbar-thumb,
+                  .right-panel-container:hover::-webkit-scrollbar-thumb,
+                  .center-panel-container:hover::-webkit-scrollbar-thumb {
+                    background: rgba(0, 0, 0, 0.15);
+                    background-clip: content-box;
+                  }
+                  
+                  /* Darker on thumb hover */
+                  .left-panel-container::-webkit-scrollbar-thumb:hover,
+                  .right-panel-container::-webkit-scrollbar-thumb:hover,
+                  .center-panel-container::-webkit-scrollbar-thumb:hover {
+                    background: rgba(0, 0, 0, 0.25) !important;
+                    background-clip: content-box;
+                  }
+                  
+                  /* Active state */
+                  .left-panel-container::-webkit-scrollbar-thumb:active,
+                  .right-panel-container::-webkit-scrollbar-thumb:active,
+                  .center-panel-container::-webkit-scrollbar-thumb:active {
+                    background: rgba(0, 0, 0, 0.4) !important;
+                    background-clip: content-box;
+                  }
+                  
+                  /* Smooth transitions for infinite content */
+                  .left-panel-container,
+                  .right-panel-container,
+                  .center-panel-container {
+                    -webkit-overflow-scrolling: touch;
+                    scroll-behavior: smooth;
+                  }
+                  
+                  .left-panel-container h3,
+                  .left-panel-container h4,
+                  .left-panel-container h5,
+                  .left-panel-container .font-semibold,
+                  .left-panel-container .font-medium,
+                  .left-panel-container .font-bold {
+                    word-wrap: break-word !important;
+                    word-break: break-word !important;
+                    overflow-wrap: break-word !important;
+                    max-width: 100% !important;
+                    white-space: normal !important;
+                    hyphens: auto !important;
+                  }
+                  .left-panel-container .flex {
+                    min-width: 0 !important;
+                    flex-wrap: wrap !important;
+                  }
+                  .left-panel-container .flex-1 {
+                    min-width: 0 !important;
+                  }
+                  .left-panel-container .truncate {
+                    overflow: hidden !important;
+                    text-overflow: ellipsis !important;
+                    white-space: nowrap !important;
+                    max-width: 200px !important;
+                  }
+                `}</style>
+                {leftLoading ? (
+                  <PanelLoadingState
+                    title=""
+                    subtitle="Loading community engagement data..."
+                    cardCount={3}
+                  />
+                ) : (
+                  <ReviewInnLeftPanel />
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Center Panel - Facebook-Style Infinite Content Scrolling */}
+          <div className="center-panel-container" style={{ 
+            width: '600px', 
+            flexShrink: 0, 
+            height: 'calc(100vh - 200px)',
+            overflowY: 'auto', 
+            overflowX: 'hidden',
+            scrollBehavior: 'smooth',
+            position: 'relative',
+            // Allow content to be as long as needed
+            minHeight: 'calc(100vh - 200px)'
+          }}>
+            {centerError ? (
+              <div style={{ textAlign: 'center', padding: '32px', background: 'white', borderRadius: '16px' }}>
+                <div style={{ fontSize: '60px', marginBottom: '16px' }}>😔</div>
+                <p style={{ color: '#6b7280' }}>Unable to load test home content: {centerError}</p>
+              </div>
+            ) : (
+              <div>
+                {isAuthenticated ? (
+                  <MiddlePanelAuth
+                    userAvatar={displayUser.avatar || ''}
+                    userName={displayUser.name || 'Guest'}
+                    onAddReviewClick={handleShowReviewModal}
+                    reviewBarRef={reviewBarRef}
+                    reviews={reviews}
+                    entities={[]} // TODO: Get entities from reviews or fetch separately
+                    hasMoreReviews={hasMoreReviews}
+                    loadingMore={loadingMore}
+                    loading={centerLoading}
+                    onLoadMore={handleLoadMore}
+                    onCommentAdd={handleCommentAdd}
+                    onCommentDelete={handleCommentDelete}
+                    onCommentReaction={handleCommentReaction}
+                    onGiveReviewClick={handleGiveReviewClick}
+                  />
+                ) : (
+                  <MiddlePanelPublic
+                    userAvatar={displayUser.avatar || ''}
+                    userName={displayUser.name || 'Guest'}
+                    onAddReviewClick={handleShowReviewModal}
+                    reviewBarRef={reviewBarRef}
+                    reviews={reviews}
+                    entities={[]} // TODO: Get entities from reviews or fetch separately
+                    hasMoreReviews={hasMoreReviews}
+                    loadingMore={loadingMore}
+                    loading={centerLoading}
+                    onLoadMore={handleLoadMore}
+                    onCommentAdd={handleCommentAdd}
+                    onCommentDelete={handleCommentDelete}
+                    onCommentReaction={handleCommentReaction}
+                    onGiveReviewClick={handleGiveReviewClick}
+                  />
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Right Panel - Facebook-Style Infinite Scrolling */}
+          <div style={{ 
+            width: '350px', 
+            flexShrink: 0, 
+            height: 'calc(100vh - 200px)',
+            position: 'sticky',
+            top: '0'
+          }}>
+            <div className="right-panel-container" style={{ 
+              background: 'white', 
+              borderRadius: '16px', 
+              padding: '16px', 
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
+              border: '1px solid #e5e7eb',
+              height: '100%',
+              overflowY: 'auto',
+              overflowX: 'hidden',
+              scrollBehavior: 'smooth',
+              position: 'relative'
+            }}>
+              <h2 style={{ 
+                fontSize: '18px', 
+                fontWeight: 'bold', 
+                marginBottom: '16px', 
+                color: '#111827',
+                wordWrap: 'break-word',
+                overflow: 'hidden'
+              }}>
+                💡 Insights & New Entities
+              </h2>
+              <div style={{ 
+                overflow: 'hidden',
+                wordWrap: 'break-word',
+                wordBreak: 'break-word',
+                maxWidth: '100%'
+              }}>
+                {/* Global CSS for right panel overflow fixes */}
+                <style>{`
+                  .right-panel-container h3,
+                  .right-panel-container h4,
+                  .right-panel-container .font-semibold,
+                  .right-panel-container .font-medium {
+                    word-wrap: break-word !important;
+                    word-break: break-word !important;
+                    overflow-wrap: break-word !important;
+                    max-width: 100% !important;
+                    white-space: normal !important;
+                    hyphens: auto !important;
+                  }
+                  .right-panel-container .flex {
+                    min-width: 0 !important;
+                    flex-wrap: wrap !important;
+                  }
+                  .right-panel-container .flex-1 {
+                    min-width: 0 !important;
+                  }
+                  .right-panel-container .truncate {
+                    overflow: hidden !important;
+                    text-overflow: ellipsis !important;
+                    white-space: nowrap !important;
+                    max-width: 200px !important;
+                  }
+                `}</style>
+                <RightPanelReviewinn />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Write Review Modal */}
+      <AddReviewModal
+        open={showReviewModal}
+        onClose={handleCloseReviewModal}
+        onReviewSubmit={handleModalReviewSubmit}
+        userName={displayUser.name || 'Guest'}
+        userAvatar={displayUser.avatar || 'https://ui-avatars.com/api/?name=Guest&background=gray&color=ffffff'}
+        preselectedEntity={preselectedEntity || undefined}
+      />
+    </div>
   );
 };
 

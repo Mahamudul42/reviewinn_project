@@ -2,10 +2,10 @@ import React, { useRef } from 'react';
 import { MessageSquare, Plus, Eye } from 'lucide-react';
 import { Button } from '../../../shared/design-system/components/Button';
 import LoadingSpinner from '../../../shared/atoms/LoadingSpinner';
-import EnhancedReviewFeedCard from '../../reviews/components/EnhancedReviewFeedCard';
+import ReviewFeedCard from '../../reviews/components/ReviewFeedCard';
 import type { Review, Entity } from '../../../types';
 
-// Removed old ReviewCard and DropdownMenu components - using EnhancedReviewFeedCard instead
+// Removed old ReviewCard and DropdownMenu components - using ReviewFeedCard instead
 
 interface ProfileReviewsSectionProps {
   reviews: Review[];
@@ -21,7 +21,7 @@ interface ProfileReviewsSectionProps {
   onCommentAdd?: (reviewId: string, content: string, parentId?: string) => void;
   onCommentDelete?: (reviewId: string, commentId: string) => void;
   onCommentReaction?: (reviewId: string, commentId: string, reaction: string | null) => void;
-  // Removed dropdown props - EnhancedReviewFeedCard handles its own actions
+  // Removed dropdown props - ReviewFeedCard handles its own actions
   className?: string;
   showAddButton?: boolean;
   showActions?: boolean;
@@ -106,7 +106,7 @@ const ProfileReviewsSection: React.FC<ProfileReviewsSectionProps> = ({
         <div className="space-y-4">
           <div className="space-y-6">
             {reviews.map((review) => (
-              <EnhancedReviewFeedCard
+              <ReviewFeedCard
                 key={review.id}
                 review={review}
                 entity={review.entity} // Use entity data directly from review - no need to search in entities array

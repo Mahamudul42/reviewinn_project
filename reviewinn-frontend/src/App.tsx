@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Suspense, lazy, useEffect } from 'react';
-// Combined Homepage Components
-const NewHomePage = lazy(() => import('./pages/NewHomePage'));
+// Homepage component (now using the enhanced design)
 import Layout from './shared/layouts/Layout';
 import ProtectedRoute from './shared/components/ProtectedRoute';
 import { ConfirmationProvider } from './shared/components/ConfirmationSystem';
@@ -36,9 +35,6 @@ const MessengerPage = lazy(() => import('./features/messaging/MessengerPage'));
 const ReviewCirclePage = lazy(() => import('./features/circle/ReviewCirclePage'));
 const ShareableReviewPage = lazy(() => import('./features/reviews/ShareableReviewPage'));
 const NotificationsPage = lazy(() => import('./features/notifications/NotificationsPage'));
-const TestLeftPanelPage = lazy(() => import('./pages/TestLeftPanelPage'));
-const ReviewInnLeftPanelPage = lazy(() => import('./pages/ReviewInnLeftPanelPage'));
-const ReviewInnRightPanelPage = lazy(() => import('./pages/ReviewInnRightPanelPage'));
 
 // Legal pages  
 const AboutPage = lazy(() => import('./features/legal/AboutPage'));
@@ -72,10 +68,6 @@ function App() {
               <Route index element={<HomePage />} />
               <Route path="home" element={<HomePage />} />
               <Route path="test_home" element={<TestHomePage />} />
-              <Route path="test-left-panel" element={<TestLeftPanelPage />} />
-              <Route path="reviewinn-left-panel" element={<ReviewInnLeftPanelPage />} />
-              <Route path="reviewinn-right-panel" element={<ReviewInnRightPanelPage />} />
-              <Route path="new-home" element={<NewHomePage />} />
               <Route path="login" element={<LoginPage />} />
               <Route path="search" element={<SearchPage />} />
               <Route path="dashboard" element={

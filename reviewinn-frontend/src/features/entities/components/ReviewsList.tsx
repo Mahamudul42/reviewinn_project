@@ -1,6 +1,6 @@
 import React from 'react';
 import { MessageCircle, Zap, Star, TrendingUp } from 'lucide-react';
-import EnhancedReviewFeedCard from '../../reviews/components/EnhancedReviewFeedCard';
+import ReviewFeedCard from '../../reviews/components/ReviewFeedCard';
 import type { Review } from '../../../types';
 
 interface ReviewsListProps {
@@ -85,7 +85,7 @@ const ReviewsList: React.FC<ReviewsListProps> = ({
             {/* Review Card Enhancement */}
             <div className="absolute -inset-1 bg-gradient-to-r from-rose-500/20 to-purple-500/20 rounded-xl blur opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
             <div className="relative">
-              <EnhancedReviewFeedCard
+              <ReviewFeedCard
                 review={review}
                 hideEntityInfo={true}
               />
