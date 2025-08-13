@@ -68,27 +68,35 @@ class EntityStatsResponse(BaseModel):
 
 
 class EntityCreateRequest(BaseModel):
-    """Request model for entity creation"""
+    """Request model for entity creation - matches core_entities table structure"""
     name: str = Field(..., min_length=1, max_length=200, description="Entity name")
     description: str = Field(..., min_length=1, max_length=2000, description="Entity description")
-    category: str = Field(..., description="Entity category")
-    subcategory: Optional[int] = Field(None, description="Entity subcategory ID (unified category ID)")
     
-    # Professional context fields
-    context: Optional[dict] = Field(None, description="Professional context (for professionals)")
-    additionalContexts: Optional[List[dict]] = Field(None, description="Additional professional contexts")
+    # Core category fields - JSONB-only approach (source of truth)
+    root_category: Optional[dict] = Field(None, description="Root category JSONB object with id, name, slug, icon, color, level")
+    final_category: Optional[dict] = Field(None, description="Final category JSONB object with id, name, slug, icon, color, level")
+    
+    # Entity fields matching core_entities structure
+    avatar: Optional[str] = Field(None, description="Entity avatar/image URL")
+    website: Optional[str] = Field(None, max_length=500, description="Entity website")
+    images: Optional[dict] = Field(None, description="Entity images JSONB")
+    
+    # Core_entities JSONB fields
+    metadata: Optional[dict] = Field(None, description="Entity metadata JSONB")
+    roles: Optional[list] = Field(None, description="Entity roles JSONB")
+    related_entities: Optional[dict] = Field(None, description="Related entities JSONB")
+    business_info: Optional[dict] = Field(None, description="Business info JSONB")
+    claim_data: Optional[dict] = Field(None, description="Claim data JSONB")
+    view_analytics: Optional[dict] = Field(None, description="View analytics JSONB")
+    
+    
+    # Professional context fields (converted to metadata)
+    context: Optional[dict] = Field(None, description="Professional context")
+    additionalContexts: Optional[List[dict]] = Field(None, description="Additional professional contexts") 
     fields: Optional[dict] = Field(None, description="Category-specific fields")
     customFields: Optional[dict] = Field(None, description="Custom form fields")
     
-    # Legacy fields for backward compatibility
-    entity_type: Optional[str] = Field(None, description="Entity type")
-    location: Optional[str] = Field(None, max_length=200, description="Entity location")
-    website: Optional[str] = Field(None, max_length=500, description="Entity website")
-    contact_info: Optional[dict] = Field(None, description="Contact information")
-    metadata: Optional[dict] = Field(None, description="Additional metadata")
-    
     # Image support
-    avatar: Optional[str] = Field(None, description="Entity avatar/image URL")
     imageFile: Optional[str] = Field(None, description="Image file data")
 
 
@@ -321,55 +329,48 @@ async def create_entity(
     - Metadata support
     """
     try:
-        # Validate category
-        entity_category = _validate_category(entity_data.category)
-        if not entity_category:
-            raise HTTPException(status_code=400, detail="Category is required")
+        # Build metadata from optional fields
+        metadata = getattr(entity_data, 'metadata', {}) or {}
         
-        # Prepare entity data for unified service
+        # Add optional context fields to metadata
+        if hasattr(entity_data, 'context') and entity_data.context:
+            metadata["context"] = entity_data.context
+        if hasattr(entity_data, 'fields') and entity_data.fields:
+            metadata["fields"] = entity_data.fields
+        if hasattr(entity_data, 'customFields') and entity_data.customFields:
+            metadata["customFields"] = entity_data.customFields
+        if hasattr(entity_data, 'imageFile') and entity_data.imageFile:
+            metadata["imageFile"] = entity_data.imageFile
+        
+        # Prepare entity data for core_entities table (JSONB-only approach)
         entity_payload = {
             "name": entity_data.name,
             "description": entity_data.description,
-            "entity_type": entity_data.entity_type or entity_data.category,  # Use category if entity_type not provided
-            "category": entity_category,
-            "subcategory": str(entity_data.subcategory) if entity_data.subcategory else None,  # Keep subcategory as string for backward compatibility
-            "unified_category_id": entity_data.subcategory,  # Use subcategory as unified_category_id
-            "avatar": entity_data.avatar,  # Add avatar directly to entity
-            "contact_info": entity_data.contact_info or {},
-            "metadata": entity_data.metadata or {}
+            "avatar": getattr(entity_data, 'avatar', None),
+            "website": getattr(entity_data, 'website', None),
+            "images": getattr(entity_data, 'images', None),
+            "root_category": getattr(entity_data, 'root_category', None),  # JSONB source of truth
+            "final_category": getattr(entity_data, 'final_category', None),  # JSONB source of truth
+            "entity_metadata": metadata,  # Python attribute name (maps to 'metadata' database column)
+            "roles": getattr(entity_data, 'roles', None) or (getattr(entity_data, 'additionalContexts', None) or []),
+            "related_entities_json": getattr(entity_data, 'related_entities', None),
+            "business_info": getattr(entity_data, 'business_info', None) or {},
+            "claim_data": getattr(entity_data, 'claim_data', None) or {},
+            "view_analytics": getattr(entity_data, 'view_analytics', None) or {},
+            "is_active": True,
+            "is_verified": False,
+            "is_claimed": True if current_user else False,
+            "claimed_by": current_user.user_id if current_user else None,
         }
-        
-        # Add location to contact_info if provided
-        if entity_data.location:
-            entity_payload["contact_info"]["location"] = entity_data.location
-        
-        # Add website to contact_info if provided
-        if entity_data.website:
-            entity_payload["contact_info"]["website"] = entity_data.website
-        
-        # Add professional context fields to metadata if provided
-        if entity_data.context:
-            entity_payload["metadata"]["context"] = entity_data.context
-        if entity_data.additionalContexts:
-            entity_payload["metadata"]["additionalContexts"] = entity_data.additionalContexts
-        if entity_data.fields:
-            entity_payload["metadata"]["fields"] = entity_data.fields
-        if entity_data.customFields:
-            entity_payload["metadata"]["customFields"] = entity_data.customFields
-        # Avatar is already included in entity_payload above
-        if entity_data.imageFile:
-            entity_payload["metadata"]["imageFile"] = entity_data.imageFile
 
-        # Create entity using unified service
-        entity = await unified_entity_service.create_entity(
-            db,
-            created_by=current_user.user_id if current_user else None,
-            **entity_payload
-        )
+        # Create entity directly using repository
+        from repositories.entity_repository import EntityRepository
+        entity_repository = EntityRepository()
+        entity = entity_repository.create(db, entity_payload)
         
         return EntityResponse(
             success=True,
-            data=entity,
+            data=entity.to_dict(),
             message="Entity created successfully"
         )
         

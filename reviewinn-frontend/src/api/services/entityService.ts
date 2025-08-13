@@ -343,73 +343,28 @@ class EntityService {
       console.log('🖼️ entityService.createEntity - Input entityData:', entityData);
       console.log('🖼️ entityService.createEntity - Avatar field:', entityData.avatar);
       
-      // Map the legacy category to the new format that the backend expects
-      const categorySlugMap: Record<string, string> = {
-        'professionals': 'professionals',
-        'companies': 'companies_institutes',
-        'places': 'places',
-        'products': 'products',
-        'other': 'other'
-      };
-
-      // Get the appropriate category slug
-      const categorySlug = categorySlugMap[entityData.category || 'professionals'] || 'professionals';
-      
-      // Build the payload to match core_entities table structure exactly
+      // Build the payload with JSONB-only approach
+      // Frontend should already have proper category objects with full details
       const backendPayload = {
+        // Core entity fields
         name: entityData.name,
         description: entityData.description,
         avatar: entityData.avatar || null,
         website: null,
-        images: [], // JSONB array for additional images
         
-        // JSONB category objects - match the database structure exactly
-        root_category: entityData.root_category_id ? {
-          id: entityData.root_category_id,
-          name: entityData.category === 'professionals' ? 'Professionals' : 
-                entityData.category === 'companies_institutes' ? 'Companies/Institutes' :
-                entityData.category === 'places' ? 'Places' :
-                entityData.category === 'products' ? 'Products' : 'Other',
-          slug: categorySlug,
-          icon: entityData.category === 'professionals' ? '👨‍💼' : 
-                entityData.category === 'companies_institutes' ? '💻' :
-                entityData.category === 'places' ? '📍' :
-                entityData.category === 'products' ? '📦' : '📂'
-        } : null,
+        // JSONB category objects (source of truth)
+        root_category: entityData.root_category || null,  // Should contain: {id, name, slug, icon, color, level}
+        final_category: entityData.final_category || null,  // Should contain: {id, name, slug, icon, color, level}
         
-        final_category: entityData.final_category_id ? {
-          id: entityData.final_category_id,
-          name: entityData.subcategory || 'Other',
-          slug: entityData.subcategory?.toLowerCase().replace(/\s+/g, '_') || 'other',
-          icon: '📂'  // Default icon, backend should update this based on category
-        } : null,
-        
-        // Foreign key references
-        root_category_id: entityData.root_category_id,
-        final_category_id: entityData.final_category_id,
-        
-        // Status fields with defaults
-        is_verified: false,
-        is_active: true,
-        is_claimed: false,
-        claimed_by: null,
-        claimed_at: null,
-        
-        // Statistical fields with defaults
-        average_rating: 0,
-        review_count: 0,
-        reaction_count: 0,
-        comment_count: 0,
-        view_count: 0,
-        
-        // JSONB fields
+        // JSONB fields for metadata
         metadata: {
           context: entityData.context || {},
           fields: entityData.fields || {},
           customFields: entityData.customFields || {}
         },
+        
+        // Additional data
         roles: entityData.additionalContexts || [],
-        related_entities: [],
         business_info: {},
         claim_data: {},
         view_analytics: {}

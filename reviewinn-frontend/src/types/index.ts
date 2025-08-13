@@ -363,9 +363,9 @@ export interface ReviewFormData {
 export interface EntityFormData {
   name: string;
   description: string;
-  // Use hierarchical category system exclusively
-  root_category_id?: number; // Root level category (level 1) - for fallback review questions
-  final_category_id?: number; // Final selected category (any level) - for specific review questions
+  // JSONB-only category approach (source of truth)
+  root_category?: UnifiedCategory; // Root level category with full details {id, name, slug, icon, color, level}
+  final_category?: UnifiedCategory; // Final selected category with full details {id, name, slug, icon, color, level}
   avatar?: string; // Entity image/avatar URL
   context?: EntityContext;
   additionalContexts?: EntityContext[];

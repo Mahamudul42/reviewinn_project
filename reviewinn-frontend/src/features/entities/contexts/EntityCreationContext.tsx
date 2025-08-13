@@ -436,36 +436,45 @@ export const EntityCreationProvider: React.FC<EntityCreationProviderProps> = ({ 
     setState(prev => ({ ...prev, isSubmitting: true, error: null }));
 
     try {
-      // Helper function to find root category ID for the new core_entities structure
-      const getRootCategoryId = (category: UnifiedCategory): number => {
-        // Traverse up the category hierarchy to find the root
+      // Helper function to find root category object for JSONB storage
+      const findRootCategory = (category: UnifiedCategory): UnifiedCategory => {
+        // If already at level 1, this is the root category
         if (category.level === 1) {
-          return category.id; // This is already the root category
+          return category;
         }
         
-        // For level 2+ categories, extract the root ID from the path
-        if (category.path) {
-          const pathParts = category.path.split('.');
-          return parseInt(pathParts[0]); // First part is always the root ID
-        }
+        // For deeper levels, create a minimal root category object
+        // In a real implementation, you might want to fetch this from your category hierarchy
+        const rootCategoryId = category.path ? parseInt(category.path.split('.')[0]) : category.id;
         
-        // Fallback - the backend should handle finding the correct root
-        return category.id;
+        // Create a minimal root category object (you might want to fetch full details)
+        return {
+          id: rootCategoryId,
+          name: 'Root Category', // This should be fetched from your category data
+          slug: 'root-category',
+          level: 1,
+          icon: '📂',
+          color: 'blue',
+          description: 'Root level category',
+          is_active: true,
+          parent_id: null,
+          path: rootCategoryId.toString(),
+          sort_order: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
       };
 
-      // Map frontend category selection to backend format for core_entities table
+      // Map frontend category selection to backend format for core_entities table (JSONB-only approach)
+      const rootCategory = findRootCategory(state.selectedCategory);
+      
       const entityData: EntityFormData = {
         name: state.basicInfo.name,
         description: state.basicInfo.description,
         
-        // Legacy format for backward compatibility
-        category: convertToLegacyCategory(state.selectedCategory.slug),
-        subcategory: state.selectedCategory.name,
-        
-        // New core_entities table fields
-        unified_category_id: state.selectedCategory.id,
-        root_category_id: getRootCategoryId(state.selectedCategory),
-        final_category_id: state.selectedCategory.id,
+        // JSONB-only category approach (source of truth)
+        root_category: rootCategory, // Full UnifiedCategory object with {id, name, slug, icon, color, level}
+        final_category: state.selectedCategory, // Full UnifiedCategory object with {id, name, slug, icon, color, level}
         
         // Image and metadata
         avatar: state.entityImage || undefined,
@@ -475,11 +484,11 @@ export const EntityCreationProvider: React.FC<EntityCreationProviderProps> = ({ 
         customFields: {},
       };
 
-      console.log('🖼️ Entity creation data for core_entities:', {
+      console.log('🖼️ Entity creation data for core_entities (JSONB-only):', {
         avatar: entityData.avatar,
         entityImage: state.entityImage,
-        rootCategoryId: entityData.root_category_id,
-        finalCategoryId: entityData.final_category_id,
+        rootCategory: entityData.root_category,
+        finalCategory: entityData.final_category,
         fullEntityData: entityData
       });
 

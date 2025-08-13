@@ -27,12 +27,9 @@ class Entity(Base):
     avatar = Column(String(255))
     website = Column(String(500))
     images = Column(JSONB)
-    # Category fields (JSONB format matching database)
+    # Category fields (JSONB-only approach - source of truth)
     root_category = Column(JSONB)
     final_category = Column(JSONB)
-    # Foreign key columns for SQLAlchemy queries (extracted from JSONB)
-    root_category_id = Column(BigInteger, ForeignKey("unified_categories.id"), nullable=True)
-    final_category_id = Column(BigInteger, ForeignKey("unified_categories.id"), nullable=True)
     is_verified = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
     is_claimed = Column(Boolean, default=False)
@@ -57,8 +54,6 @@ class Entity(Base):
     # Relationships
     reviews = relationship("Review", back_populates="entity")
     claimed_by_user = relationship("User", foreign_keys=[claimed_by])
-    root_category_rel = relationship("UnifiedCategory", foreign_keys=[root_category_id])
-    final_category_rel = relationship("UnifiedCategory", foreign_keys=[final_category_id])
 
     def __repr__(self):
         category_name = self.final_category.get('name', 'Unknown') if self.final_category else "Unknown"
@@ -126,7 +121,5 @@ class Entity(Base):
             "category_display": category_display,
             "root_category": self.root_category,
             "final_category": self.final_category,
-            "root_category_id": self.root_category_id,
-            "final_category_id": self.final_category_id,
             "relatedEntities": self.related_entities_json
         } 

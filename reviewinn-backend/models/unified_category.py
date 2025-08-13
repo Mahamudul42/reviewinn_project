@@ -50,9 +50,7 @@ class UnifiedCategory(Base):
     parent = relationship("UnifiedCategory", remote_side=[id], back_populates="children")
     children = relationship("UnifiedCategory", back_populates="parent", cascade="all, delete-orphan")
     
-    # OPTIMIZED: Hierarchical category relationships (unified_category_id removed)
-    root_entities = relationship("Entity", foreign_keys="Entity.root_category_id")
-    final_entities = relationship("Entity", foreign_keys="Entity.final_category_id")
+    # Note: Entity relationships are now JSONB-based, no foreign key relationships needed
     
     # Constraints
     __table_args__ = (

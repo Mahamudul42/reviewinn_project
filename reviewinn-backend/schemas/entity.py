@@ -9,9 +9,9 @@ class EntityBase(BaseModel):
     entity_type: Optional[str] = Field(None, min_length=1, max_length=50)  # Make optional since model doesn't have it
     category: EntityCategory
     subcategory: Optional[str] = Field(None, max_length=100)
-    unified_category_id: Optional[int] = Field(None)  # New unified category reference
-    root_category_id: Optional[int] = Field(None)  # Root level category (level 1)
-    final_category_id: Optional[int] = Field(None)  # Final selected category (any level)
+    # JSONB category approach - categories stored as full objects
+    root_category: Optional[dict] = Field(None, description="Root category JSONB object")
+    final_category: Optional[dict] = Field(None, description="Final category JSONB object")
     avatar: Optional[str] = Field(None, max_length=500)  # Image URL
     location: Optional[str] = Field(None, max_length=200)
     website: Optional[str] = Field(None, max_length=200)
@@ -32,9 +32,9 @@ class EntityUpdate(BaseModel):
     entity_type: Optional[str] = Field(None, min_length=1, max_length=50)
     category: Optional[EntityCategory] = None
     subcategory: Optional[str] = Field(None, max_length=100)
-    unified_category_id: Optional[int] = Field(None)
-    root_category_id: Optional[int] = Field(None)
-    final_category_id: Optional[int] = Field(None)
+    # JSONB category approach - categories stored as full objects
+    root_category: Optional[dict] = Field(None, description="Root category JSONB object")
+    final_category: Optional[dict] = Field(None, description="Final category JSONB object")
     avatar: Optional[str] = Field(None, max_length=500)  # Image URL
     location: Optional[str] = Field(None, max_length=200)
     website: Optional[str] = Field(None, max_length=200)
@@ -52,9 +52,7 @@ class EntityResponse(EntityBase):
     average_rating: Optional[float] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
-    # New hierarchical category fields
-    root_category_id: Optional[int] = None
-    final_category_id: Optional[int] = None
+    # JSONB category fields  
     category_breadcrumb: Optional[list] = None
     category_display: Optional[str] = None
     root_category: Optional[Dict[str, Any]] = None
