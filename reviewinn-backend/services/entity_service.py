@@ -442,43 +442,39 @@ class UnifiedEntityService(BaseService[Entity, dict, dict]):
         from models.review import Review
         from models.unified_category import UnifiedCategory
         
-        # Get hierarchical category information
+        # Get hierarchical category information from JSONB fields (JSONB-only approach)
         category_display = None
-        subcategory_display = None  # Legacy field removed
+        subcategory_display = None
         category_breadcrumb = None
         category_display_text = None
         root_category_info = None
         final_category_info = None
         
-        # Get root category information - handle gracefully if column doesn't exist
-        root_category_id = getattr(entity, 'root_category_id', None)
-        if root_category_id:
-            root_category_info = db.query(UnifiedCategory).filter(
-                UnifiedCategory.id == root_category_id
-            ).first()
-            if root_category_info:
-                category_display = root_category_info.name.lower()
+        # Extract category information from JSONB fields
+        root_category_data = entity.root_category
+        final_category_data = entity.final_category
         
-        # Get final category information (most specific) - handle gracefully if column doesn't exist
-        final_category_id = getattr(entity, 'final_category_id', None)
-        if final_category_id:
-            final_category_info = db.query(UnifiedCategory).filter(
-                UnifiedCategory.id == final_category_id
-            ).first()
-            if final_category_info:
-                subcategory_display = final_category_info.name
-                
-                # Generate hierarchical breadcrumb
-                breadcrumb = []
-                ancestors = final_category_info.get_ancestors()
-                for ancestor in ancestors:
-                    breadcrumb.append(ancestor.name)
-                breadcrumb.append(final_category_info.name)
-                category_breadcrumb = breadcrumb
-                category_display_text = " > ".join(breadcrumb)
+        if root_category_data:
+            root_category_info = root_category_data
+            category_display = root_category_data.get('name', '').lower()
         
-        # No fallback needed - use hierarchical categories only
-        # Legacy unified_category_id support removed
+        if final_category_data:
+            final_category_info = final_category_data
+            subcategory_display = final_category_data.get('name', '')
+            
+            # Generate hierarchical breadcrumb from JSONB data
+            breadcrumb = []
+            
+            # Add root category if it exists and is different from final category
+            if root_category_data and root_category_data.get('id') != final_category_data.get('id'):
+                breadcrumb.append(root_category_data.get('name', ''))
+            
+            # Add final category
+            breadcrumb.append(final_category_data.get('name', ''))
+            
+            # Filter out empty names
+            category_breadcrumb = [name for name in breadcrumb if name]
+            category_display_text = " > ".join(category_breadcrumb) if category_breadcrumb else None
         
         # Get review statistics
         review_stats = await self.get_entity_review_stats(db, entity.entity_id)
@@ -549,11 +545,11 @@ class UnifiedEntityService(BaseService[Entity, dict, dict]):
             "reviewCount": actual_review_count,
             "averageRating": entity.average_rating or 0.0,
             "hasRealImage": bool(entity.avatar and not entity.avatar.startswith('https://ui-avatars.com')),
-            # Hierarchical category information
+            # Hierarchical category information (JSONB-only approach)
             "category_breadcrumb": category_breadcrumb,
             "category_display": category_display_text,
-            "root_category": root_category_info.to_dict() if root_category_info else None,
-            "final_category": final_category_info.to_dict() if final_category_info else None
+            "root_category": root_category_info,  # Already a dict from JSONB
+            "final_category": final_category_info  # Already a dict from JSONB
         }
     
     def _get_applied_filters(self, params: EntityListParams) -> Dict[str, Any]:
