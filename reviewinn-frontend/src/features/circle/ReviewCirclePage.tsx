@@ -6,6 +6,7 @@ import { circleService, homepageService } from '../../api/services';
 import ThreePanelLayout from '../../shared/layouts/ThreePanelLayout';
 import LoadingSpinner from '../../shared/atoms/LoadingSpinner';
 import { useConfirmation, ConfirmationProvider } from '../../shared/components/ConfirmationSystem';
+import CircleErrorBoundary from './components/CircleErrorBoundary';
 import './circle-purple-buttons.css';
 import { 
   CircleMembers, 
@@ -701,7 +702,7 @@ const ReviewCirclePageContent: React.FC = () => {
   // Main render
   return (
     <ThreePanelLayout
-      pageTitle="👥 Review Circle"
+      pageTitle="Review Circle"
       leftPanelTitle="🌟 Community Highlights"
       rightPanelTitle="💡 Circle Recommendations"
       centerPanelWidth="700px"
@@ -955,9 +956,11 @@ const ReviewCirclePageContent: React.FC = () => {
 // Wrapper component that provides the confirmation context
 const ReviewCirclePage: React.FC = () => {
   return (
-    <ConfirmationProvider>
-      <ReviewCirclePageContent />
-    </ConfirmationProvider>
+    <CircleErrorBoundary>
+      <ConfirmationProvider>
+        <ReviewCirclePageContent />
+      </ConfirmationProvider>
+    </CircleErrorBoundary>
   );
 };
 
