@@ -30,18 +30,19 @@ const ThreePanelLayout: React.FC<ThreePanelLayoutProps> = ({
   // Load left panel data
   const { data: leftPanelData, loading: leftLoading, error: leftError } = useReviewInnLeftPanel();
 
-  // Update left panel data when loaded
+  // Update left panel data when loaded - with proper dependency management
   useEffect(() => {
-    if (!isLeftPanelFresh() && leftPanelData) {
+    const isDataFresh = isLeftPanelFresh();
+    if (!isDataFresh && leftPanelData && !leftLoading) {
       console.log('🔄 ThreePanelLayout: Updating left panel data in context');
-      updateLeftPanel(leftPanelData, leftLoading, leftError);
+      updateLeftPanel(leftPanelData, false, leftError);
     }
-  }, [leftPanelData, leftLoading, leftError, isLeftPanelFresh, updateLeftPanel]);
+  }, [leftPanelData, leftError]); // Remove isLeftPanelFresh and updateLeftPanel from deps
 
-  // Update loading state in context
+  // Update loading state separately
   useEffect(() => {
     setLeftPanelLoading(leftLoading);
-  }, [leftLoading, setLeftPanelLoading]);
+  }, [leftLoading]); // Remove setLeftPanelLoading from deps
 
   // Determine which data to use
   const shouldUseLeftCache = isLeftPanelFresh() && panelData.leftPanel.data;

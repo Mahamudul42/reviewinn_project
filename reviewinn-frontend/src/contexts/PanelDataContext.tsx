@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 
 // Panel data interfaces
 export interface PanelDataState {
@@ -79,7 +79,7 @@ export const PanelDataProvider: React.FC<{ children: ReactNode }> = ({ children 
     }
   }, [panelData]);
 
-  const updateLeftPanel = (data: any, loading = false, error: string | null = null) => {
+  const updateLeftPanel = useCallback((data: any, loading = false, error: string | null = null) => {
     setPanelData(prev => ({
       ...prev,
       leftPanel: {
@@ -89,9 +89,9 @@ export const PanelDataProvider: React.FC<{ children: ReactNode }> = ({ children 
         lastUpdated: Date.now()
       }
     }));
-  };
+  }, []);
 
-  const updateRightPanel = (data: any, loading = false, error: string | null = null) => {
+  const updateRightPanel = useCallback((data: any, loading = false, error: string | null = null) => {
     setPanelData(prev => ({
       ...prev,
       rightPanel: {
@@ -101,9 +101,9 @@ export const PanelDataProvider: React.FC<{ children: ReactNode }> = ({ children 
         lastUpdated: Date.now()
       }
     }));
-  };
+  }, []);
 
-  const setLeftPanelLoading = (loading: boolean) => {
+  const setLeftPanelLoading = useCallback((loading: boolean) => {
     setPanelData(prev => ({
       ...prev,
       leftPanel: {
@@ -111,9 +111,9 @@ export const PanelDataProvider: React.FC<{ children: ReactNode }> = ({ children 
         loading
       }
     }));
-  };
+  }, []);
 
-  const setRightPanelLoading = (loading: boolean) => {
+  const setRightPanelLoading = useCallback((loading: boolean) => {
     setPanelData(prev => ({
       ...prev,
       rightPanel: {
@@ -121,26 +121,26 @@ export const PanelDataProvider: React.FC<{ children: ReactNode }> = ({ children 
         loading
       }
     }));
-  };
+  }, []);
 
-  const isLeftPanelFresh = (): boolean => {
+  const isLeftPanelFresh = useCallback((): boolean => {
     if (!panelData.leftPanel.lastUpdated) return false;
     return (Date.now() - panelData.leftPanel.lastUpdated) < CACHE_DURATION;
-  };
+  }, [panelData.leftPanel.lastUpdated]);
 
-  const isRightPanelFresh = (): boolean => {
+  const isRightPanelFresh = useCallback((): boolean => {
     if (!panelData.rightPanel.lastUpdated) return false;
     return (Date.now() - panelData.rightPanel.lastUpdated) < CACHE_DURATION;
-  };
+  }, [panelData.rightPanel.lastUpdated]);
 
-  const clearPanelData = () => {
+  const clearPanelData = useCallback(() => {
     setPanelData(initialState);
     try {
       sessionStorage.removeItem('reviewinn_panel_data');
     } catch (error) {
       console.warn('Failed to clear panel data from sessionStorage:', error);
     }
-  };
+  }, []);
 
   return (
     <PanelDataContext.Provider value={{
