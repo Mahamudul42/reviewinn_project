@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link } from 'react-router-dom';
-import { User, Search, BarChart3, LogOut, LogIn, Bell, MessageCircle, Users, Building2 } from 'lucide-react';
+import { User, Search, BarChart3, LogOut, LogIn, Bell, MessageCircle, Users, Building2, Home, Plus } from 'lucide-react';
 import AuthModal from '../../features/auth/components/AuthModal';
 import NotificationSystem, { useNotifications } from '../organisms/NotificationSystem';
 import QuickActionsPanel from '../organisms/QuickActionsPanel';
@@ -377,6 +377,7 @@ const Layout: React.FC = () => {
             
             <nav className="main-nav">
               <Link to="/" className="nav-link">
+                <Home size={16} />
                 Home
               </Link>
               <Link 
@@ -402,6 +403,7 @@ const Layout: React.FC = () => {
                 className="nav-link"
                 onClick={(e) => handleAuthRequiredNavigation('/add-entity', e)}
               >
+                <Plus size={16} />
                 Add Entity
               </Link>
               <Link 
@@ -411,14 +413,6 @@ const Layout: React.FC = () => {
               >
                 <Users size={16} />
                 Review Circle
-              </Link>
-              <Link 
-                to="/dashboard" 
-                className="nav-link"
-                onClick={(e) => handleAuthRequiredNavigation('/dashboard', e)}
-              >
-                <BarChart3 size={16} />
-                Dashboard
               </Link>
             </nav>
 
