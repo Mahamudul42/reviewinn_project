@@ -3,7 +3,7 @@ import { Check, CheckCheck, Trash2, Filter, RefreshCw, Bell, User, MessageCircle
 import { notificationService } from '../../api/services/notificationService';
 import type { NotificationData, NotificationListResponse } from '../../api/services/notificationService';
 import { useNavigate } from 'react-router-dom';
-import NotificationsPageLayout from './components/NotificationsPageLayout';
+import ThreePanelLayout from '../../shared/layouts/ThreePanelLayout';
 import { homepageService } from '../../api/services';
 import type { Entity, Review } from '../../types';
 import NotificationFilterModal from './components/NotificationFilterModal';
@@ -255,14 +255,21 @@ const NotificationsPage: React.FC = () => {
   // Show loading if auth is still loading
   if (authLoading) {
     return (
-      <NotificationsPageLayout>
+      <ThreePanelLayout
+        pageTitle="🔔 Notifications"
+        leftPanelTitle="🌟 Community Highlights"
+        rightPanelTitle="💡 Recent Activity"
+        centerPanelWidth="700px"
+        headerGradient="from-amber-600 via-orange-600 to-red-800"
+        centerPanelClassName="bg-white rounded-2xl shadow-lg border border-gray-200 p-6"
+      >
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <p className="text-gray-600">Loading notifications...</p>
           </div>
         </div>
-      </NotificationsPageLayout>
+      </ThreePanelLayout>
     );
   }
 
@@ -272,7 +279,15 @@ const NotificationsPage: React.FC = () => {
   }
 
   return (
-    <NotificationsPageLayout>
+    <ThreePanelLayout
+      pageTitle="🔔 Notifications"
+      leftPanelTitle="🌟 Community Highlights"
+      rightPanelTitle="💡 Recent Activity"
+      centerPanelWidth="700px"
+      headerGradient="from-amber-600 via-orange-600 to-red-800"
+      centerPanelClassName="bg-white rounded-2xl shadow-lg border border-gray-200 p-6"
+      variant="full-width"
+    >
       {/* Notifications Middle Panel Content */}
       <div className="w-full">
         {/* Bulk Actions */}
@@ -504,7 +519,7 @@ const NotificationsPage: React.FC = () => {
           max-width: 1200px;
         }
       `}</style>
-    </NotificationsPageLayout>
+    </ThreePanelLayout>
   );
 };
 

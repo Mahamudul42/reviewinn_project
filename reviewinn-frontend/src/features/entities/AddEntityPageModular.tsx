@@ -18,7 +18,7 @@ import {
   SuccessStep,
 } from './components/steps';
 import ErrorBoundary from '../../shared/components/ErrorBoundary';
-import AddEntityPageLayout from './components/AddEntityPageLayout';
+import ThreePanelLayout from '../../shared/layouts/ThreePanelLayout';
 import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
 
 const AddEntityContent: React.FC = () => {
@@ -27,9 +27,16 @@ const AddEntityContent: React.FC = () => {
   // Success screen has its own layout
   if (state.currentStep === 'success') {
     return (
-      <AddEntityPageLayout>
+      <ThreePanelLayout
+        pageTitle="✅ Entity Added Successfully!"
+        leftPanelTitle="🌟 Community Highlights"
+        rightPanelTitle="💡 More Entities to Explore"
+        centerPanelWidth="600px"
+        headerGradient="from-green-600 via-emerald-600 to-teal-800"
+        centerPanelClassName="bg-white rounded-2xl shadow-lg border border-gray-200 p-6"
+      >
         <SuccessStep />
-      </AddEntityPageLayout>
+      </ThreePanelLayout>
     );
   }
 
@@ -53,7 +60,15 @@ const AddEntityContent: React.FC = () => {
   };
 
   return (
-    <AddEntityPageLayout>
+    <ThreePanelLayout
+      pageTitle="➕ Add New Entity"
+      leftPanelTitle="🌟 Community Highlights"
+      rightPanelTitle="💡 Similar Entities & Tips"
+      centerPanelWidth="700px"
+      headerGradient="from-blue-600 via-cyan-600 to-emerald-800"
+      centerPanelClassName="bg-white rounded-2xl shadow-lg border border-gray-200 p-6"
+      variant="full-width"
+    >
       {/* Add Entity Middle Panel Content */}
       <div className="w-full space-y-8">
         {/* Header */}
@@ -74,7 +89,7 @@ const AddEntityContent: React.FC = () => {
           {renderCurrentStep()}
         </StepContainer>
       </div>
-    </AddEntityPageLayout>
+    </ThreePanelLayout>
   );
 };
 
@@ -99,7 +114,14 @@ const AddEntityPageModular: React.FC = () => {
   // Show loading if auth is still loading
   if (authLoading) {
     return (
-      <AddEntityPageLayout>
+      <ThreePanelLayout
+        pageTitle="➕ Add New Entity"
+        leftPanelTitle="🌟 Community Highlights"
+        rightPanelTitle="💡 Similar Entities & Tips"
+        centerPanelWidth="700px"
+        headerGradient="from-blue-600 via-cyan-600 to-emerald-800"
+        centerPanelClassName="bg-white rounded-2xl shadow-lg border border-gray-200 p-6"
+      >
         <div className="w-full">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
@@ -108,7 +130,7 @@ const AddEntityPageModular: React.FC = () => {
             </div>
           </div>
         </div>
-      </AddEntityPageLayout>
+      </ThreePanelLayout>
     );
   }
 

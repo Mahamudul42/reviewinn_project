@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import SearchPageLayout from './components/SearchPageLayout';
+import ThreePanelLayout from '../../shared/layouts/ThreePanelLayout';
 import ReviewSearchHeader from './components/ReviewSearchHeader';
 import SearchResults from './components/SearchResults';
 import SearchFilterModal from './components/SearchFilterModal';
@@ -159,9 +159,17 @@ const SearchPage: React.FC = () => {
   };
 
   return (
-    <SearchPageLayout>
+    <ThreePanelLayout
+      pageTitle="🔍 Search ReviewInn"
+      leftPanelTitle="🌟 Community Highlights"
+      rightPanelTitle="💡 Popular Searches & Trends"
+      centerPanelWidth="700px"
+      headerGradient="from-purple-600 via-blue-600 to-indigo-800"
+      centerPanelClassName="bg-white rounded-2xl shadow-lg border border-gray-200 p-6"
+      variant="full-width"
+    >
       {/* Search Middle Panel Content */}
-      <div className="w-full space-y-6 px-8">
+      <div className="w-full space-y-6">
         {/* Review Search Header */}
         <ReviewSearchHeader
           query={query}
@@ -261,7 +269,7 @@ const SearchPage: React.FC = () => {
           overflow: hidden;
         }
       `}</style>
-    </SearchPageLayout>
+    </ThreePanelLayout>
   );
 };
 

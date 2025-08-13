@@ -11,6 +11,13 @@ interface ThreePanelLayoutProps {
   rightPanelTitle?: string;
   centerPanelWidth?: string;
   className?: string;
+  // Page-specific customization
+  pageTitle?: string;
+  showPageHeader?: boolean;
+  headerGradient?: string;
+  centerPanelClassName?: string;
+  // Layout variants
+  variant?: 'default' | 'compact' | 'full-width';
 }
 
 const ThreePanelLayout: React.FC<ThreePanelLayoutProps> = ({
@@ -18,7 +25,12 @@ const ThreePanelLayout: React.FC<ThreePanelLayoutProps> = ({
   leftPanelTitle = "🌟 Community Highlights",
   rightPanelTitle = "💡 Insights & New Entities",
   centerPanelWidth = "600px",
-  className = ""
+  className = "",
+  pageTitle = "Welcome to ReviewInn",
+  showPageHeader = true,
+  headerGradient = "from-blue-600 via-purple-600 to-blue-800",
+  centerPanelClassName = "",
+  variant = "default"
 }) => {
   const {
     panelData,
@@ -57,21 +69,37 @@ const ThreePanelLayout: React.FC<ThreePanelLayoutProps> = ({
     leftPanelFresh: isLeftPanelFresh()
   });
 
+  // Calculate layout dimensions based on variant
+  const getLayoutDimensions = () => {
+    switch (variant) {
+      case 'compact':
+        return { containerPadding: 'px-2 py-4', maxWidth: '1200px', gap: '16px' };
+      case 'full-width':
+        return { containerPadding: 'px-6 py-6', maxWidth: '1600px', gap: '32px' };
+      default:
+        return { containerPadding: 'px-4 py-6', maxWidth: '1400px', gap: '24px' };
+    }
+  };
+
+  const { containerPadding, maxWidth, gap } = getLayoutDimensions();
+
   return (
     <div className={`min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 ${className}`}>
-      <div className="container mx-auto px-4 py-6">
-        {/* Welcome Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent mb-4">
-            Welcome to ReviewInn
-          </h1>
-        </div>
+      <div className={`container mx-auto ${containerPadding}`}>
+        {/* Page Header */}
+        {showPageHeader && (
+          <div className="text-center mb-8">
+            <h1 className={`text-4xl md:text-5xl font-bold bg-gradient-to-r ${headerGradient} bg-clip-text text-transparent mb-4`}>
+              {pageTitle}
+            </h1>
+          </div>
+        )}
 
         {/* Three Columns with Facebook-Style Independent Scrolling */}
         <div style={{ 
           display: 'flex', 
-          gap: '24px', 
-          maxWidth: '1400px',
+          gap: gap, 
+          maxWidth: maxWidth,
           margin: '0 auto',
           justifyContent: 'space-between',
           alignItems: 'flex-start',
@@ -233,7 +261,7 @@ const ThreePanelLayout: React.FC<ThreePanelLayoutProps> = ({
           </div>
 
           {/* Center Panel - Dynamic Content */}
-          <div className="center-panel-container" style={{ 
+          <div className={`center-panel-container ${centerPanelClassName}`} style={{ 
             width: centerPanelWidth, 
             flexShrink: 0, 
             height: 'calc(100vh - 200px)',

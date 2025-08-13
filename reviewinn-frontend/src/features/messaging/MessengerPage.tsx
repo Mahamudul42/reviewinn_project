@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import ConversationList from './components/ConversationList';
 import ChatWindow from './components/ChatWindow';
 import NewChatModal from './components/NewChatModal';
-import MessengerPageLayout from './components/MessengerPageLayout';
+import ThreePanelLayout from '../../shared/layouts/ThreePanelLayout';
 import { messengerService } from '../../api/services/messengerService';
 import type { Conversation, Message, User as MessengerUser } from '../../api/services/messengerService';
 import { useWebSocket } from '../../hooks/useWebSocket';
@@ -582,21 +582,37 @@ const MessengerPage: React.FC = () => {
     // Show loading if auth is loading
     if (authLoading) {
       return (
-        <MessengerPageLayout>
+        <ThreePanelLayout
+          pageTitle="💬 Messenger"
+          leftPanelTitle="🌟 Community Highlights"
+          rightPanelTitle="💡 Active Contacts"
+          centerPanelWidth="800px"
+          headerGradient="from-indigo-600 via-purple-600 to-pink-800"
+          centerPanelClassName="bg-white rounded-2xl shadow-lg border border-gray-200"
+          variant="full-width"
+        >
           <div className="h-full bg-gray-100 flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
               <p className="text-gray-600">Loading messenger...</p>
             </div>
           </div>
-        </MessengerPageLayout>
+        </ThreePanelLayout>
       );
     }
 
     // Show login prompt if not authenticated
     if (!currentUser) {
       return (
-        <MessengerPageLayout>
+        <ThreePanelLayout
+          pageTitle="💬 Messenger"
+          leftPanelTitle="🌟 Community Highlights"
+          rightPanelTitle="💡 Active Contacts"
+          centerPanelWidth="800px"
+          headerGradient="from-indigo-600 via-purple-600 to-pink-800"
+          centerPanelClassName="bg-white rounded-2xl shadow-lg border border-gray-200 p-6"
+          variant="full-width"
+        >
           <div className="h-full flex items-center justify-center">
             <div className="text-center">
               <h2 className="text-xl font-semibold mb-2">Please Login</h2>
@@ -609,13 +625,22 @@ const MessengerPage: React.FC = () => {
               </button>
             </div>
           </div>
-        </MessengerPageLayout>
+        </ThreePanelLayout>
       );
     }
 
     // Main messenger interface
     return (
-      <MessengerPageLayout>
+      <ThreePanelLayout
+        pageTitle="💬 Messenger"
+        leftPanelTitle="🌟 Community Highlights"
+        rightPanelTitle="💡 Active Contacts"
+        centerPanelWidth="800px"
+        headerGradient="from-indigo-600 via-purple-600 to-pink-800"
+        centerPanelClassName="bg-transparent"
+        variant="full-width"
+        showPageHeader={false}
+      >
         {/* Connection Status - Properly positioned */}
         {hasAttemptedConnection && isConnecting && (
           <div className="absolute top-6 right-6 z-30 bg-blue-500 text-white px-3 py-2 rounded-lg shadow-lg text-sm opacity-90">
@@ -629,7 +654,7 @@ const MessengerPage: React.FC = () => {
         )}
 
         {/* Messenger Modal-like Container */}
-        <div className="relative w-full" style={{ height: 'calc(100vh - 80px)' }}>
+        <div className="relative w-full" style={{ height: 'calc(100vh - 250px)' }}>
           <div className="h-full bg-white rounded-2xl shadow-2xl border-2 border-gray-300 overflow-hidden backdrop-blur-md">
             {/* Messenger Header */}
             <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 px-6 py-4 text-white">
@@ -742,7 +767,7 @@ const MessengerPage: React.FC = () => {
             </div>
           )}
         </div>
-      </MessengerPageLayout>
+      </ThreePanelLayout>
     );
   };
 

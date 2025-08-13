@@ -381,20 +381,20 @@ const Layout: React.FC = () => {
                 Home
               </Link>
               <Link 
-                to="/search" 
-                className="nav-link"
-                onClick={(e) => handleAuthRequiredNavigation('/search', e)}
-              >
-                <Search size={16} />
-                Search
-              </Link>
-              <Link 
                 to="/entity" 
                 className="nav-link"
                 onClick={(e) => handleAuthRequiredNavigation('/entity', e)}
               >
                 <Building2 size={16} />
                 Browse Entities
+              </Link>
+              <Link 
+                to="/search" 
+                className="nav-link"
+                onClick={(e) => handleAuthRequiredNavigation('/search', e)}
+              >
+                <Search size={16} />
+                Search
               </Link>
               
               {/* Always show these nav items, but require auth for non-authenticated users */}

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
 import { userService, homepageService, entityService, reviewService } from '../../api/services';
 import { reviewStatsService } from '../../services/reviewStatsService';
-import UserProfilePageLayout from './components/UserProfilePageLayout';
+import ThreePanelLayout from '../../shared/layouts/ThreePanelLayout';
 import LoadingSpinner from '../../shared/atoms/LoadingSpinner';
 import { Button } from '../../shared/design-system/components/Button';
 import { useToast } from '../../shared/design-system/components/Toast';
@@ -809,17 +809,31 @@ const ModularUserProfilePage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <UserProfilePageLayout>
+      <ThreePanelLayout
+        pageTitle="👤 User Profile"
+        leftPanelTitle="🌟 Community Highlights"
+        rightPanelTitle="💡 Profile Suggestions"
+        centerPanelWidth="700px"
+        headerGradient="from-cyan-600 via-blue-600 to-indigo-800"
+        centerPanelClassName="bg-white rounded-2xl shadow-lg border border-gray-200 p-6"
+      >
         <div className="flex items-center justify-center min-h-screen">
           <LoadingSpinner size="lg" />
         </div>
-      </UserProfilePageLayout>
+      </ThreePanelLayout>
     );
   }
 
   if (error) {
     return (
-      <UserProfilePageLayout>
+      <ThreePanelLayout
+        pageTitle="👤 User Profile"
+        leftPanelTitle="🌟 Community Highlights"
+        rightPanelTitle="💡 Profile Suggestions"
+        centerPanelWidth="700px"
+        headerGradient="from-cyan-600 via-blue-600 to-indigo-800"
+        centerPanelClassName="bg-white rounded-2xl shadow-lg border border-gray-200 p-6"
+      >
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="text-red-500 text-6xl mb-4">⚠️</div>
@@ -830,13 +844,20 @@ const ModularUserProfilePage: React.FC = () => {
             </Button>
           </div>
         </div>
-      </UserProfilePageLayout>
+      </ThreePanelLayout>
     );
   }
 
   if (!userProfile) {
     return (
-      <UserProfilePageLayout>
+      <ThreePanelLayout
+        pageTitle="👤 User Profile"
+        leftPanelTitle="🌟 Community Highlights"
+        rightPanelTitle="💡 Profile Suggestions"
+        centerPanelWidth="700px"
+        headerGradient="from-cyan-600 via-blue-600 to-indigo-800"
+        centerPanelClassName="bg-white rounded-2xl shadow-lg border border-gray-200 p-6"
+      >
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="text-gray-400 text-6xl mb-4">👤</div>
@@ -844,28 +865,43 @@ const ModularUserProfilePage: React.FC = () => {
             <p className="text-gray-600">The user profile you're looking for doesn't exist.</p>
           </div>
         </div>
-      </UserProfilePageLayout>
+      </ThreePanelLayout>
     );
   }
 
   // Show loading if auth is still loading
   if (authLoading) {
     return (
-      <UserProfilePageLayout>
+      <ThreePanelLayout
+        pageTitle="👤 User Profile"
+        leftPanelTitle="🌟 Community Highlights"
+        rightPanelTitle="💡 Profile Suggestions"
+        centerPanelWidth="700px"
+        headerGradient="from-cyan-600 via-blue-600 to-indigo-800"
+        centerPanelClassName="bg-white rounded-2xl shadow-lg border border-gray-200 p-6"
+      >
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <p className="text-gray-600">Loading profile...</p>
           </div>
         </div>
-      </UserProfilePageLayout>
+      </ThreePanelLayout>
     );
   }
 
   const stats = getUserStats();
 
   return (
-    <UserProfilePageLayout>
+    <ThreePanelLayout
+      pageTitle={`👤 ${userProfile.name || userProfile.username}'s Profile`}
+      leftPanelTitle="🌟 Community Highlights"
+      rightPanelTitle="💡 Profile Suggestions"
+      centerPanelWidth="700px"
+      headerGradient="from-cyan-600 via-blue-600 to-indigo-800"
+      centerPanelClassName="bg-white rounded-2xl shadow-lg border border-gray-200 p-6"
+      variant="full-width"
+    >
       {/* User Profile Middle Panel Content */}
       {/* Modular Profile Header */}
       <ModularProfileHeader
@@ -959,7 +995,7 @@ const ModularUserProfilePage: React.FC = () => {
           {toast.message}
         </div>
       )}
-    </UserProfilePageLayout>
+    </ThreePanelLayout>
   );
 };
 

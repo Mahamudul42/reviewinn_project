@@ -5,7 +5,7 @@ import { entityService, reviewService } from '../../api/services';
 import StatCard from '../../shared/atoms/StatCard';
 import ProgressBar from '../../shared/atoms/ProgressBar';
 import LoadingSpinner from '../../shared/atoms/LoadingSpinner';
-import DashboardPageLayout from './components/DashboardPageLayout';
+import ThreePanelLayout from '../../shared/layouts/ThreePanelLayout';
 import type { Review, Entity } from '../../types';
 // Removed mockUsers import - using real user data now
 
@@ -77,7 +77,15 @@ const DashboardPage: React.FC = () => {
   };
 
   return (
-    <DashboardPageLayout>
+    <ThreePanelLayout
+      pageTitle="📊 Dashboard"
+      leftPanelTitle="🌟 Community Highlights"
+      rightPanelTitle="💡 Quick Actions & Stats"
+      centerPanelWidth="700px"
+      headerGradient="from-emerald-600 via-green-600 to-teal-800"
+      centerPanelClassName="bg-white rounded-2xl shadow-lg border border-gray-200 p-6"
+      variant="full-width"
+    >
       {/* Dashboard Middle Panel Content */}
       {/* Header */}
       <div className="mb-8">
@@ -300,7 +308,7 @@ const DashboardPage: React.FC = () => {
             </div>
           </>
         )}
-    </DashboardPageLayout>
+    </ThreePanelLayout>
   );
 };
 

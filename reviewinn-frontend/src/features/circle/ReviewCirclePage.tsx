@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Users, UserPlus, TrendingUp, Settings, Search, Clock, Ban } from 'lucide-react';
 import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
 import { circleService, homepageService } from '../../api/services';
-import ReviewCirclePageLayout from './components/ReviewCirclePageLayout';
+import ThreePanelLayout from '../../shared/layouts/ThreePanelLayout';
 import LoadingSpinner from '../../shared/atoms/LoadingSpinner';
 import { useConfirmation, ConfirmationProvider } from '../../shared/components/ConfirmationSystem';
 import { 
@@ -628,7 +628,15 @@ const ReviewCirclePageContent: React.FC = () => {
 
   // Main render
   return (
-    <ReviewCirclePageLayout>
+    <ThreePanelLayout
+      pageTitle="👥 Review Circle"
+      leftPanelTitle="🌟 Community Highlights"
+      rightPanelTitle="💡 Circle Recommendations"
+      centerPanelWidth="700px"
+      headerGradient="from-purple-600 via-pink-600 to-red-800"
+      centerPanelClassName="bg-white rounded-2xl shadow-lg border border-gray-200 p-6"
+      variant="full-width"
+    >
       {/* Review Circle Middle Panel Content */}
       {error ? (
         <div className="flex items-center justify-center min-h-[600px]">
@@ -866,7 +874,7 @@ const ReviewCirclePageContent: React.FC = () => {
 
         </div>
       )}
-    </ReviewCirclePageLayout>
+    </ThreePanelLayout>
   );
 };
 
