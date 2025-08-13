@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useState } from 'react';
-import DashboardLayout from '../../shared/layouts/DashboardLayout';
+import ThreePanelLayout from '../../shared/layouts/ThreePanelLayout';
 import { useOptimizedEntityDetail } from '../../hooks/useOptimizedEntityDetail';
 import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
 
@@ -150,16 +150,20 @@ const EntityDetailPage: React.FC = () => {
   // Show skeleton during initial load for better UX
   if (isLoading && isInitialLoad) {
     return (
-      <DashboardLayout
+      <ThreePanelLayout 
+        leftPanelTitle="🌟 Community Highlights"
+        rightPanelTitle="💡 Insights & Related"
       >
         <EntityPageSkeleton />
-      </DashboardLayout>
+      </ThreePanelLayout>
     );
   }
 
   if (error || !entity) {
     return (
-      <DashboardLayout
+      <ThreePanelLayout 
+        leftPanelTitle="🌟 Community Highlights"
+        rightPanelTitle="💡 Insights & Related"
       >
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
@@ -185,135 +189,165 @@ const EntityDetailPage: React.FC = () => {
             </div>
           </div>
         </div>
-      </DashboardLayout>
+      </ThreePanelLayout>
     );
   }
 
   return (
     <EntityErrorBoundary>
-      <DashboardLayout
+      <ThreePanelLayout 
+        leftPanelTitle="🌟 Community Highlights"
+        rightPanelTitle="💡 Related Entities & Insights"
+        pageTitle={`${entity?.name || 'Entity'} Details`}
       >
+        {/* Entity Detail Middle Panel Content */}
+        <div className="w-full space-y-6 px-8">
+          {/* Page Header */}
+          <div className="text-center mb-6">
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">Entity Details</h2>
+            <p className="text-gray-600">Detailed information about {entity.name}</p>
+          </div>
 
-        <div className="space-y-6">
           {/* Entity Card */}
-          <Suspense fallback={<div className="h-48 bg-gray-100 rounded-xl animate-pulse" />}>
-            <EntityListCard 
-              entity={entity as any} 
-              showEngagementMetrics={true}
-              showActions={true}
-              className="w-full"
-              onClick={() => {}} // Prevent navigation since we're already on the entity page
-            />
-          </Suspense>
+          <div className="bg-white border-2 border-gray-800 shadow-lg rounded-xl p-6">
+            <Suspense fallback={<div className="h-48 bg-gray-100 rounded-xl animate-pulse" />}>
+              <EntityListCard 
+                entity={entity as any} 
+                showEngagementMetrics={true}
+                showActions={true}
+                className="w-full"
+                onClick={() => {}} // Prevent navigation since we're already on the entity page
+              />
+            </Suspense>
+          </div>
 
           {/* Entity Description */}
-          <Suspense fallback={<div className="h-32 bg-gray-100 rounded-xl animate-pulse" />}>
-            <EntityDescription entity={entity} />
-          </Suspense>
+          <div className="bg-white border-2 border-gray-800 shadow-lg rounded-xl p-6">
+            <Suspense fallback={<div className="h-32 bg-gray-100 rounded-xl animate-pulse" />}>
+              <EntityDescription entity={entity} />
+            </Suspense>
+          </div>
 
           {/* Entity Roles Section - Show multiple professional roles */}
-          <Suspense fallback={<div className="h-48 bg-gray-100 rounded-xl animate-pulse" />}>
-            <EntityRolesSection 
-              entity={entity}
-              onRoleSelect={(roleId) => {
-                console.log('Selected role:', roleId);
-                // TODO: Filter reviews by role
-              }}
-              onWriteReview={(roleId) => {
-                console.log('Write review for role:', roleId);
-                handleOpenReviewModal();
-              }}
-            />
-          </Suspense>
-
-          {/* Entity Actions */}
-          <Suspense fallback={<div className="h-16 bg-gray-100 rounded-xl animate-pulse" />}>
-            <EntityActions 
-              entity={entity}
-              onWriteReview={handleOpenReviewModal}
-              onBookmark={() => {
-                console.log('Bookmark:', entity.name);
-              }}
-              onShare={() => {
-                console.log('Share:', entity.name);
-              }}
-              onExternalLink={() => {
-                console.log('External link for:', entity.name);
-              }}
-            />
-          </Suspense>
-
-          {/* Entity Management Actions */}
-          <Suspense fallback={<div className="h-16 bg-gray-100 rounded-xl animate-pulse" />}>
-            <EntityManagementActions
-              entity={entity}
-              onEntityUpdate={(updatedEntity) => {
-                // Refresh the entity data
-                refreshEntity();
-              }}
-              onEntityDelete={() => {
-                // Redirect to home page after deletion
-                navigate('/');
-              }}
-              className="justify-center"
-            />
-          </Suspense>
-
-          {/* Rating Breakdown */}
-          {hasReviews && (
-            <Suspense fallback={<div className="h-64 bg-gray-100 rounded-xl animate-pulse" />}>
-              <RatingBreakdown
-                reviews={allReviews}
-                totalReviews={totalReviews}
-                averageRating={averageRating}
+          <div className="bg-white border-2 border-gray-800 shadow-lg rounded-xl p-6">
+            <Suspense fallback={<div className="h-48 bg-gray-100 rounded-xl animate-pulse" />}>
+              <EntityRolesSection 
+                entity={entity}
+                onRoleSelect={(roleId) => {
+                  console.log('Selected role:', roleId);
+                  // TODO: Filter reviews by role
+                }}
+                onWriteReview={(roleId) => {
+                  console.log('Write review for role:', roleId);
+                  handleOpenReviewModal();
+                }}
               />
             </Suspense>
-          )}
+          </div>
 
-          {/* Enhanced Filter Controls */}
-          {hasReviews && (
+          {/* Entity Actions & Management */}
+          <div className="bg-white border-2 border-gray-800 shadow-lg rounded-xl p-6">
             <Suspense fallback={<div className="h-16 bg-gray-100 rounded-xl animate-pulse" />}>
-              <FilterControls
-                allReviews={allReviews}
-                displayedReviews={displayedReviews}
-                selectedRating={selectedRating}
-                timeSort={timeSort}
-                showSortDropdown={showSortDropdown}
-                isSorting={isSorting}
-                onRatingChange={handleRatingChange}
-                onTimeSortChange={handleTimeSortChange}
-                onToggleSortDropdown={handleToggleSortDropdown}
+              <EntityActions 
+                entity={entity}
+                onWriteReview={handleOpenReviewModal}
+                onBookmark={() => {
+                  console.log('Bookmark:', entity.name);
+                }}
+                onShare={() => {
+                  console.log('Share:', entity.name);
+                }}
+                onExternalLink={() => {
+                  console.log('External link for:', entity.name);
+                }}
               />
             </Suspense>
-          )}
 
-          {/* Optimized Reviews List */}
-          <LazyReviewsList
-            reviews={displayedReviews}
-            selectedRating={selectedRating}
-            isSorting={isSorting}
-          />
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <Suspense fallback={<div className="h-16 bg-gray-100 rounded-xl animate-pulse" />}>
+                <EntityManagementActions
+                  entity={entity}
+                  onEntityUpdate={(updatedEntity) => {
+                    // Refresh the entity data
+                    refreshEntity();
+                  }}
+                  onEntityDelete={() => {
+                    // Redirect to home page after deletion
+                    navigate('/');
+                  }}
+                  className="justify-center"
+                />
+              </Suspense>
+            </div>
+          </div>
+
+          {/* Reviews Section */}
+          {hasReviews ? (
+            <div className="space-y-6">
+              {/* Rating Breakdown */}
+              <div className="bg-white border-2 border-gray-800 shadow-lg rounded-xl p-6">
+                <h3 className="text-xl font-semibold text-gray-800 mb-4">📊 Rating Breakdown</h3>
+                <Suspense fallback={<div className="h-64 bg-gray-100 rounded-xl animate-pulse" />}>
+                  <RatingBreakdown
+                    reviews={allReviews}
+                    totalReviews={totalReviews}
+                    averageRating={averageRating}
+                  />
+                </Suspense>
+              </div>
+
+              {/* Filter Controls */}
+              <div className="bg-white border-2 border-gray-800 shadow-lg rounded-xl p-6">
+                <h3 className="text-xl font-semibold text-gray-800 mb-4">🔍 Filter & Sort Reviews</h3>
+                <Suspense fallback={<div className="h-16 bg-gray-100 rounded-xl animate-pulse" />}>
+                  <FilterControls
+                    allReviews={allReviews}
+                    displayedReviews={displayedReviews}
+                    selectedRating={selectedRating}
+                    timeSort={timeSort}
+                    showSortDropdown={showSortDropdown}
+                    isSorting={isSorting}
+                    onRatingChange={handleRatingChange}
+                    onTimeSortChange={handleTimeSortChange}
+                    onToggleSortDropdown={handleToggleSortDropdown}
+                  />
+                </Suspense>
+              </div>
+
+              {/* Reviews List */}
+              <div className="bg-white border-2 border-gray-800 shadow-lg rounded-xl p-6">
+                <h3 className="text-xl font-semibold text-gray-800 mb-4">💬 Reviews ({filteredReviewsCount})</h3>
+                <LazyReviewsList
+                  reviews={displayedReviews}
+                  selectedRating={selectedRating}
+                  isSorting={isSorting}
+                />
+              </div>
+            </div>
+          ) : null}
 
           {/* No Reviews Message */}
           {!hasReviews && (
-            <div className="text-center py-12">
-              <div className="mx-auto mb-6 w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center">
-                <span className="text-4xl">📝</span>
+            <div className="bg-white border-2 border-gray-800 shadow-lg rounded-xl p-6">
+              <div className="text-center py-12">
+                <div className="mx-auto mb-6 w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center">
+                  <span className="text-4xl">📝</span>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                  No Reviews Yet
+                </h3>
+                <p className="text-gray-500 max-w-md mx-auto mb-6">
+                  Be the first to review this entity and help others discover it!
+                </p>
+                {canWriteReview && (
+                  <button
+                    onClick={handleOpenReviewModal}
+                    className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold shadow hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  >
+                    Write First Review
+                  </button>
+                )}
               </div>
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">
-                No Reviews Yet
-              </h3>
-              <p className="text-gray-500 max-w-md mx-auto mb-6">
-                Be the first to review this {entity.category.toLowerCase().replace('_', ' ')}!
-              </p>
-              {canWriteReview && (
-                <button
-                  onClick={handleOpenReviewModal}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold shadow hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                >
-                  Write First Review
-                </button>
-              )}
             </div>
           )}
         </div>
@@ -327,7 +361,7 @@ const EntityDetailPage: React.FC = () => {
           preselectedEntity={entity}
         />
 
-      </DashboardLayout>
+      </ThreePanelLayout>
     </EntityErrorBoundary>
   );
 };
