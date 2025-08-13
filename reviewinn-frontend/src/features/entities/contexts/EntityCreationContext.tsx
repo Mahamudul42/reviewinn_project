@@ -114,78 +114,100 @@ export const EntityCreationProvider: React.FC<EntityCreationProviderProps> = ({ 
     
     const selectedCategory = state.selectedCategory;
     
-    // Method 1: Check path field for exact matches (most reliable)
-    if (selectedCategory.path) {
-      const path = selectedCategory.path.toLowerCase();
-      
-      console.log('🔍 EntityCreationContext - Path detection:', path);
-      
-      // Check for custom category first
-      if (path.includes('other.custom') || path === 'other.custom') {
-        console.log('✅ Detected as custom from path');
-        return 'custom';
-      }
-      
-      // Check root categories by path prefix
-      if (path.startsWith('professionals') || path === 'professionals') {
-        console.log('✅ Detected as professional from path');
-        return 'professional';
-      }
-      if (path.startsWith('companiesinstitutes') || path === 'companiesinstitutes') {
-        console.log('✅ Detected as company from path');
-        return 'company';
-      }
-      if (path.startsWith('places') || path === 'places') {
-        console.log('✅ Detected as location from path');
-        return 'location';
-      }
-      if (path.startsWith('products') || path === 'products') {
-        console.log('✅ Detected as product from path');
-        return 'product';
-      }
-      if (path.startsWith('other') || path === 'other') {
-        console.log('✅ Detected as custom from other path');
-        return 'custom';
-      }
-    }
+    console.log('🔍 EntityCreationContext - Category detection for:', {
+      name: selectedCategory.name,
+      slug: selectedCategory.slug,
+      path: selectedCategory.path,
+      path_text: (selectedCategory as any).path_text,
+      level: selectedCategory.level,
+      category: selectedCategory
+    });
     
-    // Method 2: Check if it's a root category by slug
-    if (selectedCategory.is_root || selectedCategory.level <= 1) {
-      const rootSlug = selectedCategory.slug.toLowerCase();
-      console.log('🔍 EntityCreationContext - Root slug detection:', rootSlug);
-      
-      if (rootSlug === 'professionals') return 'professional';
-      if (rootSlug === 'companiesinstitutes') return 'company';
-      if (rootSlug === 'places') return 'location';
-      if (rootSlug === 'products') return 'product';
-      if (rootSlug === 'other') return 'custom';
-      
-      // Fallback slug patterns for backwards compatibility
-      if (rootSlug.includes('professional') || rootSlug.includes('person') || rootSlug.includes('people')) return 'professional';
-      if (rootSlug.includes('compan') || rootSlug.includes('business') || rootSlug.includes('organization')) return 'company';
-      if (rootSlug.includes('location') || rootSlug.includes('place') || rootSlug.includes('venue')) return 'location';
-      if (rootSlug.includes('product') || rootSlug.includes('service') || rootSlug.includes('item')) return 'product';
-    }
-    
-    // Method 3: Check path_text (from search API)
+    // Method 1: Check path_text field first (from search API results)
     const pathText = (selectedCategory as any).path_text;
     if (pathText) {
       const pathLower = pathText.toLowerCase();
       console.log('🔍 EntityCreationContext - Path text detection:', pathText);
       
-      if (pathLower.includes('other') && pathLower.includes('custom')) return 'custom';
-      if (pathLower.includes('professional') || pathLower.includes('person') || pathLower.includes('people')) return 'professional';
-      if (pathLower.includes('compan') || pathLower.includes('business') || pathLower.includes('organization')) return 'company';
-      if (pathLower.includes('location') || pathLower.includes('place') || pathLower.includes('venue')) return 'location';
-      if (pathLower.includes('product') || pathLower.includes('service') || pathLower.includes('item')) return 'product';
+      // Check for root category patterns in path_text
+      if (pathLower.startsWith('products') || pathLower.includes('products >')) {
+        console.log('✅ Detected as product from path_text');
+        return 'product';
+      }
+      if (pathLower.startsWith('professionals') || pathLower.includes('professionals >')) {
+        console.log('✅ Detected as professional from path_text');
+        return 'professional';
+      }
+      if (pathLower.startsWith('companies') || pathLower.includes('companies') || pathLower.includes('institutes')) {
+        console.log('✅ Detected as company from path_text');
+        return 'company';
+      }
+      if (pathLower.startsWith('places') || pathLower.includes('places >')) {
+        console.log('✅ Detected as location from path_text');
+        return 'location';
+      }
+      if (pathLower.startsWith('other') || pathLower.includes('other >') || pathLower.includes('custom')) {
+        console.log('✅ Detected as custom from path_text');
+        return 'custom';
+      }
+    }
+    
+    // Method 2: Check path field for exact matches (from main API)
+    if (selectedCategory.path) {
+      const path = selectedCategory.path.toLowerCase();
+      console.log('🔍 EntityCreationContext - Path detection:', path);
+      
+      // Check for custom category first
+      if (path.includes('other.custom') || path === 'other.custom' || path.startsWith('303')) {
+        console.log('✅ Detected as custom from path');
+        return 'custom';
+      }
+      
+      // Check root categories by path prefix (using numeric IDs from your database)
+      if (path.startsWith('1.') || path === '1') { // Professionals root ID = 1
+        console.log('✅ Detected as professional from path');
+        return 'professional';
+      }
+      if (path.startsWith('115.') || path === '115') { // Companies/Institutes root ID = 115
+        console.log('✅ Detected as company from path');
+        return 'company';
+      }
+      if (path.startsWith('186.') || path === '186') { // Places root ID = 186
+        console.log('✅ Detected as location from path');
+        return 'location';
+      }
+      if (path.startsWith('235.') || path === '235') { // Products root ID = 235
+        console.log('✅ Detected as product from path');
+        return 'product';
+      }
+      if (path.startsWith('303.') || path === '303') { // Other root ID = 303
+        console.log('✅ Detected as custom from path');
+        return 'custom';
+      }
+    }
+    
+    // Method 3: Check if it's a root category by slug and level
+    if (selectedCategory.is_root || selectedCategory.level <= 1) {
+      const rootSlug = selectedCategory.slug.toLowerCase();
+      console.log('🔍 EntityCreationContext - Root slug detection:', rootSlug);
+      
+      if (rootSlug === 'professionals') return 'professional';
+      if (rootSlug === 'companies_institutes' || rootSlug === 'companiesinstitutes') return 'company';
+      if (rootSlug === 'places') return 'location';
+      if (rootSlug === 'products') return 'product';
+      if (rootSlug === 'other') return 'custom';
     }
     
     // Method 4: Check individual slug patterns
     const categorySlug = selectedCategory.slug.toLowerCase();
+    console.log('🔍 EntityCreationContext - Slug pattern detection:', categorySlug);
+    
     if (categorySlug === 'custom') return 'custom';
     if (categorySlug.includes('company') || categorySlug.includes('institution') || categorySlug.includes('business')) return 'company';
     if (categorySlug.includes('location') || categorySlug.includes('place') || categorySlug.includes('venue')) return 'location';
-    if (categorySlug.includes('product') || categorySlug.includes('service') || categorySlug.includes('item')) return 'product';
+    if (categorySlug.includes('product') || categorySlug.includes('service') || categorySlug.includes('item') || 
+        categorySlug.includes('smartphone') || categorySlug.includes('electronics') || categorySlug.includes('fashion') ||
+        categorySlug.includes('food') || categorySlug.includes('beverage') || categorySlug.includes('automotive')) return 'product';
     
     console.log('🔍 EntityCreationContext - Fallback to professional for:', selectedCategory);
     return 'professional';
