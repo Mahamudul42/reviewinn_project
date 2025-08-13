@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useReviewInnLeftPanel } from '../hooks/useReviewInnLeftPanel';
 import ReviewDetailModal from '../../reviews/components/ReviewDetailModal';
+import { viewTrackingService } from '../../../api/viewTracking';
 import type { ReviewInnLeftPanelReview } from '../../../api/services/reviewinnLeftPanelService';
 
 /**
@@ -15,15 +16,36 @@ const ReviewInnLeftPanel: React.FC = () => {
   const [showReportModal, setShowReportModal] = useState(false);
   const [selectedReview, setSelectedReview] = useState<ReviewInnLeftPanelReview | null>(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [localViewCounts, setLocalViewCounts] = useState<Record<number, number>>({});
 
   // Consistent styling from existing Sidebar component
   const cardBg = "bg-white bg-gradient-to-br from-yellow-50 to-white border border-yellow-300 w-full max-w-full overflow-hidden";
   const cardWrapper = "p-4 shadow-md rounded-lg bg-white w-full max-w-full overflow-hidden";
 
-  // Handle review click to open modal
-  const handleReviewClick = (review: ReviewInnLeftPanelReview) => {
+  // Handle review click to open modal with view tracking
+  const handleReviewClick = async (review: ReviewInnLeftPanelReview) => {
     setSelectedReview(review);
     setShowReviewModal(true);
+    
+    // Track view when modal opens (similar to useReviewCard behavior)
+    try {
+      const result = await viewTrackingService.trackReviewView(review.review_id);
+      if (result && result.tracked && result.view_count) {
+        // Update local view count for this specific review
+        setLocalViewCounts(prev => ({
+          ...prev,
+          [review.review_id]: result.view_count
+        }));
+        console.log(`View tracked for review ${review.review_id}: ${result.view_count} total views`);
+      }
+    } catch (error) {
+      console.error('Failed to track view:', error);
+    }
+  };
+
+  // Get current view count (local override or original)
+  const getViewCount = (review: ReviewInnLeftPanelReview) => {
+    return localViewCounts[review.review_id] ?? review.view_count;
   };
 
   // Transform left panel review data to format expected by ReviewDetailModal
@@ -34,7 +56,7 @@ const ReviewInnLeftPanel: React.FC = () => {
       title: review.title,
       content: review.content,
       overall_rating: review.overall_rating,
-      view_count: review.view_count,
+      view_count: getViewCount(review), // Use updated view count
       reaction_count: review.reaction_count,
       comment_count: review.comment_count,
       reactions: review.top_reactions || {},
@@ -216,7 +238,7 @@ const ReviewInnLeftPanel: React.FC = () => {
                     </span>
                     <span className="flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-full">
                       <span>👁️</span>
-                      <span className="font-medium">{review.view_count}</span>
+                      <span className="font-medium">{getViewCount(review)}</span>
                     </span>
                     <span className="flex items-center gap-1 bg-red-50 px-2 py-1 rounded-full">
                       <span>❤️</span>
