@@ -1,7 +1,8 @@
 import React from 'react';
-import { TrendingUp } from 'lucide-react';
+import { TrendingUp, Users, Search, UserPlus, Sparkles } from 'lucide-react';
 import { circleService } from '../../../api/services';
 import UserDisplay from './UserDisplay';
+import { EmptyState } from '../../../shared/components/EmptyState';
 import type { CircleSuggestion, User } from '../../../types';
 import '../circle-purple-buttons.css';
 
@@ -121,9 +122,24 @@ const CircleSuggestions: React.FC<CircleSuggestionsProps> = ({
       </div>
       
       {suggestions.length === 0 ? (
-        <div className="text-center py-8 text-purple-400">
-          <TrendingUp size={48} className="mx-auto mb-2 text-purple-300" />
-          <p>No suggestions available</p>
+        <div className="bg-gradient-to-br from-white to-purple-50 border border-purple-200 rounded-xl p-8 shadow-sm">
+          <EmptyState
+            icon={<Sparkles className="w-16 h-16" />}
+            title="No Suggestions Yet"
+            description="We're working on finding the perfect reviewers for your circle based on your interests and review history. Check back soon!"
+            action={
+              <div className="flex flex-col space-y-3">
+                <button className="circle-action-button-primary px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:scale-105 flex items-center space-x-2">
+                  <Search className="w-4 h-4" />
+                  <span>Search Users</span>
+                </button>
+                <button className="bg-white text-purple-600 border border-purple-200 px-6 py-2 rounded-lg font-medium hover:bg-purple-50 transition-all duration-200 flex items-center space-x-2">
+                  <UserPlus className="w-4 h-4" />
+                  <span>Invite Friends</span>
+                </button>
+              </div>
+            }
+          />
         </div>
       ) : (
         <div className="grid gap-4">

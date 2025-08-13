@@ -1,4 +1,6 @@
 import React from 'react';
+import { BarChart3, TrendingUp, Users, RefreshCw } from 'lucide-react';
+import { EmptyState } from '../../../shared/components/EmptyState';
 import type { CircleAnalytics } from '../../../types';
 
 interface CircleAnalyticsProps {
@@ -6,6 +8,33 @@ interface CircleAnalyticsProps {
 }
 
 const CircleAnalytics: React.FC<CircleAnalyticsProps> = ({ analytics }) => {
+  if (!analytics) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Circle Analytics</h2>
+        <div className="bg-gradient-to-br from-white to-blue-50 border border-blue-200 rounded-xl p-8 shadow-sm">
+          <EmptyState
+            icon={<BarChart3 className="w-16 h-16 text-blue-500" />}
+            title="Analytics Coming Soon"
+            description="Your circle analytics will appear here once you have some members and activity. Start building your circle to see meaningful insights!"
+            action={
+              <div className="flex flex-col space-y-3">
+                <button className="bg-blue-500 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:bg-blue-600 hover:scale-105 flex items-center space-x-2">
+                  <Users className="w-4 h-4" />
+                  <span>Add Members</span>
+                </button>
+                <button className="bg-white text-blue-600 border border-blue-200 px-6 py-2 rounded-lg font-medium hover:bg-blue-50 transition-all duration-200 flex items-center space-x-2">
+                  <RefreshCw className="w-4 h-4" />
+                  <span>Refresh Data</span>
+                </button>
+              </div>
+            }
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Circle Analytics</h2>

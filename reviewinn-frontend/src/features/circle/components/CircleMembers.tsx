@@ -1,7 +1,8 @@
 import React from 'react';
-import { MoreVertical, UserMinus, Ban, Eye, Shield, Users, TrendingUp } from 'lucide-react';
+import { MoreVertical, UserMinus, Ban, Eye, Shield, Users, TrendingUp, UserPlus, Search } from 'lucide-react';
 import { circleService } from '../../../api/services';
 import UserDisplay from './UserDisplay';
+import { EmptyState } from '../../../shared/components/EmptyState';
 import type { CircleMember } from '../../../types';
 import '../circle-purple-buttons.css';
 
@@ -28,8 +29,29 @@ const CircleMembers: React.FC<CircleMembersProps> = ({
         <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Circle Members ({members.length})</h2>
       </div>
       
-      <div className="grid gap-4">
-        {members.map((member) => (
+      {members.length === 0 ? (
+        <div className="bg-gradient-to-br from-white to-purple-50 border border-purple-200 rounded-xl p-8 shadow-sm">
+          <EmptyState
+            icon={<Users className="w-16 h-16" />}
+            title="No Circle Members Yet"
+            description="Your review circle is ready to grow! Start building your trusted network by inviting reviewers who share your interests."
+            action={
+              <div className="flex flex-col space-y-3">
+                <button className="circle-action-button-primary px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:scale-105 flex items-center space-x-2">
+                  <UserPlus className="w-4 h-4" />
+                  <span>Find Reviewers</span>
+                </button>
+                <button className="bg-white text-purple-600 border border-purple-200 px-6 py-2 rounded-lg font-medium hover:bg-purple-50 transition-all duration-200 flex items-center space-x-2">
+                  <Search className="w-4 h-4" />
+                  <span>Browse Suggestions</span>
+                </button>
+              </div>
+            }
+          />
+        </div>
+      ) : (
+        <div className="grid gap-4">
+          {members.map((member) => (
           <div key={member.connection_id} className="bg-gradient-to-br from-white to-purple-50 border border-purple-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-200">
             <div className="space-y-3">
               <UserDisplay 
@@ -153,8 +175,9 @@ const CircleMembers: React.FC<CircleMembersProps> = ({
               </div>
             </div>
           </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

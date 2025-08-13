@@ -1,6 +1,7 @@
 import React from 'react';
-import { Clock, Check, X } from 'lucide-react';
+import { Clock, Check, X, Users, Mail, UserPlus } from 'lucide-react';
 import UserDisplay from './UserDisplay';
+import { EmptyState } from '../../../shared/components/EmptyState';
 import type { CircleRequest, CircleInvite } from '../../../types';
 import '../circle-purple-buttons.css';
 
@@ -15,6 +16,32 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
   receivedInvites,
   onRequestResponse
 }) => {
+  const hasAnyRequests = pendingRequests.length > 0 || receivedInvites.length > 0;
+
+  if (!hasAnyRequests) {
+    return (
+      <div className="bg-gradient-to-br from-white to-purple-50 border border-purple-200 rounded-xl p-8 shadow-sm">
+        <EmptyState
+          icon={<Mail className="w-16 h-16" />}
+          title="No Circle Requests"
+          description="You haven't received any circle requests yet. Share your interests and connect with like-minded reviewers to start building your circle!"
+          action={
+            <div className="flex flex-col space-y-3">
+              <button className="circle-action-button-primary px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:scale-105 flex items-center space-x-2">
+                <Users className="w-4 h-4" />
+                <span>Find People</span>
+              </button>
+              <button className="bg-white text-purple-600 border border-purple-200 px-6 py-2 rounded-lg font-medium hover:bg-purple-50 transition-all duration-200 flex items-center space-x-2">
+                <UserPlus className="w-4 h-4" />
+                <span>View Suggestions</span>
+              </button>
+            </div>
+          }
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Pending Circle Requests */}
@@ -23,10 +50,18 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
           Circle Requests ({pendingRequests.length})
         </h2>
         {pendingRequests.length === 0 ? (
-          <div className="text-center py-6 text-purple-400">
-            <Clock size={32} className="mx-auto mb-2 text-purple-300" />
-            <p>No pending circle requests</p>
-            <p className="text-sm">When someone wants to join your circle, requests will appear here</p>
+          <div className="bg-gradient-to-br from-white to-purple-50 border border-purple-200 rounded-xl p-8 shadow-sm">
+            <EmptyState
+              icon={<Clock className="w-16 h-16" />}
+              title="No Pending Requests"
+              description="When people want to join your circle, their requests will appear here for you to review and approve."
+              action={
+                <button className="bg-white text-purple-600 border border-purple-200 px-6 py-2 rounded-lg font-medium hover:bg-purple-50 transition-all duration-200 flex items-center space-x-2">
+                  <UserPlus className="w-4 h-4" />
+                  <span>Invite People</span>
+                </button>
+              }
+            />
           </div>
         ) : (
           <div className="grid gap-4">

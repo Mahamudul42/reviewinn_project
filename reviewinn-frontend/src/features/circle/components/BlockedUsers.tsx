@@ -1,6 +1,7 @@
 import React from 'react';
-import { Ban, EyeOff } from 'lucide-react';
+import { Ban, EyeOff, Shield, CheckCircle } from 'lucide-react';
 import UserDisplay from './UserDisplay';
+import { EmptyState } from '../../../shared/components/EmptyState';
 import type { User } from '../../../types';
 import '../circle-purple-buttons.css';
 
@@ -20,10 +21,18 @@ const BlockedUsers: React.FC<BlockedUsersProps> = ({
       </div>
       
       {blockedUsers.length === 0 ? (
-        <div className="text-center py-8 text-purple-400">
-          <Ban size={48} className="mx-auto mb-2 text-purple-300" />
-          <p>No blocked users</p>
-          <p className="text-sm">Users you block will appear here</p>
+        <div className="bg-gradient-to-br from-white to-green-50 border border-green-200 rounded-xl p-8 shadow-sm">
+          <EmptyState
+            icon={<Shield className="w-16 h-16 text-green-500" />}
+            title="No Blocked Users"
+            description="Great! You haven't blocked anyone yet. Your circle environment is clean and welcoming. Blocked users will appear here if you need to manage them."
+            action={
+              <button className="bg-white text-green-600 border border-green-200 px-6 py-2 rounded-lg font-medium hover:bg-green-50 transition-all duration-200 flex items-center space-x-2">
+                <CheckCircle className="w-4 h-4" />
+                <span>Keep It Clean</span>
+              </button>
+            }
+          />
         </div>
       ) : (
         <div className="grid gap-4">

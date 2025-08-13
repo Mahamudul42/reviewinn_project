@@ -10,11 +10,16 @@
   color: white !important;
 }
 
+/* Exception: Keep count badges black for visibility */
+.circle-nav-button-active .bg-white.bg-opacity-25 {
+  color: black !important;
+}
+
 .circle-nav-button-active .icon {
   color: white !important;
 }
 
-.circle-nav-button-active span {
+.circle-nav-button-active span:not(.bg-white) {
   color: white !important;
 }
 
