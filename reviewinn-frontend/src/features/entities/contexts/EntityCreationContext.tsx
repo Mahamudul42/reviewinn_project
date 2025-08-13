@@ -414,38 +414,50 @@ export const EntityCreationProvider: React.FC<EntityCreationProviderProps> = ({ 
     setState(prev => ({ ...prev, isSubmitting: true, error: null }));
 
     try {
-      // Convert unified category to legacy format for backend compatibility using utility
-
-      // Helper function to find root category ID
+      // Helper function to find root category ID for the new core_entities structure
       const getRootCategoryId = (category: UnifiedCategory): number => {
-        // If this is already a root category (level 1), return its ID
+        // Traverse up the category hierarchy to find the root
         if (category.level === 1) {
-          return category.id;
+          return category.id; // This is already the root category
         }
         
-        // For now, we'll traverse up using the path or return the category itself
-        // TODO: Implement proper parent traversal when API supports it
-        return category.id; // Backend will handle finding the root
+        // For level 2+ categories, extract the root ID from the path
+        if (category.path) {
+          const pathParts = category.path.split('.');
+          return parseInt(pathParts[0]); // First part is always the root ID
+        }
+        
+        // Fallback - the backend should handle finding the correct root
+        return category.id;
       };
 
+      // Map frontend category selection to backend format for core_entities table
       const entityData: EntityFormData = {
         name: state.basicInfo.name,
         description: state.basicInfo.description,
+        
+        // Legacy format for backward compatibility
         category: convertToLegacyCategory(state.selectedCategory.slug),
         subcategory: state.selectedCategory.name,
+        
+        // New core_entities table fields
         unified_category_id: state.selectedCategory.id,
         root_category_id: getRootCategoryId(state.selectedCategory),
         final_category_id: state.selectedCategory.id,
+        
+        // Image and metadata
         avatar: state.entityImage || undefined,
         context: state.primaryRole?.context || undefined,
         additionalContexts: state.additionalRoles.map(role => role.context),
-        fields: {},
+        fields: state.dynamicFields || {},
         customFields: {},
       };
 
-      console.log('🖼️ Entity creation data:', {
+      console.log('🖼️ Entity creation data for core_entities:', {
         avatar: entityData.avatar,
         entityImage: state.entityImage,
+        rootCategoryId: entityData.root_category_id,
+        finalCategoryId: entityData.final_category_id,
         fullEntityData: entityData
       });
 
@@ -453,19 +465,21 @@ export const EntityCreationProvider: React.FC<EntityCreationProviderProps> = ({ 
       
       setState(prev => ({ ...prev, currentStep: 'success', isSubmitting: false }));
       
-      // Redirect after success
+      // Redirect after success - use entity_id for the new table structure
       setTimeout(() => {
-        navigate(`/entity/${entity.id}`);
+        const entityId = entity.entity_id || entity.id;
+        navigate(`/entity/${entityId}`);
       }, 2000);
 
     } catch (error) {
+      console.error('Entity creation failed:', error);
       setState(prev => ({
         ...prev,
         isSubmitting: false,
         error: error instanceof Error ? error.message : 'Failed to create entity',
       }));
     }
-  }, [state.selectedCategory, state.basicInfo, state.primaryRole, state.additionalRoles, state.entityImage, navigate]);
+  }, [state.selectedCategory, state.basicInfo, state.primaryRole, state.additionalRoles, state.entityImage, state.dynamicFields, navigate]);
 
   const contextValue: EntityCreationContextType = {
     // State
