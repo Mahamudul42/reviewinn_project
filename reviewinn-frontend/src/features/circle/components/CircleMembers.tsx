@@ -24,12 +24,12 @@ const CircleMembers: React.FC<CircleMembersProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">Circle Members ({members.length})</h2>
+        <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Circle Members ({members.length})</h2>
       </div>
       
       <div className="grid gap-4">
         {members.map((member) => (
-          <div key={member.connection_id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+          <div key={member.connection_id} className="bg-gradient-to-br from-white to-purple-50 border border-purple-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-200">
             <div className="space-y-3">
               <UserDisplay 
                 user={{
@@ -48,17 +48,17 @@ const CircleMembers: React.FC<CircleMembersProps> = ({
                   <div className="relative">
                     <button
                       onClick={() => onToggleUserMenu(member.connection_id)}
-                      className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                      className="p-1 hover:bg-purple-100 rounded-full transition-colors"
                       title="User actions"
                     >
-                      <MoreVertical size={16} className="text-gray-500" />
+                      <MoreVertical size={16} className="text-purple-500" />
                     </button>
                         
                     {openMenus.has(member.connection_id) && (
-                      <div className="absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-48">
+                      <div className="absolute right-0 top-8 bg-white border border-purple-200 rounded-lg shadow-lg z-10 min-w-48">
                         <div className="py-1">
                           {/* Trust Level Options */}
-                          <div className="px-3 py-2 text-xs font-medium text-gray-500 border-b">
+                          <div className="px-3 py-2 text-xs font-medium text-purple-600 border-b border-purple-100">
                             Trust Level
                           </div>
                           <button
@@ -66,8 +66,8 @@ const CircleMembers: React.FC<CircleMembersProps> = ({
                               onUpdateTrustLevel(member.connection_id, 'REVIEWER', member.user.name);
                               onToggleUserMenu(member.connection_id);
                             }}
-                            className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-center space-x-2 ${
-                              member.trust_level === 'REVIEWER' ? 'bg-blue-50 text-blue-700' : ''
+                            className={`w-full text-left px-3 py-2 text-sm hover:bg-purple-50 flex items-center space-x-2 ${
+                              member.trust_level === 'REVIEWER' ? 'bg-purple-50 text-purple-700' : ''
                             }`}
                           >
                             <Eye size={14} />
@@ -78,8 +78,8 @@ const CircleMembers: React.FC<CircleMembersProps> = ({
                               onUpdateTrustLevel(member.connection_id, 'TRUSTED_REVIEWER', member.user.name);
                               onToggleUserMenu(member.connection_id);
                             }}
-                            className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-center space-x-2 ${
-                              member.trust_level === 'TRUSTED_REVIEWER' ? 'bg-blue-50 text-blue-700' : ''
+                            className={`w-full text-left px-3 py-2 text-sm hover:bg-purple-50 flex items-center space-x-2 ${
+                              member.trust_level === 'TRUSTED_REVIEWER' ? 'bg-purple-50 text-purple-700' : ''
                             }`}
                           >
                             <Shield size={14} />
@@ -90,8 +90,8 @@ const CircleMembers: React.FC<CircleMembersProps> = ({
                               onUpdateTrustLevel(member.connection_id, 'REVIEW_ALLY', member.user.name);
                               onToggleUserMenu(member.connection_id);
                             }}
-                            className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-center space-x-2 ${
-                              member.trust_level === 'REVIEW_ALLY' ? 'bg-blue-50 text-blue-700' : ''
+                            className={`w-full text-left px-3 py-2 text-sm hover:bg-purple-50 flex items-center space-x-2 ${
+                              member.trust_level === 'REVIEW_ALLY' ? 'bg-purple-50 text-purple-700' : ''
                             }`}
                           >
                             <Users size={14} />
@@ -102,8 +102,8 @@ const CircleMembers: React.FC<CircleMembersProps> = ({
                               onUpdateTrustLevel(member.connection_id, 'REVIEW_MENTOR', member.user.name);
                               onToggleUserMenu(member.connection_id);
                             }}
-                            className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-center space-x-2 ${
-                              member.trust_level === 'REVIEW_MENTOR' ? 'bg-blue-50 text-blue-700' : ''
+                            className={`w-full text-left px-3 py-2 text-sm hover:bg-purple-50 flex items-center space-x-2 ${
+                              member.trust_level === 'REVIEW_MENTOR' ? 'bg-purple-50 text-purple-700' : ''
                             }`}
                           >
                             <TrendingUp size={14} />
@@ -111,7 +111,7 @@ const CircleMembers: React.FC<CircleMembersProps> = ({
                           </button>
                           
                           {/* Divider */}
-                          <div className="border-t border-gray-100 my-1"></div>
+                          <div className="border-t border-purple-100 my-1"></div>
                           
                           {/* Actions */}
                           <button

@@ -273,6 +273,36 @@ class CircleService:
         except Exception as e:
             raise BusinessLogicError(f"Failed to get pending requests: {str(e)}")
 
+    def get_sent_requests(self, current_user_id: int) -> Dict[str, List[Dict[str, Any]]]:
+        """Get sent circle requests for the current user."""
+        try:
+            # Get requests sent by the current user
+            requests = self.db.query(SocialCircleRequest).filter(
+                SocialCircleRequest.requester_id == current_user_id
+            ).order_by(SocialCircleRequest.created_at.desc()).all()
+            
+            request_list = []
+            for request in requests:
+                request_data = {
+                    "id": request.request_id,
+                    "recipient": {
+                        "id": request.recipient.user_id,
+                        "name": request.recipient.name,
+                        "username": request.recipient.username,
+                        "avatar": request.recipient.avatar
+                    },
+                    "message": request.request_message,
+                    "created_at": request.created_at.isoformat(),
+                    "status": request.status,
+                    "responded_at": request.responded_at.isoformat() if request.responded_at else None
+                }
+                request_list.append(request_data)
+            
+            return {"requests": request_list}
+            
+        except Exception as e:
+            raise BusinessLogicError(f"Failed to get sent requests: {str(e)}")
+
     def respond_to_request(self, current_user_id: int, request_id: int, action: str) -> Dict[str, str]:
         """Respond to a circle request (accept or decline)."""
         try:
@@ -310,6 +340,35 @@ class CircleService:
             if isinstance(e, (ValidationError, NotFoundError)):
                 raise
             raise BusinessLogicError(f"Failed to respond to request: {str(e)}")
+
+    def cancel_sent_request(self, current_user_id: int, request_id: int) -> Dict[str, str]:
+        """Cancel a sent circle request."""
+        try:
+            # Get the request - only allow canceling if current user is the requester
+            circle_request = self.db.query(SocialCircleRequest).filter(
+                and_(
+                    SocialCircleRequest.request_id == request_id,
+                    SocialCircleRequest.requester_id == current_user_id,
+                    SocialCircleRequest.status == 'pending'
+                )
+            ).first()
+            
+            if not circle_request:
+                raise NotFoundError("Circle request not found or cannot be canceled")
+            
+            # Update request status to canceled
+            circle_request.status = 'canceled'
+            circle_request.responded_at = datetime.utcnow()
+            
+            self.db.commit()
+            
+            return {"message": "Circle request canceled successfully"}
+            
+        except Exception as e:
+            self.db.rollback()
+            if isinstance(e, NotFoundError):
+                raise
+            raise BusinessLogicError(f"Failed to cancel request: {str(e)}")
 
     def get_my_circle_members(self, current_user_id: int, params: CircleMemberListParams) -> Dict[str, Any]:
         """Get members of the current user's circle(s)."""

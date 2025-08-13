@@ -60,8 +60,17 @@ const ReviewCirclePageContent: React.FC = () => {
   // Menu and search states
   const [openMenus, setOpenMenus] = useState<Set<string>>(new Set());
   
-  // Create sets for quick lookup
-  const sentRequestsSet = new Set(sentRequests.map(req => String(req.requester.id)));
+  // Local tracking for sent requests (since API may not be available)
+  const [localSentRequests, setLocalSentRequests] = useState<Set<string>>(new Set());
+  
+  // Create sets for quick lookup - track users we've sent requests TO
+  const sentRequestsSet = new Set([
+    ...sentRequests.map(req => {
+      const recipientId = req.recipient?.id || req.user?.id || req.target_user?.id;
+      return String(recipientId);
+    }).filter(Boolean),
+    ...Array.from(localSentRequests)
+  ]);
   
   // Left panel data
 
@@ -119,7 +128,12 @@ const ReviewCirclePageContent: React.FC = () => {
           setPendingRequests(pendingRequestsResponse.value.requests || []);
         }
         if (sentRequestsResponse.status === 'fulfilled') {
-          setSentRequestsData(sentRequestsResponse.value.requests || []);
+          const requests = sentRequestsResponse.value.requests || [];
+          setSentRequestsData(requests);
+          console.log('Loaded sent requests from API:', requests);
+        } else {
+          console.log('Sent requests API not available, will use local tracking');
+          setSentRequestsData([]);
         }
         // Load secondary data
         Promise.allSettled([
@@ -281,32 +295,56 @@ const ReviewCirclePageContent: React.FC = () => {
     
     const userIdString = String(userId);
     
+    // Check if request was already sent
+    if (sentRequestsSet.has(userIdString)) {
+      showError(`Circle request already sent to ${userName || 'this user'}.`);
+      return;
+    }
+    
     try {
-      console.log('Attempting to add user to circle:', { userId, userName });
-      const result = await circleService.addToCircle(userIdString);
-      console.log('User added to circle successfully:', result);
+      console.log('Attempting to send circle request:', { userId, userName });
       
-      // Find the suggestion to get user details
-      const suggestion = (suggestions || []).find(s => s.user.id === Number(userId));
+      // Use the proper sendCircleRequest method instead of legacy addToCircle
+      const result = await circleService.sendCircleRequest(userIdString, {
+        message: `Hi ${userName || 'there'}! I'd like to connect with you in my review circle.`
+      });
       
-      if (suggestion) {
-        const newMember: CircleMember = {
-          connection_id: Date.now(),
-          user: suggestion.user,
-          trust_level: TrustLevel.REVIEWER,
-          taste_match_score: suggestion.taste_match_score || 0,
-          interaction_count: 0,
-          connected_since: new Date().toISOString()
-        };
-        
-        setMembers(prev => [newMember, ...prev]);
-        setSuggestions(prev => prev.filter(s => s.user.id !== Number(userId)));
+      console.log('Circle request sent successfully:', result);
+      
+      // Add to local tracking
+      setLocalSentRequests(prev => new Set([...prev, userIdString]));
+      
+      // Try to reload sent requests from server (if available)
+      try {
+        const sentRequestsResponse = await circleService.getSentRequests();
+        setSentRequestsData(sentRequestsResponse.requests || []);
+      } catch (error) {
+        console.log('Sent requests API not available, using local tracking');
       }
       
-      showSuccess(`Successfully added ${userName || 'user'} to your circle!`);
-    } catch (error) {
-      console.error('Failed to add user to circle:', error);
-      showError(`Failed to add ${userName || 'user'} to circle. Please try again.`);
+      // Remove from suggestions
+      setSuggestions(prev => prev.filter(s => String(s.user.id) !== userIdString));
+      
+      showSuccess(`Circle request sent to ${userName || 'user'}!`);
+    } catch (error: any) {
+      console.error('Failed to send circle request:', error);
+      
+      // Handle specific error cases based on status code or message
+      if (error?.response?.status === 409 || error?.status === 409 || 
+          error.message?.includes('already sent') || error.message?.includes('409')) {
+        showError(`Circle request already sent to ${userName || 'this user'}.`);
+        // Add to local tracking since server confirms request exists
+        setLocalSentRequests(prev => new Set([...prev, userIdString]));
+        // Try to reload sent requests from server (if available)
+        try {
+          const sentRequestsResponse = await circleService.getSentRequests();
+          setSentRequestsData(sentRequestsResponse.requests || []);
+        } catch (reloadError) {
+          console.log('Sent requests API not available after conflict, using local tracking');
+        }
+      } else {
+        showError(`Failed to send circle request to ${userName || 'user'}. Please try again.`);
+      }
     }
   };
 
@@ -337,6 +375,14 @@ const ReviewCirclePageContent: React.FC = () => {
   const handleSendRequest = async (user: User) => {
     if (!currentUser) return;
     
+    const userIdString = String(user.id);
+    
+    // Check if request was already sent
+    if (sentRequestsSet.has(userIdString)) {
+      showError(`Circle request already sent to ${user.name}.`);
+      return;
+    }
+    
     const requestMessage = await prompt({
       title: 'Send Circle Request',
       message: `Send a circle request to ${user.name}?`,
@@ -347,31 +393,26 @@ const ReviewCirclePageContent: React.FC = () => {
     if (requestMessage === null) return;
     
     try {
-      const response = await circleService.sendCircleRequest(String(user.id), {
+      const response = await circleService.sendCircleRequest(userIdString, {
         message: requestMessage
       });
       
       console.log('Circle request sent successfully:', response);
       
-      // Add to sent requests locally for immediate feedback
-      const newSentRequest: CircleRequest = {
-        id: response.request_id || Date.now(),
-        requester: {
-          id: typeof user.id === 'string' ? parseInt(user.id) : user.id,
-          name: user.name,
-          username: user.username || user.name.toLowerCase().replace(/\s+/g, ''),
-          avatar: user.avatar
-        },
-        message: requestMessage,
-        created_at: new Date().toISOString(),
-        status: 'pending' as const
-      };
-      setSentRequestsData(prev => [newSentRequest, ...prev]);
+      // Add to local tracking
+      setLocalSentRequests(prev => new Set([...prev, userIdString]));
+      
+      // Try to reload sent requests from server (if available)
+      try {
+        const sentRequestsResponse = await circleService.getSentRequests();
+        setSentRequestsData(sentRequestsResponse.requests || []);
+      } catch (error) {
+        console.log('Sent requests API not available, using local tracking');
+      }
       
       // Remove user from suggestions since they now have a pending request
       setSuggestions(prev => prev.filter(s => 
-        String(s.user.id || s.user.user_id) !== String(user.id) && 
-        String(s.user.user_id || s.user.id) !== String(user.id)
+        String(s.user.id || s.user.user_id) !== userIdString
       ));
       
       showSuccess(`Circle request sent to ${user.name}!`);
@@ -381,9 +422,24 @@ const ReviewCirclePageContent: React.FC = () => {
       setSearchQuery('');
       setShowDropdown(false);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to send circle request:', error);
-      showError('Failed to send circle request. Please try again.');
+      
+      // Handle specific error cases
+      if (error.message?.includes('already sent') || error.message?.includes('409')) {
+        showError(`Circle request already sent to ${user.name}.`);
+        // Add to local tracking since server confirms request exists
+        setLocalSentRequests(prev => new Set([...prev, userIdString]));
+        // Try to reload sent requests from server (if available)
+        try {
+          const sentRequestsResponse = await circleService.getSentRequests();
+          setSentRequestsData(sentRequestsResponse.requests || []);
+        } catch (reloadError) {
+          console.log('Sent requests API not available after conflict, using local tracking');
+        }
+      } else {
+        showError(`Failed to send circle request to ${user.name}. Please try again.`);
+      }
     }
   };
 
@@ -398,8 +454,23 @@ const ReviewCirclePageContent: React.FC = () => {
     if (!confirmed) return;
     
     try {
-      // For now, just remove from local state since API may not support cancellation
+      // Call the backend API to actually cancel the request
+      await circleService.cancelCircleRequest(parseInt(requestId));
+      
+      // Remove from local state
       setSentRequestsData(prev => prev.filter(req => req.id !== parseInt(requestId)));
+      
+      // Also remove from local tracking
+      setLocalSentRequests(prev => {
+        const newSet = new Set(prev);
+        // Find the recipient ID and remove it
+        const request = sentRequests.find(req => req.id === parseInt(requestId));
+        if (request && request.recipient) {
+          newSet.delete(String(request.recipient.id || request.recipient.user_id));
+        }
+        return newSet;
+      });
+      
       showSuccess(`Circle request to ${userName} cancelled.`);
     } catch (error) {
       console.error('Failed to cancel circle request:', error);
@@ -712,6 +783,60 @@ const ReviewCirclePageContent: React.FC = () => {
               </div>
             </div>
 
+            {/* Enhanced Navigation Tabs - Using your purple theme */}
+            <div className="bg-gradient-to-br from-purple-50 via-white to-indigo-50 rounded-xl shadow-lg border-2 border-purple-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-lg font-bold text-purple-900">Circle Dashboard</h2>
+                  <p className="text-sm text-purple-600">Choose your view to manage different aspects of your circle</p>
+                </div>
+                <div className="flex items-center space-x-2 text-sm text-purple-500">
+                  <div className="flex items-center space-x-1">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                    <span className="font-medium">Active: {tabs.find(tab => tab.id === activeTab)?.label}</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Enhanced Navigation Pills */}
+              <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
+                {tabs.map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`group flex items-center space-x-3 px-6 py-4 rounded-xl text-sm font-medium transition-all duration-300 border-2 min-w-[140px] justify-center hover:shadow-lg hover:transform hover:scale-105 ${
+                        isActive
+                          ? 'bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-600 text-white shadow-xl border-purple-400 transform scale-105 shadow-purple-200'
+                          : 'bg-white text-purple-600 hover:text-purple-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-purple-100 hover:border-purple-400 border-purple-200'
+                      }`}
+                    >
+                      <Icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${isActive ? 'text-white' : 'text-current'}`} />
+                      <div className="flex flex-col items-start">
+                        <span className="font-semibold text-sm">{tab.label}</span>
+                        {tab.count !== undefined && (
+                          <span className={`text-xs font-medium ${isActive ? 'text-purple-100' : 'text-purple-500'}`}>
+                            {tab.count === 0 ? 'Empty' : `${tab.count > 99 ? '99+' : tab.count} items`}
+                          </span>
+                        )}
+                      </div>
+                      {tab.count !== undefined && tab.count > 0 && (
+                        <span className={`ml-2 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] text-center ${
+                          isActive
+                            ? 'bg-white bg-opacity-25 text-white backdrop-blur-sm'
+                            : 'bg-purple-200 text-purple-700 group-hover:bg-purple-300 group-hover:text-purple-800'
+                        }`}>
+                          {tab.count > 99 ? '99+' : tab.count}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Search Bar */}
             <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
               <div className="flex items-center space-x-3 mb-4">
@@ -785,33 +910,29 @@ const ReviewCirclePageContent: React.FC = () => {
                 </div>
               )}
 
-              {/* Suggestions */}
+              {/* Suggestions - Collapsed by default */}
               {suggestions.length > 0 && (
-                <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <TrendingUp className="h-5 w-5 text-green-600" />
-                    <h3 className="text-lg font-semibold text-gray-900">Suggestions</h3>
-                    <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
-                      {suggestions.length}
-                    </span>
-                  </div>
-                  <div className="space-y-3">
-                    <CircleSuggestions 
-                      suggestions={suggestions.slice(0, 3)}
-                      currentUser={currentUser}
-                      sentRequestsSet={sentRequestsSet}
-                      onAddToCircle={handleAddToCircle}
-                      onError={showError}
-                    />
-                    {suggestions.length > 3 && (
-                      <button
-                        onClick={() => setActiveTab('suggestions')}
-                        className="w-full text-center py-2 text-sm text-green-600 hover:text-green-700 font-medium"
-                      >
-                        View all {suggestions.length} suggestions
-                      </button>
-                    )}
-                  </div>
+                <div className="bg-gradient-to-br from-purple-50 to-white rounded-xl shadow-lg border-2 border-purple-200 p-6 hover:shadow-xl transition-all duration-300">
+                  <button
+                    onClick={() => setActiveTab('suggestions')}
+                    className="w-full flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-purple-100 to-purple-50 hover:from-purple-200 hover:to-purple-100 transition-all duration-200 border border-purple-300 hover:border-purple-400"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <TrendingUp className="h-5 w-5 text-purple-600" />
+                      <div className="text-left">
+                        <h3 className="text-lg font-bold text-purple-900">Circle Suggestions</h3>
+                        <p className="text-sm text-purple-600">Discover potential circle members</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="px-3 py-1 text-sm font-bold bg-purple-600 text-white rounded-full">
+                        {suggestions.length}
+                      </span>
+                      <svg className="w-5 h-5 text-purple-600 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </button>
                 </div>
               )}
 
@@ -843,32 +964,14 @@ const ReviewCirclePageContent: React.FC = () => {
               </div>
             )}
 
-            {/* Navigation Pills */}
-            <div className="flex items-center justify-center space-x-2 py-4">
-              <div className="flex items-center space-x-1 bg-white rounded-full shadow-lg border border-gray-100 p-2">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                      activeTab === tab.id
-                        ? 'bg-purple-600 text-white shadow-md'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                    }`}
-                  >
-                    <tab.icon className="w-4 h-4" />
-                    <span className="hidden sm:inline">{tab.label}</span>
-                    {tab.count !== undefined && tab.count > 0 && (
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        activeTab === tab.id
-                          ? 'bg-purple-500 text-white'
-                          : 'bg-gray-200 text-gray-600'
-                      }`}>
-                        {tab.count}
-                      </span>
-                    )}
-                  </button>
-                ))}
+            {/* Active Tab Indicator - Enhanced with purple theme */}
+            <div className="text-center py-6">
+              <div className="inline-flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-purple-100 via-purple-50 to-indigo-100 rounded-full border-2 border-purple-300 shadow-lg">
+                <div className="w-3 h-3 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full animate-pulse shadow-sm"></div>
+                <span className="text-sm font-bold text-purple-800">
+                  Currently viewing: {tabs.find(tab => tab.id === activeTab)?.label}
+                </span>
+                <div className="w-2 h-2 bg-purple-400 rounded-full opacity-60"></div>
               </div>
             </div>
 

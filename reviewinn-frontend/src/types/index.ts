@@ -64,10 +64,15 @@ export interface CircleSuggestion {
 
 export interface CircleRequest {
   id: number;
-  requester: CircleUser;
+  requester?: CircleUser;
+  recipient?: CircleUser;
   message: string;
   created_at: string;
-  status: 'pending' | 'accepted' | 'declined';
+  status: 'pending' | 'accepted' | 'declined' | 'canceled';
+  responded_at?: string;
+  // Legacy properties for backward compatibility
+  user?: CircleUser;
+  target_user?: CircleUser;
 }
 
 export interface CircleAnalytics {

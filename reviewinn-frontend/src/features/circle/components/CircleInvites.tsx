@@ -18,19 +18,19 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
     <div className="space-y-6">
       {/* Pending Circle Requests */}
       <div>
-        <h2 className="text-xl font-bold text-gray-900 mb-4">
+        <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-4">
           Circle Requests ({pendingRequests.length})
         </h2>
         {pendingRequests.length === 0 ? (
-          <div className="text-center py-6 text-gray-500">
-            <Clock size={32} className="mx-auto mb-2 text-gray-300" />
+          <div className="text-center py-6 text-purple-400">
+            <Clock size={32} className="mx-auto mb-2 text-purple-300" />
             <p>No pending circle requests</p>
             <p className="text-sm">When someone wants to join your circle, requests will appear here</p>
           </div>
         ) : (
           <div className="grid gap-4">
             {pendingRequests.map((request) => (
-              <div key={request.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+              <div key={request.id} className="bg-gradient-to-br from-white to-purple-50 border border-purple-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-200">
                 <div className="space-y-3">
                   <UserDisplay 
                     user={{
@@ -45,14 +45,14 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
                       <div className="flex space-x-2">
                         <button 
                           onClick={() => onRequestResponse(request.id, 'accept')}
-                          className="px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs hover:bg-green-700 transition-colors flex items-center space-x-1.5"
+                          className="px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs hover:bg-green-700 transition-colors flex items-center space-x-1.5 shadow-sm"
                         >
                           <Check size={14} />
                           <span>Accept</span>
                         </button>
                         <button 
                           onClick={() => onRequestResponse(request.id, 'decline')}
-                          className="px-3 py-1.5 bg-gray-500 text-white rounded-lg text-xs hover:bg-gray-600 transition-colors flex items-center space-x-1.5"
+                          className="px-3 py-1.5 bg-purple-500 text-white rounded-lg text-xs hover:bg-purple-600 transition-colors flex items-center space-x-1.5 shadow-sm"
                         >
                           <X size={14} />
                           <span>Decline</span>
@@ -60,7 +60,7 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
                       </div>
                     }
                   />
-                  <p className="text-sm text-gray-600 pl-15">{request.message}</p>
+                  <p className="text-sm text-purple-600 pl-15">{request.message}</p>
                 </div>
               </div>
             ))}
@@ -71,10 +71,10 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
       {/* Traditional Circle Invites */}
       {receivedInvites.length > 0 && (
         <div>
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Circle Invites ({receivedInvites.length})</h2>
+          <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-4">Circle Invites ({receivedInvites.length})</h2>
           <div className="grid gap-4">
             {receivedInvites.map((invite) => (
-              <div key={invite.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+              <div key={invite.id} className="bg-gradient-to-br from-white to-purple-50 border border-purple-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-200">
                 <div className="space-y-3">
                   <UserDisplay 
                     user={{
@@ -89,14 +89,14 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
                       <div className="flex space-x-2">
                         <button 
                           onClick={() => onRequestResponse(invite.id, 'accept')}
-                          className="px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs hover:bg-green-700 transition-colors flex items-center space-x-1.5"
+                          className="px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs hover:bg-green-700 transition-colors flex items-center space-x-1.5 shadow-sm"
                         >
                           <Check size={14} />
                           <span>Accept</span>
                         </button>
                         <button 
                           onClick={() => onRequestResponse(invite.id, 'decline')}
-                          className="px-3 py-1.5 bg-gray-500 text-white rounded-lg text-xs hover:bg-gray-600 transition-colors flex items-center space-x-1.5"
+                          className="px-3 py-1.5 bg-purple-500 text-white rounded-lg text-xs hover:bg-purple-600 transition-colors flex items-center space-x-1.5 shadow-sm"
                         >
                           <X size={14} />
                           <span>Decline</span>

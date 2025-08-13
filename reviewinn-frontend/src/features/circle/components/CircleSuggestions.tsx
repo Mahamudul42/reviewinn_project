@@ -20,7 +20,10 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({ suggestion, currentUser
   const hasPendingRequest = sentRequestsSet.has(userIdString);
 
   const handleAddClick = async () => {
-    if (hasPendingRequest) return; // Prevent action if request is pending
+    if (hasPendingRequest) {
+      onError(`Circle request already sent to ${suggestion.user.name || 'this user'}.`);
+      return;
+    }
     
     setIsAdding(true);
     try {
@@ -36,7 +39,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({ suggestion, currentUser
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+    <div className="bg-gradient-to-br from-white to-purple-50 border border-purple-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-200">
       <div className="space-y-3">
         <UserDisplay 
           user={{
@@ -76,7 +79,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({ suggestion, currentUser
               {(suggestion.taste_match_score || 0).toFixed(1)}% taste match
             </span>
             {(suggestion.mutual_connections || 0) > 0 && (
-              <span className="text-sm text-gray-600 ml-2">
+              <span className="text-sm text-purple-600 ml-2">
                 • {suggestion.mutual_connections} mutual connections
               </span>
             )}
@@ -84,7 +87,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({ suggestion, currentUser
           
           <div className="flex flex-wrap gap-1">
             {(suggestion.reasons || []).map((reason, reasonIndex) => (
-              <span key={reasonIndex} className="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
+              <span key={reasonIndex} className="inline-block bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded">
                 {reason}
               </span>
             ))}
@@ -113,12 +116,12 @@ const CircleSuggestions: React.FC<CircleSuggestionsProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">Suggested Members ({suggestions.length})</h2>
+        <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Suggested Members ({suggestions.length})</h2>
       </div>
       
       {suggestions.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          <TrendingUp size={48} className="mx-auto mb-2 text-gray-300" />
+        <div className="text-center py-8 text-purple-400">
+          <TrendingUp size={48} className="mx-auto mb-2 text-purple-300" />
           <p>No suggestions available</p>
         </div>
       ) : (

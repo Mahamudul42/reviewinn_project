@@ -162,7 +162,7 @@ export class CircleService {
         { user_id: parseInt(userId), message: data.message }
       );
       return response.data!;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to send circle request:', error);
       throw error;
     }
@@ -185,14 +185,16 @@ export class CircleService {
   }
 
   /**
-   * Get sent circle requests for current user (legacy support)
+   * Get sent circle requests for current user
    */
   async getSentRequests(): Promise<{ requests: CircleRequest[] }> {
     try {
-      // Note: This endpoint may not be implemented in the new backend
-      console.log('Sent requests API not yet available, returning empty data');
-      return { requests: [] };
-    } catch (error) {
+      const response = await httpClient.get<{ requests: CircleRequest[] }>(
+        `${this.baseUrl}${API_ENDPOINTS.CIRCLES.SENT_REQUESTS}`,
+        true
+      );
+      return response.data || { requests: [] };
+    } catch (error: any) {
       console.error('Failed to get sent requests:', error);
       return { requests: [] };
     }
@@ -210,6 +212,21 @@ export class CircleService {
       return response.data!;
     } catch (error) {
       console.error('Failed to respond to circle request:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Cancel a sent circle request
+   */
+  async cancelCircleRequest(requestId: number): Promise<{ message: string }> {
+    try {
+      const response = await httpClient.delete<{ message: string }>(
+        `${this.baseUrl}${API_ENDPOINTS.CIRCLES.CANCEL_REQUEST(requestId.toString())}`
+      );
+      return response.data!;
+    } catch (error) {
+      console.error('Failed to cancel circle request:', error);
       throw error;
     }
   }
@@ -323,19 +340,6 @@ export class CircleService {
     }
   }
 
-  /**
-   * Add a user directly to circle (legacy method for backward compatibility)
-   */
-  async addToCircle(userId: string): Promise<CircleActionResponse> {
-    try {
-      // Convert to sending a circle request instead
-      const result = await this.sendCircleRequest(userId, { message: 'Would you like to join my review circle?' });
-      return { message: result.message };
-    } catch (error) {
-      console.error('Failed to add user to circle:', error);
-      throw error;
-    }
-  }
 
   /**
    * Update trust level of a circle member (legacy method - not supported in new structure)

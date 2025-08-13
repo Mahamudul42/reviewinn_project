@@ -15,19 +15,19 @@ const BlockedUsers: React.FC<BlockedUsersProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">Blocked Users ({blockedUsers.length})</h2>
+        <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Blocked Users ({blockedUsers.length})</h2>
       </div>
       
       {blockedUsers.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          <Ban size={48} className="mx-auto mb-2 text-gray-300" />
+        <div className="text-center py-8 text-purple-400">
+          <Ban size={48} className="mx-auto mb-2 text-purple-300" />
           <p>No blocked users</p>
           <p className="text-sm">Users you block will appear here</p>
         </div>
       ) : (
         <div className="grid gap-4">
           {blockedUsers.map((user) => (
-            <div key={user.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+            <div key={user.id} className="bg-gradient-to-br from-white to-purple-50 border border-purple-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-200">
               <div className="space-y-3">
                 <UserDisplay 
                   user={{
@@ -46,7 +46,7 @@ const BlockedUsers: React.FC<BlockedUsersProps> = ({
                   actions={
                     <button
                       onClick={() => onUnblockUser(user.id, user.name)}
-                      className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs hover:bg-blue-700 transition-colors flex items-center space-x-1.5"
+                      className="px-3 py-1.5 bg-purple-600 text-white rounded-lg text-xs hover:bg-purple-700 transition-colors flex items-center space-x-1.5 shadow-sm"
                     >
                       <EyeOff size={14} />
                       <span>Unblock</span>
@@ -55,7 +55,7 @@ const BlockedUsers: React.FC<BlockedUsersProps> = ({
                   showClickable={false}
                 />
                 {user.reason && (
-                  <p className="text-sm text-gray-500 pl-15">
+                  <p className="text-sm text-purple-500 pl-15">
                     <span className="font-medium">Reason:</span> {user.reason}
                   </p>
                 )}

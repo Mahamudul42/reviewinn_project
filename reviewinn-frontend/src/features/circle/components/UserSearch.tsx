@@ -36,7 +36,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">Find People</h2>
+        <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Find People</h2>
       </div>
       
       {/* Search Input */}
@@ -72,10 +72,10 @@ const UserSearch: React.FC<UserSearchProps> = ({
 
         {/* Search Results Dropdown */}
         {showDropdown && searchQuery.length >= 2 && (
-          <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto">
+          <div className="absolute z-10 mt-1 w-full bg-white border border-purple-200 rounded-lg shadow-lg max-h-80 overflow-y-auto">
             {searchResults.length === 0 && !searchLoading ? (
-              <div className="p-4 text-center text-gray-500">
-                <Search className="mx-auto h-8 w-8 text-gray-300 mb-2" />
+              <div className="p-4 text-center text-purple-400">
+                <Search className="mx-auto h-8 w-8 text-purple-300 mb-2" />
                 <p>No users found matching "{searchQuery}"</p>
                 <p className="text-sm">Try searching by name, username, or interests</p>
               </div>
@@ -84,7 +84,7 @@ const UserSearch: React.FC<UserSearchProps> = ({
                 {searchResults.map((user) => (
                   <div
                     key={user.id}
-                    className="px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                    className="px-4 py-3 hover:bg-purple-50 border-b border-purple-100 last:border-b-0"
                   >
                     <UserDisplay 
                       user={{

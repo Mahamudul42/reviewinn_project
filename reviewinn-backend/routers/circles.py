@@ -110,6 +110,21 @@ async def get_pending_requests(
     except Exception as e:
         return handle_service_error(e)
 
+@router.get("/sent-requests")
+async def get_sent_requests(
+    current_user: User = Depends(AuthDependencies.get_current_user),
+    circle_service: CircleService = Depends(get_circle_service)
+):
+    """
+    Get sent circle requests for the current user.
+    
+    Returns requests that the current user has sent to others.
+    """
+    try:
+        return circle_service.get_sent_requests(current_user.user_id)
+    except Exception as e:
+        return handle_service_error(e)
+
 
 @router.post("/respond-request", status_code=status.HTTP_200_OK)
 async def respond_to_request(
@@ -127,6 +142,22 @@ async def respond_to_request(
         request_id = response_data.get('request_id')
         action = response_data.get('action')
         return circle_service.respond_to_request(current_user.user_id, request_id, action)
+    except Exception as e:
+        return handle_service_error(e)
+
+@router.delete("/cancel-request/{request_id}")
+async def cancel_circle_request(
+    request_id: int = Path(..., description="ID of the request to cancel"),
+    current_user: User = Depends(AuthDependencies.get_current_user),
+    circle_service: CircleService = Depends(get_circle_service)
+):
+    """
+    Cancel a sent circle request.
+    
+    - **request_id**: ID of the request to cancel
+    """
+    try:
+        return circle_service.cancel_sent_request(current_user.user_id, request_id)
     except Exception as e:
         return handle_service_error(e)
 
