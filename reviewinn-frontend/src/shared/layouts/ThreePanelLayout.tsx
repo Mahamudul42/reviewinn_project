@@ -95,7 +95,7 @@ const ThreePanelLayout: React.FC<ThreePanelLayoutProps> = ({
           </div>
         )}
 
-        {/* Three Columns with Facebook-Style Independent Scrolling */}
+        {/* Three Columns with Dynamic Height Based on Content */}
         <div style={{ 
           display: 'flex', 
           gap: gap, 
@@ -104,17 +104,17 @@ const ThreePanelLayout: React.FC<ThreePanelLayoutProps> = ({
           justifyContent: 'space-between',
           alignItems: 'flex-start',
           minHeight: 'calc(100vh - 200px)',
-          maxHeight: 'calc(100vh - 200px)',
           position: 'relative'
         }}>
           
-          {/* Left Panel - Facebook-Style Infinite Scrolling */}
+          {/* Left Panel - Dynamic Height Based on Content */}
           <div style={{ 
             width: '350px', 
             flexShrink: 0, 
-            height: 'calc(100vh - 200px)',
             position: 'sticky',
-            top: '0'
+            top: '20px',
+            alignSelf: 'flex-start',
+            minHeight: 'fit-content'
           }}>
             <div className="left-panel-container" style={{ 
               background: 'white', 
@@ -122,7 +122,7 @@ const ThreePanelLayout: React.FC<ThreePanelLayoutProps> = ({
               padding: '16px', 
               boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
               border: '1px solid #e5e7eb',
-              height: '100%',
+              maxHeight: 'calc(100vh - 80px)',
               overflowY: 'auto',
               overflowX: 'hidden',
               scrollBehavior: 'smooth',
@@ -264,23 +264,21 @@ const ThreePanelLayout: React.FC<ThreePanelLayoutProps> = ({
           <div className={`center-panel-container ${centerPanelClassName}`} style={{ 
             width: centerPanelWidth, 
             flexShrink: 0, 
-            height: 'calc(100vh - 200px)',
-            overflowY: 'auto', 
             overflowX: 'hidden',
-            scrollBehavior: 'smooth',
             position: 'relative',
             minHeight: 'calc(100vh - 200px)'
           }}>
             {children}
           </div>
 
-          {/* Right Panel - Facebook-Style Infinite Scrolling */}
+          {/* Right Panel - Dynamic Height Based on Content */}
           <div style={{ 
             width: '350px', 
             flexShrink: 0, 
-            height: 'calc(100vh - 200px)',
             position: 'sticky',
-            top: '0'
+            top: '20px',
+            alignSelf: 'flex-start',
+            minHeight: 'fit-content'
           }}>
             <div className="right-panel-container" style={{ 
               background: 'white', 
@@ -288,7 +286,7 @@ const ThreePanelLayout: React.FC<ThreePanelLayoutProps> = ({
               padding: '16px', 
               boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
               border: '1px solid #e5e7eb',
-              height: '100%',
+              maxHeight: 'calc(100vh - 80px)',
               overflowY: 'auto',
               overflowX: 'hidden',
               scrollBehavior: 'smooth',
