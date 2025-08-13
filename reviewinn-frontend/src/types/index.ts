@@ -517,6 +517,10 @@ export interface SearchFilters {
   hasReviews?: boolean;
   sortBy?: 'name' | 'rating' | 'reviewCount' | 'createdAt';
   sortOrder?: 'asc' | 'desc';
+  // New JSONB category filters
+  selectedRootCategory?: UnifiedCategory;
+  selectedFinalCategory?: UnifiedCategory;
+  minRating?: number;
 }
 
 // Review voting and moderation

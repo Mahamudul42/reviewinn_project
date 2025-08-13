@@ -121,6 +121,7 @@ const EntityFilterModalContent: React.FC<EntityFilterModalContentProps> = ({
 
   // Category search functionality
   const searchCategories = useCallback(async (query: string) => {
+    console.log('🔍 CategorySearch: Searching for:', query);
     if (query.length < 2) {
       setCategoryResults([]);
       return;
@@ -131,8 +132,10 @@ const EntityFilterModalContent: React.FC<EntityFilterModalContentProps> = ({
     
     try {
       const results = await categoryService.searchCategories(query, 10);
+      console.log('🔍 CategorySearch: Found results:', results);
       setCategoryResults(results);
     } catch (error) {
+      console.error('🔍 CategorySearch: Search failed:', error);
       setCategoryError(error instanceof Error ? error.message : 'Search failed');
     } finally {
       setCategoryLoading(false);
@@ -148,6 +151,8 @@ const EntityFilterModalContent: React.FC<EntityFilterModalContentProps> = ({
   }, [categorySearchQuery, searchCategories]);
 
   const handleCategorySelect = (result: UnifiedCategorySearchResult) => {
+    console.log('🎯 CategorySelect: Selected result:', result);
+    
     const category: UnifiedCategory = {
       id: result.id,
       name: result.name,
@@ -162,11 +167,21 @@ const EntityFilterModalContent: React.FC<EntityFilterModalContentProps> = ({
       description: result.path_text
     };
 
-    setFilters(prev => ({
-      ...prev,
-      selectedRootCategory: category.level === 1 ? category : undefined,
-      selectedFinalCategory: category.level > 1 ? category : undefined
-    }));
+    console.log('🎯 CategorySelect: Created category object:', category);
+    console.log('🎯 CategorySelect: Setting as:', {
+      rootCategory: category.level === 1 ? category : undefined,
+      finalCategory: category.level > 1 ? category : undefined
+    });
+
+    setFilters(prev => {
+      const newFilters = {
+        ...prev,
+        selectedRootCategory: category.level === 1 ? category : undefined,
+        selectedFinalCategory: category.level > 1 ? category : undefined
+      };
+      console.log('🎯 CategorySelect: New filters state:', newFilters);
+      return newFilters;
+    });
 
     // Close the search section
     setShowCategorySearch(false);

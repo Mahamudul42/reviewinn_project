@@ -44,6 +44,9 @@ export interface EntitySearchParams {
   limit?: number;
   verified?: boolean;
   minRating?: number;
+  // New JSONB category filters
+  root_category_id?: number;
+  final_category_id?: number;
 }
 
 export interface EntityApiResponse {
@@ -240,7 +243,10 @@ class EntityService {
         page: 1,
         limit: 20,
         verified: filters.verified,
-        minRating: filters.rating?.min
+        minRating: filters.rating?.min || filters.minRating,
+        // New JSONB category filters
+        root_category_id: filters.selectedRootCategory?.id,
+        final_category_id: filters.selectedFinalCategory?.id
       };
       
       const response = await httpClient.post<EntityApiResponse>(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.SEARCH}`, searchParams);

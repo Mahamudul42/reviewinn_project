@@ -65,6 +65,7 @@ const EntityFilterModal: React.FC<EntityFilterModalProps> = ({
   };
 
   const handleApply = () => {
+    console.log('🎯 EntityFilterModal: Applying filters:', filters);
     onApply(filters);
     onClose();
   };

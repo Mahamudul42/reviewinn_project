@@ -59,11 +59,19 @@ const EntitySearchBar: React.FC<EntitySearchBarProps> = ({
         const searchFilters: SearchFilters = {
           category: filters.category,
           sortBy: filters.sortBy || 'rating',
-          sortOrder: filters.sortOrder || 'desc'
+          sortOrder: filters.sortOrder || 'desc',
+          verified: filters.isVerified,
+          hasReviews: filters.hasReviews,
+          minRating: filters.minRating,
+          // New JSONB category filters
+          selectedRootCategory: filters.selectedRootCategory,
+          selectedFinalCategory: filters.selectedFinalCategory
         };
+        console.log('🔍 EntitySearchBar: Search filters for searchEntities:', searchFilters);
         results = await entityService.searchEntities(searchQuery, searchFilters);
       }
       
+      console.log('🔍 EntitySearchBar: Passing results to parent:', results);
       onSearchResults(results);
     } catch (error) {
       console.error('Search failed:', error);
