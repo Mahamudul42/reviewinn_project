@@ -197,6 +197,19 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
         set_local_user_reaction(result.user_reaction || undefined);
         set_top_reactions(result.top_reactions || []);
         set_total_reactions(result.total || 0);
+        
+        // Update parent component with the updated review data
+        if (onReviewUpdate) {
+          const updatedReview = {
+            ...local_review,
+            reactions: result.reactions || {},
+            user_reaction: result.user_reaction || undefined,
+            top_reactions: result.top_reactions || [],
+            total_reactions: result.total || 0,
+            reaction_count: result.total || 0
+          };
+          onReviewUpdate(updatedReview);
+        }
       }
     } catch (error) {
       console.error('Failed to update reaction:', error);

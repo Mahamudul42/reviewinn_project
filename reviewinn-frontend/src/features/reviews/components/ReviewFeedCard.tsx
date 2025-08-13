@@ -61,7 +61,6 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
     setShowAuthModal,
     showReviewDetailModal,
     setShowReviewDetailModal,
-    isAuthenticated,
     localReactions,
     localUserReaction,
     topReactions,
@@ -70,7 +69,6 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
     viewCount,
     commentCount,
     // Handlers
-    handleEntityClick,
     handleReactionChange,
     handleTitleClick,
     handleViewDetailsClick,
@@ -80,7 +78,9 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
     updateCommentCount,
     incrementCommentCount,
     decrementCommentCount,
-    refreshCommentCount
+    refreshCommentCount,
+    // Reaction data management
+    updateReactionData
   } = useReviewCard({
     review,
     entity,
@@ -112,6 +112,22 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
     console.log('Review updated:', updatedReview);
   };
 
+  // Handler for review update from detail modal (reaction changes)
+  const handleReviewUpdateFromModal = (updatedReview: Review) => {
+    // Update the useReviewCard hook's local state with the new reaction data
+    // This will propagate the changes to the ReviewCardActions component
+    console.log('Review reaction data updated from modal:', updatedReview);
+    
+    // Update the local reaction state immediately
+    updateReactionData({
+      reactions: updatedReview.reactions,
+      user_reaction: updatedReview.user_reaction,
+      top_reactions: updatedReview.top_reactions,
+      total_reactions: updatedReview.total_reactions,
+      reaction_count: updatedReview.reaction_count
+    });
+  };
+
   // Handler for successful review deletion
   const handleReviewDelete = () => {
     // Hide the component when review is deleted
@@ -121,11 +137,6 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
 
   // Don't render if hidden
   if (isHidden) return null;
-
-  // Get highlights for sub-ratings
-  const highlights: string[] = Array.isArray(review.pros) && review.pros.length > 0 
-    ? review.pros 
-    : ['Participation matters', 'Inspirational', 'Group projects'];
 
   // Map backend topReactions (array of strings) to expected frontend format for ReviewCardActions
   const mappedTopReactions = Array.isArray(topReactions)
@@ -244,7 +255,6 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
             onGiveReviewClick={handleGiveReviewClick}
             showAuthModal={showAuthModal}
             setShowAuthModal={setShowAuthModal}
-            isAuthenticated={isAuthenticated}
             reviewId={review.id}
             reviewTitle={review.title}
             entityName={entity?.name}
@@ -278,6 +288,7 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
         onClose={() => setShowReviewDetailModal(false)} 
         review={review}
         entity={entity}
+        onReviewUpdate={handleReviewUpdateFromModal}
         onCommentAdd={onCommentAdd}
         onCommentDelete={onCommentDelete}
         onCommentReaction={onCommentReaction}

@@ -363,6 +363,30 @@ export const useReviewCard = ({ review, entity, onEntityClick, onReactionChange,
     }
   };
 
+  // Function to update reaction data from external sources (like modal)
+  const updateReactionData = (reactionData: {
+    reactions?: Record<string, number>;
+    user_reaction?: string;
+    top_reactions?: any[];
+    total_reactions?: number;
+    reaction_count?: number;
+  }) => {
+    console.log('🔄 Updating reaction data from external source:', reactionData);
+    
+    if (reactionData.reactions !== undefined) {
+      setLocalReactions(reactionData.reactions);
+    }
+    if (reactionData.user_reaction !== undefined) {
+      setLocalUserReaction(reactionData.user_reaction);
+    }
+    if (reactionData.top_reactions !== undefined) {
+      setTopReactions(reactionData.top_reactions);
+    }
+    if (reactionData.total_reactions !== undefined) {
+      setTotalReactions(reactionData.total_reactions);
+    }
+  };
+
   return {
     // State
     isHidden,
@@ -400,6 +424,9 @@ export const useReviewCard = ({ review, entity, onEntityClick, onReactionChange,
     updateCommentCount,
     incrementCommentCount,
     decrementCommentCount,
-    refreshCommentCount
+    refreshCommentCount,
+    
+    // Reaction data management
+    updateReactionData
   };
 }; 
