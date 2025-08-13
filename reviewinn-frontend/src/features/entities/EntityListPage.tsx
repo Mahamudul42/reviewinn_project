@@ -7,7 +7,25 @@ import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
 import EntitySearchBar from './components/EntitySearchBar';
 import EntityGrid from './components/EntityGrid';
 import EntitySearchResults from './components/EntitySearchResults';
-import type { Entity, SearchResult } from '../../types';
+import EntityListFilters from './components/EntityListFilters';
+import type { Entity, SearchResult } from '../../types/index';
+
+// Local type definition to fix import issue
+interface UnifiedCategory {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
+  parent_id?: number;
+  path: string;
+  level: number;
+  icon?: string;
+  color?: string;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at?: string;
+}
 
 const EntityListPage: React.FC = () => {
   const navigate = useNavigate();
@@ -22,6 +40,15 @@ const EntityListPage: React.FC = () => {
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [totalEntities, setTotalEntities] = useState(0);
 
+  // Filter state
+  const [selectedRootCategory, setSelectedRootCategory] = useState<UnifiedCategory | null>(null);
+  const [selectedFinalCategory, setSelectedFinalCategory] = useState<UnifiedCategory | null>(null);
+  const [sortBy, setSortBy] = useState<'name' | 'rating' | 'reviewCount' | 'createdAt'>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showVerified, setShowVerified] = useState(false);
+  const [showWithReviews, setShowWithReviews] = useState(false);
+
   // Initial load for entities using independent service with efficient enhancement
   useEffect(() => {
     (async () => {
@@ -30,11 +57,32 @@ const EntityListPage: React.FC = () => {
       try {
         // Load entities from core_entities table via enhanced entity service
         console.log('🏢 EntityListPage: Loading entities from core_entities table...');
-        const entityData = await entityService.getEntities({
+        
+        // Build filter parameters
+        const filterParams: any = {
           limit: 20,
-          sortBy: 'name',
-          sortOrder: 'asc'
-        });
+          sortBy: sortBy,
+          sortOrder: sortOrder
+        };
+
+        // Add category filters if selected
+        if (selectedRootCategory) {
+          filterParams.root_category_id = selectedRootCategory.id;
+        }
+        if (selectedFinalCategory) {
+          filterParams.final_category_id = selectedFinalCategory.id;
+        }
+        if (showVerified) {
+          filterParams.is_verified = true;
+        }
+        if (showWithReviews) {
+          filterParams.has_reviews = true;
+        }
+        if (searchQuery) {
+          filterParams.search_query = searchQuery;
+        }
+
+        const entityData = await entityService.getEntities(filterParams);
         
         console.log('🏢 EntityListPage: Raw entity data received:', {
           totalEntities: entityData?.entities?.length || 0,
@@ -95,7 +143,7 @@ const EntityListPage: React.FC = () => {
         setLoading(false);
       }
     })();
-  }, []); // Empty dependency array
+  }, [selectedRootCategory, selectedFinalCategory, sortBy, sortOrder, searchQuery, showVerified, showWithReviews]); // Empty dependency array
 
   // Handle entity click
   const handleEntityClick = async (entityId: string) => {
@@ -201,6 +249,22 @@ const EntityListPage: React.FC = () => {
             authState={{ isLoading: authLoading }}
           />
         </div>
+
+        {/* Filters */}
+        <EntityListFilters
+          selectedRootCategory={selectedRootCategory}
+          setSelectedRootCategory={setSelectedRootCategory}
+          selectedFinalCategory={selectedFinalCategory}
+          setSelectedFinalCategory={setSelectedFinalCategory}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          sortOrder={sortOrder}
+          setSortOrder={setSortOrder}
+          showVerified={showVerified}
+          setShowVerified={setShowVerified}
+          showWithReviews={showWithReviews}
+          setShowWithReviews={setShowWithReviews}
+        />
 
         {/* Search Results Info */}
         <EntitySearchResults

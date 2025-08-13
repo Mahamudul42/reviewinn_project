@@ -1,17 +1,45 @@
-import React from 'react';
-import { EntityCategory } from '../../../types';
+import React, { useState, useEffect, useCallback } from 'react';
+import { EntityCategory } from '../../../types/index';
+import { categoryService } from '../../../api/services/categoryService.optimized';
+import CategoryFilterModal from './CategoryFilterModal';
+
+// Local type definitions to fix import issue
+interface UnifiedCategory {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
+  parent_id?: number;
+  path: string;
+  level: number;
+  icon?: string;
+  color?: string;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at?: string;
+}
+
+interface UnifiedCategorySearchResult {
+  id: number;
+  name: string;
+  slug: string;
+  level: number;
+  path_text: string;
+  type: 'root_category' | 'subcategory';
+  display_name: string;
+  category_id: number;
+}
 
 interface EntityListFiltersProps {
-  selectedCategory: EntityCategory | 'all';
-  setSelectedCategory: (category: EntityCategory | 'all') => void;
-  selectedSubcategory: string;
-  setSelectedSubcategory: (subcategory: string) => void;
+  selectedRootCategory: UnifiedCategory | null;
+  setSelectedRootCategory: (category: UnifiedCategory | null) => void;
+  selectedFinalCategory: UnifiedCategory | null;
+  setSelectedFinalCategory: (category: UnifiedCategory | null) => void;
   sortBy: 'name' | 'rating' | 'reviewCount' | 'createdAt';
   setSortBy: (sortBy: 'name' | 'rating' | 'reviewCount' | 'createdAt') => void;
   sortOrder: 'asc' | 'desc';
   setSortOrder: (sortOrder: 'asc' | 'desc') => void;
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
   showVerified: boolean;
   setShowVerified: (show: boolean) => void;
   showWithReviews: boolean;
@@ -19,75 +47,100 @@ interface EntityListFiltersProps {
 }
 
 const EntityListFilters: React.FC<EntityListFiltersProps> = ({
-  selectedCategory,
-  setSelectedCategory,
-  selectedSubcategory,
-  setSelectedSubcategory,
+  selectedRootCategory,
+  setSelectedRootCategory,
+  selectedFinalCategory,
+  setSelectedFinalCategory,
   sortBy,
   setSortBy,
   sortOrder,
   setSortOrder,
-  searchQuery,
-  setSearchQuery,
   showVerified,
   setShowVerified,
   showWithReviews,
   setShowWithReviews,
 }) => {
-  // Category options
-  const categoryOptions = [
-    { value: 'all', label: 'All Categories' },
-    { value: EntityCategory.PROFESSIONALS, label: 'Professionals' },
-    { value: EntityCategory.COMPANIES, label: 'Companies' },
-    { value: EntityCategory.PLACES, label: 'Places' },
-    { value: EntityCategory.PRODUCTS, label: 'Products' },
-  ];
+  // Use the exported category service instance
+  
+  // State for category search
+  const [rootCategoryQuery, setRootCategoryQuery] = useState('');
+  const [finalCategoryQuery, setFinalCategoryQuery] = useState('');
+  const [rootCategoryResults, setRootCategoryResults] = useState<UnifiedCategorySearchResult[]>([]);
+  const [finalCategoryResults, setFinalCategoryResults] = useState<UnifiedCategorySearchResult[]>([]);
+  const [showRootDropdown, setShowRootDropdown] = useState(false);
+  const [showFinalDropdown, setShowFinalDropdown] = useState(false);
+  const [rootCategories, setRootCategories] = useState<UnifiedCategory[]>([]);
+  
+  // Category filter modal state
+  const [showCategoryFilterModal, setShowCategoryFilterModal] = useState(false);
 
-  // Subcategory options based on selected category
-  const getSubcategoryOptions = () => {
-    const baseOptions = [{ value: 'all', label: 'All Subcategories' }];
-    
-    switch (selectedCategory) {
-      case EntityCategory.PROFESSIONALS:
-        return [
-          ...baseOptions,
-          { value: 'teachers', label: 'Teachers' },
-          { value: 'doctors', label: 'Doctors' },
-          { value: 'lawyers', label: 'Lawyers' },
-          { value: 'consultants', label: 'Consultants' },
-          { value: 'contractors', label: 'Contractors' },
-        ];
-      case EntityCategory.COMPANIES:
-        return [
-          ...baseOptions,
-          { value: 'technology', label: 'Technology' },
-          { value: 'healthcare', label: 'Healthcare' },
-          { value: 'finance', label: 'Finance' },
-          { value: 'retail', label: 'Retail' },
-          { value: 'services', label: 'Services' },
-        ];
-      case EntityCategory.PLACES:
-        return [
-          ...baseOptions,
-          { value: 'restaurants', label: 'Restaurants' },
-          { value: 'hotels', label: 'Hotels' },
-          { value: 'attractions', label: 'Attractions' },
-          { value: 'stores', label: 'Stores' },
-          { value: 'venues', label: 'Venues' },
-        ];
-      case EntityCategory.PRODUCTS:
-        return [
-          ...baseOptions,
-          { value: 'electronics', label: 'Electronics' },
-          { value: 'books', label: 'Books' },
-          { value: 'clothing', label: 'Clothing' },
-          { value: 'home', label: 'Home & Garden' },
-          { value: 'sports', label: 'Sports & Outdoors' },
-        ];
-      default:
-        return baseOptions;
+  // Load root categories on mount
+  useEffect(() => {
+    const loadRootCategories = async () => {
+      try {
+        const categories = await categoryService.getRootCategories();
+        setRootCategories(categories);
+      } catch (error) {
+        console.error('Error loading root categories:', error);
+      }
+    };
+    loadRootCategories();
+  }, []);
+
+  // Search categories with debouncing
+  const searchCategories = useCallback(async (query: string, isRoot = false) => {
+    if (query.length < 2) {
+      if (isRoot) {
+        setRootCategoryResults([]);
+      } else {
+        setFinalCategoryResults([]);
+      }
+      return;
     }
-  };
+
+    try {
+      const results = await categoryService.searchCategories(query, 10);
+      if (isRoot) {
+        // Filter only root categories (level 1)
+        setRootCategoryResults(results.filter(r => r.type === 'root_category'));
+      } else {
+        setFinalCategoryResults(results);
+      }
+    } catch (error) {
+      console.error('Error searching categories:', error);
+    }
+  }, [categoryService]);
+
+  // Debounced search handlers
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      searchCategories(rootCategoryQuery, true);
+    }, 300);
+    return () => clearTimeout(timeoutId);
+  }, [rootCategoryQuery, searchCategories]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      searchCategories(finalCategoryQuery, false);
+    }, 300);
+    return () => clearTimeout(timeoutId);
+  }, [finalCategoryQuery, searchCategories]);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('[data-dropdown="root"]')) {
+        setShowRootDropdown(false);
+      }
+      if (!target.closest('[data-dropdown="final"]')) {
+        setShowFinalDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Sort options
   const sortOptions = [
@@ -98,160 +151,22 @@ const EntityListFilters: React.FC<EntityListFiltersProps> = ({
   ];
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6 space-y-4">
-      {/* Search Bar */}
-      <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </div>
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-          placeholder="Search entities by name, description, or category..."
-        />
-      </div>
-
-      {/* Filter Controls Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Category Filter */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Category
-          </label>
-          <select
-            value={selectedCategory}
-            onChange={(e) => {
-              setSelectedCategory(e.target.value as EntityCategory | 'all');
-              setSelectedSubcategory('all'); // Reset subcategory when category changes
-            }}
-            className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-          >
-            {categoryOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Subcategory Filter */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Subcategory
-          </label>
-          <select
-            value={selectedSubcategory}
-            onChange={(e) => setSelectedSubcategory(e.target.value)}
-            className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-          >
-            {getSubcategoryOptions().map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Sort By */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Sort By
-          </label>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as 'name' | 'rating' | 'reviewCount' | 'createdAt')}
-            className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-          >
-            {sortOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Sort Order */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Order
-          </label>
-          <select
-            value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
-            className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="asc">
-              {sortBy === 'name' ? 'A-Z' : sortBy === 'createdAt' ? 'Oldest First' : 'Lowest First'}
-            </option>
-            <option value="desc">
-              {sortBy === 'name' ? 'Z-A' : sortBy === 'createdAt' ? 'Newest First' : 'Highest First'}
-            </option>
-          </select>
-        </div>
-      </div>
-
-      {/* Toggle Filters */}
-      <div className="flex flex-wrap gap-4 pt-2 border-t border-gray-100">
-        {/* Show Verified Only */}
-        <label className="flex items-center">
-          <input
-            type="checkbox"
-            checked={showVerified}
-            onChange={(e) => setShowVerified(e.target.checked)}
-            className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-          />
-          <span className="ml-2 text-sm text-gray-700">
-            <div className="flex items-center">
-              <svg className="w-4 h-4 mr-1 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              Verified only
-            </div>
-          </span>
-        </label>
-
-        {/* Show With Reviews Only */}
-        <label className="flex items-center">
-          <input
-            type="checkbox"
-            checked={showWithReviews}
-            onChange={(e) => setShowWithReviews(e.target.checked)}
-            className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-          />
-          <span className="ml-2 text-sm text-gray-700">
-            <div className="flex items-center">
-              <svg className="w-4 h-4 mr-1 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
-              Has reviews
-            </div>
-          </span>
-        </label>
-      </div>
+    <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6 space-y-6">
 
       {/* Active Filters Summary */}
-      {(selectedCategory !== 'all' || selectedSubcategory !== 'all' || searchQuery || showVerified || showWithReviews) && (
+      {(selectedRootCategory || selectedFinalCategory || showVerified || showWithReviews) && (
         <div className="pt-3 border-t border-gray-100">
           <div className="flex items-center justify-between">
             <div className="flex flex-wrap gap-2">
               <span className="text-sm text-gray-600 mr-2">Active filters:</span>
-              {selectedCategory !== 'all' && (
+              {selectedRootCategory && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                  {categoryOptions.find(cat => cat.value === selectedCategory)?.label}
+                  {selectedRootCategory.name}
                 </span>
               )}
-              {selectedSubcategory !== 'all' && (
+              {selectedFinalCategory && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                  {getSubcategoryOptions().find(sub => sub.value === selectedSubcategory)?.label}
-                </span>
-              )}
-              {searchQuery && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                  "{searchQuery}"
+                  {selectedFinalCategory.name}
                 </span>
               )}
               {showVerified && (
@@ -267,9 +182,10 @@ const EntityListFilters: React.FC<EntityListFiltersProps> = ({
             </div>
             <button
               onClick={() => {
-                setSelectedCategory('all');
-                setSelectedSubcategory('all');
-                setSearchQuery('');
+                setSelectedRootCategory(null);
+                setSelectedFinalCategory(null);
+                setRootCategoryQuery('');
+                setFinalCategoryQuery('');
                 setShowVerified(false);
                 setShowWithReviews(false);
                 setSortBy('name');
@@ -282,6 +198,27 @@ const EntityListFilters: React.FC<EntityListFiltersProps> = ({
           </div>
         </div>
       )}
+      
+      {/* Category Filter Modal */}
+      <CategoryFilterModal
+        isOpen={showCategoryFilterModal}
+        onClose={() => setShowCategoryFilterModal(false)}
+        onCategorySelect={(category) => {
+          if (category) {
+            // Set as root category if it's level 1, otherwise as final category
+            if (category.level === 1) {
+              setSelectedRootCategory(category);
+              setRootCategoryQuery(category.name);
+            } else {
+              setSelectedFinalCategory(category);
+              setFinalCategoryQuery(category.name);
+            }
+          }
+        }}
+        selectedCategory={selectedRootCategory || selectedFinalCategory}
+        title="Filter by Category"
+        placeholder="Search categories to filter entities..."
+      />
     </div>
   );
 };

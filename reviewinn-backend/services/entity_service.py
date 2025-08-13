@@ -326,11 +326,13 @@ class UnifiedEntityService(BaseService[Entity, dict, dict]):
         query = db.query(Entity)
         reviews_joined = False
         
-        # Hierarchical Category filters
+        # Hierarchical Category filters (JSONB-based)
         if params.final_category_id:
-            query = query.filter(Entity.final_category_id == params.final_category_id)
+            # Filter by ID within the final_category JSONB field
+            query = query.filter(Entity.final_category['id'].astext == str(params.final_category_id))
         elif params.root_category_id:
-            query = query.filter(Entity.root_category_id == params.root_category_id)
+            # Filter by ID within the root_category JSONB field
+            query = query.filter(Entity.root_category['id'].astext == str(params.root_category_id))
         
         # Verification filter
         if params.is_verified is not None:
