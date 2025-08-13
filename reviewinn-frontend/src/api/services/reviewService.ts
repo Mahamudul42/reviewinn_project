@@ -417,7 +417,7 @@ export class ReviewService {
         throw new Error('Search response was not successful');
       }
 
-      // Transform the homepage-style response to frontend format using the same logic as useTestHomeData
+      // Transform the homepage-style response to frontend format
       const transformedReviews = response.data.map((apiReview: any): Review => {
         return {
           id: apiReview.review_id.toString(),
