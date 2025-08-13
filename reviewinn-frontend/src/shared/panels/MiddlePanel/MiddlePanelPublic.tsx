@@ -22,6 +22,7 @@ interface MiddlePanelPublicProps {
   onCommentDelete?: (reviewId: string, commentId: string) => void;
   onCommentReaction?: (reviewId: string, commentId: string, reaction: string | null) => void;
   onGiveReviewClick?: (entity: Entity) => void;
+  onViewCountUpdate?: (reviewId: string, newCount: number) => void;
 }
 
 /**
@@ -43,6 +44,7 @@ const MiddlePanelPublic: React.FC<MiddlePanelPublicProps> = ({
   onCommentDelete,
   onCommentReaction,
   onGiveReviewClick,
+  onViewCountUpdate,
 }) => {
   const {
     searchResults,
@@ -105,6 +107,7 @@ const MiddlePanelPublic: React.FC<MiddlePanelPublicProps> = ({
               onCommentDelete={onCommentDelete}
               onCommentReaction={onCommentReaction}
               onGiveReviewClick={onGiveReviewClick}
+              onViewCountUpdate={onViewCountUpdate}
               publicReviewsLimit={PANEL_LIMITS.PUBLIC_REVIEWS}
             />
           </div>

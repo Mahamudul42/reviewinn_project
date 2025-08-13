@@ -29,6 +29,7 @@ interface ReviewFeedCardProps {
   showFullContent?: boolean;
   isShareable?: boolean;
   onGiveReviewClick?: (entity: Entity) => void; // NEW: Callback for give review button
+  onViewCountUpdate?: (reviewId: string, newCount: number) => void; // NEW: Callback for view count updates
 }
 
 const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({ 
@@ -42,7 +43,8 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
   onCommentReaction,
   showFullContent = false,
   isShareable = false,
-  onGiveReviewClick
+  onGiveReviewClick,
+  onViewCountUpdate
 }) => {
   const menuButtonRef = useRef<HTMLButtonElement>(null!);
   
@@ -88,7 +90,8 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
     entity,
     onEntityClick,
     onReactionChange,
-    onGiveReviewClick
+    onGiveReviewClick,
+    onViewCountUpdate
   });
 
   // Handler for menu actions

@@ -6,7 +6,7 @@ interface TestHomeData {
   hasMore: boolean;
 }
 
-interface UseTestHomeDataReturn {
+interface UseHomeDataReturn {
   reviews: Review[];
   loading: boolean;
   error: string | null;
@@ -14,6 +14,7 @@ interface UseTestHomeDataReturn {
   loadingMore: boolean;
   loadInitialData: () => Promise<void>;
   handleLoadMore: () => Promise<void>;
+  updateViewCount: (reviewId: string, newCount: number) => void;
 }
 
 // Optimized data transformation with memoization
@@ -92,12 +93,13 @@ const fetchTestHomeData = async (limit: number = 15): Promise<TestHomeData> => {
   }
 };
 
-export const useTestHomeData = (): UseTestHomeDataReturn => {
+export const useHomeData = (): UseHomeDataReturn => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasMoreReviews, setHasMoreReviews] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [localViewCounts, setLocalViewCounts] = useState<Record<string, number>>({});
 
   // Memoized transformation function
   const transformReviews = useCallback((apiReviews: any[]): Review[] => {
@@ -140,18 +142,42 @@ export const useTestHomeData = (): UseTestHomeDataReturn => {
     }
   }, [loadingMore, hasMoreReviews, reviews.length, transformReviews]);
 
+  // Function to update view count for a specific review
+  const updateViewCount = useCallback((reviewId: string, newCount: number) => {
+    console.log(`🔄 Updating view count for review ${reviewId}: ${newCount}`);
+    setLocalViewCounts(prev => ({
+      ...prev,
+      [reviewId]: newCount
+    }));
+  }, []);
+
+  // Memoized reviews with updated view counts
+  const reviewsWithUpdatedCounts = useMemo(() => {
+    return reviews.map(review => {
+      const updatedViewCount = localViewCounts[review.id];
+      if (updatedViewCount !== undefined) {
+        return {
+          ...review,
+          view_count: updatedViewCount
+        };
+      }
+      return review;
+    });
+  }, [reviews, localViewCounts]);
+
   // Initial load effect
   useEffect(() => {
     loadInitialData();
   }, [loadInitialData]);
 
   return {
-    reviews,
+    reviews: reviewsWithUpdatedCounts,
     loading,
     error,
     hasMoreReviews,
     loadingMore,
     loadInitialData,
     handleLoadMore,
+    updateViewCount,
   };
 };

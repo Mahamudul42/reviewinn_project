@@ -5,8 +5,8 @@ import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
 import ReviewInnLeftPanel from './components/ReviewInnLeftPanel';
 import { useReviewInnLeftPanel } from './hooks/useReviewInnLeftPanel';
 
-// Center Content (Test Home)
-import { useTestHomeData } from './hooks/useTestHomeData';
+// Center Content (Home)
+import { useHomeData } from './hooks/useHomeData';
 import { useReviewManagement } from './hooks/useReviewManagement';
 import { MiddlePanelPublic, MiddlePanelAuth } from '../../shared/panels/MiddlePanel';
 import type { Entity } from '../../types';
@@ -27,15 +27,16 @@ const HomePage: React.FC = () => {
   // Left panel data
   const { data: leftPanelData, loading: leftLoading, error: leftError } = useReviewInnLeftPanel();
   
-  // Data hooks - using the same pattern as TestHomePage
+  // Data hooks - using the enhanced home data hook
   const {
     reviews,
     loading: centerLoading,
     error: centerError,
     hasMoreReviews,
     loadingMore,
-    handleLoadMore
-  } = useTestHomeData();
+    handleLoadMore,
+    updateViewCount
+  } = useHomeData();
 
   // Review management hooks
   const {
@@ -315,6 +316,7 @@ const HomePage: React.FC = () => {
                     onCommentDelete={handleCommentDelete}
                     onCommentReaction={handleCommentReaction}
                     onGiveReviewClick={handleGiveReviewClick}
+                    onViewCountUpdate={updateViewCount}
                   />
                 ) : (
                   <MiddlePanelPublic
@@ -332,6 +334,7 @@ const HomePage: React.FC = () => {
                     onCommentDelete={handleCommentDelete}
                     onCommentReaction={handleCommentReaction}
                     onGiveReviewClick={handleGiveReviewClick}
+                    onViewCountUpdate={updateViewCount}
                   />
                 )}
               </div>

@@ -10,9 +10,10 @@ interface UseReviewCardProps {
   onEntityClick?: (entityId: string) => void;
   onReactionChange?: (reviewId: string, reaction: string | null) => void;
   onGiveReviewClick?: (entity: Entity) => void; // NEW: Callback for give review button
+  onViewCountUpdate?: (reviewId: string, newCount: number) => void; // NEW: Callback for view count updates
 }
 
-export const useReviewCard = ({ review, entity, onEntityClick, onReactionChange, onGiveReviewClick }: UseReviewCardProps) => {
+export const useReviewCard = ({ review, entity, onEntityClick, onReactionChange, onGiveReviewClick, onViewCountUpdate }: UseReviewCardProps) => {
   const navigate = useNavigate();
   const { isAuthenticated, getToken, checkAuth } = useUnifiedAuth();
   
@@ -136,7 +137,9 @@ export const useReviewCard = ({ review, entity, onEntityClick, onReactionChange,
       // Update view count if tracking was successful
       if (result && result.tracked && result.view_count) {
         setViewCount(result.view_count);
-        // No need to call updateViewCount here since it's the same state
+        // Call the parent callback to update the global view count
+        onViewCountUpdate?.(review.id, result.view_count);
+        console.log(`📈 View count updated for review ${review.id}: ${result.view_count}`);
       }
     } catch (error) {
       console.error('Failed to track view:', error);

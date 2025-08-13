@@ -21,6 +21,7 @@ interface MiddlePanelAuthProps {
   onCommentDelete?: (reviewId: string, commentId: string) => void;
   onCommentReaction?: (reviewId: string, commentId: string, reaction: string | null) => void;
   onGiveReviewClick?: (entity: Entity) => void;
+  onViewCountUpdate?: (reviewId: string, newCount: number) => void;
 }
 
 /**
@@ -42,6 +43,7 @@ const MiddlePanelAuth: React.FC<MiddlePanelAuthProps> = ({
   onCommentDelete,
   onCommentReaction,
   onGiveReviewClick,
+  onViewCountUpdate,
 }) => {
   const {
     searchResults,
@@ -104,6 +106,7 @@ const MiddlePanelAuth: React.FC<MiddlePanelAuthProps> = ({
               onCommentDelete={onCommentDelete}
               onCommentReaction={onCommentReaction}
               onGiveReviewClick={onGiveReviewClick}
+              onViewCountUpdate={onViewCountUpdate}
               publicReviewsLimit={undefined} // No limit for authenticated users
             />
           </div>

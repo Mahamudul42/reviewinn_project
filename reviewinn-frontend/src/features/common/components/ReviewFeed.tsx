@@ -18,6 +18,7 @@ interface ReviewFeedProps {
   onCommentDelete?: (reviewId: string, commentId: string) => void;
   onCommentReaction?: (reviewId: string, commentId: string, reaction: string | null) => void;
   onGiveReviewClick?: (entity: Entity) => void;
+  onViewCountUpdate?: (reviewId: string, newCount: number) => void;
   publicReviewsLimit?: number;
   onAuthRequired?: () => void;
 }
@@ -35,6 +36,7 @@ const ReviewFeed: React.FC<ReviewFeedProps> = ({
   onCommentDelete,
   onCommentReaction,
   onGiveReviewClick,
+  onViewCountUpdate,
   publicReviewsLimit = getPublicLimit('reviews'),
   onAuthRequired
 }) => {
@@ -115,6 +117,7 @@ const ReviewFeed: React.FC<ReviewFeedProps> = ({
               onCommentDelete={onCommentDelete}
               onCommentReaction={onCommentReaction}
               onGiveReviewClick={onGiveReviewClick}
+              onViewCountUpdate={onViewCountUpdate}
             />
           ))}
         
