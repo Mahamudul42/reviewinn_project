@@ -74,7 +74,7 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
   const [is_loading, set_is_loading] = useState(false);
   const [comment_sort, set_comment_sort] = useState('most_relevant');
   const [show_sort_menu, set_show_sort_menu] = useState(false);
-  const [comment_count, set_comment_count] = useState(0);
+  const [comment_count, set_comment_count] = useState(review.comment_count || 0);
   const sort_menu_ref = React.useRef<HTMLDivElement>(null);
 
   // Update local state when review prop changes
@@ -84,6 +84,7 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
     set_local_user_reaction(review.user_reaction);
     set_top_reactions(review.top_reactions || []);
     set_total_reactions(review.total_reactions || 0);
+    set_comment_count(review.comment_count || 0);
   }, [review]);
 
   // Close modal when Escape key is pressed
@@ -127,9 +128,9 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
     return () => document.removeEventListener('mousedown', handle_click_outside);
   }, []);
 
-  // Load comment count when modal opens
+  // Load comment count when modal opens (only if not provided in review data)
   useEffect(() => {
-    if (open) {
+    if (open && (review.comment_count === undefined || review.comment_count === null)) {
       const load_comment_count = async () => {
         try {
           const review_id = String(local_review.review_id || local_review.id);
@@ -142,7 +143,7 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
       };
       load_comment_count();
     }
-  }, [open, local_review.id]);
+  }, [open, local_review.id, review.comment_count]);
 
   const get_category_icon = (category: EntityCategory) => {
     switch (category) {
@@ -217,10 +218,12 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
         ...prev,
         comments: [...(prev.comments || []), new_comment]
       }));
-      set_comment_count(prev => prev + 1);
+      const new_count = comment_count + 1;
+      set_comment_count(new_count);
       
       // Update parent component's comment count
       onCommentCountIncrement?.();
+      onCommentCountUpdate?.(new_count);
       
       onCommentAdd?.(review_id, content, parent_id);
     } catch (error) {
@@ -236,10 +239,12 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
         ...prev,
         comments: (prev.comments || []).filter(c => c.id !== comment_id)
       }));
-      set_comment_count(prev => Math.max(0, prev - 1));
+      const new_count = Math.max(0, comment_count - 1);
+      set_comment_count(new_count);
       
       // Update parent component's comment count
       onCommentCountDecrement?.();
+      onCommentCountUpdate?.(new_count);
       
       onCommentDelete?.(review_id, comment_id);
     } catch (error) {

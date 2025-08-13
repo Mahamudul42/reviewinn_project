@@ -693,9 +693,9 @@ def get_review_comments(
         elif sort_by == "oldest":
             query = query.order_by(asc(Comment.created_at))
         elif sort_by == "most_liked":
-            query = query.order_by(desc(Comment.likes), desc(Comment.created_at))
+            query = query.order_by(desc(Comment.reaction_count), desc(Comment.created_at))
         else:  # most_relevant or fallback
-            query = query.order_by(desc(Comment.likes), desc(Comment.created_at))
+            query = query.order_by(desc(Comment.reaction_count), desc(Comment.created_at))
 
         # Pagination
         offset = (page - 1) * limit
@@ -709,11 +709,11 @@ def get_review_comments(
                 comment_id=comment.comment_id,
                 review_id=comment.review_id,
                 user_id=comment.user_id,
-                user_name=comment_user.name if comment_user else "Anonymous",
+                user_name=comment_user.display_name or comment_user.username if comment_user else "Anonymous",
                 user_avatar=comment_user.avatar if comment_user else None,
                 content=comment.content,
                 created_at=comment.created_at,
-                likes=comment.likes or 0,
+                likes=comment.reaction_count or 0,
                 reactions=comment_reaction_summary["reactions"],
                 user_reaction=comment_reaction_summary["user_reaction"]
             )
