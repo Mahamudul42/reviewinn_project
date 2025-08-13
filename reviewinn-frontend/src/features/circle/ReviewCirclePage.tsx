@@ -6,6 +6,7 @@ import { circleService, homepageService } from '../../api/services';
 import ThreePanelLayout from '../../shared/layouts/ThreePanelLayout';
 import LoadingSpinner from '../../shared/atoms/LoadingSpinner';
 import { useConfirmation, ConfirmationProvider } from '../../shared/components/ConfirmationSystem';
+import './circle-purple-buttons.css';
 import { 
   CircleMembers, 
   CircleInvites, 
@@ -770,7 +771,7 @@ const ReviewCirclePageContent: React.FC = () => {
                 <div className="flex items-center space-x-3">
                   <button
                     onClick={() => refreshData()}
-                    className="flex items-center space-x-2 px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 text-sm font-medium shadow-sm border border-gray-200 transition-all duration-200"
+                    className="circle-action-button-primary flex items-center space-x-2 px-4 py-2 rounded-lg disabled:opacity-50 text-sm font-medium shadow-sm transition-all duration-200 hover:scale-105"
                     title="Refresh circle data"
                     disabled={!currentUser}
                   >
@@ -809,23 +810,18 @@ const ReviewCirclePageContent: React.FC = () => {
                       onClick={() => setActiveTab(tab.id)}
                       className={`group flex items-center space-x-3 px-6 py-4 rounded-xl text-sm font-medium transition-all duration-300 border-2 min-w-[140px] justify-center hover:shadow-lg hover:transform hover:scale-105 ${
                         isActive
-                          ? 'bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-600 text-white shadow-xl border-purple-400 transform scale-105 shadow-purple-200'
+                          ? 'circle-nav-button-active transform scale-105'
                           : 'bg-white text-purple-600 hover:text-purple-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-purple-100 hover:border-purple-400 border-purple-200'
                       }`}
                     >
                       <Icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${isActive ? 'text-white' : 'text-current'}`} />
                       <div className="flex flex-col items-start">
                         <span className="font-semibold text-sm">{tab.label}</span>
-                        {tab.count !== undefined && (
-                          <span className={`text-xs font-medium ${isActive ? 'text-purple-100' : 'text-purple-500'}`}>
-                            {tab.count === 0 ? 'Empty' : `${tab.count > 99 ? '99+' : tab.count} items`}
-                          </span>
-                        )}
                       </div>
-                      {tab.count !== undefined && tab.count > 0 && (
+                      {tab.count !== undefined && (
                         <span className={`ml-2 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] text-center ${
                           isActive
-                            ? 'bg-white bg-opacity-25 text-white backdrop-blur-sm'
+                            ? 'bg-white bg-opacity-25 text-black backdrop-blur-sm'
                             : 'bg-purple-200 text-purple-700 group-hover:bg-purple-300 group-hover:text-purple-800'
                         }`}>
                           {tab.count > 99 ? '99+' : tab.count}
@@ -910,31 +906,6 @@ const ReviewCirclePageContent: React.FC = () => {
                 </div>
               )}
 
-              {/* Suggestions - Collapsed by default */}
-              {suggestions.length > 0 && (
-                <div className="bg-gradient-to-br from-purple-50 to-white rounded-xl shadow-lg border-2 border-purple-200 p-6 hover:shadow-xl transition-all duration-300">
-                  <button
-                    onClick={() => setActiveTab('suggestions')}
-                    className="w-full flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-purple-100 to-purple-50 hover:from-purple-200 hover:to-purple-100 transition-all duration-200 border border-purple-300 hover:border-purple-400"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <TrendingUp className="h-5 w-5 text-purple-600" />
-                      <div className="text-left">
-                        <h3 className="text-lg font-bold text-purple-900">Circle Suggestions</h3>
-                        <p className="text-sm text-purple-600">Discover potential circle members</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="px-3 py-1 text-sm font-bold bg-purple-600 text-white rounded-full">
-                        {suggestions.length}
-                      </span>
-                      <svg className="w-5 h-5 text-purple-600 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
-                  </button>
-                </div>
-              )}
 
             </div>
 

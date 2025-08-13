@@ -1,6 +1,6 @@
 import React from 'react';
 import { Users, Clock, TrendingUp, Settings, Search, Ban, Eye } from 'lucide-react';
-import { colors } from '../../../shared/design-system/colors';
+import '../circle-purple-buttons.css';
 
 interface Tab {
   id: 'members' | 'invites' | 'sent' | 'suggestions' | 'search' | 'analytics' | 'blocked';
@@ -60,17 +60,9 @@ const CircleNavigation: React.FC<CircleNavigationProps> = ({
                 onClick={() => onTabChange(tab.id)}
                 className={`relative overflow-hidden px-4 py-2 font-semibold text-sm transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 rounded-xl border ${
                   isActive
-                    ? 'text-white border-purple-700'
+                    ? 'circle-nav-button-active'
                     : 'bg-white text-gray-700 border-gray-200 hover:bg-purple-50 hover:text-purple-700 hover:border-purple-300 rounded-lg shadow-sm'
                 }`}
-                style={isActive ? {
-                  background: `linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%) !important`,
-                  boxShadow: `0 4px 12px rgba(124, 58, 237, 0.4), 0 2px 8px rgba(124, 58, 237, 0.3) !important`,
-                  color: 'white !important'
-                } : {
-                  background: '#ffffff',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-                }}
               >
                 {/* Shimmer Effect for active tab - like Create Entity button */}
                 {isActive && (
@@ -87,7 +79,7 @@ const CircleNavigation: React.FC<CircleNavigationProps> = ({
                   {tab.count !== undefined && (
                     <div className={`px-2 py-0.5 rounded-full text-xs font-bold ${
                       isActive
-                        ? 'bg-white bg-opacity-25 text-white'
+                        ? 'bg-white bg-opacity-25 text-black'
                         : 'bg-purple-100 text-purple-700'
                     }`}>
                       {getCountText(tab.count)}
@@ -119,17 +111,9 @@ const CircleNavigation: React.FC<CircleNavigationProps> = ({
                 onClick={() => onTabChange(tab.id)}
                 className={`relative overflow-hidden p-3 rounded-xl text-left transition-all duration-300 transform hover:scale-105 border ${
                   isActive
-                    ? 'text-white border-purple-700'
+                    ? 'circle-nav-button-active'
                     : 'bg-white text-gray-700 border-gray-200 hover:bg-purple-50 hover:text-purple-700 hover:border-purple-300'
                 }`}
-                style={isActive ? {
-                  background: `linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%) !important`,
-                  boxShadow: `0 8px 16px rgba(124, 58, 237, 0.4), 0 4px 8px rgba(124, 58, 237, 0.3) !important`,
-                  color: 'white !important'
-                } : {
-                  background: '#ffffff',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-                }}
               >
                 {/* Shimmer Effect for active tab */}
                 {isActive && (
@@ -145,7 +129,7 @@ const CircleNavigation: React.FC<CircleNavigationProps> = ({
                     {tab.count !== undefined && (
                       <div className={`px-2 py-1 rounded-full text-xs font-bold ${
                         isActive
-                          ? 'bg-white bg-opacity-25 text-white'
+                          ? 'bg-white bg-opacity-25 text-black'
                           : 'bg-purple-100 text-purple-700'
                       }`}>
                         {tab.count}
@@ -156,11 +140,6 @@ const CircleNavigation: React.FC<CircleNavigationProps> = ({
                     <h4 className={`font-bold text-sm truncate leading-tight ${
                       isActive ? 'text-white' : 'text-gray-800'
                     }`}>{tab.label}</h4>
-                    <p className={`text-xs leading-tight ${
-                      isActive ? 'text-white text-opacity-90' : 'text-purple-600'
-                    }`}>
-                      {getCountText(tab.count)}
-                    </p>
                   </div>
                 </div>
               </button>

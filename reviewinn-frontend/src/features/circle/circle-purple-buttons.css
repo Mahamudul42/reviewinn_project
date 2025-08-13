@@ -1,0 +1,88 @@
+/* Force purple styling for circle navigation buttons */
+.circle-nav-button-active {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%) !important;
+  color: white !important;
+  border-color: #6d28d9 !important;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4), 0 2px 8px rgba(124, 58, 237, 0.3) !important;
+}
+
+.circle-nav-button-active * {
+  color: white !important;
+}
+
+.circle-nav-button-active .icon {
+  color: white !important;
+}
+
+.circle-nav-button-active span {
+  color: white !important;
+}
+
+/* Override any Tailwind classes */
+.circle-nav-button-active.bg-white {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%) !important;
+}
+
+.circle-nav-button-active.text-purple-600 {
+  color: white !important;
+}
+
+.circle-nav-button-active.text-gray-700 {
+  color: white !important;
+}
+
+/* Apply purple styling to any other active buttons in circle page */
+.circle-button-active,
+.circle-tab-active,
+.circle-filter-active {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%) !important;
+  color: white !important;
+  border-color: #6d28d9 !important;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4), 0 2px 8px rgba(124, 58, 237, 0.3) !important;
+}
+
+.circle-button-active *,
+.circle-tab-active *,
+.circle-filter-active * {
+  color: white !important;
+}
+
+/* Override for action buttons in circle components */
+.circle-action-button-primary {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%) !important;
+  color: white !important;
+  border-color: #6d28d9 !important;
+  box-shadow: 0 2px 6px rgba(124, 58, 237, 0.3) !important;
+}
+
+.circle-action-button-primary * {
+  color: white !important;
+}
+
+.circle-action-button-primary:hover {
+  background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%) !important;
+  box-shadow: 0 4px 8px rgba(124, 58, 237, 0.4) !important;
+}
+
+.circle-action-button-primary:hover * {
+  color: white !important;
+}
+
+/* Ensure all svg icons in purple buttons are white */
+.circle-action-button-primary svg {
+  color: white !important;
+  fill: white !important;
+}
+
+.circle-nav-button-active svg {
+  color: white !important;
+  fill: white !important;
+}
+
+/* Override any text color classes */
+.circle-action-button-primary .text-gray-600,
+.circle-action-button-primary .text-gray-700,
+.circle-action-button-primary .text-purple-600,
+.circle-action-button-primary .text-red-600 {
+  color: white !important;
+}

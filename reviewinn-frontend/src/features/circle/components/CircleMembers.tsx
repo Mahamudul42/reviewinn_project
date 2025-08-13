@@ -3,6 +3,7 @@ import { MoreVertical, UserMinus, Ban, Eye, Shield, Users, TrendingUp } from 'lu
 import { circleService } from '../../../api/services';
 import UserDisplay from './UserDisplay';
 import type { CircleMember } from '../../../types';
+import '../circle-purple-buttons.css';
 
 interface CircleMembersProps {
   members: CircleMember[];
@@ -48,10 +49,10 @@ const CircleMembers: React.FC<CircleMembersProps> = ({
                   <div className="relative">
                     <button
                       onClick={() => onToggleUserMenu(member.connection_id)}
-                      className="p-1 hover:bg-purple-100 rounded-full transition-colors"
+                      className="circle-action-button-primary p-2 rounded-full transition-all duration-200 hover:scale-110"
                       title="User actions"
                     >
-                      <MoreVertical size={16} className="text-purple-500" />
+                      <MoreVertical size={16} className="text-white" />
                     </button>
                         
                     {openMenus.has(member.connection_id) && (

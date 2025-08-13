@@ -3,6 +3,7 @@ import { TrendingUp } from 'lucide-react';
 import { circleService } from '../../../api/services';
 import UserDisplay from './UserDisplay';
 import type { CircleSuggestion, User } from '../../../types';
+import '../circle-purple-buttons.css';
 
 interface SuggestionCardProps {
   suggestion: CircleSuggestion;
@@ -51,10 +52,10 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({ suggestion, currentUser
           size="lg"
           actions={currentUser ? (
             <button
-              className={`px-3 py-1.5 rounded-lg text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1.5 ${
                 hasPendingRequest 
                   ? 'bg-gray-300 text-gray-600 cursor-not-allowed' 
-                  : 'bg-purple-600 text-white hover:bg-purple-700'
+                  : 'circle-action-button-primary'
               }`}
               onClick={handleAddClick}
               disabled={isAdding || hasPendingRequest}

@@ -2,6 +2,7 @@ import React from 'react';
 import { Clock, Check, X } from 'lucide-react';
 import UserDisplay from './UserDisplay';
 import type { CircleRequest, CircleInvite } from '../../../types';
+import '../circle-purple-buttons.css';
 
 interface CircleInvitesProps {
   pendingRequests: CircleRequest[];
@@ -45,14 +46,14 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
                       <div className="flex space-x-2">
                         <button 
                           onClick={() => onRequestResponse(request.id, 'accept')}
-                          className="px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs hover:bg-green-700 transition-colors flex items-center space-x-1.5 shadow-sm"
+                          className="circle-action-button-primary px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 flex items-center space-x-1.5 shadow-sm"
                         >
                           <Check size={14} />
                           <span>Accept</span>
                         </button>
                         <button 
                           onClick={() => onRequestResponse(request.id, 'decline')}
-                          className="px-3 py-1.5 bg-purple-500 text-white rounded-lg text-xs hover:bg-purple-600 transition-colors flex items-center space-x-1.5 shadow-sm"
+                          className="circle-action-button-primary px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 flex items-center space-x-1.5 shadow-sm"
                         >
                           <X size={14} />
                           <span>Decline</span>
@@ -89,14 +90,14 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
                       <div className="flex space-x-2">
                         <button 
                           onClick={() => onRequestResponse(invite.id, 'accept')}
-                          className="px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs hover:bg-green-700 transition-colors flex items-center space-x-1.5 shadow-sm"
+                          className="circle-action-button-primary px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 flex items-center space-x-1.5 shadow-sm"
                         >
                           <Check size={14} />
                           <span>Accept</span>
                         </button>
                         <button 
                           onClick={() => onRequestResponse(invite.id, 'decline')}
-                          className="px-3 py-1.5 bg-purple-500 text-white rounded-lg text-xs hover:bg-purple-600 transition-colors flex items-center space-x-1.5 shadow-sm"
+                          className="circle-action-button-primary px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 flex items-center space-x-1.5 shadow-sm"
                         >
                           <X size={14} />
                           <span>Decline</span>

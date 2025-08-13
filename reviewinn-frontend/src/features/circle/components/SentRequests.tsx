@@ -2,6 +2,7 @@ import React from 'react';
 import { Clock, Check, X } from 'lucide-react';
 import UserDisplay from './UserDisplay';
 import type { CircleRequest } from '../../../types';
+import '../circle-purple-buttons.css';
 
 interface SentRequestsProps {
   sentRequests: CircleRequest[];
@@ -80,7 +81,7 @@ const SentRequests: React.FC<SentRequestsProps> = ({
                       actions={request.status === 'pending' ? (
                         <button
                           onClick={() => onCancelRequest(String(request.id), recipient.name)}
-                          className="px-2 py-1 text-xs text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
+                          className="circle-action-button-primary px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 hover:scale-105"
                           title="Cancel request"
                         >
                           Cancel

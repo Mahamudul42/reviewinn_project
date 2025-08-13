@@ -2,6 +2,7 @@ import React from 'react';
 import { Ban, EyeOff } from 'lucide-react';
 import UserDisplay from './UserDisplay';
 import type { User } from '../../../types';
+import '../circle-purple-buttons.css';
 
 interface BlockedUsersProps {
   blockedUsers: User[];
@@ -46,7 +47,7 @@ const BlockedUsers: React.FC<BlockedUsersProps> = ({
                   actions={
                     <button
                       onClick={() => onUnblockUser(user.id, user.name)}
-                      className="px-3 py-1.5 bg-purple-600 text-white rounded-lg text-xs hover:bg-purple-700 transition-colors flex items-center space-x-1.5 shadow-sm"
+                      className="circle-action-button-primary px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 flex items-center space-x-1.5 shadow-sm"
                     >
                       <EyeOff size={14} />
                       <span>Unblock</span>

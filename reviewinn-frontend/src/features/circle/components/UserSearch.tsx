@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { Search, X, UserPlus, Ban, Check, Clock } from 'lucide-react';
 import UserDisplay from './UserDisplay';
 import type { User } from '../../../types';
+import '../circle-purple-buttons.css';
 
 interface UserSearchProps {
   searchQuery: string;
@@ -117,14 +118,14 @@ const UserSearch: React.FC<UserSearchProps> = ({
                           <div className="flex items-center space-x-2">
                             <button
                               onClick={() => onSendRequest(user)}
-                              className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg text-xs font-medium hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-md hover:shadow-lg flex items-center space-x-1.5"
+                              className="circle-action-button-primary px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 flex items-center space-x-1.5 shadow-md"
                             >
                               <UserPlus className="w-3 h-3" />
                               <span>Add to Circle</span>
                             </button>
                             <button
                               onClick={() => onBlockUser(user.id, user.name)}
-                              className="px-2 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs hover:bg-red-100 hover:text-red-600 transition-colors flex items-center"
+                              className="circle-action-button-primary px-2 py-1.5 rounded-lg text-xs transition-all duration-200 hover:scale-105 flex items-center"
                               title="Block user"
                             >
                               <Ban className="w-3 h-3" />
