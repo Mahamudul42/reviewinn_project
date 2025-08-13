@@ -3,6 +3,7 @@ import { useUnifiedAuth } from '../hooks/useUnifiedAuth';
 
 // Left Panel Components
 import ReviewInnLeftPanel from '../features/common/components/ReviewInnLeftPanel';
+import { useReviewInnLeftPanel } from '../features/common/hooks/useReviewInnLeftPanel';
 
 // Center Content (Test Home)
 import { useTestHomeData } from '../features/common/hooks/useTestHomeData';
@@ -17,8 +18,14 @@ import RightPanelReviewinn from '../shared/panels/RightPanel/RightPanelReviewinn
 import AddReviewModal from '../features/reviews/components/AddReviewModal';
 import type { ReviewFormData } from '../types';
 
+// Loading Components
+import PanelLoadingState from '../shared/panels/components/PanelLoadingState';
+
 const NewHomePage: React.FC = () => {
   const { user, isAuthenticated, isLoading: authLoading } = useUnifiedAuth();
+  
+  // Left panel data
+  const { data: leftPanelData, loading: leftLoading, error: leftError } = useReviewInnLeftPanel();
   
   // Data hooks - using the same pattern as TestHomePage
   const {
@@ -260,10 +267,12 @@ const NewHomePage: React.FC = () => {
                     max-width: 200px !important;
                   }
                 `}</style>
-                {centerLoading ? (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px' }}>
-                    <div style={{ animation: 'spin 1s linear infinite', borderRadius: '50%', width: '48px', height: '48px', border: '2px solid #e5e7eb', borderTopColor: '#2563eb' }}></div>
-                  </div>
+                {leftLoading ? (
+                  <PanelLoadingState
+                    title=""
+                    subtitle="Loading community engagement data..."
+                    cardCount={3}
+                  />
                 ) : (
                   <ReviewInnLeftPanel />
                 )}
@@ -392,13 +401,7 @@ const NewHomePage: React.FC = () => {
                     max-width: 200px !important;
                   }
                 `}</style>
-                {centerLoading ? (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px' }}>
-                    <div style={{ animation: 'spin 1s linear infinite', borderRadius: '50%', width: '48px', height: '48px', border: '2px solid #e5e7eb', borderTopColor: '#2563eb' }}></div>
-                  </div>
-                ) : (
-                  <RightPanelReviewinn hideInternalLoading={true} />
-                )}
+                <RightPanelReviewinn />
               </div>
             </div>
           </div>
