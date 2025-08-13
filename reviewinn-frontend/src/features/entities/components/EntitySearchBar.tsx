@@ -24,24 +24,36 @@ const EntitySearchBar: React.FC<EntitySearchBarProps> = ({
   const [appliedFilters, setAppliedFilters] = useState<any>({});
   const [filterCount, setFilterCount] = useState(0);
 
+  // Initial load with no filters when component mounts
+  useEffect(() => {
+    performSearch('', {});
+  }, []);
+
   const performSearch = async (searchQuery: string, filters: any) => {
     setIsLoading(true);
+    console.log('🔍 EntitySearchBar: Performing search with:', { searchQuery, filters });
     try {
       let results: SearchResult;
       
       if (searchQuery.trim().length === 0) {
         // Get all entities with current filters
-        results = await entityService.getEntities({
+        const searchParams = {
           page: 1,
           limit: 20,
           category: filters.category,
-          sort_by: filters.sortBy || 'created_at',
-          sort_order: filters.sortOrder || 'desc',
-          is_verified: filters.isVerified,
-          is_claimed: filters.isClaimed,
-          min_rating: filters.minRating,
-          has_reviews: filters.hasReviews
-        });
+          sortBy: filters.sortBy || 'createdAt',
+          sortOrder: filters.sortOrder || 'desc',
+          verified: filters.isVerified,
+          claimed: filters.isClaimed,
+          minRating: filters.minRating,
+          hasReviews: filters.hasReviews,
+          // New JSONB category filters
+          root_category_id: filters.selectedRootCategory?.id,
+          final_category_id: filters.selectedFinalCategory?.id
+        };
+        console.log('🔍 EntitySearchBar: API call params:', searchParams);
+        results = await entityService.getEntities(searchParams);
+        console.log('🔍 EntitySearchBar: API results received:', results);
       } else {
         // Search with query and filters
         const searchFilters: SearchFilters = {
@@ -77,10 +89,12 @@ const EntitySearchBar: React.FC<EntitySearchBarProps> = ({
   };
 
   const handleFilterApply = (filters: any) => {
+    console.log('🎯 EntitySearchBar: Filter applied:', filters);
     setAppliedFilters(filters);
     
     // Count applied filters
     const count = Object.values(filters).filter(value => value !== undefined && value !== null).length;
+    console.log('🎯 EntitySearchBar: Filter count:', count);
     setFilterCount(count);
     
     // Trigger search with new filters
@@ -143,7 +157,7 @@ const EntitySearchBar: React.FC<EntitySearchBarProps> = ({
           <Filter className="h-5 w-5" />
           <span className="font-medium">Filter</span>
           {filterCount > 0 && (
-            <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+            <span className="ml-2 bg-blue-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-sm">
               {filterCount}
             </span>
           )}

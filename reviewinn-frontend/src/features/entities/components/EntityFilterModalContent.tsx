@@ -327,54 +327,71 @@ const EntityFilterModalContent: React.FC<EntityFilterModalContentProps> = ({
           'Category',
           <Layers style={{ width: '12px', height: '12px' }} />,
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {/* Search by Category Button - Primary Option */}
-            <button
-              onClick={() => setShowCategorySearch(!showCategorySearch)}
-              style={{
+            {/* Search by Category Section - Primary Option */}
+            <div style={{
+              border: `2px solid ${(filters.selectedRootCategory || filters.selectedFinalCategory) ? '#10b981' : showCategorySearch ? '#7c3aed' : '#8b5cf6'}`,
+              borderRadius: '8px',
+              background: (filters.selectedRootCategory || filters.selectedFinalCategory) ? '#f0fdf4' : showCategorySearch ? '#ede9fe' : '#f3f4ff',
+              transition: 'all 0.2s',
+            }}>
+              <div style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '10px',
                 padding: '12px 16px',
-                border: `2px solid ${(filters.selectedRootCategory || filters.selectedFinalCategory) ? '#10b981' : showCategorySearch ? '#7c3aed' : '#8b5cf6'}`,
-                borderRadius: '8px',
-                background: (filters.selectedRootCategory || filters.selectedFinalCategory) ? '#f0fdf4' : showCategorySearch ? '#ede9fe' : '#f3f4ff',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                fontSize: '14px',
-                fontWeight: 600,
-                color: (filters.selectedRootCategory || filters.selectedFinalCategory) ? '#059669' : '#7c3aed',
-                width: '100%',
-                justifyContent: 'center',
-              }}
-            >
-              <Search style={{ width: '16px', height: '16px' }} />
-              {(filters.selectedRootCategory || filters.selectedFinalCategory) ? (
-                <span>
-                  ✅ {(filters.selectedFinalCategory || filters.selectedRootCategory)?.name}
-                </span>
-              ) : (
-                <span>🎯 Search by Category</span>
-              )}
-              {(filters.selectedRootCategory || filters.selectedFinalCategory) && (
+              }}>
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    clearCategorySelection();
-                  }}
+                  onClick={() => setShowCategorySearch(!showCategorySearch)}
                   style={{
-                    marginLeft: 'auto',
-                    padding: '4px',
-                    background: 'rgba(0,0,0,0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    background: 'none',
                     border: 'none',
-                    borderRadius: '4px',
-                    color: '#6b7280',
                     cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: (filters.selectedRootCategory || filters.selectedFinalCategory) ? '#059669' : '#7c3aed',
+                    flex: 1,
+                    justifyContent: 'center',
                   }}
                 >
-                  <X style={{ width: '14px', height: '14px' }} />
+                  <Search style={{ width: '16px', height: '16px' }} />
+                  {(filters.selectedRootCategory || filters.selectedFinalCategory) ? (
+                    <span>
+                      ✅ {(filters.selectedFinalCategory || filters.selectedRootCategory)?.name}
+                    </span>
+                  ) : (
+                    <span>🎯 Search by Category</span>
+                  )}
                 </button>
-              )}
-            </button>
+                
+                {(filters.selectedRootCategory || filters.selectedFinalCategory) && (
+                  <button
+                    onClick={clearCategorySelection}
+                    style={{
+                      padding: '4px',
+                      background: 'rgba(0,0,0,0.1)',
+                      border: 'none',
+                      borderRadius: '4px',
+                      color: '#6b7280',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.background = 'rgba(0,0,0,0.2)';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.background = 'rgba(0,0,0,0.1)';
+                    }}
+                  >
+                    <X style={{ width: '14px', height: '14px' }} />
+                  </button>
+                )}
+              </div>
+            </div>
 
             {/* Inline Category Search Section */}
             {showCategorySearch && (

@@ -7,7 +7,6 @@ import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
 import EntitySearchBar from './components/EntitySearchBar';
 import EntityGrid from './components/EntityGrid';
 import EntitySearchResults from './components/EntitySearchResults';
-import EntityListFilters from './components/EntityListFilters';
 import type { Entity, SearchResult } from '../../types/index';
 
 // Local type definition to fix import issue
@@ -40,49 +39,19 @@ const EntityListPage: React.FC = () => {
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [totalEntities, setTotalEntities] = useState(0);
 
-  // Filter state
-  const [selectedRootCategory, setSelectedRootCategory] = useState<UnifiedCategory | null>(null);
-  const [selectedFinalCategory, setSelectedFinalCategory] = useState<UnifiedCategory | null>(null);
-  const [sortBy, setSortBy] = useState<'name' | 'rating' | 'reviewCount' | 'createdAt'>('name');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showVerified, setShowVerified] = useState(false);
-  const [showWithReviews, setShowWithReviews] = useState(false);
+  // Simplified state - EntitySearchBar now handles all filtering
+  // Remove duplicate filtering state
 
-  // Initial load for entities using independent service with efficient enhancement
+  // Initial load for entities - EntitySearchBar now handles all filtering
   useEffect(() => {
     (async () => {
       setLoading(true);
       setError(null);
       try {
-        // Load entities from core_entities table via enhanced entity service
-        console.log('🏢 EntityListPage: Loading entities from core_entities table...');
+        // Load initial entities without filters (EntitySearchBar will handle filtering)
+        console.log('🏢 EntityListPage: Loading initial entities...');
         
-        // Build filter parameters
-        const filterParams: any = {
-          limit: 20,
-          sortBy: sortBy,
-          sortOrder: sortOrder
-        };
-
-        // Add category filters if selected
-        if (selectedRootCategory) {
-          filterParams.root_category_id = selectedRootCategory.id;
-        }
-        if (selectedFinalCategory) {
-          filterParams.final_category_id = selectedFinalCategory.id;
-        }
-        if (showVerified) {
-          filterParams.is_verified = true;
-        }
-        if (showWithReviews) {
-          filterParams.has_reviews = true;
-        }
-        if (searchQuery) {
-          filterParams.search_query = searchQuery;
-        }
-
-        const entityData = await entityService.getEntities(filterParams);
+        const entityData = await entityService.getEntities({ limit: 20, sortBy: 'createdAt', sortOrder: 'desc' });
         
         console.log('🏢 EntityListPage: Raw entity data received:', {
           totalEntities: entityData?.entities?.length || 0,
@@ -143,7 +112,7 @@ const EntityListPage: React.FC = () => {
         setLoading(false);
       }
     })();
-  }, [selectedRootCategory, selectedFinalCategory, sortBy, sortOrder, searchQuery, showVerified, showWithReviews]); // Empty dependency array
+  }, []); // Run only once on mount - EntitySearchBar handles filtering
 
   // Handle entity click
   const handleEntityClick = async (entityId: string) => {
@@ -250,21 +219,7 @@ const EntityListPage: React.FC = () => {
           />
         </div>
 
-        {/* Filters */}
-        <EntityListFilters
-          selectedRootCategory={selectedRootCategory}
-          setSelectedRootCategory={setSelectedRootCategory}
-          selectedFinalCategory={selectedFinalCategory}
-          setSelectedFinalCategory={setSelectedFinalCategory}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-          sortOrder={sortOrder}
-          setSortOrder={setSortOrder}
-          showVerified={showVerified}
-          setShowVerified={setShowVerified}
-          showWithReviews={showWithReviews}
-          setShowWithReviews={setShowWithReviews}
-        />
+        {/* Filters are now handled by the EntitySearchBar filter modal */}
 
         {/* Search Results Info */}
         <EntitySearchResults

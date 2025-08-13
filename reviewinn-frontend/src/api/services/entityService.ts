@@ -27,6 +27,9 @@ export interface EntityListParams {
   verified?: boolean;
   claimed?: boolean;
   hasReviews?: boolean;
+  // New JSONB category filters
+  root_category_id?: number;
+  final_category_id?: number;
   minRating?: number;
   maxRating?: number;
 }
@@ -120,7 +123,13 @@ class EntityService {
       if (params.hasReviews !== undefined) searchParams.append('hasReviews', params.hasReviews.toString());
       if (params.minRating !== undefined) searchParams.append('minRating', params.minRating.toString());
       
+      // NEW: JSONB category filtering support
+      if (params.root_category_id) searchParams.append('root_category_id', params.root_category_id.toString());
+      if (params.final_category_id) searchParams.append('final_category_id', params.final_category_id.toString());
+      
       const url = `${this.baseUrl}/?${searchParams.toString()}`;
+      console.log('🏢 EntityService: API call to:', url);
+      console.log('🏢 EntityService: Search params:', Object.fromEntries(searchParams.entries()));
       const response = await httpClient.get<EntityApiResponse>(url);
       
       if (!response.success) {
