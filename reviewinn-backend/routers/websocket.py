@@ -6,7 +6,7 @@ from datetime import datetime
 
 from database import get_db
 from services.websocket_service import connection_manager
-from services.messenger_service import MessengerService
+from services.professional_messaging_service import ProfessionalMessagingService
 from core.auth_dependencies import get_current_user_optional
 from models.user import User
 
@@ -61,7 +61,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str, db: Session = Dep
         "status": "connected",
         "user_id": user.user_id
     }))
-    messenger_service = MessengerService(db)
+    messaging_service = ProfessionalMessagingService(db)
     
     try:
         while True:
@@ -148,7 +148,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str, db: Session = Dep
                 if conversation_id and content:
                     try:
                         # Save message to database
-                        message = messenger_service.send_message(
+                        message = messaging_service.send_message(
                             sender_id=user.user_id,
                             conversation_id=conversation_id,
                             content=content,
@@ -228,7 +228,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str, db: Session = Dep
                 
                 if conversation_id:
                     try:
-                        messenger_service.mark_messages_as_read(
+                        messaging_service.mark_messages_as_read(
                             conversation_id=conversation_id,
                             user_id=user.user_id,
                             message_id=message_id
@@ -256,7 +256,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str, db: Session = Dep
                 
                 if message_id and emoji and conversation_id:
                     try:
-                        messenger_service.add_reaction(
+                        messaging_service.add_reaction(
                             message_id=message_id,
                             user_id=user.user_id,
                             emoji=emoji
@@ -285,7 +285,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str, db: Session = Dep
                 
                 if message_id and conversation_id:
                     try:
-                        messenger_service.remove_reaction(
+                        messaging_service.remove_reaction(
                             message_id=message_id,
                             user_id=user.user_id
                         )

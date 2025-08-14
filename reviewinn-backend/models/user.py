@@ -101,7 +101,7 @@ class User(Base):
         secondaryjoin=user_id==followers_table.c.follower_user_id,
         backref="following"
     )
-    profile = relationship("UserProfile", back_populates="user", uselist=False)
+    # profile = relationship("UserProfile", back_populates="user", uselist=False)  # DEPRECATED: All profile fields now in core_users table
     notifications = relationship("Notification", back_populates="user", foreign_keys="Notification.user_id")
     circle_connections = relationship("SocialCircleMember", back_populates="member", foreign_keys="SocialCircleMember.member_id")
     

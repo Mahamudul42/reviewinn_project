@@ -355,7 +355,7 @@ export class HttpClient {
     const isProtectedEndpoint = url.includes('/users/me') || url.includes('/auth/profile') || 
                                 url.includes('/reviews/create') || url.includes('/entities/create') ||
                                 url.includes('/circles/') || url.includes('/notifications/') ||
-                                url.includes('/messenger/');
+                                url.includes('/messenger/') || url.includes('/messaging/');
     
     // If it's a protected endpoint and we have no token, don't make the request
     if (isProtectedEndpoint) {

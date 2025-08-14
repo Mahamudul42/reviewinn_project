@@ -14,15 +14,14 @@ export type {
   PlatformStats 
 } from './homepageService';
 export type { 
-  User, 
-  Message, 
-  Conversation, 
-  ConversationCreate,
-  DirectMessageCreate,
-  MessageCreate,
-  ReactionCreate,
-  MessageSearchQuery
-} from './messengerService';
+  ProfessionalUser, 
+  ProfessionalMessage, 
+  ProfessionalConversation, 
+  ConversationCreateRequest,
+  MessageSendRequest,
+  MessageEditRequest,
+  ReactionRequest
+} from './professionalMessagingService';
 export type {
   CircleListResponse,
   CircleMemberListResponse,
@@ -46,7 +45,7 @@ import { CommentService } from './commentService';
 import { userInteractionService } from './userInteractionService';
 import { gamificationService } from './gamificationService';
 import { homepageService } from './homepageService';
-import { messengerService } from './messengerService';
+import { professionalMessagingService } from './professionalMessagingService';
 import { circleService } from './circleService';
 import { reviewinnRightPanelService } from './reviewinnRightPanelService';
 
@@ -55,5 +54,5 @@ export const entityService = _entityService;
 export const reviewService = new ReviewService();
 export const userService = new UserService();
 export const commentService = new CommentService();
-export { userInteractionService, gamificationService, homepageService, messengerService, circleService, reviewinnRightPanelService };
+export { userInteractionService, gamificationService, homepageService, professionalMessagingService, circleService, reviewinnRightPanelService };
 // entityServiceFactory removed - use entityService directly 

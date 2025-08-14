@@ -1,5 +1,5 @@
 import { httpClient } from '../httpClient';
-import { API_CONFIG } from '../config';
+import { API_CONFIG, API_ENDPOINTS } from '../config';
 import { useAuthStore } from '../../stores/authStore';
 
 export interface UserInteraction {
@@ -57,13 +57,26 @@ class UserInteractionService {
   async loadUserInteractions(): Promise<void> {
     // Use unified auth through store
     const authState = useAuthStore.getState();
-    if (!authState.isAuthenticated || !authState.token) return;
+    console.log('🔍 UserInteractionService: Auth state:', {
+      isAuthenticated: authState.isAuthenticated,
+      hasToken: !!authState.token,
+      hasUser: !!authState.user,
+      userId: authState.user?.id
+    });
+    
+    if (!authState.isAuthenticated || !authState.token || !authState.user) {
+      console.log('🔍 UserInteractionService: Not authenticated, skipping interactions load');
+      return;
+    }
 
     try {
-      // Try to load from backend endpoint (may not exist yet)
-      const response = await httpClient.get(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.USERS.ME_INTERACTIONS}`);
-      if (response.data) {
-        this.interactionCache = response.data.reduce((acc: UserInteractionCache, interaction: any) => {
+      console.log('🔍 UserInteractionService: Making authenticated request to interactions');
+      const response = await httpClient.get(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.USERS.ME_INTERACTIONS}`, true);
+      
+      // Handle enterprise API response format
+      const apiResponse = response.data;
+      if (apiResponse && apiResponse.status === 'success' && apiResponse.data) {
+        this.interactionCache = apiResponse.data.reduce((acc: UserInteractionCache, interaction: any) => {
           acc[interaction.reviewId] = {
             reviewId: interaction.reviewId,
             reaction: interaction.reaction,

@@ -5,8 +5,13 @@ from .comment import Comment
 from .badge import Badge
 from .review_reaction import ReviewReaction
 from .notification import Notification
-from .conversation import Conversation, ConversationParticipant
-from .message import Message
+# Professional messaging system - Industry standard
+from .msg_conversation import MsgConversation, MsgConversationParticipant
+from .msg_message import MsgMessage, MsgMessageAttachment, MsgMessageReaction
+from .msg_message_status import (
+    MsgMessageStatus, MsgTypingIndicator, MsgUserPresence, 
+    MsgThread, MsgMessagePin, MsgMessageMention
+)
 from .user_profile import UserProfile
 from .user_connection import UserConnection
 from .user_session import UserSession
@@ -34,5 +39,12 @@ from .review_circle import SocialCircleMember, SocialCircleRequest, SocialCircle
 from .category_question import CategoryQuestion
 
 __all__ = [
-    "User", "Review", "Entity", "EntityCategory", "Comment", "Badge", "ReviewReaction", "Notification", "Conversation", "ConversationParticipant", "Message", "UserProfile", "UserConnection", "UserSession", "UserSetting", "UnifiedCategory", "EntityRole", "EntityMetadata", "ReviewVersion", "UserEvent", "UserSearchHistory", "UserEntityView", "UserProgress", "BadgeDefinition", "BadgeAward", "WeeklyEngagement", "DailyTask", "WhatsNextGoal", "SearchAnalytics", "EntityAnalytics", "ReviewTemplate", "EntityComparison", "ReviewView", "EntityView", "SocialCircleMember", "SocialCircleRequest", "SocialCircleBlock", "CircleConnection", "TrustLevelEnum", "CircleInviteStatusEnum", "CategoryQuestion"
+    "User", "Review", "Entity", "EntityCategory", "Comment", "Badge", "ReviewReaction", "Notification", 
+    "MsgConversation", "MsgConversationParticipant", "MsgMessage", "MsgMessageAttachment", "MsgMessageReaction",
+    "MsgMessageStatus", "MsgTypingIndicator", "MsgUserPresence", "MsgThread", "MsgMessagePin", "MsgMessageMention",
+    "UserProfile", "UserConnection", "UserSession", "UserSetting", "UnifiedCategory", "EntityRole", "EntityMetadata", 
+    "ReviewVersion", "UserEvent", "UserSearchHistory", "UserEntityView", "UserProgress", "BadgeDefinition", "BadgeAward", 
+    "WeeklyEngagement", "DailyTask", "WhatsNextGoal", "SearchAnalytics", "EntityAnalytics", "ReviewTemplate", 
+    "EntityComparison", "ReviewView", "EntityView", "SocialCircleMember", "SocialCircleRequest", "SocialCircleBlock", 
+    "CircleConnection", "TrustLevelEnum", "CircleInviteStatusEnum", "CategoryQuestion"
 ] 

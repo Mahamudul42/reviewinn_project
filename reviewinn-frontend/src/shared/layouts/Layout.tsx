@@ -7,7 +7,7 @@ import QuickActionsPanel from '../organisms/QuickActionsPanel';
 import RecentActivityDropdown from '../molecules/RecentActivityDropdown';
 import MessagesDropdown from '../molecules/MessagesDropdown';
 import NotificationsDropdown from '../molecules/NotificationsDropdown';
-import { messengerService } from '../../api/services/messengerService';
+import { professionalMessagingService } from '../../api/services/professionalMessagingService';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
 
@@ -143,14 +143,14 @@ const Layout: React.FC = () => {
     console.log('Loading unread message count for user:', user.id);
     
     try {
-      const response = await messengerService.getConversations();
+      const response = await professionalMessagingService.getConversations();
       
-      // Check if response has the expected structure
-      if (response && response.conversations && Array.isArray(response.conversations)) {
-        const totalUnread = response.conversations.reduce((sum, conv) => sum + (conv.unread_count || 0), 0);
+      // Check if response has the expected structure for professional messaging service
+      if (response && response.data && response.data.conversations && Array.isArray(response.data.conversations)) {
+        const totalUnread = response.data.conversations.reduce((sum, conv) => sum + (conv.user_unread_count || 0), 0);
         setUnreadMessagesCount(totalUnread);
       } else {
-        console.warn('Unexpected response structure from messenger service:', response);
+        console.warn('Unexpected response structure from professional messaging service:', response);
         setUnreadMessagesCount(0);
       }
     } catch (error: any) {

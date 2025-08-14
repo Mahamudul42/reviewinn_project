@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Search, MessageCircle, Users, Plus } from 'lucide-react';
-import type { Conversation } from '../../../api/services/messengerService';
+import type { ProfessionalConversation } from '../../../api/services/professionalMessagingService';
 import { formatTimeAgo } from '../../../shared/utils/reviewUtils';
 
 interface ConversationListProps {
-  conversations: Conversation[];
+  conversations: ProfessionalConversation[];
   activeConversationId?: number;
-  onConversationSelect: (conversation: Conversation) => void;
+  onConversationSelect: (conversation: ProfessionalConversation) => void;
   onNewChat: () => void;
   onNewGroup: () => void;
   loading?: boolean;
+  currentUserId?: number;
 }
 
 const ConversationList: React.FC<ConversationListProps> = ({
@@ -19,9 +20,10 @@ const ConversationList: React.FC<ConversationListProps> = ({
   onNewChat,
   onNewGroup,
   loading = false,
+  currentUserId,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredConversations, setFilteredConversations] = useState<Conversation[]>(conversations);
+  const [filteredConversations, setFilteredConversations] = useState<ProfessionalConversation[]>(conversations);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -32,38 +34,60 @@ const ConversationList: React.FC<ConversationListProps> = ({
     const filtered = conversations.filter(conv => {
       const searchTerm = searchQuery.toLowerCase();
       
-      if (conv.is_group) {
-        return conv.group_name?.toLowerCase().includes(searchTerm);
+      if (conv.conversation_type === 'group') {
+        return conv.title?.toLowerCase().includes(searchTerm);
       } else {
-        return conv.other_user?.name.toLowerCase().includes(searchTerm) ||
-               conv.other_user?.username.toLowerCase().includes(searchTerm);
+        // For direct conversations, search in participant names
+        const otherParticipant = conv.participants?.find(p => p.user_id !== currentUserId);
+        if (otherParticipant) {
+          return otherParticipant.display_name?.toLowerCase().includes(searchTerm);
+        }
+        return conv.title?.toLowerCase().includes(searchTerm);
       }
     });
 
     setFilteredConversations(filtered);
   }, [searchQuery, conversations]);
 
-  const getConversationTitle = (conversation: Conversation): string => {
-    if (conversation.is_group) {
-      return conversation.group_name || 'Group Chat';
+  const getConversationTitle = (conversation: ProfessionalConversation): string => {
+    if (conversation.conversation_type === 'group') {
+      return conversation.title || 'Group Chat';
     }
-    return conversation.other_user?.name || 'Unknown User';
-  };
-
-  const getConversationAvatar = (conversation: Conversation): string => {
-    if (conversation.is_group) {
-      return conversation.group_image || 
-             `https://ui-avatars.com/api/?name=${encodeURIComponent(conversation.group_name || 'Group')}&background=4f46e5&color=fff&size=48`;
-    }
-    return conversation.other_user?.avatar || 
-           `https://ui-avatars.com/api/?name=${encodeURIComponent(conversation.other_user?.name || 'User')}&size=48`;
-  };
-
-  const getLastMessagePreview = (conversation: Conversation): string => {
-    if (!conversation.last_message) return 'No messages yet';
     
-    const { content, message_type, sender_name } = conversation.last_message;
-    const prefix = conversation.is_group ? `${sender_name}: ` : '';
+    // For direct conversations, find the other participant
+    const otherParticipant = conversation.participants?.find(p => p.user_id !== currentUserId);
+    if (otherParticipant) {
+      return otherParticipant.display_name || `User ${otherParticipant.user_id}`;
+    }
+    
+    return conversation.title || 'Unknown User';
+  };
+
+  const getConversationAvatar = (conversation: ProfessionalConversation): string => {
+    if (conversation.conversation_type === 'group') {
+      return conversation.avatar_url || 
+             `https://ui-avatars.com/api/?name=${encodeURIComponent(conversation.title || 'Group')}&background=4f46e5&color=fff&size=48`;
+    }
+    
+    // For direct conversations, use other participant's avatar
+    const otherParticipant = conversation.participants?.find(p => p.user_id !== currentUserId);
+    const participantName = otherParticipant?.display_name || `User ${otherParticipant?.user_id || 'Unknown'}`;
+    
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(participantName)}&size=48`;
+  };
+
+  const getLastMessagePreview = (conversation: ProfessionalConversation): string => {
+    if (!conversation.latest_message) return 'No messages yet';
+    
+    const { content, message_type, sender_id } = conversation.latest_message;
+    
+    // Get sender name for group conversations
+    let prefix = '';
+    if (conversation.conversation_type === 'group') {
+      const sender = conversation.participants?.find(p => p.user_id === sender_id);
+      const senderName = sender?.display_name || `User ${sender_id}`;
+      prefix = `${senderName}: `;
+    }
     
     switch (message_type) {
       case 'image':
@@ -182,15 +206,15 @@ const ConversationList: React.FC<ConversationListProps> = ({
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    {conversation.is_group && (
+                    {conversation.conversation_type === 'group' && (
                       <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-purple-500 rounded-full flex items-center justify-center">
                         <Users size={8} className="text-white" />
                       </div>
                     )}
-                    {conversation.unread_count > 0 && !conversation.is_group && (
+                    {conversation.user_unread_count > 0 && conversation.conversation_type !== 'group' && (
                       <div className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
                         <span className="text-white text-xs font-bold">
-                          {conversation.unread_count > 9 ? '9+' : conversation.unread_count}
+                          {conversation.user_unread_count > 9 ? '9+' : conversation.user_unread_count}
                         </span>
                       </div>
                     )}
@@ -203,9 +227,9 @@ const ConversationList: React.FC<ConversationListProps> = ({
                         {getConversationTitle(conversation)}
                       </h3>
                       <div className="flex-shrink-0">
-                        {conversation.last_message && (
+                        {conversation.latest_message && (
                           <span className="text-xs text-gray-400">
-                            {formatTimeAgo(conversation.last_message.created_at)}
+                            {formatTimeAgo(conversation.latest_message.created_at)}
                           </span>
                         )}
                       </div>
@@ -216,10 +240,10 @@ const ConversationList: React.FC<ConversationListProps> = ({
                     </p>
 
                     {/* Group participants - compact */}
-                    {conversation.is_group && (
+                    {conversation.conversation_type === 'group' && (
                       <div className="flex items-center mt-1">
                         <span className="text-xs text-purple-600 font-medium">
-                          {conversation.participants.length} members
+                          {conversation.participants?.length || 0} members
                         </span>
                       </div>
                     )}

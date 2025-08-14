@@ -358,32 +358,24 @@ export class ReviewService {
     
     // Use the dedicated user reviews endpoint that includes full entity data
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.USERS.GET_BY_ID(userId)}/reviews?${searchParams.toString()}`;
-    const response = await httpClient.get<{ 
-      success: boolean;
-      data: any[];
-      pagination: {
-        total: number; 
-        page: number;
-        per_page: number;
-        pages: number;
-        has_next: boolean;
-        has_prev: boolean;
-      };
-    }>(url, true);
     
-    console.log('📊 ReviewService: Raw user reviews response:', response);
+    // Use direct fetch for public review viewing (no auth required)
+    const response = await fetch(url);
+    const apiResponse = await response.json();
     
-    if (!response.success || !response.data) {
+    console.log('📊 ReviewService: Raw user reviews response:', apiResponse);
+    
+    if (!apiResponse.success || !apiResponse.data) {
       return { reviews: [], total: 0, hasMore: false };
     }
     
     // Map the reviews using our comprehensive mapping
-    const mappedReviews = response.data.map((review) => this.mapReviewApiToFrontend(review));
+    const mappedReviews = apiResponse.data.map((review) => this.mapReviewApiToFrontend(review));
     
     return {
       reviews: mappedReviews,
-      total: response.pagination?.total || 0,
-      hasMore: response.pagination?.has_next || false,
+      total: apiResponse.pagination?.total || 0,
+      hasMore: apiResponse.pagination?.has_next || false,
     };
   }
 

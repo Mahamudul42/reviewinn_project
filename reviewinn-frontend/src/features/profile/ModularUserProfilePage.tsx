@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
 import { userService, homepageService, entityService, reviewService } from '../../api/services';
@@ -82,16 +82,65 @@ const ModularUserProfilePage: React.FC = () => {
   const hasLoadedRef = useRef(false);
 
   // Determine if this is the current user's profile
-  const isCurrentUser = userIdentifier 
-    ? (currentUser?.id === userIdentifier || currentUser?.username === userIdentifier)
-    : true;
+  const isCurrentUser = useMemo(() => {
+    // If no userIdentifier, we're viewing own profile (/profile)
+    if (!userIdentifier) {
+      return true;
+    }
+    
+    // If no currentUser, definitely not own profile
+    if (!currentUser) {
+      return false;
+    }
+    
+    // Compare userIdentifier with current user's ID and username
+    return currentUser.id === userIdentifier || currentUser.username === userIdentifier;
+  }, [userIdentifier, currentUser?.id, currentUser?.username]);
 
-  const isOwnProfile = (userIdentifier && userProfile && userIdentifier === userProfile.id.toString()) || isCurrentUser;
+  // For edit profile button - only show if this is truly the current user's profile
+  const isOwnProfile = useMemo(() => {
+    // If no current user, definitely not own profile
+    if (!currentUser) {
+      return false;
+    }
+    
+    // If no userIdentifier, we're on /profile (own profile)
+    if (!userIdentifier) {
+      return true;
+    }
+    
+    // If userProfile is loaded, check if its ID matches current user
+    if (userProfile) {
+      return userProfile.id.toString() === currentUser.id || 
+             userProfile.user_id?.toString() === currentUser.id ||
+             userProfile.username === currentUser.username;
+    }
+    
+    // Fallback: check userIdentifier against current user
+    return currentUser.id === userIdentifier || currentUser.username === userIdentifier;
+  }, [userIdentifier, userProfile?.id, userProfile?.user_id, userProfile?.username, currentUser?.id, currentUser?.username]);
+  
+  // Debug logging for profile ownership
+  console.log('🔍 Profile Ownership Check:', {
+    userIdentifier,
+    currentUserId: currentUser?.id,
+    currentUsername: currentUser?.username,
+    profileId: userProfile?.id,
+    profileUserId: userProfile?.user_id,
+    profileUsername: userProfile?.username,
+    isCurrentUser,
+    isOwnProfile,
+    isAuthenticated,
+    authLoading
+  });
 
   const loadUserProfile = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
+      
+      console.log('🔍 ProfilePage: Starting loadUserProfile with userIdentifier:', userIdentifier);
+      console.log('🔍 ProfilePage: currentUser:', currentUser);
 
       // No longer need to load entities separately - optimized backend includes full entity data with reviews
       
@@ -99,13 +148,17 @@ const ModularUserProfilePage: React.FC = () => {
       let userId: string = '';
       
       if (!userIdentifier) {
+        // Viewing own profile - requires authentication
         if (!currentUser) {
           throw new Error('No user logged in');
         }
+        console.log('🔍 ProfilePage: Loading own profile for currentUser.id:', currentUser.id);
         const profileResponse = await userService.getUserProfile(currentUser.id);
         profile = profileResponse;
         userId = currentUser.id;
       } else {
+        // Viewing someone else's profile - should work without authentication
+        console.log('🔍 ProfilePage: About to call getUserProfileByIdentifier with:', userIdentifier);
         const profileResponse = await userService.getUserProfileByIdentifier(userIdentifier);
         profile = profileResponse;
         console.log('🔍 ProfilePage.loadUserProfile: Profile response for userIdentifier', userIdentifier, ':', {
@@ -167,14 +220,19 @@ const ModularUserProfilePage: React.FC = () => {
     
     loadUserProfile();
     
-    // Load user interactions for reaction persistence
-    if (currentUser) {
-      import('../../api/services/userInteractionService').then(({ userInteractionService }) => {
-        userInteractionService.loadUserInteractions().catch(error => {
-          console.warn('Failed to load user interactions:', error);
-        });
-      });
-    }
+    // TODO: Re-enable user interactions when authentication is properly fixed
+    // Load user interactions for reaction persistence - only for authenticated users
+    console.log('🔍 ProfilePage: User interactions disabled temporarily to prevent 401 errors');
+    // if (currentUser && isAuthenticated) {
+    //   console.log('🔍 ProfilePage: Loading user interactions for authenticated user');
+    //   import('../../api/services/userInteractionService').then(({ userInteractionService }) => {
+    //     userInteractionService.loadUserInteractions().catch(error => {
+    //       console.warn('Failed to load user interactions:', error);
+    //     });
+    //   });
+    // } else {
+    //   console.log('🔍 ProfilePage: Skipping user interactions - not authenticated');
+    // }
   }, [userIdentifier, currentUser?.id, authLoading, loadUserProfile]);
 
   // Listen for new review creation to update profile in real-time

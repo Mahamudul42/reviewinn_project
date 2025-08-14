@@ -4,8 +4,8 @@ import ConversationList from './components/ConversationList';
 import ChatWindow from './components/ChatWindow';
 import NewChatModal from './components/NewChatModal';
 import ThreePanelLayout from '../../shared/layouts/ThreePanelLayout';
-import { messengerService } from '../../api/services/messengerService';
-import type { Conversation, Message, User as MessengerUser } from '../../api/services/messengerService';
+import { professionalMessagingService } from '../../api/services/professionalMessagingService';
+import type { ProfessionalConversation, ProfessionalMessage, ProfessionalUser } from '../../api/services/professionalMessagingService';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
 import { useToast } from '../../shared/components/ToastProvider';
@@ -18,9 +18,9 @@ const MessengerPage: React.FC = () => {
   const { user: currentUserBase, isLoading: authLoading } = useUnifiedAuth();
   
   // State - all hooks called unconditionally
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [conversations, setConversations] = useState<ProfessionalConversation[]>([]);
+  const [activeConversation, setActiveConversation] = useState<ProfessionalConversation | null>(null);
+  const [messages, setMessages] = useState<ProfessionalMessage[]>([]);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const [showNewChatModal, setShowNewChatModal] = useState(false);
   const [showNewGroupModal, setShowNewGroupModal] = useState(false);
@@ -31,34 +31,45 @@ const MessengerPage: React.FC = () => {
   const [processedMessages, setProcessedMessages] = useState<Set<number>>(new Set());
 
   // Derive currentUser - use useMemo to avoid recreation on every render
-  const currentUser = useMemo(() => {
+  const currentUser = useMemo((): ProfessionalUser | null => {
     return currentUserBase ? { 
-      ...currentUserBase, 
-      user_id: parseInt(currentUserBase.id) 
+      user_id: parseInt(currentUserBase.id),
+      username: currentUserBase.username || '',
+      name: currentUserBase.name || currentUserBase.username || '',
+      avatar: currentUserBase.avatar,
+      is_online: true,
+      status: 'online'
     } : null;
   }, [currentUserBase]);
 
   // Business logic functions - define these first
   const loadConversations = useCallback(async () => {
+    console.log('=== loadConversations called ===');
     try {
       if (conversations.length === 0) {
         setLoading(true);
+        console.log('Setting loading to true - no conversations yet');
       }
-      const response = await messengerService.getConversations();
+      console.log('Making getConversations API call...');
+      const response = await professionalMessagingService.getConversations();
+      console.log('getConversations response:', response);
       
-      setConversations(prevConversations => {
-        if (JSON.stringify(prevConversations) === JSON.stringify(response.conversations)) {
-          console.log('Conversations unchanged, skipping update');
-          return prevConversations;
-        }
-        console.log('Conversations updated:', response.conversations.length);
-        return response.conversations;
-      });
+      if (response && response.conversations) {
+        console.log('Response conversations:', response.conversations);
+        setConversations(prevConversations => {
+          // Always update after creating a new conversation to ensure latest data
+          console.log('Conversations updated from', prevConversations.length, 'to', response.conversations.length);
+          return response.conversations;
+        });
+      } else {
+        console.log('getConversations failed or no data:', response);
+      }
     } catch (error) {
       console.error('Failed to load conversations:', error);
       showError('Failed to load conversations');
     } finally {
       setLoading(false);
+      console.log('loadConversations finished');
     }
   }, [conversations.length, showError]);
 
@@ -69,19 +80,25 @@ const MessengerPage: React.FC = () => {
       const messageLimit = limit || (offset === 0 ? 15 : 20);
       console.log(`Loading ${messageLimit} messages with offset ${offset}`);
       
-      const response = await messengerService.getConversationMessages(conversationId, offset, messageLimit);
+      const response = await professionalMessagingService.getMessages(conversationId, { 
+        limit: messageLimit, 
+        beforeMessageId: offset > 0 ? messages[messages.length - 1]?.message_id : undefined 
+      });
       
-      if (offset === 0) {
-        console.log(`Initial load: got ${response.messages.length} messages`);
-        setMessages(response.messages);
-        setIsInitialLoad(true);
-        setTimeout(() => setIsInitialLoad(false), 100);
-      } else {
-        console.log(`Loading more: got ${response.messages.length} additional messages`);
-        setMessages(prev => [...prev, ...response.messages]);
+      if (response.success && response.data) {
+        const messages = response.data.messages || [];
+        if (offset === 0) {
+          console.log(`Initial load: got ${messages.length} messages`);
+          setMessages(messages);
+          setIsInitialLoad(true);
+          setTimeout(() => setIsInitialLoad(false), 100);
+        } else {
+          console.log(`Loading more: got ${messages.length} additional messages`);
+          setMessages(prev => [...prev, ...messages]);
+        }
+        
+        setHasMoreMessages(response.data.has_more || false);
       }
-      
-      setHasMoreMessages(response.has_more);
     } catch (error) {
       console.error('Failed to load messages:', error);
       showError('Failed to load messages');
@@ -95,7 +112,7 @@ const MessengerPage: React.FC = () => {
     if (!activeConversation) return;
 
     try {
-      await messengerService.markMessagesAsRead(activeConversation.conversation_id, messageId);
+      await professionalMessagingService.markConversationRead(activeConversation.conversation_id, messageId);
       
       // We'll get sendMessage from the WebSocket hook below
       // For now, just update local state
@@ -254,7 +271,7 @@ const MessengerPage: React.FC = () => {
     if (!activeConversation) return;
 
     try {
-      await messengerService.markMessagesAsRead(activeConversation.conversation_id, messageId);
+      await professionalMessagingService.markConversationRead(activeConversation.conversation_id, messageId);
       
       sendMessage({
         type: 'mark_read',
@@ -274,7 +291,7 @@ const MessengerPage: React.FC = () => {
     }
   }, [activeConversation, sendMessage]);
 
-  const handleConversationSelect = useCallback((conversation: Conversation) => {
+  const handleConversationSelect = useCallback((conversation: ProfessionalConversation) => {
     if (activeConversation?.conversation_id === conversation.conversation_id) {
       return;
     }
@@ -298,38 +315,48 @@ const MessengerPage: React.FC = () => {
     const tempId = Date.now();
 
     // Optimistic update
-    const optimisticMessage: Message = {
+    const optimisticMessage: ProfessionalMessage = {
       message_id: tempId,
+      conversation_id: activeConversation.conversation_id,
+      sender_id: currentUser.user_id,
       content,
       message_type: 'text' as const,
-      sender_id: currentUser.user_id,
-      sender_name: currentUser.name || currentUser.username || '',
-      sender_username: currentUser.username || '',
-      sender_avatar: currentUser.avatar,
+      reply_to_message_id: replyToMessageId,
+      is_edited: false,
+      is_deleted: false,
+      is_pinned: false,
+      is_forwarded: false,
+      is_system: false,
+      has_mentions: false,
+      has_attachments: false,
+      has_reactions: false,
+      delivery_status: 'sending' as const,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      reactions: {},
-      is_own_message: true,
-      status: 'sent' as const,
-      reply_to: replyToMessageId ? messages.find(m => m.message_id === replyToMessageId)?.reply_to : undefined
+      sender: currentUser,
+      attachments: [],
+      reactions: [],
+      mentions: []
     };
 
     setMessages(prev => [optimisticMessage, ...prev]);
 
     try {
-      const response = await messengerService.sendMessage(activeConversation.conversation_id, {
+      const response = await professionalMessagingService.sendMessage(activeConversation.conversation_id, {
         content,
         reply_to_message_id: replyToMessageId
       });
 
       // Replace optimistic message with real message
-      setMessages(prev => 
-        prev.map(msg => 
-          msg.message_id === tempId 
-            ? { ...msg, message_id: response.message_id, status: 'delivered' as const }
-            : msg
-        )
-      );
+      if (response.success && response.data) {
+        setMessages(prev => 
+          prev.map(msg => 
+            msg.message_id === tempId 
+              ? { ...msg, message_id: response.data!.message_id, delivery_status: 'delivered' as const }
+              : msg
+          )
+        );
+      }
 
       // Send via WebSocket for real-time delivery (if connected)
       if (isConnected) {
@@ -356,7 +383,10 @@ const MessengerPage: React.FC = () => {
     if (!activeConversation) return;
 
     try {
-      await messengerService.sendFileMessage(activeConversation.conversation_id, file, content);
+      await professionalMessagingService.sendMessage(activeConversation.conversation_id, {
+        content: content || 'File attachment',
+        message_type: 'file'
+      }, [file]);
       loadMessages(activeConversation.conversation_id);
       loadConversations();
       showSuccess('File sent successfully');
@@ -380,7 +410,7 @@ const MessengerPage: React.FC = () => {
     }));
 
     try {
-      await messengerService.addReaction(messageId, { emoji });
+      await professionalMessagingService.addReaction(messageId, emoji);
       
       sendMessage({
         type: 'add_reaction',
@@ -421,7 +451,7 @@ const MessengerPage: React.FC = () => {
     }));
 
     try {
-      await messengerService.removeReaction(messageId);
+      await professionalMessagingService.removeReaction(messageId, oldReaction || 'like');
       
       sendMessage({
         type: 'remove_reaction',
@@ -453,50 +483,73 @@ const MessengerPage: React.FC = () => {
     }
   }, [activeConversation, messagesLoading, loadMessages, messages.length]);
 
-  const handleCreateDirectConversation = useCallback(async (user: MessengerUser, initialMessage: string) => {
+  const handleCreateDirectConversation = useCallback(async (user: ProfessionalUser, initialMessage: string) => {
+    console.log('=== STARTING handleCreateDirectConversation ===');
+    console.log('User:', user);
+    console.log('Initial message:', initialMessage);
+    
     try {
-      console.log('Creating direct conversation with user:', user.user_id);
-      const response = await messengerService.createDirectConversation({
-        other_user_id: user.user_id,
-        content: initialMessage,
-        message_type: 'text'
+      console.log('Step 1: Creating conversation...');
+      const response = await professionalMessagingService.createConversation({
+        participant_ids: [user.user_id],
+        conversation_type: 'direct'
       });
+      console.log('Conversation response:', response);
 
-      await loadConversations();
-      setShowNewChatModal(false);
-      
-      setTimeout(() => {
-        const newConversation = conversations.find(c => c.conversation_id === response.conversation_id);
-        if (newConversation) {
-          handleConversationSelect(newConversation);
-        }
-      }, 100);
-
-      showSuccess('Conversation started successfully');
+      if (response && response.conversation_id) {
+        console.log('Step 2: Sending initial message...');
+        const messageResponse = await professionalMessagingService.sendMessage(response.conversation_id, {
+          content: initialMessage
+        });
+        console.log('Message response:', messageResponse);
+        
+        console.log('Step 3: Loading conversations...');
+        await loadConversations();
+        
+        console.log('Step 4: Closing modal...');
+        setShowNewChatModal(false);
+        
+        setTimeout(() => {
+          const newConversation = conversations.find(c => c.conversation_id === response.conversation_id);
+          if (newConversation) {
+            handleConversationSelect(newConversation);
+          }
+        }, 100);
+        
+        console.log('Step 5: Showing success message...');
+        showSuccess('Conversation started successfully');
+      } else {
+        console.error('Conversation creation failed:', response);
+        showError('Failed to create conversation');
+      }
     } catch (error) {
-      console.error('Failed to create conversation:', error);
+      console.error('Exception in handleCreateDirectConversation:', error);
       showError('Failed to create conversation');
     }
+    
+    console.log('=== FINISHED handleCreateDirectConversation ===');
   }, [loadConversations, conversations, handleConversationSelect, showSuccess, showError]);
 
-  const handleCreateGroupConversation = useCallback(async (participants: MessengerUser[], groupName: string, groupDescription?: string) => {
+  const handleCreateGroupConversation = useCallback(async (participants: ProfessionalUser[], groupName: string, groupDescription?: string) => {
     try {
-      const response = await messengerService.createConversation({
+      const response = await professionalMessagingService.createConversation({
         participant_ids: participants.map(p => p.user_id),
-        is_group: true,
-        group_name: groupName,
-        group_description: groupDescription
+        conversation_type: 'group',
+        title: groupName,
+        description: groupDescription
       });
 
-      await loadConversations();
-      setShowNewGroupModal(false);
-      
-      setTimeout(() => {
-        const newConversation = conversations.find(c => c.conversation_id === response.conversation_id);
-        if (newConversation) {
-          handleConversationSelect(newConversation);
-        }
-      }, 100);
+      if (response.success && response.data) {
+        await loadConversations();
+        setShowNewGroupModal(false);
+        
+        setTimeout(() => {
+          const newConversation = conversations.find(c => c.conversation_id === response.data!.conversation_id);
+          if (newConversation) {
+            handleConversationSelect(newConversation);
+          }
+        }, 100);
+      }
 
       showSuccess('Group created successfully');
     } catch (error) {
@@ -692,6 +745,7 @@ const MessengerPage: React.FC = () => {
                   onNewChat={() => setShowNewChatModal(true)}
                   onNewGroup={() => setShowNewGroupModal(true)}
                   loading={loading}
+                  currentUserId={currentUser?.user_id}
                 />
               </div>
 

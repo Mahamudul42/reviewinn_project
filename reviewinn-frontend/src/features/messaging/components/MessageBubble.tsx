@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Reply, MoreHorizontal, Download } from 'lucide-react';
-import type { Message } from '../../../api/services/messengerService';
+import type { MsgMessage } from '../../../api/services/msgService';
 import { formatTimeAgo } from '../../../shared/utils/reviewUtils';
 
 interface MessageBubbleProps {
-  message: Message;
-  onReply?: (message: Message) => void;
+  message: MsgMessage;
+  onReply?: (message: MsgMessage) => void;
   onReaction?: (messageId: number, emoji: string) => void;
   onRemoveReaction?: (messageId: number) => void;
   showAvatar?: boolean;
@@ -51,7 +51,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     let left = 0;
 
     // Determine horizontal position based on message alignment and available space
-    if (message.is_own_message) {
+    const isOwnMessage = message.sender.user_id === currentUserId;
+    if (isOwnMessage) {
       // For own messages, prefer positioning to the left of the picker
       left = actionsRect.right - pickerWidth;
       
@@ -116,7 +117,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
       window.addEventListener('resize', handleResize);
       return () => window.removeEventListener('resize', handleResize);
     }
-  }, [showReactions, message.is_own_message]);
+  }, [showReactions, currentUserId, message.sender.user_id]);
 
   // Close reaction picker when clicking outside
   useEffect(() => {
@@ -136,7 +137,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     if (!currentUserId) return;
     
     // Check if current user already reacted with this emoji
-    const userHasReacted = message.reactions && message.reactions[currentUserId.toString()] === emoji;
+    const userHasReacted = message.reactions && message.reactions.some(r => r.user.user_id === currentUserId && r.reaction_type === emoji);
 
     if (userHasReacted) {
       onRemoveReaction?.(message.message_id);
@@ -148,8 +149,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
   const getReactionCounts = () => {
     const counts: Record<string, number> = {};
-    Object.values(message.reactions || {}).forEach((emoji) => {
-      counts[emoji] = (counts[emoji] || 0) + 1;
+    (message.reactions || []).forEach((reaction) => {
+      counts[reaction.reaction_type] = (counts[reaction.reaction_type] || 0) + 1;
     });
     return counts;
   };
@@ -157,10 +158,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
   const reactionCounts = getReactionCounts();
 
   const handleFileDownload = () => {
-    if (message.file_url) {
+    const attachment = message.attachments?.[0];
+    if (attachment?.file_url) {
       const link = document.createElement('a');
-      link.href = message.file_url;
-      link.download = message.file_name || 'file';
+      link.href = attachment.file_url;
+      link.download = attachment.file_name || 'file';
       link.click();
     }
   };
@@ -168,27 +170,30 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
   const renderMessageContent = () => {
     switch (message.message_type) {
       case 'image':
+        const imageAttachment = message.attachments?.find(att => att.file_type?.startsWith('image/'));
         return (
           <div className="message-image">
             <img 
-              src={message.file_url} 
-              alt={message.file_name}
+              src={imageAttachment?.file_url} 
+              alt={imageAttachment?.file_name}
               className="max-w-xs rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-              onClick={() => window.open(message.file_url, '_blank')}
+              onClick={() => window.open(imageAttachment?.file_url, '_blank')}
             />
-            {message.content && message.content !== message.file_name && (
+            {message.content && message.content !== imageAttachment?.file_name && (
               <p className="mt-2 text-sm">{message.content}</p>
             )}
           </div>
         );
       
       case 'file':
+      case 'attachment':
+        const fileAttachment = message.attachments?.[0];
         return (
           <div className="message-file flex items-center space-x-3 p-3 bg-gray-100 rounded-lg">
             <div className="flex-1">
-              <p className="font-medium text-sm">{message.file_name}</p>
+              <p className="font-medium text-sm">{fileAttachment?.file_name || 'File'}</p>
               <p className="text-xs text-gray-500">
-                {message.file_size ? `${(message.file_size / 1024).toFixed(1)} KB` : 'File'}
+                {fileAttachment?.file_size ? `${(fileAttachment.file_size / 1024).toFixed(1)} KB` : 'File'}
               </p>
             </div>
             <button
@@ -205,38 +210,36 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     }
   };
 
+  const isOwnMessage = message.sender.user_id === currentUserId;
+
   return (
-    <div className={`message-bubble-container ${message.is_own_message ? 'own-message' : 'other-message'}`}>
+    <div className={`message-bubble-container ${isOwnMessage ? 'own-message' : 'other-message'}`}>
       <div className="flex items-end space-x-2 mb-1">
-        {!message.is_own_message && showAvatar && (
+        {!isOwnMessage && showAvatar && (
           <img
-            src={message.sender_avatar || `https://ui-avatars.com/api/?name=${message.sender_name}&size=32`}
-            alt={message.sender_name}
+            src={message.sender.avatar || `https://ui-avatars.com/api/?name=${message.sender.name}&size=32`}
+            alt={message.sender.name}
             className="w-8 h-8 rounded-full flex-shrink-0"
           />
         )}
         
-        <div className={`message-bubble max-w-xs lg:max-w-md ${message.is_own_message ? 'ml-auto' : ''}`}>
+        <div className={`message-bubble max-w-xs lg:max-w-md ${isOwnMessage ? 'ml-auto' : ''}`}>
           {/* Sender name for group chats */}
-          {!message.is_own_message && isGroupChat && (
-            <p className="text-xs text-gray-600 mb-1 px-3">{message.sender_name}</p>
+          {!isOwnMessage && isGroupChat && (
+            <p className="text-xs text-gray-600 mb-1 px-3">{message.sender.name}</p>
           )}
 
           {/* Reply indicator */}
-          {message.reply_to && (
+          {message.reply_to_message_id && (
             <div className="reply-indicator px-3 py-2 bg-gray-100 border-l-4 border-blue-500 mb-2 rounded-t-lg">
-              <p className="text-xs text-gray-600">{message.reply_to.sender_name}</p>
-              <p className="text-sm text-gray-800 truncate">
-                {message.reply_to.message_type === 'image' ? '📷 Image' :
-                 message.reply_to.message_type === 'file' ? '📎 File' :
-                 message.reply_to.content}
-              </p>
+              <p className="text-xs text-gray-600">Replying to message</p>
+              <p className="text-sm text-gray-800 truncate">Message ID: {message.reply_to_message_id}</p>
             </div>
           )}
 
           {/* Message content */}
           <div className={`message-content p-3 rounded-lg relative group ${
-            message.is_own_message 
+            isOwnMessage 
               ? 'bg-blue-500 text-white rounded-br-sm' 
               : 'bg-gray-200 text-gray-800 rounded-bl-sm'
           }`}>
@@ -246,11 +249,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             <div 
               ref={messageActionsRef}
               className={`message-actions absolute top-2 opacity-0 group-hover:opacity-100 transition-all duration-200 ${
-                message.is_own_message ? 'left-2' : 'right-2'
+                isOwnMessage ? 'left-2' : 'right-2'
               }`}
             >
               <div className={`flex items-center space-x-1 bg-white bg-opacity-90 backdrop-blur-sm rounded-lg px-2 py-1 shadow-lg border border-gray-200 ${
-                message.is_own_message ? 'flex-row-reverse space-x-reverse' : ''
+                isOwnMessage ? 'flex-row-reverse space-x-reverse' : ''
               }`}>
                 <button
                   onClick={() => setShowReactions(!showReactions)}
@@ -286,7 +289,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
           {Object.keys(reactionCounts).length > 0 && (
             <div className="reactions flex flex-wrap gap-1 mt-2 px-1 animate-in fade-in duration-300">
               {Object.entries(reactionCounts).map(([emoji, count]) => {
-                const userHasThisReaction = currentUserId && message.reactions && message.reactions[currentUserId.toString()] === emoji;
+                const userHasThisReaction = currentUserId && message.reactions && message.reactions.some(r => r.user.user_id === currentUserId && r.reaction_type === emoji);
                 return (
                   <button
                     key={emoji}
@@ -306,10 +309,10 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
           )}
         </div>
 
-        {message.is_own_message && showAvatar && (
+        {isOwnMessage && showAvatar && (
           <img
-            src={message.sender_avatar || `https://ui-avatars.com/api/?name=${message.sender_name}&size=32`}
-            alt={message.sender_name}
+            src={message.sender.avatar || `https://ui-avatars.com/api/?name=${message.sender.name}&size=32`}
+            alt={message.sender.name}
             className="w-8 h-8 rounded-full flex-shrink-0"
           />
         )}
@@ -317,17 +320,13 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
       {/* Message metadata */}
       <div className={`message-metadata flex items-center space-x-2 text-xs text-gray-500 ${
-        message.is_own_message ? 'justify-end' : 'justify-start'
-      } ${showAvatar && !message.is_own_message ? 'ml-10' : ''}`}>
+        isOwnMessage ? 'justify-end' : 'justify-start'
+      } ${showAvatar && !isOwnMessage ? 'ml-10' : ''}`}>
         <span>{formatTimeAgo(message.created_at)}</span>
         
-        {message.is_own_message && (
-          <span className={`status ${
-            message.status === 'read' ? 'text-blue-500' : 
-            message.status === 'delivered' ? 'text-gray-500' : 'text-gray-400'
-          }`}>
-            {message.status === 'read' ? '✓✓' : 
-             message.status === 'delivered' ? '✓✓' : '✓'}
+        {isOwnMessage && (
+          <span className="status text-gray-400">
+            ✓
           </span>
         )}
       </div>
@@ -348,7 +347,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
         >
           <div className="flex space-x-2">
             {reactions.map((emoji) => {
-              const userHasThisReaction = currentUserId && message.reactions && message.reactions[currentUserId.toString()] === emoji;
+              const userHasThisReaction = currentUserId && message.reactions && message.reactions.some(r => r.user.user_id === currentUserId && r.reaction_type === emoji);
               return (
                 <button
                   key={emoji}

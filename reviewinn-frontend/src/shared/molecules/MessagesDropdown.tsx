@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { MessageCircle } from 'lucide-react';
-import { messengerService } from '../../api/services/messengerService';
-import type { Conversation } from '../../api/services/messengerService';
+import { professionalMessagingService } from '../../api/services/professionalMessagingService';
+import type { ProfessionalConversation } from '../../api/services/professionalMessagingService';
 
 interface MessageItem {
   user: string;
@@ -19,7 +19,7 @@ interface MessagesDropdownProps {
 }
 
 const MessagesDropdown: React.FC<MessagesDropdownProps> = ({ open, onClose }) => {
-  const [recentConversations, setRecentConversations] = useState<Conversation[]>([]);
+  const [recentConversations, setRecentConversations] = useState<ProfessionalConversation[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -31,9 +31,9 @@ const MessagesDropdown: React.FC<MessagesDropdownProps> = ({ open, onClose }) =>
   const loadRecentConversations = async () => {
     try {
       setLoading(true);
-      const response = await messengerService.getConversations();
-      // Get the 5 most recent conversations
-      setRecentConversations(response.conversations.slice(0, 5));
+      const response = await professionalMessagingService.getConversations(5, 0);
+      // Get the conversations from the professional service
+      setRecentConversations(response.data?.conversations || []);
     } catch (error) {
       console.error('Failed to load recent conversations:', error);
     } finally {
@@ -52,18 +52,22 @@ const MessagesDropdown: React.FC<MessagesDropdownProps> = ({ open, onClose }) =>
     return `${Math.floor(diffInMinutes / 1440)}d ago`;
   };
 
-  const getConversationTitle = (conversation: Conversation) => {
-    if (conversation.is_group) {
-      return conversation.group_name || 'Group Chat';
+  const getConversationTitle = (conversation: ProfessionalConversation) => {
+    if (conversation.conversation_type === 'group') {
+      return conversation.title || 'Group Chat';
     }
-    return conversation.other_user?.name || conversation.other_user?.username || 'Unknown User';
+    // For direct messages, get the other participant's name
+    const otherParticipant = conversation.participants.find(p => p.user_id !== conversation.user_role);
+    return otherParticipant?.display_name || 'Direct Message';
   };
 
-  const getConversationAvatar = (conversation: Conversation) => {
-    if (conversation.is_group) {
-      return conversation.group_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(conversation.group_name || 'Group')}&background=4f46e5&color=fff&size=40`;
+  const getConversationAvatar = (conversation: ProfessionalConversation) => {
+    if (conversation.conversation_type === 'group') {
+      return conversation.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(conversation.title || 'Group')}&background=4f46e5&color=fff&size=40`;
     }
-    return conversation.other_user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(conversation.other_user?.name || 'User')}&size=40`;
+    // For direct messages, get the other participant's avatar
+    const otherParticipant = conversation.participants.find(p => p.user_id !== conversation.user_role);
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(otherParticipant?.display_name || 'User')}&size=40`;
   };
 
   if (!open) return null;

@@ -151,9 +151,14 @@ export class UserService {
   async getUserProfile(id: string): Promise<UserProfile | null> {
     try {
       const url = `${API_CONFIG.BASE_URL}/users/${id}/profile`;
-      const response = await httpClient.get<UserProfile>(url, true);
+      const response = await httpClient.get<any>(url, true);
       
-      return response.data || null;
+      // Handle enterprise API response format
+      if (response.data && response.data.status === 'success' && response.data.data) {
+        return response.data.data;
+      }
+      
+      return null;
     } catch (error) {
       console.error('Error getting user profile:', error);
       return null;
@@ -165,11 +170,18 @@ export class UserService {
    */
   async getUserProfileByIdentifier(identifier: string): Promise<UserProfile | null> {
     try {
-      // Use the backend endpoint that handles both username and ID
       const url = `${API_CONFIG.BASE_URL}/users/${identifier}/profile`;
-      const response = await httpClient.get<UserProfile>(url, true);
       
-      return response.data || null;
+      // Use direct fetch for public profile viewing (no auth required)
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      // Handle enterprise API response format
+      if (data && data.status === 'success' && data.data) {
+        return data.data;
+      }
+      
+      return null;
     } catch (error) {
       console.error('Error getting user profile by identifier:', error);
       return null;
@@ -180,14 +192,15 @@ export class UserService {
    * Update user profile
    */
   async updateUserProfile(id: string, profileData: Partial<UserProfile>): Promise<UserProfile> {
-    const url = `${API_CONFIG.BASE_URL}/users/me`;
-    const response = await httpClient.put<UserProfile>(url, profileData);
+    const url = `${API_CONFIG.BASE_URL}/users/me/profile`;
+    const response = await httpClient.put<any>(url, profileData);
     
-    if (!response.data) {
-      throw new Error('Failed to update user profile');
+    // Handle enterprise API response format
+    if (response.data && response.data.status === 'success' && response.data.data) {
+      return response.data.data;
     }
     
-    return response.data;
+    throw new Error('Failed to update user profile');
   }
 
   /**

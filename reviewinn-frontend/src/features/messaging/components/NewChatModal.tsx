@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Search, Users, User as UserIcon, MessageSquare, Plus, ArrowLeft, Send, Sparkles } from 'lucide-react';
-import { messengerService } from '../../../api/services/messengerService';
-import type { User } from '../../../api/services/messengerService';
+import { userService } from '../../../api/services/userService';
+import type { User } from '../../../types';
+import type { ProfessionalUser } from '../../../api/services/professionalMessagingService';
 
 interface NewChatModalProps {
   onClose: () => void;
-  onCreateConversation: ((user: User, initialMessage: string) => void) | ((participants: User[], groupName: string, groupDescription?: string) => void);
+  onCreateConversation: ((user: ProfessionalUser, initialMessage: string) => void) | ((participants: ProfessionalUser[], groupName: string, groupDescription?: string) => void);
   isGroup?: boolean;
 }
 
@@ -61,7 +62,7 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
           return;
         }
         
-        const response = await messengerService.searchUsers(trimmedQuery, 10);
+        const response = await userService.searchUsers(trimmedQuery, { limit: 10 });
         setSearchResults(response.users || []);
       } catch (error) {
         console.error('Failed to search users:', error);
@@ -79,9 +80,9 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
   const handleUserSelect = (user: User) => {
     if (isGroup) {
       setSelectedUsers(prev => {
-        const isSelected = prev.some(u => u.user_id === user.user_id);
+        const isSelected = prev.some(u => u.id === user.id);
         if (isSelected) {
-          return prev.filter(u => u.user_id !== user.user_id);
+          return prev.filter(u => u.id !== user.id);
         } else {
           return [...prev, user];
         }
@@ -93,17 +94,27 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
     }
   };
 
+  // Convert User to ProfessionalUser
+  const convertToProfessionalUser = (user: User): ProfessionalUser => ({
+    user_id: parseInt(user.id),
+    username: user.username || '',
+    name: user.name || user.username || '',
+    avatar: user.avatar,
+    is_online: false,
+    status: 'offline'
+  });
+
   const handleCreateConversation = () => {
     if (isGroup) {
       if (selectedUsers.length === 0 || !groupName.trim()) return;
       
-      // TypeScript doesn't know this is a group conversation handler
-      (onCreateConversation as any)(selectedUsers, groupName.trim(), groupDescription.trim() || undefined);
+      const professionalUsers = selectedUsers.map(convertToProfessionalUser);
+      (onCreateConversation as any)(professionalUsers, groupName.trim(), groupDescription.trim() || undefined);
     } else {
       if (selectedUsers.length === 0 || !initialMessage.trim()) return;
       
-      // TypeScript doesn't know this is a direct conversation handler
-      (onCreateConversation as any)(selectedUsers[0], initialMessage.trim());
+      const professionalUser = convertToProfessionalUser(selectedUsers[0]);
+      (onCreateConversation as any)(professionalUser, initialMessage.trim());
     }
   };
 
@@ -450,10 +461,10 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
                 ) : searchResults.length > 0 ? (
                   <div style={{ padding: '24px 32px' }}>
                     {searchResults.map((user) => {
-                      const isSelected = selectedUsers.some(u => u.user_id === user.user_id);
+                      const isSelected = selectedUsers.some(u => u.id === user.id);
                       return (
                         <button
-                          key={user.user_id}
+                          key={user.id}
                           onClick={() => handleUserSelect(user)}
                           style={{
                             width: '100%',
@@ -717,7 +728,7 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
                     }}>
                       {selectedUsers.map((user) => (
                         <div
-                          key={user.user_id}
+                          key={user.id}
                           style={{
                             display: 'flex',
                             alignItems: 'center',

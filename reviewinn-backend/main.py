@@ -24,11 +24,12 @@ from core.auth_middleware import JWTAuthMiddleware, SecurityMiddleware
 from routers.api_v1 import v1_router
 from routers.auth_modern import router as auth_modern_router
 from routers.auth_enhanced import router as auth_enhanced_router
-from routers.messages import router as messages_router
-from routers.messenger import router as messenger_router
+from routers.msg_api import router as msg_api_router
+from routers.professional_messaging_api import router as professional_messaging_router
 from routers.websocket import router as websocket_router
 from routers.notifications import router as notifications_router
 from routers.user_profile import router as user_profile_router
+from routers.core_user_profile import router as core_user_profile_router
 from routers.homepage import router as homepage_router
 from routers.admin import router as admin_router
 from routers.view_tracking import router as view_tracking_router
@@ -205,11 +206,15 @@ class APIApplication(LoggerMixin):
         app.include_router(auth_enhanced_router, prefix="/api/v1")
         
         # Messaging system routers
-        app.include_router(messenger_router, prefix="/api/v1")
         app.include_router(websocket_router)
-        app.include_router(messages_router, prefix="/api/v1")
+        # Professional messaging system - Industry standard
+        app.include_router(professional_messaging_router)
+        # Legacy messaging API (basic features)
+        app.include_router(msg_api_router)
         app.include_router(notifications_router, prefix="/api/v1")
         app.include_router(user_profile_router, prefix="/api/v1")
+        # Enterprise-grade user profiles using core_users table
+        app.include_router(core_user_profile_router, prefix="/api/v1")
         
         # Other routers
         app.include_router(homepage_router, prefix="/api/v1")
