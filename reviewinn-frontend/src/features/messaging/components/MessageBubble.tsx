@@ -234,9 +234,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
       <div className="flex items-end space-x-2 mb-1">
         {!isOwnMessage && showAvatar && (
           <img
-            src={message.sender?.avatar || `https://ui-avatars.com/api/?name=${message.sender?.name || 'User'}&size=24`}
+            src={message.sender?.avatar || `https://ui-avatars.com/api/?name=${message.sender?.name || 'User'}&size=32`}
             alt={message.sender?.name || 'User'}
-            className="w-6 h-6 rounded-full flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-blue-300 transition-all"
+            className="w-8 h-8 rounded-full flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-blue-300 transition-all"
             onClick={() => {
               if (message.sender_id !== currentUserId) {
                 onUserClick?.(message.sender_id);
@@ -342,9 +342,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
         {isOwnMessage && showAvatar && (
           <img
-            src={message.sender?.avatar || `https://ui-avatars.com/api/?name=${message.sender?.name || 'User'}&size=24`}
+            src={message.sender?.avatar || `https://ui-avatars.com/api/?name=${message.sender?.name || 'User'}&size=32`}
             alt={message.sender?.name || 'User'}
-            className="w-6 h-6 rounded-full flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-blue-300 transition-all"
+            className="w-8 h-8 rounded-full flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-blue-300 transition-all"
             onClick={() => {
               if (message.sender_id !== currentUserId) {
                 onUserClick?.(message.sender_id);
@@ -357,7 +357,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
       {/* Message metadata */}
       <div className={`message-metadata flex items-center space-x-2 text-xs text-gray-500 ${
         isOwnMessage ? 'justify-end' : 'justify-start'
-      } ${showAvatar && !isOwnMessage ? 'ml-10' : ''}`}>
+      } ${showAvatar && !isOwnMessage ? 'ml-12' : ''}`}>
         <span>{formatTimeAgo(message.created_at)}</span>
         
         {isOwnMessage && (

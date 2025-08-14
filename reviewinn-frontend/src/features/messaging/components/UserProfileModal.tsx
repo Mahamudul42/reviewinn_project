@@ -82,20 +82,24 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 max-w-md w-full mx-4" onClick={e => e.stopPropagation()}>
-        {/* Header */}
-        <div className="relative p-6 pb-0">
-          <button
-            onClick={onClose}
-            className="absolute right-4 top-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
-          >
-            <X size={20} className="text-gray-500" />
-          </button>
+      <div className="bg-white rounded-lg shadow-2xl border border-gray-200 max-w-lg w-full mx-4" onClick={e => e.stopPropagation()}>
+        {/* Header with close button */}
+        <div className="relative p-6 pb-4">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">User Profile</h3>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 rounded-full transition-all duration-200 hover:scale-110"
+              title="Close"
+            >
+              <X size={20} className="text-gray-500" />
+            </button>
+          </div>
           
           {/* Avatar and basic info */}
-          <div className="text-center">
-            <div className="relative w-24 h-24 mx-auto mb-4">
-              <div className="w-24 h-24 rounded-full overflow-hidden ring-4 ring-gray-100">
+          <div className="flex items-center space-x-4">
+            <div className="relative flex-shrink-0">
+              <div className="w-16 h-16 rounded-full overflow-hidden ring-2 ring-gray-100 shadow-sm">
                 <img
                   src={getAvatarUrl()}
                   alt={user.name}
@@ -103,46 +107,48 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 />
               </div>
               {user.is_verified && (
-                <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white">
-                  <Award size={14} className="text-white" />
+                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white">
+                  <Award size={10} className="text-white" />
                 </div>
               )}
               {user.is_premium && (
-                <div className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center border-2 border-white">
-                  <Star size={12} className="text-white" />
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center border-2 border-white">
+                  <Star size={8} className="text-white" />
                 </div>
               )}
             </div>
             
-            <div className="flex items-center justify-center space-x-2 mb-2">
-              <h2 className="text-xl font-bold text-gray-900">
-                {user.full_name || user.name}
-              </h2>
-              {user.level && user.level > 1 && (
-                <span className="bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 px-2 py-1 rounded-full text-xs font-semibold">
-                  Level {user.level}
-                </span>
-              )}
-            </div>
-            
-            <div className="space-y-1">
-              <p className="text-gray-600">@{user.username}</p>
-              {user.last_active && (
-                <p className="text-xs text-gray-500">{formatLastActive(user.last_active)}</p>
-              )}
-            </div>
-            
-            {user.bio && (
-              <p className="text-gray-700 text-sm mt-3 px-2 leading-relaxed">{user.bio}</p>
-            )}
-
-            {user.points && user.points > 0 && (
-              <div className="mt-3 inline-flex items-center space-x-1 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 px-3 py-1 rounded-full text-xs font-medium">
-                <Heart size={12} />
-                <span>{user.points.toLocaleString()} points</span>
+            <div className="flex-1">
+              <div className="flex items-center space-x-2 mb-1">
+                <h2 className="text-xl font-bold text-gray-900">
+                  {user.full_name || user.name}
+                </h2>
+                {user.level && user.level > 1 && (
+                  <span className="bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 px-2 py-1 rounded-full text-xs font-semibold">
+                    Level {user.level}
+                  </span>
+                )}
               </div>
-            )}
+              
+              <div className="space-y-1">
+                <p className="text-gray-600">@{user.username}</p>
+                {user.last_active && (
+                  <p className="text-xs text-gray-500">{formatLastActive(user.last_active)}</p>
+                )}
+              </div>
+            </div>
           </div>
+          
+          {user.bio && (
+            <p className="text-gray-700 text-sm mt-4 leading-relaxed">{user.bio}</p>
+          )}
+
+          {user.points && user.points > 0 && (
+            <div className="mt-3 inline-flex items-center space-x-1 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 px-3 py-1 rounded-full text-xs font-medium">
+              <Heart size={12} />
+              <span>{user.points.toLocaleString()} points</span>
+            </div>
+          )}
         </div>
 
         {/* Stats */}
