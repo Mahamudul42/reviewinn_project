@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Bell, Check, X } from 'lucide-react';
 import { notificationService } from '../../api/services/notificationService';
+import { PurpleButton } from '../design-system';
 import type { NotificationData } from '../../api/services/notificationService';
 
 interface NotificationsDropdownProps {
@@ -168,14 +169,16 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ open, onC
         
         {!loading && (
           <div className="mt-4 pt-3 border-t border-gray-200 flex-shrink-0">
-            <Link
-              to="/notifications"
-              onClick={onClose}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            <PurpleButton
+              onClick={() => {
+                onClose();
+                window.location.href = '/notifications';
+              }}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 text-white"
             >
               <Bell size={16} />
               See All Notifications
-            </Link>
+            </PurpleButton>
           </div>
         )}
       </div>

@@ -27,7 +27,7 @@ const Layout: React.FC = () => {
   const [recentActivityShown, setRecentActivityShown] = useState(false);
   const [showRecentActivityDropdown, setShowRecentActivityDropdown] = useState(false);
   const [showMessagesDropdown, setShowMessagesDropdown] = useState(false);
-  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0); // Track unread messages
+  const [unreadConversationsCount, setUnreadConversationsCount] = useState(0); // Track unread conversations (industry standard)
   const {
     notifications,
     removeNotification,
@@ -36,13 +36,91 @@ const Layout: React.FC = () => {
   } = useNotifications();
 
   // WebSocket for real-time updates (only when authenticated)
-  useWebSocket({
-    enabled: isAuthenticated,
+  const { isConnected } = useWebSocket({
+    enabled: isAuthenticated && !!user,
     onMessage: (message) => {
+      console.log('🔔 Layout: WebSocket message received:', {
+        type: message.type,
+        fullMessage: message,
+        currentUserId: user?.id,
+        senderIdFromMessage: message.sender_id,
+        conversationId: message.conversation_id,
+        currentUnreadCount: unreadConversationsCount
+      });
+      
       if (message.type === 'new_message') {
-        // Update unread count when new message arrives
-        loadUnreadCount();
+        console.log('📨 Layout: Processing new message for counter update');
+        console.log('📨 Message details:', {
+          senderId: message.sender_id,
+          currentUserId: user?.id,
+          senderIdType: typeof message.sender_id,
+          currentUserIdType: typeof user?.id,
+          senderIdEquals: message.sender_id === user?.id,
+          senderIdEqualsNumber: message.sender_id === Number(user?.id),
+          numberSenderIdEquals: Number(message.sender_id) === Number(user?.id)
+        });
+        
+        // Check if this message is from another user (not from current user)
+        const isFromOtherUser = message.sender_id && user?.id && 
+          Number(message.sender_id) !== Number(user?.id);
+        
+        console.log('📨 Is from other user?', isFromOtherUser);
+        
+        if (message.conversation_id && isFromOtherUser) {
+          console.log('🔄 Layout: Updating counter optimistically for message from other user');
+          // Optimistically update counter for better UX
+          setUnreadConversationsCount(prev => {
+            const newCount = prev + 1;
+            console.log(`📈 Layout: Counter updated optimistically: ${prev} → ${newCount}`);
+            return newCount;
+          });
+          
+          // Verify with backend after short delay
+          setTimeout(() => {
+            console.log('🔄 Layout: Verifying counter with backend after new message');
+            loadUnreadConversationsCount();
+          }, 1000);
+        } else {
+          console.log('⏭️ Layout: Skipping counter update - message from current user or missing data');
+        }
+      } else if (message.type === 'conversation_read') {
+        console.log('👁️ Layout: Conversation marked as read, updating counter');
+        if (message.conversation_id) {
+          // Optimistically decrease counter
+          setUnreadConversationsCount(prev => {
+            const newCount = Math.max(0, prev - 1);
+            console.log(`📉 Layout: Counter decreased: ${prev} → ${newCount}`);
+            return newCount;
+          });
+        }
+        
+        // Verify with backend
+        setTimeout(() => {
+          console.log('🔄 Layout: Verifying counter after conversation read');
+          loadUnreadConversationsCount();
+        }, 500);
+      } else if (message.type === 'conversation_updated' || message.type === 'message_status') {
+        // Handle other conversation updates
+        console.log('🔄 Layout: Conversation updated, refreshing count');
+        setTimeout(() => {
+          loadUnreadConversationsCount();
+        }, 300);
+      } else {
+        console.log('❓ Layout: Unknown message type, triggering general refresh');
+        setTimeout(() => {
+          loadUnreadConversationsCount();
+        }, 500);
       }
+    },
+    onConnect: () => {
+      console.log('Layout: WebSocket connected, loading unread conversations count');
+      loadUnreadConversationsCount();
+    },
+    onDisconnect: () => {
+      console.log('Layout: WebSocket disconnected');
+    },
+    onError: (error) => {
+      console.log('Layout: WebSocket connection error:', error);
     }
   });
 
@@ -75,47 +153,75 @@ const Layout: React.FC = () => {
       setShowUserMenu(false);
       setShowRecentActivityDropdown(false);
       setShowMessagesDropdown(false);
-      // Clear message count
-      setUnreadMessagesCount(0);
+      // Clear conversations count
+      setUnreadConversationsCount(0);
+    };
+
+    // Handle conversation updates from MessagesDropdown
+    const handleConversationUpdate = () => {
+      console.log('Layout: Conversation update event received');
+      if (isAuthenticated && !isLoading && user) {
+        setTimeout(() => {
+          loadUnreadConversationsCount();
+        }, 300); // Small delay to ensure backend state is updated
+      }
     };
 
     window.addEventListener('openAuthModal', handleOpenAuthModal as EventListener);
     window.addEventListener('loginSuccess', handleLoginSuccess as EventListener);
     window.addEventListener('authStateChanged', handleAuthStateChange as EventListener);
     window.addEventListener('authLogout', handleAuthLogout as EventListener);
+    window.addEventListener('conversationUpdated', handleConversationUpdate as EventListener);
 
     return () => {
       window.removeEventListener('openAuthModal', handleOpenAuthModal as EventListener);
       window.removeEventListener('loginSuccess', handleLoginSuccess as EventListener);
       window.removeEventListener('authStateChanged', handleAuthStateChange as EventListener);
       window.removeEventListener('authLogout', handleAuthLogout as EventListener);
+      window.removeEventListener('conversationUpdated', handleConversationUpdate as EventListener);
     };
   }, []);
 
   // Separate effect for auth state changes (without loading unread count immediately)
   useEffect(() => {
     if (!isAuthenticated || isLoading) {
-      // Reset message counts when user logs out or is loading
-      setUnreadMessagesCount(0);
+      // Reset conversation counts when user logs out or is loading
+      setUnreadConversationsCount(0);
       setShowMessagesDropdown(false);
       setShowRecentActivityDropdown(false);
     }
   }, [isAuthenticated, isLoading]);
 
-  // Effect to load unread count when user becomes available (for page refresh/initial load)
+  // Effect to load unread conversations count when user becomes available (for page refresh/initial load)
   useEffect(() => {
-    if (isAuthenticated && !isLoading && user && unreadMessagesCount === 0) {
-      console.log('User became available, loading unread count');
+    if (isAuthenticated && !isLoading && user && unreadConversationsCount === 0) {
+      console.log('User became available, loading unread conversations count');
       setTimeout(() => {
-        loadUnreadCount();
+        loadUnreadConversationsCount();
       }, 300);
     }
   }, [user, isAuthenticated, isLoading]);
 
-  const loadUnreadCount = async () => {
-    // Only load unread count if user is authenticated and not still loading
+  // Periodic fallback to refresh counter (enterprise standard)
+  useEffect(() => {
+    if (!isAuthenticated || !user) return;
+    
+    console.log('📡 Layout: Setting up periodic counter refresh (fallback mechanism)');
+    const periodicRefresh = setInterval(() => {
+      console.log('📡 Layout: Periodic counter refresh triggered');
+      loadUnreadConversationsCount();
+    }, 30000); // Refresh every 30 seconds as fallback
+    
+    return () => {
+      console.log('📡 Layout: Clearing periodic counter refresh');
+      clearInterval(periodicRefresh);
+    };
+  }, [isAuthenticated, user, loadUnreadConversationsCount]);
+
+  const loadUnreadConversationsCount = async () => {
+    // Only load unread conversations count if user is authenticated and not still loading
     if (!isAuthenticated || isLoading || !user) {
-      setUnreadMessagesCount(0);
+      setUnreadConversationsCount(0);
       return;
     }
     
@@ -130,44 +236,80 @@ const Layout: React.FC = () => {
       setTimeout(() => {
         const retryToken = getToken();
         if (retryToken) {
-          console.log('Token found on retry, proceeding with unread count load');
-          loadUnreadCount();
+          console.log('Token found on retry, proceeding with unread conversations count load');
+          loadUnreadConversationsCount();
         } else {
-          console.warn('No token found after retry, giving up on loading unread count');
-          setUnreadMessagesCount(0);
+          console.warn('No token found after retry, giving up on loading unread conversations count');
+          setUnreadConversationsCount(0);
         }
       }, 500);
       return;
     }
     
-    console.log('Loading unread message count for user:', user.id);
+    console.log('Loading unread conversations count for user:', user.id);
     
     try {
       const response = await professionalMessagingService.getConversations();
       
-      // Check if response has the expected structure for professional messaging service
-      if (response && response.data && response.data.conversations && Array.isArray(response.data.conversations)) {
-        const totalUnread = response.data.conversations.reduce((sum, conv) => sum + (conv.user_unread_count || 0), 0);
-        setUnreadMessagesCount(totalUnread);
+      console.log('Layout: Raw API response for unread count:', response);
+      
+      // Handle multiple possible response structures
+      let conversations = null;
+      if (response?.data?.conversations && Array.isArray(response.data.conversations)) {
+        conversations = response.data.conversations;
+        console.log('Layout: Using response.data.conversations for unread count');
+      } else if (response?.conversations && Array.isArray(response.conversations)) {
+        conversations = response.conversations;
+        console.log('Layout: Using response.conversations for unread count');
+      } else if (Array.isArray(response)) {
+        conversations = response;
+        console.log('Layout: Response is direct array for unread count');
+      }
+      
+      if (conversations && Array.isArray(conversations)) {
+        // Industry Standard: Count conversations with unread messages (not total message count)
+        const unreadConversations = conversations.filter(conv => {
+          // A conversation is "unread" if it has any unread messages
+          const hasUnreadMessages = conv.user_unread_count > 0;
+          return hasUnreadMessages;
+        });
+        
+        const unreadConversationsCount = unreadConversations.length;
+        setUnreadConversationsCount(unreadConversationsCount);
+        
+        console.log(`🔢 Layout: Found ${unreadConversationsCount} unread conversations out of ${conversations.length} total conversations`);
+        console.log('🔢 Layout: Unread conversations debug:', conversations.map(conv => ({
+          id: conv.conversation_id,
+          title: conv.title,
+          userUnreadCount: conv.user_unread_count,
+          isUnread: conv.user_unread_count > 0,
+          lastMessage: conv.latest_message?.content?.substring(0, 30) || conv.last_message?.content?.substring(0, 30)
+        })));
+        console.log('🔢 Layout: Setting unread badge count to:', unreadConversationsCount);
+        
+        // Also emit event for MessagesDropdown to update
+        window.dispatchEvent(new CustomEvent('conversationCountUpdated', { 
+          detail: { count: unreadConversationsCount } 
+        }));
       } else {
-        console.warn('Unexpected response structure from professional messaging service:', response);
-        setUnreadMessagesCount(0);
+        console.warn('Layout: Unexpected response structure from professional messaging service:', response);
+        setUnreadConversationsCount(0);
       }
     } catch (error: any) {
-      console.error('Failed to load unread count:', error);
+      console.error('Failed to load unread conversations count:', error);
       
       // Handle specific error cases
       if (error.response?.status === 401) {
         console.warn('Unauthorized access to messenger API - user may need to re-authenticate');
         // Don't show error to user, just set count to 0
-        setUnreadMessagesCount(0);
+        setUnreadConversationsCount(0);
         // Don't call logout here as it could interfere with the auth flow
       } else if (error.response?.status >= 500) {
-        console.error('Server error when loading unread count');
-        setUnreadMessagesCount(0);
+        console.error('Server error when loading unread conversations count');
+        setUnreadConversationsCount(0);
       } else {
         // For other errors, just set count to 0 without showing error
-        setUnreadMessagesCount(0);
+        setUnreadConversationsCount(0);
       }
     }
   };
@@ -266,9 +408,9 @@ const Layout: React.FC = () => {
     }
     // Toggle messages dropdown
     setShowMessagesDropdown((prev) => !prev);
-    // Refresh unread count when opening dropdown
+    // Refresh unread conversations count when opening dropdown
     if (!showMessagesDropdown) {
-      loadUnreadCount();
+      loadUnreadConversationsCount();
     }
   };
 
@@ -453,18 +595,55 @@ const Layout: React.FC = () => {
               <div className="relative inline-block">
                 <button
                   className="relative p-3 rounded-xl bg-white bg-opacity-10 backdrop-blur-sm border border-white border-opacity-20 hover:bg-opacity-20 transition-all duration-300 group mr-4 shadow-lg hover:shadow-xl"
-                  aria-label={isAuthenticated ? "Messages" : "Sign in to view messages"}
-                  title={isAuthenticated ? "View your messages" : "Sign in to access messages"}
+                  aria-label={isAuthenticated ? `Messages ${unreadConversationsCount > 0 ? `(${unreadConversationsCount} unread)` : ''}` : "Sign in to view messages"}
+                  title={isAuthenticated ? 
+                    `${unreadConversationsCount > 0 ? `You have ${unreadConversationsCount} unread conversation${unreadConversationsCount === 1 ? '' : 's'}` : 'All conversations read'}${isConnected ? ' • Live updates enabled' : ''}` : 
+                    "Sign in to access messages"
+                  }
                   onClick={handleShowMessages}
                 >
                   <MessageCircle size={20} className="text-white group-hover:scale-110 transition-transform duration-200" />
-                  {isAuthenticated && unreadMessagesCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-gradient-to-r from-emerald-400 to-cyan-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold shadow-lg animate-pulse" style={{fontSize:'11px'}}>
-                      {unreadMessagesCount}
-                    </span>
+                  
+                  {/* Enterprise-Grade Unread Badge */}
+                  {isAuthenticated && unreadConversationsCount > 0 && (
+                    <div className="absolute -top-3 -right-3 z-10">
+                      <span className="relative flex items-center justify-center bg-gradient-to-br from-red-500 to-red-600 text-white text-xs rounded-full font-extrabold shadow-2xl border-4 border-white transform transition-all duration-200 hover:scale-110" style={{
+                        fontSize: '12px',
+                        minWidth: unreadConversationsCount > 9 ? '28px' : '24px',
+                        height: unreadConversationsCount > 9 ? '28px' : '24px',
+                        lineHeight: '1',
+                        animation: 'messageNotification 2s ease-in-out infinite',
+                        boxShadow: '0 4px 20px rgba(239, 68, 68, 0.6), 0 0 0 4px rgba(239, 68, 68, 0.2)',
+                        background: 'linear-gradient(45deg, #ef4444, #dc2626, #b91c1c)',
+                        WebkitBackgroundClip: 'padding-box',
+                        backgroundClip: 'padding-box'
+                      }}>
+                        <span className="relative z-10 drop-shadow-sm">
+                          {unreadConversationsCount > 99 ? '99+' : unreadConversationsCount}
+                        </span>
+                        {/* Pulse ring animation */}
+                        <span className="absolute inset-0 bg-red-400 rounded-full animate-ping opacity-75"></span>
+                        {/* Secondary pulse ring for enhanced visibility */}
+                        <span className="absolute -inset-1 bg-red-300 rounded-full animate-ping opacity-50" style={{animationDelay: '0.5s'}}></span>
+                      </span>
+                    </div>
                   )}
+                  
+                  {/* Debug indicator for development */}
+                  {process.env.NODE_ENV === 'development' && isAuthenticated && (
+                    <div className="absolute -bottom-10 -right-2 bg-yellow-400 text-black text-xs px-2 py-1 rounded shadow-lg z-20" style={{fontSize: '10px'}}>
+                      Debug: {unreadConversationsCount} | Connected: {isConnected ? 'Yes' : 'No'}
+                    </div>
+                  )}
+                  
+                  {/* Live Connection Indicator */}
+                  {isAuthenticated && isConnected && unreadConversationsCount === 0 && (
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white opacity-80 animate-pulse"></div>
+                  )}
+                  
+                  {/* Login Required Indicator */}
                   {!isAuthenticated && (
-                    <span className="absolute -top-2 -right-2 bg-gradient-to-r from-gray-400 to-gray-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold shadow-md" style={{fontSize:'11px'}}>
+                    <span className="absolute -top-2 -right-2 bg-gradient-to-r from-gray-400 to-gray-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-md" style={{fontSize:'10px'}}>
                       ?
                     </span>
                   )}
@@ -520,7 +699,66 @@ const Layout: React.FC = () => {
 
       <QuickActionsPanel />
 
-      <style>{`        .layout {
+      <style>{`        
+        @keyframes bounce {
+          0%, 20%, 53%, 80%, 100% {
+            transform: translate3d(0, 0, 0);
+          }
+          40%, 43% {
+            transform: translate3d(0, -8px, 0);
+          }
+          70% {
+            transform: translate3d(0, -4px, 0);
+          }
+          90% {
+            transform: translate3d(0, -2px, 0);
+          }
+        }
+        
+        @keyframes messageNotification {
+          0% {
+            transform: scale(1);
+            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.6), 0 0 0 0 rgba(239, 68, 68, 0.7);
+          }
+          25% {
+            transform: scale(1.02);
+            box-shadow: 0 6px 24px rgba(239, 68, 68, 0.7), 0 0 0 4px rgba(239, 68, 68, 0.5);
+          }
+          50% {
+            transform: scale(1.08);
+            box-shadow: 0 8px 30px rgba(239, 68, 68, 0.8), 0 0 0 8px rgba(239, 68, 68, 0.3);
+          }
+          75% {
+            transform: scale(1.02);
+            box-shadow: 0 6px 24px rgba(239, 68, 68, 0.7), 0 0 0 4px rgba(239, 68, 68, 0.2);
+          }
+          100% {
+            transform: scale(1);
+            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.6), 0 0 0 0 rgba(239, 68, 68, 0);
+          }
+        }
+        
+        @keyframes notificationAlert {
+          0%, 100% {
+            transform: scale(1) rotate(0deg);
+          }
+          25% {
+            transform: scale(1.1) rotate(3deg);
+          }
+          75% {
+            transform: scale(1.1) rotate(-3deg);
+          }
+        }
+        
+        .border-3 {
+          border-width: 3px;
+        }
+        
+        .border-4 {
+          border-width: 4px;
+        }
+        
+        .layout {
           min-height: 100vh;
           display: flex;
           flex-direction: column;
