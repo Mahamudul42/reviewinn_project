@@ -231,13 +231,13 @@ export class CircleService {
   }
 
   /**
-   * Respond to a circle request
+   * Respond to a circle request with relationship choice
    */
-  async respondToCircleRequest(requestId: number, action: 'accept' | 'decline'): Promise<{ message: string }> {
+  async respondToCircleRequest(requestId: number, action: 'accept' | 'decline', finalRelationship?: 'circle_member' | 'follower'): Promise<{ message: string }> {
     try {
       const response = await httpClient.post<{ message: string }>(
         `${this.baseUrl}${API_ENDPOINTS.CIRCLES.RESPOND_REQUEST}`,
-        { request_id: requestId, action }
+        { request_id: requestId, action, final_relationship: finalRelationship }
       );
       return response.data!;
     } catch (error) {
@@ -314,6 +314,38 @@ export class CircleService {
     } catch (error) {
       console.error('Failed to get blocked users:', error);
       return { blocked_users: [] };
+    }
+  }
+
+  /**
+   * Get users who follow the current user
+   */
+  async getFollowers(): Promise<{ followers: User[] }> {
+    try {
+      const response = await httpClient.get<{ followers: User[] }>(
+        `${this.baseUrl}${API_ENDPOINTS.CIRCLES.FOLLOWERS}`,
+        true
+      );
+      return response.data || { followers: [] };
+    } catch (error) {
+      console.error('Failed to get followers:', error);
+      return { followers: [] };
+    }
+  }
+
+  /**
+   * Get users that the current user follows
+   */
+  async getFollowing(): Promise<{ following: User[] }> {
+    try {
+      const response = await httpClient.get<{ following: User[] }>(
+        `${this.baseUrl}${API_ENDPOINTS.CIRCLES.FOLLOWING}`,
+        true
+      );
+      return response.data || { following: [] };
+    } catch (error) {
+      console.error('Failed to get following:', error);
+      return { following: [] };
     }
   }
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, UserPlus, TrendingUp, Settings, Search, Clock, Ban } from 'lucide-react';
+import { Users, UserPlus, TrendingUp, Settings, Search, Clock, Ban, Heart, UserCheck } from 'lucide-react';
 import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
 import { circleService, homepageService } from '../../api/services';
 import ThreePanelLayout from '../../shared/layouts/ThreePanelLayout';
@@ -53,6 +53,8 @@ const ReviewCirclePageContent: React.FC = () => {
   const [suggestions, setSuggestions] = useState<CircleSuggestion[]>([]);
   const [analytics, setAnalytics] = useState<CircleAnalytics | null>(null);
   const [blockedUsers, setBlockedUsers] = useState<User[]>([]);
+  const [followers, setFollowers] = useState<User[]>([]);
+  const [following, setFollowing] = useState<User[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -64,28 +66,42 @@ const ReviewCirclePageContent: React.FC = () => {
   
   // Local tracking for sent requests (since API may not be available)
   const [localSentRequests, setLocalSentRequests] = useState<Set<string>>(new Set());
+  // Track users who have rejected requests (cannot send again)
+  const [rejectedUsers, setRejectedUsers] = useState<Set<string>>(new Set());
   
-  // Create sets for quick lookup - track users we've sent ACTIVE requests TO (pending/accepted only)
+  // Create sets for quick lookup - track users we cannot send requests to
   const sentRequestsSet = useMemo(() => {
+    // Pending requests
     const serverRequestIds = sentRequests
-      .filter(req => req.status === 'pending' || req.status === 'accepted') // Only track active requests
+      .filter(req => req.status === 'pending') // Only track pending requests, not accepted ones
+      .map(req => {
+        const recipientId = req.recipient?.id || req.user?.id || req.target_user?.id;
+        return String(recipientId);
+      }).filter(Boolean);
+    
+    // Rejected requests from server (these users have rejected us)
+    const rejectedRequestIds = sentRequests
+      .filter(req => req.status === 'rejected')
       .map(req => {
         const recipientId = req.recipient?.id || req.user?.id || req.target_user?.id;
         return String(recipientId);
       }).filter(Boolean);
     
     const localRequestIds = Array.from(localSentRequests);
-    const combinedSet = new Set([...serverRequestIds, ...localRequestIds]);
+    const localRejectedIds = Array.from(rejectedUsers);
+    const combinedSet = new Set([...serverRequestIds, ...localRequestIds, ...rejectedRequestIds, ...localRejectedIds]);
     
     console.log('🔍 sentRequestsSet updated:', {
-      serverRequests: serverRequestIds.length,
+      serverPending: serverRequestIds.length,
+      serverRejected: rejectedRequestIds.length,
       localRequests: localRequestIds.length,
-      totalTracked: combinedSet.size,
-      trackedUsers: Array.from(combinedSet)
+      localRejected: localRejectedIds.length,
+      totalBlocked: combinedSet.size,
+      blockedUsers: Array.from(combinedSet)
     });
     
     return combinedSet;
-  }, [sentRequests, localSentRequests]);
+  }, [sentRequests, localSentRequests, rejectedUsers]);
 
   // Memoized callbacks to prevent infinite re-renders
   const handleSearchResults = useCallback((results: User[]) => {
@@ -99,10 +115,15 @@ const ReviewCirclePageContent: React.FC = () => {
   // Left panel data
 
   // Tab configuration
+  // Filter sent requests to only show pending ones (not accepted)
+  const pendingSentRequests = sentRequests.filter(req => req.status === 'pending');
+  
   const tabs = [
-    { id: 'members' as const, label: 'Members', icon: Users, count: members.length },
+    { id: 'members' as const, label: 'Circle Mates', icon: Users, count: members.length },
     { id: 'invites' as const, label: 'Requests', icon: Clock, count: pendingRequests.length + receivedInvites.length },
-    { id: 'sent' as const, label: 'Sent', icon: UserPlus, count: sentRequests.length },
+    { id: 'sent' as const, label: 'Sent', icon: UserPlus, count: pendingSentRequests.length },
+    { id: 'followers' as const, label: 'Followers', icon: Heart, count: followers.length },
+    { id: 'following' as const, label: 'Following', icon: UserCheck, count: following.length },
     { id: 'suggestions' as const, label: 'Suggestions', icon: TrendingUp, count: suggestions.length },
     { id: 'search' as const, label: 'Find People', icon: Search, count: searchResults.length },
     { id: 'analytics' as const, label: 'Analytics', icon: Settings },
@@ -163,8 +184,10 @@ const ReviewCirclePageContent: React.FC = () => {
           circleService.getReceivedInvites(),
           circleService.getSuggestions({ limit: 10 }),
           circleService.getAnalytics(),
-          circleService.getBlockedUsers()
-        ]).then(([receivedInvitesResponse, suggestionsResponse, analyticsResponse, blockedUsersResponse]) => {
+          circleService.getBlockedUsers(),
+          circleService.getFollowers(),
+          circleService.getFollowing()
+        ]).then(([receivedInvitesResponse, suggestionsResponse, analyticsResponse, blockedUsersResponse, followersResponse, followingResponse]) => {
           if (receivedInvitesResponse.status === 'fulfilled') {
             setReceivedInvites(receivedInvitesResponse.value.invites || []);
           }
@@ -176,6 +199,12 @@ const ReviewCirclePageContent: React.FC = () => {
           }
           if (blockedUsersResponse.status === 'fulfilled') {
             setBlockedUsers(blockedUsersResponse.value.blocked_users || []);
+          }
+          if (followersResponse.status === 'fulfilled') {
+            setFollowers(followersResponse.value.followers || []);
+          }
+          if (followingResponse.status === 'fulfilled') {
+            setFollowing(followingResponse.value.following || []);
           }
         });
 
@@ -204,16 +233,20 @@ const ReviewCirclePageContent: React.FC = () => {
     console.log('🔄 Refreshing circle data for user:', currentUser.id);
     
     try {
-      const [pendingRequestsResponse, sentRequestsResponse, membersResponse] = await Promise.allSettled([
+      const [pendingRequestsResponse, sentRequestsResponse, membersResponse, followersResponse, followingResponse] = await Promise.allSettled([
         circleService.getPendingRequests(),
         circleService.getSentRequests(),
-        circleService.getMyCircleMembers({ page: 1, size: 50 })
+        circleService.getMyCircleMembers({ page: 1, size: 50 }),
+        circleService.getFollowers(),
+        circleService.getFollowing()
       ]);
 
       console.log('📊 Data refresh results:', {
         pending: pendingRequestsResponse.status,
         sent: sentRequestsResponse.status,
-        members: membersResponse.status
+        members: membersResponse.status,
+        followers: followersResponse.status,
+        following: followingResponse.status
       });
 
       if (pendingRequestsResponse.status === 'fulfilled') {
@@ -235,6 +268,20 @@ const ReviewCirclePageContent: React.FC = () => {
         setMembers(membersResponse.value.members);
       } else {
         console.error('❌ Members failed:', membersResponse.reason);
+      }
+
+      if (followersResponse.status === 'fulfilled') {
+        console.log('✅ Setting followers:', followersResponse.value.followers?.length || 0);
+        setFollowers(followersResponse.value.followers);
+      } else {
+        console.error('❌ Followers failed:', followersResponse.reason);
+      }
+
+      if (followingResponse.status === 'fulfilled') {
+        console.log('✅ Setting following:', followingResponse.value.following?.length || 0);
+        setFollowing(followingResponse.value.following);
+      } else {
+        console.error('❌ Following failed:', followingResponse.reason);
       }
 
     } catch (error) {
@@ -633,12 +680,25 @@ const ReviewCirclePageContent: React.FC = () => {
     return (members || []).some(member => String(member.user.id) === String(userId));
   };
 
-  const handleRequestResponse = async (requestId: string, action: 'accept' | 'decline'): Promise<void> => {
+  const handleRequestResponse = async (requestId: string, action: 'accept' | 'decline' | 'keep_as_follower'): Promise<void> => {
     const requestIdNum = parseInt(requestId);
     const request = pendingRequests.find(req => req.id === requestIdNum);
     if (!request) return;
     
-    const actionText = action === 'accept' ? 'accept' : 'decline';
+    // Handle different action types
+    let actionText = action;
+    let finalRelationship: 'circle_member' | 'follower' | undefined;
+    
+    if (action === 'accept') {
+      actionText = 'accept as circle mate';
+      finalRelationship = 'circle_member';
+    } else if (action === 'keep_as_follower') {
+      actionText = 'accept as follower';
+      finalRelationship = 'follower';
+    } else {
+      actionText = 'decline';
+    }
+    
     const confirmed = await confirm({
       title: `${actionText.charAt(0).toUpperCase() + actionText.slice(1)} Circle Request`,
       message: `Are you sure you want to ${actionText} the circle request from ${request.requester.name}?`,
@@ -649,14 +709,17 @@ const ReviewCirclePageContent: React.FC = () => {
     if (!confirmed) return;
     
     try {
-      const response = await circleService.respondToCircleRequest(requestIdNum, action);
+      // Map frontend actions to backend actions
+      const backendAction = (action === 'keep_as_follower' || action === 'accept') ? 'accept' : 'decline';
+      const response = await circleService.respondToCircleRequest(requestIdNum, backendAction, finalRelationship);
       console.log('Request response result:', response);
       
       // Remove from pending requests
       setPendingRequests(prev => prev.filter(req => req.id !== requestIdNum));
       
-      // If accepted, add to members
+      // Update state based on action type
       if (action === 'accept') {
+        // Add to circle members
         const newMember: CircleMember = {
           connection_id: Date.now(),
           user: request.requester,
@@ -666,12 +729,31 @@ const ReviewCirclePageContent: React.FC = () => {
           connected_since: new Date().toISOString()
         };
         setMembers(prev => [newMember, ...prev]);
+      } else if (action === 'keep_as_follower') {
+        // Add to followers list
+        const newFollower = {
+          id: request.requester.id || request.requester.user_id || '',
+          name: request.requester.name,
+          username: request.requester.username,
+          avatar: request.requester.avatar
+        };
+        setFollowers(prev => [newFollower, ...prev]);
       }
       
-      showSuccess(`Circle request ${action === 'accept' ? 'accepted' : 'declined'}.`);
+      // Update success message based on action
+      let successMessage = '';
+      if (action === 'accept') {
+        successMessage = 'User added as circle mate!';
+      } else if (action === 'keep_as_follower') {
+        successMessage = 'User kept as follower!';
+      } else {
+        successMessage = 'Circle request declined.';
+      }
+      showSuccess(successMessage);
       
     } catch (error: any) {
-      console.error(`Failed to ${action} circle request:`, error);
+      const actionForError = action === 'keep_as_follower' ? 'accept as follower' : action;
+      console.error(`Failed to ${actionForError} circle request:`, error);
       
       // Handle specific error cases
       if (error.message?.includes('already responded') || error.message?.includes('not found')) {
@@ -681,7 +763,7 @@ const ReviewCirclePageContent: React.FC = () => {
         // Refresh data to get current state
         refreshData();
       } else {
-        showError(`Failed to ${action} circle request. Please try again.`);
+        showError(`Failed to ${actionForError} circle request. Please try again.`);
       }
     }
   };
@@ -951,7 +1033,7 @@ const ReviewCirclePageContent: React.FC = () => {
                 
                 {activeTab === 'sent' && (
                   <SentRequests 
-                    sentRequests={sentRequests}
+                    sentRequests={pendingSentRequests}
                     onCancelRequest={handleCancelRequest}
                   />
                 )}
@@ -979,6 +1061,90 @@ const ReviewCirclePageContent: React.FC = () => {
                     onSwitchToSuggestions={() => setActiveTab('suggestions')}
                     onSwitchToMembers={() => setActiveTab('members')}
                   />
+                )}
+                
+                {activeTab === 'followers' && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                        Followers ({followers.length})
+                      </h2>
+                    </div>
+                    
+                    {followers.length === 0 ? (
+                      <div className="bg-gradient-to-br from-white to-purple-50 border border-purple-200 rounded-xl p-8 shadow-sm text-center">
+                        <Heart className="w-16 h-16 mx-auto text-purple-400 mb-4" />
+                        <h3 className="text-lg font-semibold text-purple-900 mb-2">No Followers Yet</h3>
+                        <p className="text-purple-600">People who follow you will appear here. Start building your network!</p>
+                      </div>
+                    ) : (
+                      <div className="grid gap-4">
+                        {followers.map((follower) => (
+                          <div key={follower.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                                  {follower.avatar ? (
+                                    <img src={follower.avatar} alt={follower.name} className="w-12 h-12 rounded-full object-cover" />
+                                  ) : (
+                                    <span className="text-white text-lg font-semibold">
+                                      {follower.name?.charAt(0) || follower.username?.charAt(0) || '?'}
+                                    </span>
+                                  )}
+                                </div>
+                                <div>
+                                  <h4 className="font-semibold text-gray-900">{follower.name || follower.username}</h4>
+                                  <p className="text-sm text-gray-500">@{follower.username}</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                {activeTab === 'following' && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                        Following ({following.length})
+                      </h2>
+                    </div>
+                    
+                    {following.length === 0 ? (
+                      <div className="bg-gradient-to-br from-white to-purple-50 border border-purple-200 rounded-xl p-8 shadow-sm text-center">
+                        <UserCheck className="w-16 h-16 mx-auto text-purple-400 mb-4" />
+                        <h3 className="text-lg font-semibold text-purple-900 mb-2">Not Following Anyone</h3>
+                        <p className="text-purple-600">People you follow will appear here. Explore suggestions to find interesting users!</p>
+                      </div>
+                    ) : (
+                      <div className="grid gap-4">
+                        {following.map((followingUser) => (
+                          <div key={followingUser.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center">
+                                  {followingUser.avatar ? (
+                                    <img src={followingUser.avatar} alt={followingUser.name} className="w-12 h-12 rounded-full object-cover" />
+                                  ) : (
+                                    <span className="text-white text-lg font-semibold">
+                                      {followingUser.name?.charAt(0) || followingUser.username?.charAt(0) || '?'}
+                                    </span>
+                                  )}
+                                </div>
+                                <div>
+                                  <h4 className="font-semibold text-gray-900">{followingUser.name || followingUser.username}</h4>
+                                  <p className="text-sm text-gray-500">@{followingUser.username}</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 )}
                 
                 {activeTab === 'analytics' && (

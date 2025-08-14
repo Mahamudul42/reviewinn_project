@@ -133,15 +133,17 @@ async def respond_to_request(
     circle_service: CircleService = Depends(get_circle_service)
 ):
     """
-    Respond to a circle request.
+    Respond to a circle request with relationship choice.
     
     - **request_id**: ID of the request to respond to
     - **action**: 'accept' or 'decline'
+    - **final_relationship**: 'circle_member' or 'follower' (for accept action)
     """
     try:
         request_id = response_data.get('request_id')
         action = response_data.get('action')
-        return circle_service.respond_to_request(current_user.user_id, request_id, action)
+        final_relationship = response_data.get('final_relationship')
+        return circle_service.respond_to_request(current_user.user_id, request_id, action, final_relationship)
     except Exception as e:
         return handle_service_error(e)
 
@@ -296,5 +298,35 @@ async def get_blocked_users(
     """
     try:
         return circle_service.get_blocked_users(current_user.user_id)
+    except Exception as e:
+        return handle_service_error(e)
+
+@router.get("/followers")
+async def get_followers(
+    current_user: User = Depends(AuthDependencies.get_current_user),
+    circle_service: CircleService = Depends(get_circle_service)
+):
+    """
+    Get users who follow the current user.
+    
+    Returns list of users who are following the current user.
+    """
+    try:
+        return circle_service.get_followers(current_user.user_id)
+    except Exception as e:
+        return handle_service_error(e)
+
+@router.get("/following")
+async def get_following(
+    current_user: User = Depends(AuthDependencies.get_current_user),
+    circle_service: CircleService = Depends(get_circle_service)
+):
+    """
+    Get users that the current user follows.
+    
+    Returns list of users that the current user is following.
+    """
+    try:
+        return circle_service.get_following(current_user.user_id)
     except Exception as e:
         return handle_service_error(e)

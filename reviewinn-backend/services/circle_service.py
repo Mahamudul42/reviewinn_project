@@ -239,12 +239,16 @@ class CircleService:
             print(f"❌ Failed to get sent requests: {str(e)}")
             raise BusinessLogicError(f"Failed to get sent requests: {str(e)}")
 
-    def respond_to_request(self, current_user_id: int, request_id: int, action: str) -> Dict[str, str]:
-        """Respond to a circle request (accept or decline)."""
+    def respond_to_request(self, current_user_id: int, request_id: int, action: str, final_relationship: str = None) -> Dict[str, str]:
+        """Respond to a circle request with relationship choice."""
         try:
             # Validate action
             if action not in ['accept', 'decline']:
                 raise ValidationError("Action must be 'accept' or 'decline'")
+            
+            # Validate final_relationship if provided
+            if final_relationship and final_relationship not in ['circle_member', 'follower']:
+                raise ValidationError("Final relationship must be 'circle_member' or 'follower'")
             
             # Get the request
             circle_request = self.db.query(SocialCircleRequest).filter(
@@ -266,9 +270,16 @@ class CircleService:
             circle_request.response_type = db_status
             circle_request.responded_at = datetime.utcnow()
             
-            # If accepted, add users to each other's circles
+            # Set final_relationship for accepted requests
             if action == 'accept':
-                self._add_users_to_circles_after_acceptance(circle_request.requester_id, circle_request.recipient_id)
+                # Default to circle_member if not specified
+                circle_request.final_relationship = final_relationship or 'circle_member'
+                
+                # The database trigger will handle the social_circle_members updates
+                # No need to manually call _add_users_to_circles_after_acceptance
+            else:
+                # For rejected requests, set final_relationship to 'rejected'
+                circle_request.final_relationship = 'rejected'
             
             self.db.commit()
             
@@ -724,3 +735,63 @@ class CircleService:
         
         self.db.add(connection)
         self.db.flush()
+
+    def get_followers(self, current_user_id: int) -> Dict[str, List[Dict[str, Any]]]:
+        """Get users who follow the current user."""
+        try:
+            # Get followers from social_circle_members table
+            # These are users who have the current user as their owner (they follow current user)
+            followers_query = self.db.query(SocialCircleMember).filter(
+                SocialCircleMember.owner_id == current_user_id
+            ).all()
+            
+            followers_list = []
+            for follower_record in followers_query:
+                follower_user = self.db.query(User).filter(
+                    User.user_id == follower_record.member_id
+                ).first()
+                
+                if follower_user:
+                    followers_list.append({
+                        "id": follower_user.user_id,
+                        "name": follower_user.name if hasattr(follower_user, 'name') else follower_user.display_name or follower_user.username,
+                        "username": follower_user.username,
+                        "avatar": follower_user.avatar,
+                        "relationship_type": follower_record.membership_type,
+                        "followed_since": follower_record.joined_at.isoformat() if follower_record.joined_at else None
+                    })
+            
+            return {"followers": followers_list}
+            
+        except Exception as e:
+            raise BusinessLogicError(f"Failed to get followers: {str(e)}")
+
+    def get_following(self, current_user_id: int) -> Dict[str, List[Dict[str, Any]]]:
+        """Get users that the current user follows."""
+        try:
+            # Get following from social_circle_members table
+            # These are records where current user is the member (current user follows the owner)
+            following_query = self.db.query(SocialCircleMember).filter(
+                SocialCircleMember.member_id == current_user_id
+            ).all()
+            
+            following_list = []
+            for following_record in following_query:
+                following_user = self.db.query(User).filter(
+                    User.user_id == following_record.owner_id
+                ).first()
+                
+                if following_user:
+                    following_list.append({
+                        "id": following_user.user_id,
+                        "name": following_user.name if hasattr(following_user, 'name') else following_user.display_name or following_user.username,
+                        "username": following_user.username,
+                        "avatar": following_user.avatar,
+                        "relationship_type": following_record.membership_type,
+                        "followed_since": following_record.joined_at.isoformat() if following_record.joined_at else None
+                    })
+            
+            return {"following": following_list}
+            
+        except Exception as e:
+            raise BusinessLogicError(f"Failed to get following: {str(e)}")

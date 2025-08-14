@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Clock, Check, X, Users, Mail, UserPlus } from 'lucide-react';
+import { Clock, Check, X, Users, Mail, UserPlus, ChevronDown, Heart } from 'lucide-react';
 import UserDisplay from './UserDisplay';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import Pagination from '../../../shared/components/Pagination';
@@ -9,7 +9,7 @@ import '../circle-purple-buttons.css';
 interface CircleInvitesProps {
   pendingRequests: CircleRequest[];
   receivedInvites: CircleInvite[];
-  onRequestResponse: (requestId: string, action: 'accept' | 'decline') => Promise<void>;
+  onRequestResponse: (requestId: string, action: 'accept' | 'decline' | 'reject' | 'keep_as_follower') => Promise<void>;
 }
 
 const CircleInvites: React.FC<CircleInvitesProps> = ({
@@ -20,6 +20,7 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
   const [pendingPage, setPendingPage] = useState(1);
   const [invitesPage, setInvitesPage] = useState(1);
   const [processingRequests, setProcessingRequests] = useState<Set<string>>(new Set());
+  const [openDropdowns, setOpenDropdowns] = useState<Set<string>>(new Set());
   const itemsPerPage = 10;
   
   const hasAnyRequests = pendingRequests.length > 0 || receivedInvites.length > 0;
@@ -68,6 +69,18 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
         return newSet;
       });
     }
+  };
+
+  const toggleDropdown = (requestId: string) => {
+    setOpenDropdowns(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(requestId)) {
+        newSet.delete(requestId);
+      } else {
+        newSet.add(requestId);
+      }
+      return newSet;
+    });
   };
 
   if (!hasAnyRequests) {
@@ -132,25 +145,65 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
                     subtitle={new Date(request.created_at).toLocaleDateString() + ' at ' + new Date(request.created_at).toLocaleTimeString()}
                     actions={
                       <div className="flex space-x-2">
-                        <button 
-                          onClick={() => handleRequestResponse(request.id, 'accept')}
-                          disabled={processingRequests.has(String(request.id))}
-                          className="circle-action-button-primary px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 flex items-center space-x-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                        >
-                          {processingRequests.has(String(request.id)) ? (
-                            <div className="animate-spin rounded-full h-3 w-3 border border-white border-t-transparent" />
-                          ) : (
-                            <Check size={14} />
+                        {/* Accept Dropdown */}
+                        <div className="relative">
+                          <button 
+                            onClick={() => toggleDropdown(String(request.id))}
+                            disabled={processingRequests.has(String(request.id))}
+                            className="circle-action-button-primary px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 flex items-center space-x-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                          >
+                            {processingRequests.has(String(request.id)) ? (
+                              <div className="animate-spin rounded-full h-3 w-3 border border-white border-t-transparent" />
+                            ) : (
+                              <Check size={14} />
+                            )}
+                            <span>Accept</span>
+                            <ChevronDown size={12} className={`transition-transform ${openDropdowns.has(String(request.id)) ? 'rotate-180' : ''}`} />
+                          </button>
+                          
+                          {openDropdowns.has(String(request.id)) && (
+                            <div className="absolute bottom-full mb-1 left-0 z-50 bg-white border border-gray-200 rounded-lg shadow-lg min-w-[180px]">
+                              <div className="py-1">
+                                <button
+                                  onClick={() => {
+                                    handleRequestResponse(request.id, 'accept');
+                                    setOpenDropdowns(prev => {
+                                      const newSet = new Set(prev);
+                                      newSet.delete(String(request.id));
+                                      return newSet;
+                                    });
+                                  }}
+                                  className="w-full text-left px-4 py-2 text-sm text-purple-600 hover:bg-purple-50 flex items-center space-x-2"
+                                >
+                                  <Users size={14} />
+                                  <span>Add as Circle Mate</span>
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    handleRequestResponse(request.id, 'keep_as_follower');
+                                    setOpenDropdowns(prev => {
+                                      const newSet = new Set(prev);
+                                      newSet.delete(String(request.id));
+                                      return newSet;
+                                    });
+                                  }}
+                                  className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 flex items-center space-x-2"
+                                >
+                                  <Heart size={14} />
+                                  <span>Keep as Follower</span>
+                                </button>
+                              </div>
+                            </div>
                           )}
-                          <span>Accept</span>
-                        </button>
+                        </div>
+                        
                         <button 
                           onClick={() => handleRequestResponse(request.id, 'decline')}
                           disabled={processingRequests.has(String(request.id))}
-                          className="circle-action-button-primary px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 flex items-center space-x-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                          className="bg-red-50 text-red-600 border border-red-200 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:bg-red-100 flex items-center space-x-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {processingRequests.has(String(request.id)) ? (
-                            <div className="animate-spin rounded-full h-3 w-3 border border-white border-t-transparent" />
+                            <div className="animate-spin rounded-full h-3 w-3 border border-red-600 border-t-transparent" />
                           ) : (
                             <X size={14} />
                           )}

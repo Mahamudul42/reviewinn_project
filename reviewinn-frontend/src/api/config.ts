@@ -263,7 +263,9 @@ export const API_ENDPOINTS = {
     REMOVE_MEMBER: (connectionId: string) => `/circles/member/${connectionId}`,
     BLOCK_USER: '/circles/block-user',
     UNBLOCK_USER: (userId: string) => `/circles/unblock-user/${userId}`,
-    BLOCKED_USERS: '/circles/blocked-users'
+    BLOCKED_USERS: '/circles/blocked-users',
+    FOLLOWERS: '/circles/followers',
+    FOLLOWING: '/circles/following'
   }
 } as const;
 
