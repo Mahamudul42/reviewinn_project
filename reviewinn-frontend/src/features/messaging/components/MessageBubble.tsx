@@ -149,9 +149,24 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
   const getReactionCounts = () => {
     const counts: Record<string, number> = {};
-    (message.reactions || []).forEach((reaction) => {
-      counts[reaction.reaction_type] = (counts[reaction.reaction_type] || 0) + 1;
-    });
+    
+    // Handle reactions as object (new format) or array (legacy format)
+    if (message.reactions) {
+      if (Array.isArray(message.reactions)) {
+        // Legacy array format
+        message.reactions.forEach((reaction) => {
+          counts[reaction.reaction_type] = (counts[reaction.reaction_type] || 0) + 1;
+        });
+      } else {
+        // New object format: { user_id: reaction_type }
+        Object.entries(message.reactions).forEach(([userId, reactionType]) => {
+          if (typeof reactionType === 'string') {
+            counts[reactionType] = (counts[reactionType] || 0) + 1;
+          }
+        });
+      }
+    }
+    
     return counts;
   };
 

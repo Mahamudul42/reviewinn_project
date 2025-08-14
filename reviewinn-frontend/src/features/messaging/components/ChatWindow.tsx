@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Send, Paperclip, X, Phone, Video, Info, Smile } from 'lucide-react';
-import type { Conversation, Message } from '../../../api/services/messengerService';
+import { Send, Paperclip, X, Phone, Video, Info, Smile, MoreVertical, Search } from 'lucide-react';
+import type { ProfessionalConversation, ProfessionalMessage } from '../../../api/services/professionalMessagingService';
 import MessageBubble from './MessageBubble';
 import TypingIndicator from './TypingIndicator';
 
 interface ChatWindowProps {
-  conversation: Conversation;
-  messages: Message[];
+  conversation: ProfessionalConversation;
+  messages: ProfessionalMessage[];
   onSendMessage: (content: string, replyToMessageId?: number) => void;
   onSendFile: (file: File, content?: string) => void;
   onReaction: (messageId: number, emoji: string) => void;
@@ -74,11 +74,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   useEffect(() => {
     if (messages.length > 0) {
       const lastMessage = messages[0]; // First message in array is the newest (due to column-reverse)
-      if (!lastMessage.is_own_message) {
+      if (lastMessage.sender_id !== currentUserId) {
         onMarkAsRead(lastMessage.message_id);
       }
     }
-  }, [messages, onMarkAsRead]);
+  }, [messages, onMarkAsRead, currentUserId]);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -167,17 +167,33 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   };
 
   const getConversationTitle = (): string => {
-    if (conversation.is_group) {
-      return conversation.group_name || 'Group Chat';
+    if (conversation.conversation_type === 'group') {
+      return conversation.title || 'Group Chat';
     }
-    return conversation.other_user?.name || 'Unknown User';
+    
+    // For direct conversations, find the other participant
+    const otherParticipant = conversation.participants?.find(p => p.user_id !== currentUserId);
+    return otherParticipant?.display_name || 'Unknown User';
   };
 
   const getConversationSubtitle = (): string => {
-    if (conversation.is_group) {
-      return `${conversation.participants.length} participants`;
+    if (conversation.conversation_type === 'group') {
+      return `${conversation.participants?.length || 0} participants`;
     }
-    return conversation.other_user?.username || '';
+    
+    const otherParticipant = conversation.participants?.find(p => p.user_id !== currentUserId);
+    return otherParticipant ? `@${otherParticipant.display_name}` : 'Direct Message';
+  };
+  
+  const getConversationAvatar = (): string => {
+    if (conversation.conversation_type === 'group') {
+      return conversation.avatar_url || 
+             `https://ui-avatars.com/api/?name=${encodeURIComponent(conversation.title || 'Group')}&background=4f46e5&color=fff&size=56`;
+    }
+    
+    const otherParticipant = conversation.participants?.find(p => p.user_id !== currentUserId);
+    const participantName = otherParticipant?.display_name || 'User';
+    return otherParticipant?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(participantName)}&size=56`;
   };
 
   if (loading) {
@@ -208,10 +224,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           <div className="relative">
             <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 p-0.5">
               <img
-                src={conversation.is_group 
-                  ? (conversation.group_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(conversation.group_name || 'Group')}&background=4f46e5&color=fff&size=52`)
-                  : (conversation.other_user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(conversation.other_user?.name || 'User')}&size=52`)
-                }
+                src={getConversationAvatar()}
                 alt={getConversationTitle()}
                 className="w-full h-full rounded-full object-cover"
               />

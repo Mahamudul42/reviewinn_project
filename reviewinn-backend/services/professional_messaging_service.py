@@ -82,6 +82,48 @@ class ProfessionalMessagingService:
             # Add creator to participants if not already included
             all_participants = list(set([creator_id] + participant_ids))
             
+            # For direct conversations, check if conversation already exists between these users
+            if conversation_type == "direct":
+                # Query for existing direct conversation between these 2 users
+                existing_query = self.db.query(MsgConversation).join(
+                    MsgConversationParticipant
+                ).filter(
+                    MsgConversation.conversation_type == "direct"
+                ).group_by(MsgConversation.conversation_id).having(
+                    func.count(MsgConversationParticipant.user_id) == len(all_participants)
+                )
+                
+                # Check if all participants are in the conversation
+                for user_id in all_participants:
+                    existing_query = existing_query.filter(
+                        MsgConversation.conversation_id.in_(
+                            self.db.query(MsgConversationParticipant.conversation_id).filter(
+                                MsgConversationParticipant.user_id == user_id,
+                                MsgConversationParticipant.left_at.is_(None)
+                            )
+                        )
+                    )
+                
+                existing_conversation = existing_query.first()
+                
+                if existing_conversation:
+                    # Return existing conversation instead of creating new one
+                    return {
+                        "success": True,
+                        "data": {
+                            "conversation_id": existing_conversation.conversation_id,
+                            "conversation_type": existing_conversation.conversation_type,
+                            "title": existing_conversation.title,
+                            "is_private": existing_conversation.is_private,
+                            "max_participants": existing_conversation.max_participants,
+                            "creator_id": existing_conversation.conversation_metadata.get("creator_id", creator_id),
+                            "created_at": existing_conversation.created_at.isoformat(),
+                            "participants": [{"user_id": user_id, "role": "owner" if user_id == creator_id else "member"} for user_id in all_participants],
+                            "is_existing": True
+                        },
+                        "message": "Using existing conversation"
+                    }
+            
             # Simple conversation creation matching actual table structure
             conversation = MsgConversation(
                 conversation_type=conversation_type,
@@ -115,7 +157,8 @@ class ProfessionalMessagingService:
                     "max_participants": conversation.max_participants,
                     "creator_id": conversation.conversation_metadata.get("creator_id", creator_id),
                     "created_at": conversation.created_at.isoformat(),
-                    "participants": [{"user_id": user_id, "role": "owner" if user_id == creator_id else "member"} for user_id in all_participants]
+                    "participants": [{"user_id": user_id, "role": "owner" if user_id == creator_id else "member"} for user_id in all_participants],
+                    "is_existing": False
                 },
                 "message": "Conversation created successfully"
             }
@@ -146,6 +189,7 @@ class ProfessionalMessagingService:
         try:
             # Check if messaging tables exist and handle gracefully if not
             try:
+                # Get conversations where user is a participant and hasn't left
                 query = self.db.query(MsgConversation).join(MsgConversationParticipant).filter(
                     MsgConversationParticipant.user_id == user_id,
                     MsgConversationParticipant.left_at.is_(None)  # User hasn't left the conversation
@@ -159,8 +203,19 @@ class ProfessionalMessagingService:
                 if search:
                     query = query.filter(MsgConversation.title.ilike(f"%{search}%"))
                 
-                # Order by creation time (since we don't have last_activity)
-                query = query.order_by(desc(MsgConversation.created_at))
+                # Order by the latest message created_at or conversation created_at
+                subquery = self.db.query(
+                    MsgMessage.conversation_id,
+                    func.max(MsgMessage.created_at).label('last_message_time')
+                ).filter(
+                    MsgMessage.is_deleted == False
+                ).group_by(MsgMessage.conversation_id).subquery()
+                
+                query = query.outerjoin(
+                    subquery, MsgConversation.conversation_id == subquery.c.conversation_id
+                ).order_by(
+                    desc(func.coalesce(subquery.c.last_message_time, MsgConversation.created_at))
+                )
                 
                 total = query.count()
                 conversations = query.offset(offset).limit(limit).all()
@@ -169,9 +224,9 @@ class ProfessionalMessagingService:
                 conversation_list = []
                 for conv in conversations:
                     # Get participants for this conversation with user details
-                    from models.core_user import CoreUser
-                    participants_query = self.db.query(MsgConversationParticipant, CoreUser).join(
-                        CoreUser, MsgConversationParticipant.user_id == CoreUser.user_id
+                    from models.user import User
+                    participants_query = self.db.query(MsgConversationParticipant, User).join(
+                        User, MsgConversationParticipant.user_id == User.user_id
                     ).filter(
                         MsgConversationParticipant.conversation_id == conv.conversation_id,
                         MsgConversationParticipant.left_at.is_(None)
@@ -179,12 +234,22 @@ class ProfessionalMessagingService:
                     
                     # Format participants with user details
                     participants = []
+                    current_user_role = "member"
                     for participant, user in participants_query:
+                        if participant.user_id == user_id:
+                            current_user_role = participant.role
+                        
                         participants.append({
                             "user_id": participant.user_id, 
                             "role": participant.role,
                             "display_name": user.display_name or user.username or f"User {user.user_id}",
-                            "avatar": user.avatar
+                            "avatar": user.avatar,
+                            "joined_at": participant.joined_at.isoformat() if participant.joined_at else None,
+                            "last_read_at": participant.last_read_at.isoformat() if participant.last_read_at else None,
+                            "unread_count": participant.unread_count or 0,
+                            "unread_mentions": 0,
+                            "is_muted": False,
+                            "is_pinned": False
                         })
                     
                     # Get latest message for this conversation
@@ -195,26 +260,61 @@ class ProfessionalMessagingService:
                     
                     latest_msg_data = None
                     if latest_message:
+                        # Get sender details for latest message
+                        sender_query = self.db.query(User).filter(User.user_id == latest_message.sender_id).first()
+                        sender_data = None
+                        if sender_query:
+                            sender_data = {
+                                "user_id": sender_query.user_id,
+                                "username": sender_query.username or f"user{sender_query.user_id}",
+                                "name": sender_query.display_name or sender_query.username or f"User {sender_query.user_id}",
+                                "avatar": sender_query.avatar
+                            }
+                        
                         latest_msg_data = {
                             "message_id": latest_message.message_id,
                             "content": latest_message.content,
                             "sender_id": latest_message.sender_id,
                             "message_type": latest_message.message_type,
-                            "created_at": latest_message.created_at.isoformat()
+                            "created_at": latest_message.created_at.isoformat(),
+                            "sender": sender_data
                         }
+                    
+                    # Get current user's unread count for this conversation
+                    user_participant = self.db.query(MsgConversationParticipant).filter(
+                        MsgConversationParticipant.conversation_id == conv.conversation_id,
+                        MsgConversationParticipant.user_id == user_id
+                    ).first()
+                    
+                    unread_count = user_participant.unread_count if user_participant else 0
                     
                     conversation_list.append({
                         "conversation_id": conv.conversation_id,
                         "conversation_type": conv.conversation_type,
                         "title": conv.title,
+                        "description": None,
+                        "avatar_url": None,
                         "is_private": conv.is_private,
-                        "max_participants": conv.max_participants,
+                        "is_archived": False,
+                        "is_muted": False,
+                        "join_policy": "invite_only",
+                        "creator_id": conv.conversation_metadata.get("creator_id", 1) if conv.conversation_metadata else 1,
+                        "total_messages": 0,
+                        "active_participants": len(participants),
+                        "last_activity": latest_msg_data["created_at"] if latest_msg_data else conv.created_at.isoformat(),
                         "created_at": conv.created_at.isoformat() if conv.created_at else None,
                         "participants": participants,
                         "latest_message": latest_msg_data,
-                        "user_unread_count": 0,
-                        "user_role": "member",
-                        "creator_id": conv.conversation_metadata.get("creator_id", 1) if conv.conversation_metadata else 1
+                        "user_role": current_user_role,
+                        "user_unread_count": unread_count,
+                        "user_unread_mentions": 0,
+                        "settings": {
+                            "notifications": True,
+                            "read_receipts": True,
+                            "typing_indicators": True,
+                            "message_forwarding": True,
+                            "file_sharing": True
+                        }
                     })
                 
                 return {
@@ -356,6 +456,20 @@ class ProfessionalMessagingService:
         Send a message with simplified implementation.
         """
         try:
+            # Verify user is participant in this conversation
+            participant = self.db.query(MsgConversationParticipant).filter(
+                MsgConversationParticipant.conversation_id == conversation_id,
+                MsgConversationParticipant.user_id == sender_id,
+                MsgConversationParticipant.left_at.is_(None)
+            ).first()
+            
+            if not participant:
+                return {
+                    "success": False,
+                    "error": "Access denied - user is not a participant in this conversation",
+                    "data": None
+                }
+            
             # Create message
             message = MsgMessage(
                 conversation_id=conversation_id,
@@ -366,11 +480,31 @@ class ProfessionalMessagingService:
                 message_metadata={
                     "has_mentions": bool(mentions),
                     "has_attachments": bool(attachments),
-                    "delivery_status": "sent"
+                    "delivery_status": "delivered"
                 }
             )
             self.db.add(message)
+            self.db.flush()  # Get the message_id before commit
+            
+            # Process attachments if any
+            if attachments:
+                await self.process_attachments(message.message_id, attachments)
+            
             self.db.commit()
+            
+            # Get sender details for response
+            from models.user import User
+            sender = self.db.query(User).filter(User.user_id == sender_id).first()
+            sender_data = None
+            if sender:
+                sender_data = {
+                    "user_id": sender.user_id,
+                    "username": sender.username or f"user{sender.user_id}",
+                    "name": sender.display_name or sender.username or f"User {sender.user_id}",
+                    "avatar": sender.avatar,
+                    "is_online": True,
+                    "status": "online"
+                }
             
             return {
                 "success": True,
@@ -382,8 +516,19 @@ class ProfessionalMessagingService:
                     "message_type": message_type,
                     "is_edited": message.is_edited,
                     "is_deleted": message.is_deleted,
+                    "is_pinned": False,
+                    "is_forwarded": False,
+                    "is_system": False,
+                    "has_mentions": bool(mentions),
+                    "has_attachments": bool(attachments),
+                    "has_reactions": False,
+                    "delivery_status": "delivered",
                     "created_at": message.created_at.isoformat(),
-                    "delivery_status": message.message_metadata.get("delivery_status", "sent")
+                    "updated_at": message.updated_at.isoformat(),
+                    "sender": sender_data,
+                    "attachments": [],
+                    "reactions": {},
+                    "mentions": []
                 },
                 "message": "Message sent successfully"
             }
@@ -413,15 +558,19 @@ class ProfessionalMessagingService:
         Get messages with advanced pagination, search, and filtering.
         """
         try:
-            # Validate access
+            # Validate access - check if user is participant
             participant = self.db.query(MsgConversationParticipant).filter(
                 MsgConversationParticipant.conversation_id == conversation_id,
                 MsgConversationParticipant.user_id == user_id,
-                MsgConversationParticipant.is_active == True
+                MsgConversationParticipant.left_at.is_(None)  # User hasn't left the conversation
             ).first()
             
             if not participant:
-                raise HTTPException(status_code=403, detail="Access denied")
+                return {
+                    "success": False,
+                    "error": "Access denied - user is not a participant in this conversation",
+                    "data": None
+                }
             
             query = self.db.query(MsgMessage).filter(
                 MsgMessage.conversation_id == conversation_id,
@@ -446,7 +595,7 @@ class ProfessionalMessagingService:
             query = query.order_by(desc(MsgMessage.created_at))
             messages = query.limit(limit).all()
             
-            # Format messages
+            # Format messages with sender details
             formatted_messages = []
             for message in messages:
                 message_data = await self.format_message_data(message)
@@ -461,10 +610,140 @@ class ProfessionalMessagingService:
                 }
             }
             
-        except HTTPException:
-            raise
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to get messages: {str(e)}")
+            return {
+                "success": False,
+                "error": f"Failed to get messages: {str(e)}",
+                "data": None
+            }
+    
+    # ========== REACTION METHODS ==========
+    
+    async def add_reaction(
+        self,
+        message_id: int,
+        user_id: int,
+        reaction_type: str
+    ) -> Dict[str, Any]:
+        """
+        Add reaction to a message.
+        """
+        try:
+            # Check if reaction already exists
+            existing = self.db.query(MsgMessageReaction).filter(
+                MsgMessageReaction.message_id == message_id,
+                MsgMessageReaction.user_id == user_id
+            ).first()
+            
+            if existing:
+                # Update existing reaction
+                existing.reaction_type = reaction_type
+            else:
+                # Create new reaction
+                reaction = MsgMessageReaction(
+                    message_id=message_id,
+                    user_id=user_id,
+                    reaction_type=reaction_type
+                )
+                self.db.add(reaction)
+            
+            self.db.commit()
+            
+            return {
+                "success": True,
+                "message": "Reaction added successfully"
+            }
+            
+        except Exception as e:
+            try:
+                self.db.rollback()
+            except:
+                pass
+            return {
+                "success": False,
+                "error": f"Failed to add reaction: {str(e)}"
+            }
+    
+    async def remove_reaction(
+        self,
+        message_id: int,
+        user_id: int,
+        reaction_type: str
+    ) -> Dict[str, Any]:
+        """
+        Remove reaction from a message.
+        """
+        try:
+            # Find and delete the reaction
+            reaction = self.db.query(MsgMessageReaction).filter(
+                MsgMessageReaction.message_id == message_id,
+                MsgMessageReaction.user_id == user_id,
+                MsgMessageReaction.reaction_type == reaction_type
+            ).first()
+            
+            if reaction:
+                self.db.delete(reaction)
+                self.db.commit()
+                return {
+                    "success": True,
+                    "message": "Reaction removed successfully"
+                }
+            else:
+                return {
+                    "success": False,
+                    "error": "Reaction not found"
+                }
+            
+        except Exception as e:
+            try:
+                self.db.rollback()
+            except:
+                pass
+            return {
+                "success": False,
+                "error": f"Failed to remove reaction: {str(e)}"
+            }
+    
+    async def mark_conversation_read(
+        self,
+        conversation_id: int,
+        user_id: int,
+        up_to_message_id: int = None
+    ) -> Dict[str, Any]:
+        """
+        Mark conversation as read for a user.
+        """
+        try:
+            # Update participant's last_read_at and reset unread_count
+            participant = self.db.query(MsgConversationParticipant).filter(
+                MsgConversationParticipant.conversation_id == conversation_id,
+                MsgConversationParticipant.user_id == user_id
+            ).first()
+            
+            if participant:
+                participant.last_read_at = func.now()
+                participant.unread_count = 0
+                self.db.commit()
+                
+                return {
+                    "success": True,
+                    "message": "Conversation marked as read"
+                }
+            else:
+                return {
+                    "success": False,
+                    "error": "User is not a participant in this conversation"
+                }
+            
+        except Exception as e:
+            try:
+                self.db.rollback()
+            except:
+                pass
+            return {
+                "success": False,
+                "error": f"Failed to mark conversation as read: {str(e)}"
+            }
     
     # ========== REAL-TIME FEATURES ==========
     
@@ -583,65 +862,84 @@ class ProfessionalMessagingService:
     
     async def format_message_data(self, message: MsgMessage) -> Dict[str, Any]:
         """
-        Format message data for API response.
+        Format message data for API response with sender details.
         """
-        # Get attachments
-        attachments = []
-        if message.has_attachments:
-            attachments = [
-                {
-                    "attachment_id": att.attachment_id,
-                    "file_url": att.file_url,
-                    "file_name": att.file_name,
-                    "file_type": att.file_type,
-                    "file_size": att.file_size
-                }
-                for att in message.attachments
-            ]
+        # Get sender details
+        from models.user import User
+        sender = self.db.query(User).filter(User.user_id == message.sender_id).first()
+        sender_data = None
+        if sender:
+            sender_data = {
+                "user_id": sender.user_id,
+                "username": sender.username or f"user{sender.user_id}",
+                "name": sender.display_name or sender.username or f"User {sender.user_id}",
+                "avatar": sender.avatar,
+                "is_online": True,  # For now, assume online
+                "status": "online"
+            }
         
-        # Get reactions
-        reactions = []
-        if message.has_reactions:
-            reactions = [
-                {
-                    "reaction_id": react.reaction_id,
-                    "reaction_type": react.reaction_type,
-                    "user_id": react.user_id
-                }
-                for react in message.reactions
-            ]
+        # Get attachments
+        attachments_query = self.db.query(MsgMessageAttachment).filter(
+            MsgMessageAttachment.message_id == message.message_id
+        ).all()
+        
+        attachments = []
+        for att in attachments_query:
+            attachments.append({
+                "attachment_id": att.attachment_id,
+                "file_url": att.file_url,
+                "file_name": att.file_name,
+                "file_type": att.file_type,
+                "file_size": att.file_size,
+                "created_at": att.created_at.isoformat() if att.created_at else None
+            })
+        
+        # Get reactions and convert to the expected format
+        reactions_query = self.db.query(MsgMessageReaction).filter(
+            MsgMessageReaction.message_id == message.message_id
+        ).all()
+        
+        reactions = {}
+        for react in reactions_query:
+            reactions[str(react.user_id)] = react.reaction_type
         
         # Get mentions
         mentions = []
-        if message.has_mentions:
-            mentions = [
-                {
-                    "mention_id": mention.mention_id,
-                    "mentioned_user_id": mention.mentioned_user_id,
-                    "mention_type": mention.mention_type
-                }
-                for mention in getattr(message, 'mentions', [])
-            ]
+        
+        # Check metadata for additional flags
+        metadata = message.message_metadata or {}
         
         return {
             "message_id": message.message_id,
             "conversation_id": message.conversation_id,
             "sender_id": message.sender_id,
             "content": message.content,
-            "formatted_content": message.formatted_content,
+            "formatted_content": message.content,  # For now, same as content
+            "raw_content": message.content,
             "message_type": message.message_type,
             "reply_to_message_id": message.reply_to_message_id,
-            "thread_id": message.thread_id,
+            "thread_id": None,  # Not implemented yet
+            "thread_position": None,
             "is_edited": message.is_edited,
-            "is_pinned": message.is_pinned,
-            "is_forwarded": message.is_forwarded,
-            "delivery_status": message.delivery_status,
+            "is_deleted": message.is_deleted,
+            "is_pinned": False,  # Not implemented in current schema
+            "is_forwarded": False,
+            "is_system": message.message_type == "system",
+            "has_mentions": len(mentions) > 0,
+            "has_attachments": len(attachments) > 0,
+            "has_reactions": len(reactions) > 0,
+            "delivery_status": metadata.get("delivery_status", "delivered"),
             "created_at": message.created_at.isoformat(),
             "updated_at": message.updated_at.isoformat(),
-            "edited_at": message.edited_at.isoformat() if message.edited_at else None,
+            "edited_at": None,  # Not tracked in current schema
+            "deleted_at": None,
+            "sender": sender_data,
             "attachments": attachments,
-            "reactions": reactions,
-            "mentions": mentions
+            "reactions": reactions,  # Changed to dict format as expected by frontend
+            "mentions": mentions,
+            "reply_to_message": None,  # Could be implemented later
+            "edit_history": [],
+            "forward_metadata": None
         }
     
     async def mark_message_delivered(self, message_id: int):

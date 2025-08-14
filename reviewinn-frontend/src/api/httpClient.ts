@@ -150,7 +150,7 @@ export class HttpClient {
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
       // Debug: Log token info when sending requests to protected endpoints
-      if (url && (url.includes('/users/me') || url.includes('/circles/'))) {
+      if (url && (url.includes('/users/me') || url.includes('/circles/') || url.includes('/messaging/'))) {
         console.log('🔐 HttpClient: Sending protected request with token:', {
           url: url,
           tokenLength: token.length,
@@ -161,7 +161,7 @@ export class HttpClient {
       }
     } else {
       // Debug: Log when no token is available
-      if (url && (url.includes('/users/me') || url.includes('/circles/'))) {
+      if (url && (url.includes('/users/me') || url.includes('/circles/') || url.includes('/messaging/'))) {
         console.log('⚠️ HttpClient: Sending protected request WITHOUT token:', {
           url: url,
           instanceToken: !!this.authToken,
@@ -352,10 +352,11 @@ export class HttpClient {
     cacheKey?: string
   ): Promise<ApiResponse<T>> {
     // Check if this is a protected endpoint that requires authentication
-    const isProtectedEndpoint = url.includes('/users/me') || url.includes('/auth/profile') || 
+    const isProtectedEndpoint = (url.includes('/users/me') || url.includes('/auth/profile') || 
                                 url.includes('/reviews/create') || url.includes('/entities/create') ||
                                 url.includes('/circles/') || url.includes('/notifications/') ||
-                                url.includes('/messenger/') || url.includes('/messaging/');
+                                url.includes('/messenger/') || url.includes('/messaging/')) &&
+                                !url.includes('/messaging/debug/'); // Exclude debug endpoints from auth requirement
     
     // If it's a protected endpoint and we have no token, don't make the request
     if (isProtectedEndpoint) {
@@ -406,9 +407,10 @@ export class HttpClient {
         // Handle token refresh for 401 errors
         if (response.status === HTTP_STATUS.UNAUTHORIZED) {
           // Only log unauthorized errors in development or for protected endpoints
-          const isProtectedEndpoint = url.includes('/users/me') || url.includes('/auth/') || 
+          const isProtectedEndpoint = (url.includes('/users/me') || url.includes('/auth/') || 
                                       url.includes('/reviews/create') || url.includes('/circles/') ||
-                                      url.includes('/notifications/') || url.includes('/messenger/');
+                                      url.includes('/notifications/') || url.includes('/messenger/')) &&
+                                      !url.includes('/messaging/debug/'); // Exclude debug endpoints from auth requirement
           if (import.meta.env.DEV || isProtectedEndpoint) {
             console.log('HttpClient: Received 401 Unauthorized, attempting token refresh...');
           }

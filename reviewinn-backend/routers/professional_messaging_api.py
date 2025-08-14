@@ -70,17 +70,16 @@ class ParticipantUpdateRequest(BaseModel):
 @router.post("/conversations")
 async def create_conversation(
     request: ConversationCreateRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user = Depends(AuthDependencies.get_current_user)
 ):
     """
     Create a new conversation with professional features.
     Supports direct messages, group chats, channels, and broadcasts.
     """
-    # For now, use a default user_id for testing
-    # In production, this should use proper authentication
     service = ProfessionalMessagingService(db, websocket_manager)
     return await service.create_conversation(
-        creator_id=1,  # Default user for testing
+        creator_id=current_user.user_id,
         participant_ids=request.participant_ids,
         conversation_type=request.conversation_type,
         title=request.title,
@@ -94,16 +93,15 @@ async def get_conversations(
     offset: int = Query(0, ge=0, description="Number of conversations to skip"),
     search: Optional[str] = Query(None, description="Search in conversation titles/descriptions"),
     conversation_type: Optional[str] = Query(None, description="Filter by conversation type"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user = Depends(AuthDependencies.get_current_user)
 ):
     """
     Get user's conversations with advanced filtering and search.
     """
-    # For now, use a default user_id for testing
-    # In production, this should use proper authentication
     service = ProfessionalMessagingService(db, websocket_manager)
     return await service.get_conversations(
-        user_id=1,  # Default user for testing
+        user_id=current_user.user_id,
         limit=limit,
         offset=offset,
         search=search,
@@ -190,16 +188,15 @@ async def update_participant(
 async def send_message(
     conversation_id: int,
     request: MessageSendRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user = Depends(AuthDependencies.get_current_user)
 ):
     """
     Send a message with threading support.
     """
-    # For now, use a default user_id for testing
-    # In production, this should use proper authentication
     service = ProfessionalMessagingService(db, websocket_manager)
     return await service.send_message(
-        sender_id=1,  # Default user for testing
+        sender_id=current_user.user_id,
         conversation_id=conversation_id,
         content=request.content,
         message_type=request.message_type,
@@ -517,6 +514,52 @@ async def test_send_message(db: Session = Depends(get_db)):
         }
 
 # ========== HEALTH CHECK ==========
+
+@router.get("/debug/conversations/{user_id}")
+async def debug_get_conversations(
+    user_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Debug endpoint to get conversations for any user without authentication.
+    """
+    try:
+        service = ProfessionalMessagingService(db, websocket_manager)
+        return await service.get_conversations(
+            user_id=user_id,
+            limit=20,
+            offset=0
+        )
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "data": None
+        }
+
+@router.get("/debug/conversations/{conversation_id}/messages/{user_id}")
+async def debug_get_messages(
+    conversation_id: int,
+    user_id: int,
+    limit: int = Query(50, ge=1, le=100),
+    db: Session = Depends(get_db)
+):
+    """
+    Debug endpoint to get messages for any conversation without authentication.
+    """
+    try:
+        service = ProfessionalMessagingService(db, websocket_manager)
+        return await service.get_messages(
+            conversation_id=conversation_id,
+            user_id=user_id,
+            limit=limit
+        )
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "data": None
+        }
 
 @router.get("/health")
 async def messaging_health_check(db: Session = Depends(get_db)):

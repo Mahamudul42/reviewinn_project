@@ -46,35 +46,62 @@ const MessengerPage: React.FC = () => {
   const loadConversations = useCallback(async () => {
     console.log('=== loadConversations called ===');
     try {
-      if (conversations.length === 0) {
-        setLoading(true);
-        console.log('Setting loading to true - no conversations yet');
-      }
+      setLoading(true);
       console.log('Making getConversations API call...');
       const response = await professionalMessagingService.getConversations();
       console.log('getConversations response:', response);
+      console.log('getConversations success:', response?.success);
+      console.log('getConversations error:', response?.error);
       
-      if (response && response.conversations) {
-        console.log('Response conversations:', response.conversations);
-        setConversations(prevConversations => {
-          // Always update after creating a new conversation to ensure latest data
-          console.log('Conversations updated from', prevConversations.length, 'to', response.conversations.length);
-          return response.conversations;
-        });
+      if (response && response.data && response.data.conversations) {
+        console.log('Response conversations:', response.data.conversations);
+        
+        // Remove duplicates based on conversation_id
+        const uniqueConversations = response.data.conversations.filter((conversation, index, self) => 
+          index === self.findIndex(c => c.conversation_id === conversation.conversation_id)
+        );
+        
+        console.log('Filtered unique conversations:', uniqueConversations.length, 'from', response.data.conversations.length);
+        setConversations(uniqueConversations);
+        console.log('Conversations updated to', uniqueConversations.length);
+      } else if (response && response.conversations) {
+        console.log('Response conversations (direct):', response.conversations);
+        
+        // Remove duplicates based on conversation_id
+        const uniqueConversations = response.conversations.filter((conversation, index, self) => 
+          index === self.findIndex(c => c.conversation_id === conversation.conversation_id)
+        );
+        
+        console.log('Filtered unique conversations:', uniqueConversations.length, 'from', response.conversations.length);
+        setConversations(uniqueConversations);
+        console.log('Conversations updated to', uniqueConversations.length);
       } else {
         console.log('getConversations failed or no data:', response);
+        console.log('Response structure:', {
+          hasResponse: !!response,
+          hasData: !!(response?.data),
+          hasConversations: !!(response?.data?.conversations),
+          directConversations: !!(response?.conversations),
+          responseKeys: response ? Object.keys(response) : null
+        });
       }
     } catch (error) {
       console.error('Failed to load conversations:', error);
+      console.error('Error details:', {
+        message: error?.message,
+        status: error?.status,
+        name: error?.name
+      });
       showError('Failed to load conversations');
     } finally {
       setLoading(false);
       console.log('loadConversations finished');
     }
-  }, [conversations.length, showError]);
+  }, [showError]);
 
   const loadMessages = useCallback(async (conversationId: number, offset: number = 0, limit?: number) => {
     try {
+      console.log(`=== loadMessages called for conversation ${conversationId} ===`);
       setMessagesLoading(offset === 0);
       
       const messageLimit = limit || (offset === 0 ? 15 : 20);
@@ -85,22 +112,32 @@ const MessengerPage: React.FC = () => {
         beforeMessageId: offset > 0 ? messages[messages.length - 1]?.message_id : undefined 
       });
       
+      console.log('loadMessages response:', response);
+      
       if (response.success && response.data) {
-        const messages = response.data.messages || [];
+        const newMessages = response.data.messages || [];
+        console.log(`Got ${newMessages.length} messages from API`);
+        
         if (offset === 0) {
-          console.log(`Initial load: got ${messages.length} messages`);
-          setMessages(messages);
+          console.log(`Initial load: got ${newMessages.length} messages`);
+          setMessages(newMessages);
           setIsInitialLoad(true);
           setTimeout(() => setIsInitialLoad(false), 100);
         } else {
-          console.log(`Loading more: got ${messages.length} additional messages`);
-          setMessages(prev => [...prev, ...messages]);
+          console.log(`Loading more: got ${newMessages.length} additional messages`);
+          setMessages(prev => [...prev, ...newMessages]);
         }
         
         setHasMoreMessages(response.data.has_more || false);
       }
     } catch (error) {
       console.error('Failed to load messages:', error);
+      console.error('Message loading error details:', {
+        conversationId,
+        message: error?.message,
+        status: error?.status,
+        name: error?.name
+      });
       showError('Failed to load messages');
     } finally {
       setMessagesLoading(false);
@@ -131,8 +168,14 @@ const MessengerPage: React.FC = () => {
   const handleNewMessageFromWS = useCallback((message: any, conversationId?: number) => {
     console.log('🔥 HandleNewMessage called with:', message);
     
-    // Always update conversation list when any new message arrives
-    loadConversations();
+    // Always update conversation list when any new message arrives (with a slight delay to avoid too many calls)
+    setTimeout(async () => {
+      try {
+        await loadConversations();
+      } catch (error) {
+        console.error('Failed to refresh conversations from WebSocket:', error);
+      }
+    }, 100);
     
     const messageConversationId = conversationId || message.conversation_id;
     
@@ -371,7 +414,14 @@ const MessengerPage: React.FC = () => {
         console.log('📤 Message sent via API (WebSocket not connected)');
       }
 
-      setTimeout(() => loadConversations(), 100);
+      // Refresh conversation list to update last message and timestamps
+      setTimeout(async () => {
+        try {
+          await loadConversations();
+        } catch (error) {
+          console.error('Failed to refresh conversations after sending message:', error);
+        }
+      }, 200);
     } catch (error) {
       console.error('Failed to send message:', error);
       showError('Failed to send message');
@@ -496,9 +546,16 @@ const MessengerPage: React.FC = () => {
       });
       console.log('Conversation response:', response);
 
-      if (response && response.conversation_id) {
+      let conversationId;
+      if (response && response.data && response.data.conversation_id) {
+        conversationId = response.data.conversation_id;
+      } else if (response && response.conversation_id) {
+        conversationId = response.conversation_id;
+      }
+
+      if (conversationId) {
         console.log('Step 2: Sending initial message...');
-        const messageResponse = await professionalMessagingService.sendMessage(response.conversation_id, {
+        const messageResponse = await professionalMessagingService.sendMessage(conversationId, {
           content: initialMessage
         });
         console.log('Message response:', messageResponse);
@@ -506,15 +563,42 @@ const MessengerPage: React.FC = () => {
         console.log('Step 3: Loading conversations...');
         await loadConversations();
         
-        console.log('Step 4: Closing modal...');
+        console.log('Step 4: Selecting conversation...');
+        // Find and select the conversation
+        const conversationToSelect = conversations.find(c => c.conversation_id === conversationId);
+        if (conversationToSelect) {
+          handleConversationSelect(conversationToSelect);
+        }
+        
+        console.log('Step 5: Closing modal...');
         setShowNewChatModal(false);
         
-        setTimeout(() => {
-          const newConversation = conversations.find(c => c.conversation_id === response.conversation_id);
-          if (newConversation) {
-            handleConversationSelect(newConversation);
+        // Wait a bit longer for the state to update, then select the conversation
+        setTimeout(async () => {
+          try {
+            // Refresh conversations again to ensure we have the latest data
+            const freshResponse = await professionalMessagingService.getConversations();
+            let freshConversations = [];
+            
+            if (freshResponse && freshResponse.data && freshResponse.data.conversations) {
+              freshConversations = freshResponse.data.conversations;
+            } else if (freshResponse && freshResponse.conversations) {
+              freshConversations = freshResponse.conversations;
+            }
+            
+            setConversations(freshConversations);
+            
+            const newConversation = freshConversations.find(c => c.conversation_id === conversationId);
+            if (newConversation) {
+              console.log('Found and selecting new conversation:', newConversation);
+              handleConversationSelect(newConversation);
+            } else {
+              console.log('New conversation not found in list. Available conversations:', freshConversations.map(c => c.conversation_id));
+            }
+          } catch (error) {
+            console.error('Error in delayed conversation selection:', error);
           }
-        }, 100);
+        }, 500);
         
         console.log('Step 5: Showing success message...');
         showSuccess('Conversation started successfully');
@@ -528,7 +612,7 @@ const MessengerPage: React.FC = () => {
     }
     
     console.log('=== FINISHED handleCreateDirectConversation ===');
-  }, [loadConversations, conversations, handleConversationSelect, showSuccess, showError]);
+  }, [loadConversations, handleConversationSelect, showSuccess, showError]);
 
   const handleCreateGroupConversation = useCallback(async (participants: ProfessionalUser[], groupName: string, groupDescription?: string) => {
     try {
@@ -539,24 +623,54 @@ const MessengerPage: React.FC = () => {
         description: groupDescription
       });
 
-      if (response.success && response.data) {
+      let conversationId;
+      if (response && response.data && response.data.conversation_id) {
+        conversationId = response.data.conversation_id;
+      } else if (response && response.conversation_id) {
+        conversationId = response.conversation_id;
+      }
+
+      if (conversationId) {
         await loadConversations();
         setShowNewGroupModal(false);
         
-        setTimeout(() => {
-          const newConversation = conversations.find(c => c.conversation_id === response.data!.conversation_id);
-          if (newConversation) {
-            handleConversationSelect(newConversation);
+        // Wait a bit longer for the state to update, then select the conversation
+        setTimeout(async () => {
+          try {
+            // Refresh conversations again to ensure we have the latest data
+            const freshResponse = await professionalMessagingService.getConversations();
+            let freshConversations = [];
+            
+            if (freshResponse && freshResponse.data && freshResponse.data.conversations) {
+              freshConversations = freshResponse.data.conversations;
+            } else if (freshResponse && freshResponse.conversations) {
+              freshConversations = freshResponse.conversations;
+            }
+            
+            setConversations(freshConversations);
+            
+            const newConversation = freshConversations.find(c => c.conversation_id === conversationId);
+            if (newConversation) {
+              console.log('Found and selecting new group conversation:', newConversation);
+              handleConversationSelect(newConversation);
+            } else {
+              console.log('New group conversation not found in list. Available conversations:', freshConversations.map(c => c.conversation_id));
+            }
+          } catch (error) {
+            console.error('Error in delayed group conversation selection:', error);
           }
-        }, 100);
-      }
+        }, 500);
 
-      showSuccess('Group created successfully');
+        showSuccess('Group created successfully');
+      } else {
+        console.error('Group creation failed:', response);
+        showError('Failed to create group');
+      }
     } catch (error) {
       console.error('Failed to create group:', error);
       showError('Failed to create group');
     }
-  }, [loadConversations, conversations, handleConversationSelect, showSuccess, showError]);
+  }, [loadConversations, handleConversationSelect, showSuccess, showError]);
 
   // Effects - all called unconditionally
   
