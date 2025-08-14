@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { TrendingUp, Users, Search, UserPlus, Sparkles } from 'lucide-react';
 import { circleService } from '../../../api/services';
 import UserDisplay from './UserDisplay';
 import { EmptyState } from '../../../shared/components/EmptyState';
+import Pagination from '../../../shared/components/Pagination';
 import type { CircleSuggestion, User } from '../../../types';
 import '../circle-purple-buttons.css';
 
@@ -139,6 +140,21 @@ const CircleSuggestions: React.FC<CircleSuggestionsProps> = ({
   onAddToCircle,
   onError
 }) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // Calculate paginated suggestions
+  const paginatedSuggestions = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return suggestions.slice(startIndex, endIndex);
+  }, [suggestions, currentPage, itemsPerPage]);
+
+  // Reset to first page when suggestions change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [suggestions.length]);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -166,8 +182,9 @@ const CircleSuggestions: React.FC<CircleSuggestionsProps> = ({
           />
         </div>
       ) : (
-        <div className="grid gap-4">
-          {suggestions.map((suggestion, index) => {
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+          <div className="grid gap-4 p-4">
+            {paginatedSuggestions.map((suggestion, index) => {
             try {
               return (
                 <SuggestionCard
@@ -187,7 +204,16 @@ const CircleSuggestions: React.FC<CircleSuggestionsProps> = ({
                 </div>
               );
             }
-          })}
+            })}
+          </div>
+          
+          {/* Pagination */}
+          <Pagination
+            currentPage={currentPage}
+            totalItems={suggestions.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
         </div>
       )}
     </div>

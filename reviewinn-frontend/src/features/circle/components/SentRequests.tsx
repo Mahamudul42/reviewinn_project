@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Clock, Check, X, Send, Users, UserPlus } from 'lucide-react';
 import UserDisplay from './UserDisplay';
 import { EmptyState } from '../../../shared/components/EmptyState';
+import Pagination from '../../../shared/components/Pagination';
 import type { CircleRequest } from '../../../types';
 import '../circle-purple-buttons.css';
 
@@ -14,6 +15,21 @@ const SentRequests: React.FC<SentRequestsProps> = ({
   sentRequests,
   onCancelRequest
 }) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // Calculate paginated requests
+  const paginatedRequests = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return sentRequests.slice(startIndex, endIndex);
+  }, [sentRequests, currentPage, itemsPerPage]);
+
+  // Reset to first page when requests change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [sentRequests.length]);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -41,8 +57,9 @@ const SentRequests: React.FC<SentRequestsProps> = ({
           />
         </div>
       ) : (
-        <div className="grid gap-4">
-          {sentRequests.map((request) => (
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+          <div className="grid gap-4 p-4">
+            {paginatedRequests.map((request) => (
             <div key={request.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
               <div className="space-y-3">
                 {(() => {
@@ -108,7 +125,16 @@ const SentRequests: React.FC<SentRequestsProps> = ({
                 <p className="text-sm text-gray-600 pl-15">{request.message}</p>
               </div>
             </div>
-          ))}
+            ))}
+          </div>
+          
+          {/* Pagination */}
+          <Pagination
+            currentPage={currentPage}
+            totalItems={sentRequests.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
         </div>
       )}
     </div>

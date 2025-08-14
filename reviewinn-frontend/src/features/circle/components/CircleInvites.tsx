@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Clock, Check, X, Users, Mail, UserPlus } from 'lucide-react';
 import UserDisplay from './UserDisplay';
 import { EmptyState } from '../../../shared/components/EmptyState';
+import Pagination from '../../../shared/components/Pagination';
 import type { CircleRequest, CircleInvite } from '../../../types';
 import '../circle-purple-buttons.css';
 
@@ -16,7 +17,34 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
   receivedInvites,
   onRequestResponse
 }) => {
+  const [pendingPage, setPendingPage] = useState(1);
+  const [invitesPage, setInvitesPage] = useState(1);
+  const itemsPerPage = 10;
+  
   const hasAnyRequests = pendingRequests.length > 0 || receivedInvites.length > 0;
+
+  // Calculate paginated pending requests
+  const paginatedPendingRequests = useMemo(() => {
+    const startIndex = (pendingPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return pendingRequests.slice(startIndex, endIndex);
+  }, [pendingRequests, pendingPage, itemsPerPage]);
+
+  // Calculate paginated invites
+  const paginatedInvites = useMemo(() => {
+    const startIndex = (invitesPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return receivedInvites.slice(startIndex, endIndex);
+  }, [receivedInvites, invitesPage, itemsPerPage]);
+
+  // Reset to first page when data changes
+  React.useEffect(() => {
+    setPendingPage(1);
+  }, [pendingRequests.length]);
+
+  React.useEffect(() => {
+    setInvitesPage(1);
+  }, [receivedInvites.length]);
 
   if (!hasAnyRequests) {
     return (
@@ -64,8 +92,9 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
             />
           </div>
         ) : (
-          <div className="grid gap-4">
-            {pendingRequests.map((request) => (
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="grid gap-4 p-4">
+              {paginatedPendingRequests.map((request) => (
               <div key={request.id} className="bg-gradient-to-br from-white to-purple-50 border border-purple-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-200">
                 <div className="space-y-3">
                   <UserDisplay 
@@ -99,7 +128,16 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
                   <p className="text-sm text-purple-600 pl-15">{request.message}</p>
                 </div>
               </div>
-            ))}
+              ))}
+            </div>
+            
+            {/* Pagination for pending requests */}
+            <Pagination
+              currentPage={pendingPage}
+              totalItems={pendingRequests.length}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setPendingPage}
+            />
           </div>
         )}
       </div>
@@ -108,8 +146,9 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
       {receivedInvites.length > 0 && (
         <div>
           <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-4">Circle Invites ({receivedInvites.length})</h2>
-          <div className="grid gap-4">
-            {receivedInvites.map((invite) => (
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="grid gap-4 p-4">
+              {paginatedInvites.map((invite) => (
               <div key={invite.id} className="bg-gradient-to-br from-white to-purple-50 border border-purple-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-200">
                 <div className="space-y-3">
                   <UserDisplay 
@@ -143,7 +182,16 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
                   <p className="text-sm text-gray-600 pl-15">{invite.message}</p>
                 </div>
               </div>
-            ))}
+              ))}
+            </div>
+            
+            {/* Pagination for invites */}
+            <Pagination
+              currentPage={invitesPage}
+              totalItems={receivedInvites.length}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setInvitesPage}
+            />
           </div>
         </div>
       )}

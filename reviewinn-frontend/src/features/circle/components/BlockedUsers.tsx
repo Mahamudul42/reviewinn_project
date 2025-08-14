@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Ban, EyeOff, Shield, CheckCircle } from 'lucide-react';
 import UserDisplay from './UserDisplay';
 import { EmptyState } from '../../../shared/components/EmptyState';
+import Pagination from '../../../shared/components/Pagination';
 import type { User } from '../../../types';
 import '../circle-purple-buttons.css';
 
@@ -14,6 +15,21 @@ const BlockedUsers: React.FC<BlockedUsersProps> = ({
   blockedUsers,
   onUnblockUser
 }) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // Calculate paginated blocked users
+  const paginatedBlockedUsers = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return blockedUsers.slice(startIndex, endIndex);
+  }, [blockedUsers, currentPage, itemsPerPage]);
+
+  // Reset to first page when blocked users change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [blockedUsers.length]);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -35,8 +51,9 @@ const BlockedUsers: React.FC<BlockedUsersProps> = ({
           />
         </div>
       ) : (
-        <div className="grid gap-4">
-          {blockedUsers.map((user) => (
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+          <div className="grid gap-4 p-4">
+            {paginatedBlockedUsers.map((user) => (
             <div key={user.id} className="bg-gradient-to-br from-white to-purple-50 border border-purple-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-200">
               <div className="space-y-3">
                 <UserDisplay 
@@ -71,7 +88,16 @@ const BlockedUsers: React.FC<BlockedUsersProps> = ({
                 )}
               </div>
             </div>
-          ))}
+            ))}
+          </div>
+          
+          {/* Pagination */}
+          <Pagination
+            currentPage={currentPage}
+            totalItems={blockedUsers.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
         </div>
       )}
     </div>

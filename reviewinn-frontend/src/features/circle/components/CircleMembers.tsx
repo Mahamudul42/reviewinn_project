@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { MoreVertical, UserMinus, Ban, Eye, Shield, Users, TrendingUp, UserPlus, Search } from 'lucide-react';
 import { circleService } from '../../../api/services';
 import UserDisplay from './UserDisplay';
 import { EmptyState } from '../../../shared/components/EmptyState';
+import Pagination from '../../../shared/components/Pagination';
 import type { CircleMember } from '../../../types';
 import '../circle-purple-buttons.css';
 
@@ -23,6 +24,21 @@ const CircleMembers: React.FC<CircleMembersProps> = ({
   onRemoveUser,
   onBlockUser
 }) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // Calculate paginated members
+  const paginatedMembers = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return members.slice(startIndex, endIndex);
+  }, [members, currentPage, itemsPerPage]);
+
+  // Reset to first page when members change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [members.length]);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -50,8 +66,9 @@ const CircleMembers: React.FC<CircleMembersProps> = ({
           />
         </div>
       ) : (
-        <div className="grid gap-4">
-          {members.map((member) => (
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+          <div className="grid gap-4 p-4">
+            {paginatedMembers.map((member) => (
           <div key={member.connection_id} className="bg-gradient-to-br from-white to-purple-50 border border-purple-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-200">
             <div className="space-y-3">
               <UserDisplay 
@@ -175,7 +192,16 @@ const CircleMembers: React.FC<CircleMembersProps> = ({
               </div>
             </div>
           </div>
-          ))}
+            ))}
+          </div>
+          
+          {/* Pagination */}
+          <Pagination
+            currentPage={currentPage}
+            totalItems={members.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
         </div>
       )}
     </div>
