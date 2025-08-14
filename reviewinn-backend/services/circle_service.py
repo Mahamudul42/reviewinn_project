@@ -258,9 +258,12 @@ class CircleService:
             if not circle_request:
                 raise NotFoundError("Circle request not found or already responded")
             
-            # Update request status
-            circle_request.status = action
-            circle_request.response_type = action
+            # Update request status - map frontend action to database status
+            status_mapping = {'accept': 'accepted', 'decline': 'rejected'}
+            db_status = status_mapping[action]
+            
+            circle_request.status = db_status
+            circle_request.response_type = db_status
             circle_request.responded_at = datetime.utcnow()
             
             # If accepted, add users to each other's circles

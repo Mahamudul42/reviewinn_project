@@ -9,7 +9,7 @@ import '../circle-purple-buttons.css';
 interface CircleInvitesProps {
   pendingRequests: CircleRequest[];
   receivedInvites: CircleInvite[];
-  onRequestResponse: (requestId: string, action: 'accept' | 'decline') => void;
+  onRequestResponse: (requestId: string, action: 'accept' | 'decline') => Promise<void>;
 }
 
 const CircleInvites: React.FC<CircleInvitesProps> = ({
@@ -19,6 +19,7 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
 }) => {
   const [pendingPage, setPendingPage] = useState(1);
   const [invitesPage, setInvitesPage] = useState(1);
+  const [processingRequests, setProcessingRequests] = useState<Set<string>>(new Set());
   const itemsPerPage = 10;
   
   const hasAnyRequests = pendingRequests.length > 0 || receivedInvites.length > 0;
@@ -45,6 +46,29 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
   React.useEffect(() => {
     setInvitesPage(1);
   }, [receivedInvites.length]);
+
+  const handleRequestResponse = async (requestId: string, action: 'accept' | 'decline') => {
+    const requestIdStr = String(requestId);
+    
+    // Prevent double-clicking
+    if (processingRequests.has(requestIdStr)) {
+      return;
+    }
+    
+    // Add to processing set
+    setProcessingRequests(prev => new Set([...prev, requestIdStr]));
+    
+    try {
+      await onRequestResponse(requestId, action);
+    } finally {
+      // Remove from processing set
+      setProcessingRequests(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(requestIdStr);
+        return newSet;
+      });
+    }
+  };
 
   if (!hasAnyRequests) {
     return (
@@ -109,17 +133,27 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
                     actions={
                       <div className="flex space-x-2">
                         <button 
-                          onClick={() => onRequestResponse(request.id, 'accept')}
-                          className="circle-action-button-primary px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 flex items-center space-x-1.5 shadow-sm"
+                          onClick={() => handleRequestResponse(request.id, 'accept')}
+                          disabled={processingRequests.has(String(request.id))}
+                          className="circle-action-button-primary px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 flex items-center space-x-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                         >
-                          <Check size={14} />
+                          {processingRequests.has(String(request.id)) ? (
+                            <div className="animate-spin rounded-full h-3 w-3 border border-white border-t-transparent" />
+                          ) : (
+                            <Check size={14} />
+                          )}
                           <span>Accept</span>
                         </button>
                         <button 
-                          onClick={() => onRequestResponse(request.id, 'decline')}
-                          className="circle-action-button-primary px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 flex items-center space-x-1.5 shadow-sm"
+                          onClick={() => handleRequestResponse(request.id, 'decline')}
+                          disabled={processingRequests.has(String(request.id))}
+                          className="circle-action-button-primary px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 flex items-center space-x-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                         >
-                          <X size={14} />
+                          {processingRequests.has(String(request.id)) ? (
+                            <div className="animate-spin rounded-full h-3 w-3 border border-white border-t-transparent" />
+                          ) : (
+                            <X size={14} />
+                          )}
                           <span>Decline</span>
                         </button>
                       </div>
@@ -163,17 +197,27 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
                     actions={
                       <div className="flex space-x-2">
                         <button 
-                          onClick={() => onRequestResponse(invite.id, 'accept')}
-                          className="circle-action-button-primary px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 flex items-center space-x-1.5 shadow-sm"
+                          onClick={() => handleRequestResponse(invite.id, 'accept')}
+                          disabled={processingRequests.has(String(invite.id))}
+                          className="circle-action-button-primary px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 flex items-center space-x-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                         >
-                          <Check size={14} />
+                          {processingRequests.has(String(invite.id)) ? (
+                            <div className="animate-spin rounded-full h-3 w-3 border border-white border-t-transparent" />
+                          ) : (
+                            <Check size={14} />
+                          )}
                           <span>Accept</span>
                         </button>
                         <button 
-                          onClick={() => onRequestResponse(invite.id, 'decline')}
-                          className="circle-action-button-primary px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 flex items-center space-x-1.5 shadow-sm"
+                          onClick={() => handleRequestResponse(invite.id, 'decline')}
+                          disabled={processingRequests.has(String(invite.id))}
+                          className="circle-action-button-primary px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 flex items-center space-x-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                         >
-                          <X size={14} />
+                          {processingRequests.has(String(invite.id)) ? (
+                            <div className="animate-spin rounded-full h-3 w-3 border border-white border-t-transparent" />
+                          ) : (
+                            <X size={14} />
+                          )}
                           <span>Decline</span>
                         </button>
                       </div>

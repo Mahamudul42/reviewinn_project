@@ -578,7 +578,7 @@ const ReviewCirclePageContent: React.FC = () => {
     return (members || []).some(member => String(member.user.id) === String(userId));
   };
 
-  const handleRequestResponse = async (requestId: string, action: 'accept' | 'decline') => {
+  const handleRequestResponse = async (requestId: string, action: 'accept' | 'decline'): Promise<void> => {
     const requestIdNum = parseInt(requestId);
     const request = pendingRequests.find(req => req.id === requestIdNum);
     if (!request) return;
@@ -615,12 +615,19 @@ const ReviewCirclePageContent: React.FC = () => {
       
       showSuccess(`Circle request ${action === 'accept' ? 'accepted' : 'declined'}.`);
       
-      // Refresh data to get updated state from server
-      setTimeout(() => refreshData(), 1000);
-      
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Failed to ${action} circle request:`, error);
-      showError(`Failed to ${action} circle request. Please try again.`);
+      
+      // Handle specific error cases
+      if (error.message?.includes('already responded') || error.message?.includes('not found')) {
+        // Request was already processed - remove it from UI and refresh
+        showError(`This request has already been processed. Refreshing the list...`);
+        setPendingRequests(prev => prev.filter(req => req.id !== requestIdNum));
+        // Refresh data to get current state
+        refreshData();
+      } else {
+        showError(`Failed to ${action} circle request. Please try again.`);
+      }
     }
   };
 
@@ -726,66 +733,6 @@ const ReviewCirclePageContent: React.FC = () => {
     }
   };
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'members':
-        return (
-          <CircleMembers 
-            members={members}
-            openMenus={openMenus}
-            onToggleUserMenu={toggleUserMenu}
-            onUpdateTrustLevel={handleUpdateTrustLevel}
-            onRemoveUser={handleRemoveUser}
-            onBlockUser={handleBlockUser}
-          />
-        );
-      case 'invites':
-        return (
-          <CircleInvites 
-            pendingRequests={pendingRequests}
-            receivedInvites={receivedInvites}
-            onRequestResponse={handleRequestResponse}
-          />
-        );
-      case 'sent':
-        return (
-          <SentRequests 
-            sentRequests={sentRequests}
-            onCancelRequest={handleCancelRequest}
-          />
-        );
-      case 'suggestions':
-        return (
-          <CircleSuggestions 
-            suggestions={suggestions}
-            currentUser={currentUser}
-            sentRequestsSet={sentRequestsSet}
-            onAddToCircle={handleAddToCircle}
-            onError={showError}
-          />
-        );
-      case 'analytics':
-        return <CircleAnalyticsComponent analytics={analytics} />;
-      case 'blocked':
-        return (
-          <BlockedUsers 
-            blockedUsers={blockedUsers}
-            onUnblockUser={handleUnblockUser}
-          />
-        );
-      default:
-        return (
-          <CircleMembers 
-            members={members}
-            openMenus={openMenus}
-            onToggleUserMenu={toggleUserMenu}
-            onUpdateTrustLevel={handleUpdateTrustLevel}
-            onRemoveUser={handleRemoveUser}
-            onBlockUser={handleBlockUser}
-          />
-        );
-    }
-  };
 
   // Main render
   return (
@@ -926,59 +873,6 @@ const ReviewCirclePageContent: React.FC = () => {
 
             {/* Main Tab Content Area - Only show one tab at a time */}
             <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-3">
-                  {activeTab === 'members' && <Users className="h-6 w-6 text-purple-600" />}
-                  {activeTab === 'invites' && <Clock className="h-6 w-6 text-orange-600" />}
-                  {activeTab === 'sent' && <Clock className="h-6 w-6 text-blue-600" />}
-                  {activeTab === 'suggestions' && <TrendingUp className="h-6 w-6 text-green-600" />}
-                  {activeTab === 'search' && <Search className="h-6 w-6 text-cyan-600" />}
-                  {activeTab === 'analytics' && <Settings className="h-6 w-6 text-indigo-600" />}
-                  {activeTab === 'blocked' && <Ban className="h-6 w-6 text-red-600" />}
-                  
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    {activeTab === 'members' && 'Circle Members'}
-                    {activeTab === 'invites' && 'Invites & Requests'}
-                    {activeTab === 'sent' && 'Sent Requests'}
-                    {activeTab === 'suggestions' && 'Suggestions'}
-                    {activeTab === 'search' && 'Find People'}
-                    {activeTab === 'analytics' && 'Circle Analytics'}
-                    {activeTab === 'blocked' && 'Blocked Users'}
-                  </h2>
-                  
-                  {activeTab === 'members' && (
-                    <span className="px-3 py-1 text-xs bg-purple-100 text-purple-800 rounded-full font-medium">
-                      {members.length} members
-                    </span>
-                  )}
-                  {activeTab === 'invites' && (
-                    <span className="px-3 py-1 text-xs bg-orange-100 text-orange-800 rounded-full font-medium">
-                      {pendingRequests.length + receivedInvites.length} requests
-                    </span>
-                  )}
-                  {activeTab === 'sent' && (
-                    <span className="px-3 py-1 text-xs bg-blue-100 text-blue-800 rounded-full font-medium">
-                      {sentRequests.length} sent
-                    </span>
-                  )}
-                  {activeTab === 'suggestions' && (
-                    <span className="px-3 py-1 text-xs bg-green-100 text-green-800 rounded-full font-medium">
-                      {suggestions.length} suggestions
-                    </span>
-                  )}
-                  {activeTab === 'search' && (
-                    <span className="px-3 py-1 text-xs bg-cyan-100 text-cyan-800 rounded-full font-medium">
-                      {searchResults.length} found
-                    </span>
-                  )}
-                  {activeTab === 'blocked' && (
-                    <span className="px-3 py-1 text-xs bg-red-100 text-red-800 rounded-full font-medium">
-                      {blockedUsers.length} blocked
-                    </span>
-                  )}
-                </div>
-              </div>
-
               {/* Tab Content */}
               <div className="min-h-[400px]">
                 {activeTab === 'members' && (
