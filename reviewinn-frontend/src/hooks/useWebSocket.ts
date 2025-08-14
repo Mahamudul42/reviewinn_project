@@ -80,6 +80,8 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
 
       ws.onopen = () => {
         console.log('✅ WebSocket connected successfully');
+        console.log('🔗 WebSocket URL:', getWebSocketUrl());
+        console.log('👤 Connected for user token:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
         if (connectionTimeoutRef.current) {
           clearTimeout(connectionTimeoutRef.current);
           connectionTimeoutRef.current = null;
@@ -108,7 +110,26 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
       };
 
       ws.onclose = (event) => {
-        console.log(`WebSocket disconnected (${event.code}): ${event.reason || 'No reason provided'}`);
+        console.log(`❌ WebSocket disconnected (${event.code}): ${event.reason || 'No reason provided'}`);
+        console.log('❌ WebSocket close event details:', {
+          code: event.code,
+          reason: event.reason,
+          wasClean: event.wasClean,
+          type: event.type,
+          timestamp: new Date().toISOString()
+        });
+        
+        // Log common error codes
+        if (event.code === 1006) {
+          console.log('💡 Error 1006: Abnormal closure - server may have crashed or network issue');
+        } else if (event.code === 1000) {
+          console.log('✅ Error 1000: Normal closure');
+        } else if (event.code === 1001) {
+          console.log('👋 Error 1001: Going away (page refresh/navigate)');
+        } else if (event.code === 1011) {
+          console.log('🛠️ Error 1011: Server error');
+        }
+        
         if (connectionTimeoutRef.current) {
           clearTimeout(connectionTimeoutRef.current);
           connectionTimeoutRef.current = null;

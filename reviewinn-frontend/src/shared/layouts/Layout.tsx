@@ -28,6 +28,8 @@ const Layout: React.FC = () => {
   const [showRecentActivityDropdown, setShowRecentActivityDropdown] = useState(false);
   const [showMessagesDropdown, setShowMessagesDropdown] = useState(false);
   const [unreadConversationsCount, setUnreadConversationsCount] = useState(0); // Track unread conversations (industry standard)
+  const [lastMessageReceived, setLastMessageReceived] = useState<string>(''); // Debug: track last message
+  const [messageHistory, setMessageHistory] = useState<string[]>([]); // Debug: track message history
   const {
     notifications,
     removeNotification,
@@ -39,13 +41,25 @@ const Layout: React.FC = () => {
   const { isConnected } = useWebSocket({
     enabled: isAuthenticated && !!user,
     onMessage: (message) => {
+      // Update last message indicator for visual debugging
+      const timestamp = new Date().toLocaleTimeString();
+      const messageLog = `${message.type} at ${timestamp}`;
+      setLastMessageReceived(messageLog);
+      
+      // Keep history of last 5 messages
+      setMessageHistory(prev => {
+        const newHistory = [messageLog, ...prev].slice(0, 5);
+        return newHistory;
+      });
+      
       console.log('🔔 Layout: WebSocket message received:', {
         type: message.type,
         fullMessage: message,
         currentUserId: user?.id,
         senderIdFromMessage: message.sender_id,
         conversationId: message.conversation_id,
-        currentUnreadCount: unreadConversationsCount
+        currentUnreadCount: unreadConversationsCount,
+        timestamp: timestamp
       });
       
       if (message.type === 'new_message') {
@@ -192,32 +206,6 @@ const Layout: React.FC = () => {
     }
   }, [isAuthenticated, isLoading]);
 
-  // Effect to load unread conversations count when user becomes available (for page refresh/initial load)
-  useEffect(() => {
-    if (isAuthenticated && !isLoading && user && unreadConversationsCount === 0) {
-      console.log('User became available, loading unread conversations count');
-      setTimeout(() => {
-        loadUnreadConversationsCount();
-      }, 300);
-    }
-  }, [user, isAuthenticated, isLoading]);
-
-  // Periodic fallback to refresh counter (enterprise standard)
-  useEffect(() => {
-    if (!isAuthenticated || !user) return;
-    
-    console.log('📡 Layout: Setting up periodic counter refresh (fallback mechanism)');
-    const periodicRefresh = setInterval(() => {
-      console.log('📡 Layout: Periodic counter refresh triggered');
-      loadUnreadConversationsCount();
-    }, 30000); // Refresh every 30 seconds as fallback
-    
-    return () => {
-      console.log('📡 Layout: Clearing periodic counter refresh');
-      clearInterval(periodicRefresh);
-    };
-  }, [isAuthenticated, user, loadUnreadConversationsCount]);
-
   const loadUnreadConversationsCount = async () => {
     // Only load unread conversations count if user is authenticated and not still loading
     if (!isAuthenticated || isLoading || !user) {
@@ -249,8 +237,10 @@ const Layout: React.FC = () => {
     console.log('Loading unread conversations count for user:', user.id);
     
     try {
+      console.log('🔄 Layout: Starting conversation API call...');
       const response = await professionalMessagingService.getConversations();
       
+      console.log('✅ Layout: API call successful, processing response');
       console.log('Layout: Raw API response for unread count:', response);
       
       // Handle multiple possible response structures
@@ -278,12 +268,26 @@ const Layout: React.FC = () => {
         setUnreadConversationsCount(unreadConversationsCount);
         
         console.log(`🔢 Layout: Found ${unreadConversationsCount} unread conversations out of ${conversations.length} total conversations`);
-        console.log('🔢 Layout: Unread conversations debug:', conversations.map(conv => ({
+        console.log('🔢 Layout: Unread conversations debug:');
+        conversations.forEach((conv, index) => {
+          console.log(`Conversation ${index + 1}:`, conv);
+        });
+        console.log('🔢 Layout: Unread conversations summary:', conversations.map(conv => ({
           id: conv.conversation_id,
           title: conv.title,
           userUnreadCount: conv.user_unread_count,
           isUnread: conv.user_unread_count > 0,
-          lastMessage: conv.latest_message?.content?.substring(0, 30) || conv.last_message?.content?.substring(0, 30)
+          lastMessage: conv.latest_message?.content?.substring(0, 30) || conv.last_message?.content?.substring(0, 30),
+          // Debug all unread-related fields
+          allUnreadFields: {
+            user_unread_count: conv.user_unread_count,
+            unread_count: conv.unread_count,
+            unread_messages: conv.unread_messages,
+            has_unread: conv.has_unread,
+            is_unread: conv.is_unread
+          },
+          // Show all properties to find the right field
+          allProperties: Object.keys(conv)
         })));
         console.log('🔢 Layout: Setting unread badge count to:', unreadConversationsCount);
         
@@ -296,23 +300,58 @@ const Layout: React.FC = () => {
         setUnreadConversationsCount(0);
       }
     } catch (error: any) {
-      console.error('Failed to load unread conversations count:', error);
+      console.error('❌ Layout: Failed to load unread conversations count:', error);
+      console.error('❌ Layout: Error details:', {
+        status: error.response?.status,
+        message: error.message,
+        code: error.code,
+        type: error.constructor.name
+      });
       
       // Handle specific error cases
-      if (error.response?.status === 401) {
-        console.warn('Unauthorized access to messenger API - user may need to re-authenticate');
-        // Don't show error to user, just set count to 0
+      if (error.message?.includes('timeout') || error.code === 'TIMEOUT') {
+        console.warn('⏰ Layout: API timeout - messaging service may be slow');
         setUnreadConversationsCount(0);
-        // Don't call logout here as it could interfere with the auth flow
+        // Don't retry timeout errors immediately
+      } else if (error.response?.status === 401) {
+        console.warn('🔐 Layout: Unauthorized access to messenger API - user may need to re-authenticate');
+        setUnreadConversationsCount(0);
       } else if (error.response?.status >= 500) {
-        console.error('Server error when loading unread conversations count');
+        console.error('🛠️ Layout: Server error when loading unread conversations count');
         setUnreadConversationsCount(0);
       } else {
-        // For other errors, just set count to 0 without showing error
+        console.warn('❓ Layout: Unknown error, setting count to 0');
         setUnreadConversationsCount(0);
       }
     }
   };
+
+  // Effect to load unread conversations count when user becomes available (for page refresh/initial load)
+  useEffect(() => {
+    if (isAuthenticated && !isLoading && user && unreadConversationsCount === 0) {
+      console.log('User became available, loading unread conversations count');
+      setTimeout(() => {
+        loadUnreadConversationsCount();
+      }, 300);
+    }
+  }, [user, isAuthenticated, isLoading, loadUnreadConversationsCount]);
+
+  // Periodic fallback to refresh counter (enterprise standard)
+  useEffect(() => {
+    if (!isAuthenticated || !user) return;
+    
+    console.log('📡 Layout: Setting up periodic counter refresh (fallback mechanism)');
+    const periodicRefresh = setInterval(() => {
+      console.log('📡 Layout: Periodic counter refresh triggered');
+      loadUnreadConversationsCount();
+    }, 10000); // Refresh every 10 seconds for testing (normally 30)
+    
+    return () => {
+      console.log('📡 Layout: Clearing periodic counter refresh');
+      clearInterval(periodicRefresh);
+    };
+  }, [isAuthenticated, user, loadUnreadConversationsCount]);
+
   const handleLogout = async () => {
     try {
       console.log('Layout: Starting logout process...');
@@ -605,7 +644,7 @@ const Layout: React.FC = () => {
                   <MessageCircle size={20} className="text-white group-hover:scale-110 transition-transform duration-200" />
                   
                   {/* Enterprise-Grade Unread Badge */}
-                  {isAuthenticated && unreadConversationsCount > 0 && (
+                  {isAuthenticated && (
                     <div className="absolute -top-3 -right-3 z-10">
                       <span className="relative flex items-center justify-center bg-gradient-to-br from-red-500 to-red-600 text-white text-xs rounded-full font-extrabold shadow-2xl border-4 border-white transform transition-all duration-200 hover:scale-110" style={{
                         fontSize: '12px',
@@ -619,7 +658,7 @@ const Layout: React.FC = () => {
                         backgroundClip: 'padding-box'
                       }}>
                         <span className="relative z-10 drop-shadow-sm">
-                          {unreadConversationsCount > 99 ? '99+' : unreadConversationsCount}
+                          {unreadConversationsCount > 99 ? '99+' : unreadConversationsCount || '0'}
                         </span>
                         {/* Pulse ring animation */}
                         <span className="absolute inset-0 bg-red-400 rounded-full animate-ping opacity-75"></span>
@@ -629,17 +668,12 @@ const Layout: React.FC = () => {
                     </div>
                   )}
                   
-                  {/* Debug indicator for development */}
-                  {process.env.NODE_ENV === 'development' && isAuthenticated && (
-                    <div className="absolute -bottom-10 -right-2 bg-yellow-400 text-black text-xs px-2 py-1 rounded shadow-lg z-20" style={{fontSize: '10px'}}>
-                      Debug: {unreadConversationsCount} | Connected: {isConnected ? 'Yes' : 'No'}
-                    </div>
-                  )}
                   
                   {/* Live Connection Indicator */}
                   {isAuthenticated && isConnected && unreadConversationsCount === 0 && (
                     <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white opacity-80 animate-pulse"></div>
                   )}
+                  
                   
                   {/* Login Required Indicator */}
                   {!isAuthenticated && (
@@ -660,6 +694,101 @@ const Layout: React.FC = () => {
             </div>
           </div>
         </div>
+        
+        {/* Debug Panel - Outside all buttons to avoid nesting */}
+        {process.env.NODE_ENV === 'development' && isAuthenticated && (
+          <div className="fixed top-20 right-4 bg-blue-500 text-white text-xs px-3 py-2 rounded shadow-lg z-50 max-w-64 flex flex-col gap-2" style={{fontSize: '10px'}}>
+            <div className="font-bold">🔍 Real-time Debug Panel</div>
+            {lastMessageReceived && <div>Last: {lastMessageReceived}</div>}
+            {messageHistory.length > 1 && (
+              <div className="text-xs opacity-75 max-h-20 overflow-y-auto">
+                <div className="font-semibold">History:</div>
+                {messageHistory.slice(1).map((msg, idx) => (
+                  <div key={idx} className="truncate">{msg}</div>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-1">
+              <button 
+                onClick={() => {
+                  console.log('🔄 Manual refresh triggered');
+                  loadUnreadConversationsCount();
+                }}
+                className="bg-yellow-500 text-black px-2 py-1 rounded text-xs hover:bg-yellow-400"
+              >
+                Refresh
+              </button>
+              <button 
+                onClick={() => {
+                  console.log('🧪 Test: Simulating unread message');
+                  setUnreadConversationsCount(prev => prev + 1);
+                }}
+                className="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-400"
+              >
+                Test +1
+              </button>
+              <button 
+                onClick={() => {
+                  console.log('🧪 Test: Resetting counter');
+                  setUnreadConversationsCount(0);
+                }}
+                className="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-400"
+              >
+                Reset
+              </button>
+            </div>
+            <div className="flex gap-1">
+              <button 
+                onClick={() => {
+                  console.log('🧪 Test: Simulating WebSocket new_message event');
+                  const fakeMessage = {
+                    type: 'new_message',
+                    conversation_id: 1,
+                    sender_id: 999, // Different from current user
+                    content: 'Test message from debug panel',
+                    created_at: new Date().toISOString()
+                  };
+                  // Trigger the same WebSocket handler
+                  setLastMessageReceived(`new_message at ${new Date().toLocaleTimeString()}`);
+                  setUnreadConversationsCount(prev => prev + 1);
+                  console.log('🧪 Simulated message:', fakeMessage);
+                }}
+                className="bg-purple-500 text-white px-1 py-0.5 rounded text-xs hover:bg-purple-400"
+              >
+                Sim WS
+              </button>
+            </div>
+            <div className="text-xs opacity-75">
+              Count: {unreadConversationsCount} | Connected: {isConnected ? 'Yes' : 'No'}
+            </div>
+            <div className="text-xs opacity-75">
+              User ID: {user?.id} | Messages in History: {messageHistory.length}
+            </div>
+            <div className="flex gap-1 mt-1">
+              <button 
+                onClick={() => {
+                  console.log('🏓 Test: WebSocket ping test');
+                  setLastMessageReceived(`ping_test at ${new Date().toLocaleTimeString()}`);
+                  console.log('🏓 If you see this log but no response from server, WebSocket is one-way only');
+                }}
+                className="bg-orange-500 text-white px-1 py-0.5 rounded text-xs hover:bg-orange-400"
+              >
+                Ping
+              </button>
+              <button 
+                onClick={() => {
+                  console.log('🧪 Force Backend Check: Sending a test message via API to trigger WebSocket');
+                  // This will help us see if the backend sends WebSocket messages when messages are sent
+                  setLastMessageReceived(`test_api_call at ${new Date().toLocaleTimeString()}`);
+                  loadUnreadConversationsCount(); // Force API call
+                }}
+                className="bg-teal-500 text-white px-1 py-0.5 rounded text-xs hover:bg-teal-400"
+              >
+                Force API
+              </button>
+            </div>
+          </div>
+        )}
       </header>
 
       <main className="main-content">

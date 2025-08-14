@@ -73,6 +73,19 @@ const MessengerPage: React.FC = () => {
         );
         
         console.log('Filtered unique conversations:', uniqueConversations.length, 'from', response.conversations.length);
+        
+        // Debug: Show sample conversations to see if they include new messages
+        console.log('Sample conversations with last messages:');
+        uniqueConversations.slice(0, 2).forEach((conv, idx) => {
+          console.log(`Conversation ${idx + 1}:`, {
+            id: conv.conversation_id,
+            title: conv.title,
+            lastMessage: conv.latest_message?.content || conv.last_message?.content || 'No message',
+            lastMessageTime: conv.latest_message?.created_at || conv.last_message?.created_at || 'No time',
+            unreadCount: conv.user_unread_count || conv.unread_count || 0
+          });
+        });
+        
         setConversations(uniqueConversations);
         console.log('Conversations updated to', uniqueConversations.length);
       } else {
@@ -313,9 +326,9 @@ const MessengerPage: React.FC = () => {
     }
   }, [handleNewMessageFromWS, handleTypingUpdateFromWS, handleMessageStatusUpdateFromWS, handleReactionUpdateFromWS]);
 
-  // WebSocket hook - disabled for now since backend doesn't have WebSocket support
+  // WebSocket hook - enabled for real-time messaging
   const { isConnected, isConnecting, hasAttemptedConnection, sendMessage } = useWebSocket({
-    enabled: false, // Disable WebSocket until backend implements it
+    enabled: true, // Enable WebSocket for real-time messaging
     onMessage: handleWebSocketMessage,
     onConnect: () => {
       console.log('✅ Connected to messenger WebSocket');
@@ -447,9 +460,15 @@ const MessengerPage: React.FC = () => {
       // Refresh conversation list to update last message and timestamps
       setTimeout(async () => {
         try {
+          console.log('🔄 MessengerPage: Refreshing conversations after message send');
           await loadConversations();
+          console.log('✅ MessengerPage: Conversations refreshed successfully');
+          
+          // Force the Layout counter to update too
+          window.dispatchEvent(new CustomEvent('conversationUpdated'));
+          console.log('📤 MessengerPage: Dispatched conversationUpdated event for Layout');
         } catch (error) {
-          console.error('Failed to refresh conversations after sending message:', error);
+          console.error('❌ MessengerPage: Failed to refresh conversations after sending message:', error);
         }
       }, 200);
     } catch (error) {
