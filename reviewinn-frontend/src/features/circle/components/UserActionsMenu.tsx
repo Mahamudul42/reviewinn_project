@@ -27,9 +27,7 @@ const UserActionsMenu: React.FC<UserActionsMenuProps> = ({
   onUnfollow
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [shouldFlipLeft, setShouldFlipLeft] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -44,23 +42,6 @@ const UserActionsMenu: React.FC<UserActionsMenuProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
-
-  // Check positioning when menu opens
-  useEffect(() => {
-    if (isOpen && buttonRef.current) {
-      const buttonRect = buttonRef.current.getBoundingClientRect();
-      const containerElement = buttonRef.current.closest('.bg-white.rounded-xl') || 
-                               buttonRef.current.closest('[class*="panel"]') ||
-                               document.body;
-      const containerRect = containerElement.getBoundingClientRect();
-      
-      const dropdownWidth = 200; // max-w-[200px]
-      const spaceOnRight = containerRect.right - buttonRect.right;
-      
-      // If there's not enough space on the right, flip to the left
-      setShouldFlipLeft(spaceOnRight < dropdownWidth);
-    }
-  }, [isOpen]);
 
   const handleAction = (action: () => void) => {
     action();
@@ -137,7 +118,6 @@ const UserActionsMenu: React.FC<UserActionsMenuProps> = ({
   return (
     <div className="relative" ref={menuRef}>
       <button
-        ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
         className="p-1 rounded-full hover:bg-gray-100 transition-colors"
         aria-label="User actions"
@@ -146,9 +126,7 @@ const UserActionsMenu: React.FC<UserActionsMenuProps> = ({
       </button>
 
       {isOpen && (
-        <div className={`absolute top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[180px] w-[180px] ${
-          shouldFlipLeft ? 'right-0 origin-top-right' : 'left-0 origin-top-left'
-        } ${shouldFlipLeft ? 'transform -translate-x-2' : ''}`}>
+        <div className="absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[180px] transform -translate-x-full">
           <div className="py-1">
             {menuItems.map((item, index) => (
               <button

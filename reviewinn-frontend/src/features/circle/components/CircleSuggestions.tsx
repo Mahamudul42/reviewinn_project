@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { TrendingUp, Users, Search, UserPlus, Sparkles } from 'lucide-react';
 import { circleService } from '../../../api/services';
 import UserDisplay from './UserDisplay';
+import UserActionsMenu from './UserActionsMenu';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import Pagination from '../../../shared/components/Pagination';
 import type { CircleSuggestion, User } from '../../../types';
@@ -13,9 +14,10 @@ interface SuggestionCardProps {
   sentRequestsSet: Set<string>;
   onAddToCircle: (userId: string | number, userName?: string) => Promise<void>;
   onError: (message: string) => void;
+  onBlockUser: (userId: string, userName: string) => void;
 }
 
-const SuggestionCard: React.FC<SuggestionCardProps> = ({ suggestion, currentUser, sentRequestsSet, onAddToCircle, onError }) => {
+const SuggestionCard: React.FC<SuggestionCardProps> = ({ suggestion, currentUser, sentRequestsSet, onAddToCircle, onError, onBlockUser }) => {
   const [isAdding, setIsAdding] = React.useState(false);
 
   const userId = suggestion.user.id || suggestion.user.user_id;
@@ -66,20 +68,28 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({ suggestion, currentUser
           }}
           size="lg"
           actions={currentUser ? (
-            <button
-              className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1.5 circle-action-button-primary"
-              onClick={handleAddClick}
-              disabled={isAdding}
-            >
-              {isAdding ? (
-                <>
-                  <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Adding...</span>
-                </>
-              ) : (
-                <span>Add to Circle</span>
-              )}
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1.5 circle-action-button-primary"
+                onClick={handleAddClick}
+                disabled={isAdding}
+              >
+                {isAdding ? (
+                  <>
+                    <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Adding...</span>
+                  </>
+                ) : (
+                  <span>Add to Circle</span>
+                )}
+              </button>
+              <UserActionsMenu
+                userId={userIdString}
+                userName={suggestion.user.name || 'Unknown User'}
+                userType="suggestion"
+                onBlock={onBlockUser}
+              />
+            </div>
           ) : undefined}
         />
         
@@ -114,6 +124,7 @@ interface CircleSuggestionsProps {
   sentRequestsSet: Set<string>;
   onAddToCircle: (userId: string | number, userName?: string) => Promise<void>;
   onError: (message: string) => void;
+  onBlockUser: (userId: string, userName: string) => void;
 }
 
 const CircleSuggestions: React.FC<CircleSuggestionsProps> = ({
@@ -121,7 +132,8 @@ const CircleSuggestions: React.FC<CircleSuggestionsProps> = ({
   currentUser,
   sentRequestsSet,
   onAddToCircle,
-  onError
+  onError,
+  onBlockUser
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -194,6 +206,7 @@ const CircleSuggestions: React.FC<CircleSuggestionsProps> = ({
                   sentRequestsSet={sentRequestsSet}
                   onAddToCircle={(userId) => onAddToCircle(String(suggestion.user.id || suggestion.user.user_id || userId), suggestion.user.name)}
                   onError={onError}
+                  onBlockUser={onBlockUser}
                 />
               );
             } catch (renderError) {

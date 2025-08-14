@@ -2,6 +2,7 @@ import React, { useRef, useState, useMemo } from 'react';
 import { Search, X, UserPlus, Ban, Check, Clock, Users } from 'lucide-react';
 import UserDisplay from './UserDisplay';
 import UserSearchBar from './UserSearchBar';
+import UserActionsMenu from './UserActionsMenu';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import Pagination from '../../../shared/components/Pagination';
 import type { User } from '../../../types';
@@ -214,33 +215,35 @@ const UserSearch: React.FC<UserSearchProps> = ({
                   {/* Action Buttons */}
                   <div className="ml-6 flex flex-col space-y-2">
                     {currentUser?.id !== user.id && !isUserInCircle(user.id) && !sentRequestsSet.has(user.id) && (
-                      <>
-                        <button
-                          onClick={() => onSendRequest(user)}
-                          className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg text-sm font-medium hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-md hover:shadow-lg flex items-center space-x-2 group-hover:scale-105"
-                        >
-                          <UserPlus className="w-4 h-4" />
-                          <span>Add to Circle</span>
-                        </button>
-                        <button
-                          onClick={() => onBlockUser(user.id, user.name)}
-                          className="px-3 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm hover:bg-red-100 hover:text-red-600 transition-colors flex items-center space-x-2"
-                          title="Block user"
-                        >
-                          <Ban className="w-4 h-4" />
-                          <span>Block</span>
-                        </button>
-                      </>
+                      <button
+                        onClick={() => onSendRequest(user)}
+                        className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg text-sm font-medium hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-md hover:shadow-lg flex items-center space-x-2 group-hover:scale-105"
+                      >
+                        <UserPlus className="w-4 h-4" />
+                        <span>Add to Circle</span>
+                      </button>
                     )}
                     
-                    {/* View Profile Button (always shown) */}
-                    <button
-                      onClick={() => onUserSelect(user)}
-                      className="px-3 py-2 bg-gray-50 text-gray-700 rounded-lg text-sm hover:bg-gray-100 transition-colors flex items-center space-x-2"
-                    >
-                      <Users className="w-4 h-4" />
-                      <span>View Profile</span>
-                    </button>
+                    <div className="flex items-center space-x-2">
+                      {/* View Profile Button */}
+                      <button
+                        onClick={() => onUserSelect(user)}
+                        className="px-3 py-2 bg-gray-50 text-gray-700 rounded-lg text-sm hover:bg-gray-100 transition-colors flex items-center space-x-2"
+                      >
+                        <Users className="w-4 h-4" />
+                        <span>View Profile</span>
+                      </button>
+                      
+                      {/* Three-dot menu for blocking and other actions */}
+                      {currentUser?.id !== user.id && (
+                        <UserActionsMenu
+                          userId={String(user.id)}
+                          userName={user.name}
+                          userType="suggestion"
+                          onBlock={onBlockUser}
+                        />
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

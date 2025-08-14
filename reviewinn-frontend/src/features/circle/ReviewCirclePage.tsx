@@ -1110,6 +1110,7 @@ const ReviewCirclePageContent: React.FC = () => {
                     sentRequestsSet={sentRequestsSet}
                     onAddToCircle={handleAddToCircle}
                     onError={showError}
+                    onBlockUser={handleBlockUser}
                   />
                 )}
                 
