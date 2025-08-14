@@ -333,7 +333,7 @@ const ReviewCirclePageContent: React.FC = () => {
     }
   }, [members]);
 
-  const handleAddToCircle = async (userId: string | number, userName?: string) => {
+  const handleAddToCircle = async (userId: string | number, userName?: string): Promise<void> => {
     console.log('🚀 handleAddToCircle called:', { userId, userName, currentUser: currentUser?.id });
     
     if (!currentUser) {
@@ -351,49 +351,79 @@ const ReviewCirclePageContent: React.FC = () => {
       return;
     }
     
+    // Create a unique temporary ID for optimistic update tracking
+    const tempRequestId = Date.now() + Math.random() * 1000;
+    
+    // Find the user from suggestions to get complete user data BEFORE API call
+    const suggestion = suggestions.find(s => String(s.user.id) === userIdString);
+    
+    // Create a new sent request object for optimistic UI update
+    const newSentRequest: CircleRequest = {
+      id: tempRequestId, // Temporary ID until server refresh
+      requester: {
+        id: currentUser.id,
+        name: currentUser.name,
+        username: currentUser.username,
+        avatar: currentUser.avatar
+      },
+      recipient: suggestion ? {
+        id: suggestion.user.id,
+        name: suggestion.user.name,
+        username: suggestion.user.username,
+        avatar: suggestion.user.avatar
+      } : {
+        id: parseInt(userIdString),
+        name: userName || 'Unknown User',
+        username: userName || 'unknown',
+        avatar: null
+      },
+      message: `Hi ${userName || 'there'}! I'd like to connect with you in my review circle.`,
+      status: 'pending' as const,
+      created_at: new Date().toISOString()
+    };
+    
+    // IMMEDIATELY update UI before API call for instant feedback
+    console.log('🚀 Performing optimistic UI updates BEFORE API call');
+    
+    // 1. Add to local tracking for suggestions filtering
+    setLocalSentRequests(prev => {
+      const newSet = new Set([...prev, userIdString]);
+      console.log('📋 Updated local sent requests:', Array.from(newSet));
+      return newSet;
+    });
+    
+    // 2. Remove from suggestions immediately
+    setSuggestions(prev => {
+      const filtered = prev.filter(s => String(s.user.id) !== userIdString);
+      console.log('🎯 Removing user from suggestions. Before:', prev.length, 'After:', filtered.length);
+      return filtered;
+    });
+    
+    // 3. Add to sent requests for instant UI feedback
+    setSentRequestsData(prev => [newSentRequest, ...prev]);
+    
     try {
       console.log('📤 Sending circle request to:', userName || userIdString);
       
-      // Use the proper sendCircleRequest method instead of legacy addToCircle
+      // Use the proper sendCircleRequest method
       const result = await circleService.sendCircleRequest(userIdString, {
         message: `Hi ${userName || 'there'}! I'd like to connect with you in my review circle.`
       });
       
       console.log('✅ Circle request sent successfully:', result);
       
-      // Add to local tracking
-      setLocalSentRequests(prev => {
-        const newSet = new Set([...prev, userIdString]);
-        console.log('📋 Updated local sent requests:', Array.from(newSet));
-        return newSet;
-      });
-      
-      // Try to reload sent requests from server (if available)
-      try {
-        console.log('🔄 Refreshing sent requests from server...');
-        const sentRequestsResponse = await circleService.getSentRequests();
-        setSentRequestsData(sentRequestsResponse.requests || []);
-        console.log('📊 Server sent requests:', sentRequestsResponse.requests?.length || 0);
-      } catch (error) {
-        console.log('⚠️ Sent requests API not available, using local tracking:', error);
-      }
-      
-      // Remove from suggestions
-      setSuggestions(prev => {
-        const filtered = prev.filter(s => String(s.user.id) !== userIdString);
-        console.log('🎯 Removing user from suggestions. Before:', prev.length, 'After:', filtered.length);
-        return filtered;
-      });
-      
-      // Force reload sent requests from server to get latest data
-      try {
-        const sentRequestsResponse = await circleService.getSentRequests();
-        setSentRequestsData(sentRequestsResponse.requests || []);
-        // Clear local tracking since we have server data
-        setLocalSentRequests(new Set());
-      } catch (error) {
-        console.log('Sent requests API not available after success, keeping local tracking');
-      }
+      // Refresh sent requests from server in background to get real data
+      setTimeout(async () => {
+        try {
+          const sentRequestsResponse = await circleService.getSentRequests();
+          setSentRequestsData(sentRequestsResponse.requests || []);
+          // Clear local tracking since we have fresh server data
+          setLocalSentRequests(new Set());
+          console.log('📊 Background refresh - Server sent requests:', sentRequestsResponse.requests?.length || 0);
+        } catch (error) {
+          console.log('⚠️ Background refresh failed, keeping local tracking:', error);
+        }
+      }, 2000); // 2 second delay for background refresh
       
       showSuccess(`Circle request sent to ${userName || 'user'}!`);
     } catch (error: any) {
@@ -418,7 +448,32 @@ const ReviewCirclePageContent: React.FC = () => {
           console.log('Sent requests API not available after conflict, using local tracking');
         }
       } else {
+        // For other errors, revert ALL optimistic updates
+        console.log('❌ Reverting optimistic updates due to API failure');
         showError(`Failed to send circle request to ${userName || 'user'}. Please try again.`);
+        
+        // 1. Remove the optimistic sent request
+        setSentRequestsData(prev => prev.filter(req => req.id !== tempRequestId));
+        
+        // 2. Remove from local tracking
+        setLocalSentRequests(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(userIdString);
+          return newSet;
+        });
+        
+        // 3. Add back to suggestions if we have the suggestion data
+        if (suggestion) {
+          setSuggestions(prev => {
+            // Check if user is already in suggestions to avoid duplicates
+            const userExists = prev.some(s => String(s.user.id) === userIdString);
+            if (!userExists) {
+              console.log('🔄 Adding user back to suggestions after failed request');
+              return [suggestion, ...prev];
+            }
+            return prev;
+          });
+        }
       }
     }
   };

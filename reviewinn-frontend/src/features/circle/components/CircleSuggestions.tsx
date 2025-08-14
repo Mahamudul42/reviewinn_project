@@ -11,7 +11,7 @@ interface SuggestionCardProps {
   suggestion: CircleSuggestion;
   currentUser: User | null;
   sentRequestsSet: Set<string>;
-  onAddToCircle: (userId: string | number) => void;
+  onAddToCircle: (userId: string | number, userName?: string) => Promise<void>;
   onError: (message: string) => void;
 }
 
@@ -20,28 +20,17 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({ suggestion, currentUser
 
   const userId = suggestion.user.id || suggestion.user.user_id;
   const userIdString = String(userId);
-  const hasPendingRequest = sentRequestsSet.has(userIdString);
 
   console.log('💡 SuggestionCard render:', {
     userName: suggestion.user.name,
-    userId: userIdString,
-    hasPendingRequest,
-    sentRequestsSetSize: sentRequestsSet.size,
-    sentRequestsArray: Array.from(sentRequestsSet)
+    userId: userIdString
   });
 
   const handleAddClick = async () => {
     console.log('🎯 SuggestionCard handleAddClick:', {
       userName: suggestion.user.name,
-      userId: userIdString,
-      hasPendingRequest
+      userId: userIdString
     });
-    
-    if (hasPendingRequest) {
-      console.log('⚠️ Request already pending, showing error');
-      onError(`Circle request already sent to ${suggestion.user.name || 'this user'}.`);
-      return;
-    }
     
     setIsAdding(true);
     console.log('⏳ Setting isAdding to true');
@@ -54,7 +43,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({ suggestion, currentUser
       }
       
       console.log('📤 Calling onAddToCircle with userId:', userId);
-      await onAddToCircle(userId);
+      await onAddToCircle(userId, suggestion.user.name);
       console.log('✅ onAddToCircle completed successfully');
       
     } catch (error) {
@@ -78,21 +67,15 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({ suggestion, currentUser
           size="lg"
           actions={currentUser ? (
             <button
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1.5 ${
-                hasPendingRequest 
-                  ? 'bg-gray-300 text-gray-600 cursor-not-allowed' 
-                  : 'circle-action-button-primary'
-              }`}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1.5 circle-action-button-primary"
               onClick={handleAddClick}
-              disabled={isAdding || hasPendingRequest}
+              disabled={isAdding}
             >
               {isAdding ? (
                 <>
                   <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   <span>Adding...</span>
                 </>
-              ) : hasPendingRequest ? (
-                <span>Request Pending</span>
               ) : (
                 <span>Add to Circle</span>
               )}
@@ -129,7 +112,7 @@ interface CircleSuggestionsProps {
   suggestions: CircleSuggestion[];
   currentUser: User | null;
   sentRequestsSet: Set<string>;
-  onAddToCircle: (userId: string | number, userName?: string) => void;
+  onAddToCircle: (userId: string | number, userName?: string) => Promise<void>;
   onError: (message: string) => void;
 }
 
@@ -143,12 +126,26 @@ const CircleSuggestions: React.FC<CircleSuggestionsProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Calculate paginated suggestions
+  // Filter out suggestions that already have sent requests, then paginate
+  const filteredSuggestions = useMemo(() => {
+    return suggestions.filter(suggestion => {
+      const userId = String(suggestion.user.id || suggestion.user.user_id || '');
+      const hasPendingRequest = sentRequestsSet.has(userId);
+      
+      if (hasPendingRequest) {
+        console.log('🚫 Filtering out suggestion with pending request:', suggestion.user.name, userId);
+      }
+      
+      return !hasPendingRequest;
+    });
+  }, [suggestions, sentRequestsSet]);
+
+  // Calculate paginated suggestions from filtered results
   const paginatedSuggestions = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return suggestions.slice(startIndex, endIndex);
-  }, [suggestions, currentPage, itemsPerPage]);
+    return filteredSuggestions.slice(startIndex, endIndex);
+  }, [filteredSuggestions, currentPage, itemsPerPage]);
 
   // Reset to first page when suggestions change
   React.useEffect(() => {
@@ -158,15 +155,18 @@ const CircleSuggestions: React.FC<CircleSuggestionsProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Suggested Members ({suggestions.length})</h2>
+        <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Suggested Members ({filteredSuggestions.length})</h2>
       </div>
       
-      {suggestions.length === 0 ? (
+      {filteredSuggestions.length === 0 ? (
         <div className="bg-gradient-to-br from-white to-purple-50 border border-purple-200 rounded-xl p-8 shadow-sm">
           <EmptyState
             icon={<Sparkles className="w-16 h-16" />}
-            title="No Suggestions Yet"
-            description="We're working on finding the perfect reviewers for your circle based on your interests and review history. Check back soon!"
+            title={suggestions.length === 0 ? "No Suggestions Yet" : "All Suggestions Sent"}
+            description={suggestions.length === 0 
+              ? "We're working on finding the perfect reviewers for your circle based on your interests and review history. Check back soon!"
+              : "Great! You've sent circle requests to all available suggestions. Check the 'Sent' tab to see your pending requests."
+            }
             action={
               <div className="flex flex-col space-y-3">
                 <button className="circle-action-button-primary px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:scale-105 flex items-center space-x-2">
@@ -210,7 +210,7 @@ const CircleSuggestions: React.FC<CircleSuggestionsProps> = ({
           {/* Pagination */}
           <Pagination
             currentPage={currentPage}
-            totalItems={suggestions.length}
+            totalItems={filteredSuggestions.length}
             itemsPerPage={itemsPerPage}
             onPageChange={setCurrentPage}
           />
