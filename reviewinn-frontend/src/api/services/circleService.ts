@@ -233,11 +233,15 @@ export class CircleService {
   /**
    * Respond to a circle request
    */
-  async respondToCircleRequest(requestId: number, action: 'accept' | 'decline'): Promise<{ message: string }> {
+  async respondToCircleRequest(requestId: number, action: 'accepted' | 'rejected' | 'accept' | 'decline'): Promise<{ message: string }> {
     try {
+      // Normalize action to database-compatible values
+      const normalizedAction = action === 'accept' ? 'accepted' : 
+                              action === 'decline' ? 'rejected' : action;
+      
       const response = await httpClient.post<{ message: string }>(
         `${this.baseUrl}${API_ENDPOINTS.CIRCLES.RESPOND_REQUEST}`,
-        { request_id: requestId, action }
+        { request_id: requestId, action: normalizedAction }
       );
       return response.data!;
     } catch (error) {
