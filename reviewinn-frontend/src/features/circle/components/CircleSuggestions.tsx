@@ -21,21 +21,45 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({ suggestion, currentUser
   const userIdString = String(userId);
   const hasPendingRequest = sentRequestsSet.has(userIdString);
 
+  console.log('💡 SuggestionCard render:', {
+    userName: suggestion.user.name,
+    userId: userIdString,
+    hasPendingRequest,
+    sentRequestsSetSize: sentRequestsSet.size,
+    sentRequestsArray: Array.from(sentRequestsSet)
+  });
+
   const handleAddClick = async () => {
+    console.log('🎯 SuggestionCard handleAddClick:', {
+      userName: suggestion.user.name,
+      userId: userIdString,
+      hasPendingRequest
+    });
+    
     if (hasPendingRequest) {
+      console.log('⚠️ Request already pending, showing error');
       onError(`Circle request already sent to ${suggestion.user.name || 'this user'}.`);
       return;
     }
     
     setIsAdding(true);
+    console.log('⏳ Setting isAdding to true');
+    
     try {
       if (!userId) {
-        console.error('No valid user ID found in suggestion:', suggestion.user);
+        console.error('❌ No valid user ID found in suggestion:', suggestion.user);
         onError('Error: User ID not found');
         return;
       }
+      
+      console.log('📤 Calling onAddToCircle with userId:', userId);
       await onAddToCircle(userId);
+      console.log('✅ onAddToCircle completed successfully');
+      
+    } catch (error) {
+      console.error('❌ Error in handleAddClick:', error);
     } finally {
+      console.log('🔄 Setting isAdding to false');
       setIsAdding(false);
     }
   };

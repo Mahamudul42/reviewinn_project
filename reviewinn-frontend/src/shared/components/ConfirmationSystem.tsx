@@ -111,6 +111,7 @@ const ConfirmationModal: React.FC<{
         alignItems: 'center',
         background: 'rgba(0,0,0,0.5)',
         pointerEvents: 'auto',
+        padding: '20px',
       },
       onClick: handleBackdropClick
     },
@@ -123,10 +124,11 @@ const ConfirmationModal: React.FC<{
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
           maxWidth: '500px',
           width: '90%',
-          maxHeight: 'calc(100vh - 40px)',
+          maxHeight: 'calc(100vh - 80px)',
           overflow: 'auto',
           position: 'relative',
           zIndex: 100000,
+          margin: 'auto',
         },
         onClick: (e: React.MouseEvent) => e.stopPropagation()
       },
@@ -232,6 +234,7 @@ const PromptModal: React.FC<{
         alignItems: 'center',
         background: 'rgba(0,0,0,0.5)',
         pointerEvents: 'auto',
+        padding: '20px',
       },
       onClick: handleBackdropClick
     },
@@ -244,10 +247,11 @@ const PromptModal: React.FC<{
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
           maxWidth: '500px',
           width: '90%',
-          maxHeight: 'calc(100vh - 40px)',
+          maxHeight: 'calc(100vh - 80px)',
           overflow: 'auto',
           position: 'relative',
           zIndex: 100000,
+          margin: 'auto',
         },
         onClick: (e: React.MouseEvent) => e.stopPropagation()
       },

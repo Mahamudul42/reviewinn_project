@@ -68,40 +68,16 @@ async def populate_database():
             
             print("✅ Sample users created successfully")
         
-        # Check if circles exist
-        existing_circles = await conn.fetchval("SELECT COUNT(*) FROM review_circles")
-        if existing_circles > 0:
-            print(f"⚠️  Found {existing_circles} existing circles. Skipping circle creation.")
-        else:
-            print("🔄 Creating sample circles...")
-            
-            # Create review circles
-            circles_data = [
-                ('Tech Reviewers Hub', 'A community for technology enthusiasts and product reviewers', 1, True, 50),
-                ('Foodie Circle', 'Restaurant critics and food lovers unite', 2, True, 100),
-                ('Entertainment Critics', 'Movies, TV shows, and entertainment reviews', 3, True, 75),
-                ('Travel Experiences', 'Share and discover travel destinations and experiences', 4, True, 80),
-            ]
-            
-            for circle_data in circles_data:
-                name, description, creator_id, is_public, max_members = circle_data
-                try:
-                    await conn.execute("""
-                        INSERT INTO review_circles (name, description, creator_id, is_public, max_members)
-                        VALUES ($1, $2, $3, $4, $5)
-                    """, name, description, creator_id, is_public, max_members)
-                except Exception as e:
-                    print(f"⚠️  Error inserting circle {name}: {e}")
-            
-            print("✅ Sample circles created successfully")
+        # Note: Circle creation removed - system now uses peer-to-peer connections
+        print("🔄 Circle system now uses peer-to-peer connections (no central circles needed)")
         
         # Verify the data
         user_count = await conn.fetchval("SELECT COUNT(*) FROM users WHERE email LIKE '%@example.com'")
-        circle_count = await conn.fetchval("SELECT COUNT(*) FROM review_circles")
+        request_count = await conn.fetchval("SELECT COUNT(*) FROM social_circle_requests")
         
         print(f"\n📊 Database population summary:")
         print(f"   Users: {user_count}")
-        print(f"   Circles: {circle_count}")
+        print(f"   Circle Requests: {request_count}")
         
         # List some users with their IDs for reference
         users = await conn.fetch("SELECT user_id, name, username FROM users WHERE email LIKE '%@example.com' ORDER BY user_id LIMIT 10")

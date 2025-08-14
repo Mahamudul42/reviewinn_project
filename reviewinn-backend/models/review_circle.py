@@ -21,24 +21,7 @@ class CircleInviteStatusEnum(str, enum.Enum):
     EXPIRED = 'expired'
 
 # Note: Using new social_circle database structure with optimized tables
-
-class ReviewCircle(Base):
-    __tablename__ = 'review_circles'
-
-    circle_id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(100), nullable=False)
-    description = Column(Text)
-    is_public = Column(Boolean, default=True)
-    max_members = Column(Integer, default=50)
-    creator_id = Column(Integer, ForeignKey('core_users.user_id', ondelete='CASCADE'), nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-
-    # Relationships
-    creator = relationship('User', foreign_keys=[creator_id])
-    members = relationship('SocialCircleMember', back_populates='circle', cascade='all, delete-orphan')
-    # Legacy alias for backward compatibility  
-    connections = relationship('SocialCircleMember', back_populates='circle', cascade='all, delete-orphan')
+# ReviewCircle table removed - all functionality now handled by social_circle tables
 
 class SocialCircleBlock(Base):
     __tablename__ = 'social_circle_blocks'
@@ -65,17 +48,18 @@ class SocialCircleBlock(Base):
 class SocialCircleMember(Base):
     __tablename__ = 'social_circle_members'
     __table_args__ = (
-        # Ensure a user can only be connected to a circle once
-        UniqueConstraint('member_id', 'circle_id', name='unique_member_circle_connection'),
+        # Ensure a user can only be connected to another user once in the same context
+        UniqueConstraint('member_id', 'owner_id', name='unique_member_owner_connection'),
         # Add indexes for performance
         Index('idx_social_circle_members_member_id', 'member_id'),
-        Index('idx_social_circle_members_circle_id', 'circle_id'),
+        Index('idx_social_circle_members_owner_id', 'owner_id'),
         Index('idx_social_circle_members_membership_type', 'membership_type'),
     )
 
-    circle_id = Column(Integer, ForeignKey('review_circles.circle_id', ondelete='CASCADE'), primary_key=True, index=True)
-    owner_id = Column(Integer, ForeignKey('core_users.user_id', ondelete='CASCADE'), nullable=True)
-    member_id = Column(Integer, ForeignKey('core_users.user_id', ondelete='CASCADE'), nullable=True)
+    # Use circle_id as primary key (represents the connection ID)
+    circle_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    owner_id = Column(Integer, ForeignKey('core_users.user_id', ondelete='CASCADE'), nullable=False)
+    member_id = Column(Integer, ForeignKey('core_users.user_id', ondelete='CASCADE'), nullable=False)
     membership_type = Column(String(50), nullable=False, default='member')
     joined_at = Column(DateTime(timezone=True), server_default=func.now())
     can_see_private_reviews = Column(Boolean, default=False)
@@ -86,7 +70,6 @@ class SocialCircleMember(Base):
     # Relationships
     member = relationship('User', foreign_keys=[member_id], back_populates='circle_connections')
     owner = relationship('User', foreign_keys=[owner_id])
-    circle = relationship('ReviewCircle', back_populates='members')
     
     @property
     def trust_level(self):

@@ -75,6 +75,12 @@ const UserSearchBar: React.FC<UserSearchBarProps> = ({
   }, [onSearchResults]);
 
   const handleSearch = () => {
+    if (query.trim().length < 2) {
+      // Show a brief message if query is too short
+      setSearchResults([]);
+      setShowDropdown(true);
+      return;
+    }
     performSearch(query, appliedFilters);
   };
 
@@ -98,26 +104,18 @@ const UserSearchBar: React.FC<UserSearchBarProps> = ({
     const count = Object.values(filters).filter(value => value !== undefined && value !== null).length;
     setFilterCount(count);
     
-    // Trigger search with new filters
-    if (query.trim().length >= 2) {
-      performSearch(query, filters);
-    }
+    // Note: Not automatically searching - user needs to click search button
+    // This reduces server load and gives user control over when to search
   };
 
-  // Auto-search when query changes (debounced)
+  // Clear results when query becomes empty
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (query.trim().length >= 2) {
-        performSearch(query, appliedFilters);
-      } else if (query.trim().length === 0) {
-        setSearchResults([]);
-        setShowDropdown(false);
-        onSearchResults([]);
-      }
-    }, 300);
-
-    return () => clearTimeout(timeoutId);
-  }, [query, appliedFilters, performSearch]);
+    if (query.trim().length === 0) {
+      setSearchResults([]);
+      setShowDropdown(false);
+      onSearchResults([]);
+    }
+  }, [query, onSearchResults]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -158,10 +156,17 @@ const UserSearchBar: React.FC<UserSearchBarProps> = ({
             <button
               onClick={handleSearch}
               disabled={isLoading}
-              className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-r-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed border-l border-gray-300"
+              className={`px-6 py-3 rounded-r-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed border-l border-gray-300 ${
+                query.trim().length >= 2 
+                  ? 'bg-purple-600 hover:bg-purple-700 text-white' 
+                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+              }`}
+              title={query.trim().length < 2 ? 'Enter at least 2 characters to search' : 'Search for users'}
             >
               {isLoading ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-400 border-t-transparent" />
+                <div className={`animate-spin rounded-full h-5 w-5 border-2 border-t-transparent ${
+                  query.trim().length >= 2 ? 'border-white' : 'border-gray-400'
+                }`} />
               ) : (
                 <Search className="h-5 w-5" />
               )}
@@ -169,13 +174,25 @@ const UserSearchBar: React.FC<UserSearchBarProps> = ({
           </div>
 
           {/* Search Results Dropdown */}
-          {showDropdown && query.length >= 2 && (
+          {showDropdown && (
             <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto">
-              {searchResults.length === 0 && !isLoading ? (
+              {query.trim().length < 2 ? (
+                <div className="p-4 text-center text-gray-500">
+                  <Search className="mx-auto h-8 w-8 text-gray-300 mb-2" />
+                  <p>Please enter at least 2 characters to search</p>
+                  <p className="text-sm">Then click the search button or press Enter</p>
+                </div>
+              ) : isLoading ? (
+                <div className="p-4 text-center text-gray-500">
+                  <div className="animate-spin rounded-full h-8 w-8 border-2 border-purple-600 border-t-transparent mx-auto mb-2" />
+                  <p>Searching for users...</p>
+                </div>
+              ) : searchResults.length === 0 ? (
                 <div className="p-4 text-center text-gray-500">
                   <Search className="mx-auto h-8 w-8 text-gray-300 mb-2" />
                   <p>No users found matching "{query}"</p>
                   <p className="text-sm">Try searching by name, username, or interests</p>
+                  <p className="text-xs text-gray-400 mt-1">Note: Users with pending requests or already in your circle are filtered out</p>
                 </div>
               ) : (
                 <div className="py-2">
@@ -248,6 +265,7 @@ const UserSearchBar: React.FC<UserSearchBarProps> = ({
               ? 'bg-purple-50 border-purple-200 text-purple-700' 
               : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
           }`}
+          title={filterCount > 0 ? `${filterCount} filter(s) applied` : 'Add search filters'}
         >
           <Filter className="h-5 w-5" />
           <span className="font-medium">Filter</span>

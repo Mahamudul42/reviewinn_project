@@ -130,6 +130,8 @@ export class CircleService {
    * Search for users to add to circle
    */
   async searchUsers(params: { query: string; limit?: number }): Promise<{ users: User[] }> {
+    console.log('🌐 CircleService.searchUsers called:', params);
+    
     const searchParams = new URLSearchParams();
     searchParams.append('query', params.query);
     if (params.limit) searchParams.append('limit', params.limit.toString());
@@ -137,17 +139,24 @@ export class CircleService {
     const url = `${this.baseUrl}${API_ENDPOINTS.CIRCLES.SEARCH_USERS}?${searchParams.toString()}`;
     
     try {
-      console.log('Attempting to search users with URL:', url);
+      console.log('📤 Search API Request URL:', url);
       const response = await httpClient.get<{ users: User[] }>(url, true);
-      console.log('Search API response:', response);
+      console.log('📥 Search API Response:', response);
+      console.log('👥 Found users count:', response.data?.users?.length || 0);
       
       if (response.success && response.data) {
         return response.data;
       } else {
+        console.error('❌ Search API response not successful:', response);
         throw new Error('API response was not successful');
       }
-    } catch (error) {
-      console.log('User search API failed:', error);
+    } catch (error: any) {
+      console.error('❌ User search API failed:', error);
+      console.error('Error details:', {
+        status: error?.response?.status,
+        statusText: error?.response?.statusText,
+        data: error?.response?.data
+      });
       throw error;
     }
   }
@@ -156,14 +165,25 @@ export class CircleService {
    * Send a circle request to a user
    */
   async sendCircleRequest(userId: string, data: { message: string }): Promise<{ message: string; request_id: number }> {
+    console.log('🌐 CircleService.sendCircleRequest called:', { userId, message: data.message });
     try {
+      const requestData = { user_id: parseInt(userId), message: data.message };
+      console.log('📤 API Request:', `${this.baseUrl}${API_ENDPOINTS.CIRCLES.SEND_REQUEST}`, requestData);
+      
       const response = await httpClient.post<{ message: string; request_id: number }>(
         `${this.baseUrl}${API_ENDPOINTS.CIRCLES.SEND_REQUEST}`,
-        { user_id: parseInt(userId), message: data.message }
+        requestData
       );
+      
+      console.log('📥 API Response:', response);
       return response.data!;
     } catch (error: any) {
-      console.error('Failed to send circle request:', error);
+      console.error('❌ CircleService.sendCircleRequest failed:', error);
+      console.error('Error details:', {
+        status: error?.response?.status,
+        statusText: error?.response?.statusText,
+        data: error?.response?.data
+      });
       throw error;
     }
   }
@@ -188,14 +208,24 @@ export class CircleService {
    * Get sent circle requests for current user
    */
   async getSentRequests(): Promise<{ requests: CircleRequest[] }> {
+    console.log('🌐 CircleService.getSentRequests called');
     try {
-      const response = await httpClient.get<{ requests: CircleRequest[] }>(
-        `${this.baseUrl}${API_ENDPOINTS.CIRCLES.SENT_REQUESTS}`,
-        true
-      );
+      const url = `${this.baseUrl}${API_ENDPOINTS.CIRCLES.SENT_REQUESTS}`;
+      console.log('📤 API Request GET:', url);
+      
+      const response = await httpClient.get<{ requests: CircleRequest[] }>(url, true);
+      
+      console.log('📥 getSentRequests API Response:', response);
+      console.log('📊 Sent requests count:', response.data?.requests?.length || 0);
+      
       return response.data || { requests: [] };
     } catch (error: any) {
-      console.error('Failed to get sent requests:', error);
+      console.error('❌ CircleService.getSentRequests failed:', error);
+      console.error('Error details:', {
+        status: error?.response?.status,
+        statusText: error?.response?.statusText,
+        data: error?.response?.data
+      });
       return { requests: [] };
     }
   }
@@ -220,13 +250,22 @@ export class CircleService {
    * Cancel a sent circle request
    */
   async cancelCircleRequest(requestId: number): Promise<{ message: string }> {
+    console.log('🌐 CircleService.cancelCircleRequest called:', { requestId });
     try {
-      const response = await httpClient.delete<{ message: string }>(
-        `${this.baseUrl}${API_ENDPOINTS.CIRCLES.CANCEL_REQUEST(requestId.toString())}`
-      );
+      const url = `${this.baseUrl}${API_ENDPOINTS.CIRCLES.CANCEL_REQUEST(requestId.toString())}`;
+      console.log('📤 API Request DELETE:', url);
+      
+      const response = await httpClient.delete<{ message: string }>(url);
+      
+      console.log('📥 API Response:', response);
       return response.data!;
-    } catch (error) {
-      console.error('Failed to cancel circle request:', error);
+    } catch (error: any) {
+      console.error('❌ CircleService.cancelCircleRequest failed:', error);
+      console.error('Error details:', {
+        status: error?.response?.status,
+        statusText: error?.response?.statusText,
+        data: error?.response?.data
+      });
       throw error;
     }
   }
@@ -292,7 +331,7 @@ export class CircleService {
     // Analytics endpoint not available in current backend structure
     // Return mock data to maintain UI functionality
     try {
-      const membersResponse = await this.getMyMembers({ page: 1, size: 100 });
+      const membersResponse = await this.getMyCircleMembers({ page: 1, size: 100 });
       const members = membersResponse.members || [];
       
       // Calculate basic analytics from member data

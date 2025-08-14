@@ -88,6 +88,34 @@
 .circle-action-button-primary .text-gray-600,
 .circle-action-button-primary .text-gray-700,
 .circle-action-button-primary .text-purple-600,
-.circle-action-button-primary .text-red-600 {
+.circle-action-button-primary .text-red-600,
+.circle-action-button-primary .text-black,
+.circle-action-button-primary .text-blue-600,
+.circle-action-button-primary .text-green-600 {
   color: white !important;
+}
+
+/* Ensure all button text and spans are white */
+.circle-action-button-primary button,
+.circle-action-button-primary span,
+.circle-action-button-primary div {
+  color: white !important;
+}
+
+/* Target specific button elements that might have text classes */
+button.circle-action-button-primary span,
+button.circle-action-button-primary div,
+button.circle-action-button-primary * {
+  color: white !important;
+}
+
+/* Specific fix for cancel button text in sent requests */
+button.circle-action-button-primary {
+  color: white !important;
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%) !important;
+  border: 1px solid #6d28d9 !important;
+}
+
+button.circle-action-button-primary:hover {
+  background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%) !important;
 }

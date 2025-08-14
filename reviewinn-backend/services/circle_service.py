@@ -8,7 +8,7 @@ from sqlalchemy import and_, or_, func
 from datetime import datetime, timedelta
 import random
 
-from models.review_circle import ReviewCircle, SocialCircleMember, SocialCircleRequest, SocialCircleBlock
+from models.review_circle import SocialCircleMember, SocialCircleRequest, SocialCircleBlock
 from models.user import User
 from services.notification_trigger_service import NotificationTriggerService
 from schemas.circle import (
@@ -44,112 +44,23 @@ class CircleService:
     
     def create_circle(self, circle_data: CircleCreateRequest, creator_id: int) -> CircleResponse:
         """Create a new review circle with validation."""
-        # Basic validation
-        if not circle_data.name or not circle_data.name.strip():
-            raise ValidationError("Circle name is required")
-        if circle_data.max_members and circle_data.max_members < 2:
-            raise ValidationError("Circle must allow at least 2 members")
-        
-        # Check if user exists
-        creator = self.db.query(User).filter(User.user_id == creator_id).first()
-        if not creator:
-            raise NotFoundError("User", creator_id)
-        
-        # Create new circle
-        circle = ReviewCircle(
-            name=circle_data.name.strip(),
-            description=circle_data.description,
-            is_public=circle_data.is_public,
-            max_members=circle_data.max_members,
-            creator_id=creator_id
-        )
-        
-        self.db.add(circle)
-        self.db.commit()
-        self.db.refresh(circle)
-        
-        # Add creator as owner member
-        member = SocialCircleMember(
-            owner_id=creator_id,
-            member_id=creator_id,
-            circle_id=circle.circle_id,
-            membership_type='owner',
-            joined_at=datetime.utcnow(),
-            can_see_private_reviews=True,
-            notification_preferences={'all': True}
-        )
-        
-        self.db.add(member)
-        self.db.commit()
-        
-        return CircleResponse(
-            circle_id=circle.circle_id,
-            name=circle.name,
-            description=circle.description,
-            is_public=circle.is_public,
-            max_members=circle.max_members,
-            member_count=1,
-            creator_id=circle.creator_id,
-            created_at=circle.created_at,
-            updated_at=circle.updated_at
-        )
+        # Note: Circle creation is no longer supported as system is now peer-to-peer
+        # This method is kept for backward compatibility but raises an error
+        raise BusinessLogicError("Circle creation is no longer supported. The system now uses direct peer-to-peer connections.")
     
     def get_circles(self, params: CircleListParams) -> PaginatedAPIResponse[CircleResponse]:
         """Get list of circles with pagination."""
-        query = self.db.query(ReviewCircle)
-        
-        # Apply filters
-        if params.is_public is not None:
-            query = query.filter(ReviewCircle.is_public == params.is_public)
-        
-        if params.search:
-            query = query.filter(
-                or_(
-                    ReviewCircle.name.ilike(f"%{params.search}%"),
-                    ReviewCircle.description.ilike(f"%{params.search}%")
-                )
-            )
-        
-        # Get total count
-        total_count = query.count()
-        
-        # Apply pagination
-        offset = (params.page - 1) * params.size
-        circles = query.offset(offset).limit(params.size).all()
-        
-        # Get member counts for each circle
-        circle_responses = []
-        for circle in circles:
-            member_count = self.db.query(SocialCircleMember).filter(
-                SocialCircleMember.circle_id == circle.circle_id
-            ).count()
-            
-            circle_responses.append(CircleResponse(
-                circle_id=circle.circle_id,
-                name=circle.name,
-                description=circle.description,
-                is_public=circle.is_public,
-                max_members=circle.max_members,
-                member_count=member_count,
-                creator_id=circle.creator_id,
-                created_at=circle.created_at,
-                updated_at=circle.updated_at
-            ))
-        
-        # Calculate pagination info
-        total_pages = (total_count + params.size - 1) // params.size
-        has_next = params.page < total_pages
-        has_prev = params.page > 1
-        
+        # Note: Circle listing is no longer supported as system is now peer-to-peer
+        # Return empty list for backward compatibility
         return PaginatedAPIResponse(
-            data=circle_responses,
+            data=[],
             pagination=PaginationSchema(
-                total=total_count,
+                total=0,
                 page=params.page,
                 per_page=params.size,
-                pages=total_pages,
-                has_next=has_next,
-                has_prev=has_prev
+                pages=0,
+                has_next=False,
+                has_prev=False
             )
         )
     
@@ -177,17 +88,20 @@ class CircleService:
             if not current_user:
                 raise NotFoundError("Current user not found")
             
-            # Check if request already exists
+            # Check if request already exists (only block pending and accepted, allow resending after rejected/cancelled)
             existing_request = self.db.query(SocialCircleRequest).filter(
                 and_(
                     SocialCircleRequest.requester_id == current_user_id,
                     SocialCircleRequest.recipient_id == user_id,
-                    SocialCircleRequest.status == 'pending'
+                    SocialCircleRequest.status.in_(['pending', 'accepted'])
                 )
             ).first()
             
             if existing_request:
-                raise DuplicateError("Circle request already sent to this user")
+                if existing_request.status == 'pending':
+                    raise DuplicateError("Circle request already sent to this user")
+                elif existing_request.status == 'accepted':
+                    raise DuplicateError("User is already in your circle")
             
             # Check if users are blocked
             blocked_check = self.db.query(SocialCircleBlock).filter(
@@ -276,31 +190,53 @@ class CircleService:
     def get_sent_requests(self, current_user_id: int) -> Dict[str, List[Dict[str, Any]]]:
         """Get sent circle requests for the current user."""
         try:
-            # Get requests sent by the current user
+            print(f"🔍 Getting sent requests for user: {current_user_id}")
+            
+            # Get requests sent by the current user (including all statuses for tracking)
             requests = self.db.query(SocialCircleRequest).filter(
                 SocialCircleRequest.requester_id == current_user_id
             ).order_by(SocialCircleRequest.created_at.desc()).all()
             
+            print(f"📊 Found {len(requests)} sent requests")
+            
             request_list = []
             for request in requests:
-                request_data = {
-                    "id": request.request_id,
-                    "recipient": {
-                        "id": request.recipient.user_id,
-                        "name": request.recipient.name,
-                        "username": request.recipient.username,
-                        "avatar": request.recipient.avatar
-                    },
-                    "message": request.request_message,
-                    "created_at": request.created_at.isoformat(),
-                    "status": request.status,
-                    "responded_at": request.responded_at.isoformat() if request.responded_at else None
-                }
-                request_list.append(request_data)
+                try:
+                    print(f"🔄 Processing request {request.request_id} to user {request.recipient_id}")
+                    
+                    # Get recipient user data
+                    recipient_user = request.recipient
+                    if not recipient_user:
+                        print(f"❌ No recipient found for request {request.request_id}")
+                        continue
+                        
+                    print(f"👤 Recipient user: {recipient_user.user_id}, username: {recipient_user.username}")
+                    
+                    request_data = {
+                        "id": request.request_id,
+                        "recipient": {
+                            "id": recipient_user.user_id,
+                            "name": recipient_user.name if hasattr(recipient_user, 'name') else recipient_user.display_name or recipient_user.username,
+                            "username": recipient_user.username,
+                            "avatar": recipient_user.avatar
+                        },
+                        "message": request.request_message,
+                        "created_at": request.created_at.isoformat(),
+                        "status": request.status,
+                        "responded_at": request.responded_at.isoformat() if request.responded_at else None
+                    }
+                    request_list.append(request_data)
+                    print(f"✅ Successfully processed request {request.request_id}")
+                    
+                except Exception as req_error:
+                    print(f"❌ Error processing request {request.request_id}: {str(req_error)}")
+                    continue
             
+            print(f"📋 Returning {len(request_list)} processed requests")
             return {"requests": request_list}
             
         except Exception as e:
+            print(f"❌ Failed to get sent requests: {str(e)}")
             raise BusinessLogicError(f"Failed to get sent requests: {str(e)}")
 
     def respond_to_request(self, current_user_id: int, request_id: int, action: str) -> Dict[str, str]:
@@ -356,8 +292,8 @@ class CircleService:
             if not circle_request:
                 raise NotFoundError("Circle request not found or cannot be canceled")
             
-            # Update request status to canceled
-            circle_request.status = 'canceled'
+            # Update request status to cancelled (note: double 'l' as per DB constraint)
+            circle_request.status = 'cancelled'
             circle_request.responded_at = datetime.utcnow()
             
             self.db.commit()
@@ -373,17 +309,10 @@ class CircleService:
     def get_my_circle_members(self, current_user_id: int, params: CircleMemberListParams) -> Dict[str, Any]:
         """Get members of the current user's circle(s)."""
         try:
-            # Get all circles where the current user is a member
-            user_circles = self.db.query(SocialCircleMember.circle_id).filter(
-                SocialCircleMember.member_id == current_user_id
-            ).subquery()
-            
-            # Get all members in those circles (excluding the current user)
+            # In the peer-to-peer system, get all users where current user is the owner
+            # This represents people in the current user's circle
             query = self.db.query(SocialCircleMember).filter(
-                and_(
-                    SocialCircleMember.circle_id.in_(user_circles),
-                    SocialCircleMember.member_id != current_user_id  # Exclude current user
-                )
+                SocialCircleMember.owner_id == current_user_id
             )
             
             if params.trust_level:
@@ -439,60 +368,39 @@ class CircleService:
     def remove_user_from_circle(self, connection_id: int, current_user_id: int) -> Dict[str, str]:
         """Remove a user from circle."""
         try:
-            # Find member by circle_id (connection_id in legacy terms)
-            member = self.db.query(SocialCircleMember).filter(
+            # Find connection by circle_id (which is now the connection ID)
+            connection = self.db.query(SocialCircleMember).filter(
                 SocialCircleMember.circle_id == connection_id
             ).first()
             
-            if not member:
-                raise NotFoundError("Member not found")
+            if not connection:
+                raise NotFoundError("Connection not found")
             
-            # Check if current user has permission to remove
-            circle = self.db.query(ReviewCircle).filter(
-                ReviewCircle.circle_id == member.circle_id
-            ).first()
-            
-            if not circle:
-                raise NotFoundError("Circle not found")
-            
-            # Get current user's membership to check their role
-            current_user_membership = self.db.query(SocialCircleMember).filter(
-                and_(
-                    SocialCircleMember.circle_id == member.circle_id,
-                    SocialCircleMember.member_id == current_user_id
-                )
-            ).first()
-            
-            # Allow removal if:
-            # 1. User is circle creator
-            # 2. User is an owner/admin
-            # 3. User is removing themselves
+            # In the peer-to-peer system, allow removal if:
+            # 1. Current user is the owner of this connection
+            # 2. Current user is the member being removed (removing themselves)
             can_remove = (
-                circle.creator_id == current_user_id or
-                (current_user_membership and current_user_membership.membership_type in ['owner', 'admin']) or
-                member.member_id == current_user_id
+                connection.owner_id == current_user_id or
+                connection.member_id == current_user_id
             )
             
             if not can_remove:
-                raise AuthorizationError("You don't have permission to remove this user")
+                raise AuthorizationError("You don't have permission to remove this connection")
             
-            # Don't allow owner to remove themselves if they're the only owner
-            if (member.member_id == current_user_id and 
-                member.membership_type == 'owner'):
-                
-                other_owners = self.db.query(SocialCircleMember).filter(
-                    and_(
-                        SocialCircleMember.circle_id == member.circle_id,
-                        SocialCircleMember.member_id != current_user_id,
-                        SocialCircleMember.membership_type == 'owner'
-                    )
-                ).count()
-                
-                if other_owners == 0:
-                    raise ValidationError("Cannot remove yourself as the only circle owner")
+            # Remove the connection
+            self.db.delete(connection)
             
-            # Remove the member
-            self.db.delete(member)
+            # Also remove the reciprocal connection if it exists
+            reciprocal_connection = self.db.query(SocialCircleMember).filter(
+                and_(
+                    SocialCircleMember.owner_id == connection.member_id,
+                    SocialCircleMember.member_id == connection.owner_id
+                )
+            ).first()
+            
+            if reciprocal_connection:
+                self.db.delete(reciprocal_connection)
+            
             self.db.commit()
             
             return {"message": "User removed from circle successfully"}
@@ -533,15 +441,11 @@ class CircleService:
                 )
             ).delete()
             
-            # Remove from circles
-            user_circles = self.db.query(SocialCircleMember.circle_id).filter(
-                SocialCircleMember.member_id == current_user_id
-            ).subquery()
-            
+            # Remove connections between users in peer-to-peer system
             self.db.query(SocialCircleMember).filter(
-                and_(
-                    SocialCircleMember.member_id == user_id,
-                    SocialCircleMember.circle_id.in_(user_circles)
+                or_(
+                    and_(SocialCircleMember.owner_id == current_user_id, SocialCircleMember.member_id == user_id),
+                    and_(SocialCircleMember.owner_id == user_id, SocialCircleMember.member_id == current_user_id)
                 )
             ).delete()
             
@@ -617,9 +521,23 @@ class CircleService:
     def search_users(self, query: str, limit: int, current_user_id: int) -> Dict[str, List[Dict[str, Any]]]:
         """Search for users by name, username, or email to add to circle."""
         try:
+            print(f"🔍 Searching users with query: '{query}', limit: {limit}, current_user: {current_user_id}")
             # Get blocked user IDs to exclude them
             blocked_user_ids = self.db.query(SocialCircleBlock.blocked_user_id).filter(
                 SocialCircleBlock.blocker_id == current_user_id
+            ).subquery()
+            
+            # Get user IDs with pending requests to exclude them
+            pending_request_user_ids = self.db.query(SocialCircleRequest.recipient_id).filter(
+                and_(
+                    SocialCircleRequest.requester_id == current_user_id,
+                    SocialCircleRequest.status == 'pending'
+                )
+            ).subquery()
+            
+            # Get user IDs already in circles to exclude them
+            circle_member_ids = self.db.query(SocialCircleMember.member_id).filter(
+                SocialCircleMember.owner_id == current_user_id
             ).subquery()
             
             # Query users matching the search term
@@ -628,8 +546,12 @@ class CircleService:
                     User.is_active == True,
                     User.user_id != current_user_id,  # Exclude current user
                     ~User.user_id.in_(blocked_user_ids),  # Exclude blocked users
+                    ~User.user_id.in_(pending_request_user_ids),  # Exclude users with pending requests
+                    ~User.user_id.in_(circle_member_ids),  # Exclude users already in circles
                     or_(
-                        User.name.ilike(f"%{query}%"),
+                        User.display_name.ilike(f"%{query}%"),
+                        User.first_name.ilike(f"%{query}%"),
+                        User.last_name.ilike(f"%{query}%"),
                         User.username.ilike(f"%{query}%"),
                         User.email.ilike(f"%{query}%")
                     )
@@ -637,38 +559,52 @@ class CircleService:
             ).limit(limit)
 
             users = users_query.all()
+            print(f"📊 Found {len(users)} users matching search query")
 
             # Convert to response format
             user_list = []
             for user in users:
-                user_data = {
-                    "id": str(user.user_id),  # Convert to string for frontend compatibility
-                    "name": user.name,
-                    "username": user.username,
-                    "email": user.email,
-                    "avatar": user.avatar,
-                    "level": user.level or 1,
-                    "points": user.points or 0,
-                    "badges": [],
-                    "createdAt": user.created_at.isoformat() if user.created_at else "",
-                    "preferences": user.preferences or {
-                        "notifications": {"email": True, "reviewReplies": True},
-                        "privacy": {"profileVisible": True, "showContexts": True}
-                    },
-                    "stats": user.stats or {
-                        "totalReviews": 0,
-                        "averageRatingGiven": 0.0,
-                        "entitiesReviewed": 0,
-                        "streakDays": 0
-                    },
-                    "following": [],
-                    "followers": []
-                }
-                user_list.append(user_data)
+                try:
+                    # Safely construct name field
+                    name = user.display_name or f"{user.first_name or ''} {user.last_name or ''}".strip() or user.username
+                    if hasattr(user, 'name'):
+                        name = user.name
+                    
+                    user_data = {
+                        "id": str(user.user_id),  # Convert to string for frontend compatibility
+                        "name": name,
+                        "username": user.username or "",
+                        "email": user.email or "",
+                        "avatar": user.avatar,
+                        "level": user.level or 1,
+                        "points": user.points or 0,
+                        "badges": [],
+                        "createdAt": user.created_at.isoformat() if user.created_at else "",
+                        "preferences": user.preferences or {
+                            "notifications": {"email": True, "reviewReplies": True},
+                            "privacy": {"profileVisible": True, "showContexts": True}
+                        },
+                        "stats": {
+                            "totalReviews": user.review_count or 0,
+                            "averageRatingGiven": 0.0,
+                            "entitiesReviewed": 0,
+                            "streakDays": 0
+                        },
+                        "following": [],
+                        "followers": []
+                    }
+                    user_list.append(user_data)
+                    print(f"✅ Successfully processed user: {user.username} (ID: {user.user_id})")
+                    
+                except Exception as user_error:
+                    print(f"❌ Error processing user {user.user_id}: {str(user_error)}")
+                    continue
 
+            print(f"✅ Returning {len(user_list)} users in search results")
             return {"users": user_list}
 
         except Exception as e:
+            print(f"❌ Search users failed: {str(e)}")
             raise BusinessLogicError(f"Failed to search users: {str(e)}")
 
     def get_suggestions(self, user_id: int, params: CircleSuggestionListParams) -> Dict[str, List[CircleSuggestionResponse]]:
@@ -689,13 +625,22 @@ class CircleService:
                 SocialCircleBlock.blocker_id == user_id
             ).subquery()
             
+            # Get user IDs with pending/accepted requests from current user (exclude rejected/cancelled)
+            existing_request_user_ids = self.db.query(SocialCircleRequest.recipient_id).filter(
+                and_(
+                    SocialCircleRequest.requester_id == user_id,
+                    SocialCircleRequest.status.in_(['pending', 'accepted'])
+                )
+            ).subquery()
+            
             # Get basic user data first
             potential_users = self.db.query(User).filter(
                 and_(
                     User.user_id != user_id,
                     User.is_active == True,
                     ~User.user_id.in_(circle_member_ids),
-                    ~User.user_id.in_(blocked_user_ids)
+                    ~User.user_id.in_(blocked_user_ids),
+                    ~User.user_id.in_(existing_request_user_ids)  # Exclude users with existing requests
                 )
             ).limit(params.limit or 10).all()
             
@@ -743,91 +688,36 @@ class CircleService:
 
     def _add_users_to_circles_after_acceptance(self, requester_id: int, recipient_id: int):
         """Add users to each other's circles after request acceptance."""
-        # Get or create default circles for both users
-        requester_circle = self._get_or_create_default_circle(requester_id)
-        recipient_circle = self._get_or_create_default_circle(recipient_id)
+        # In the new peer-to-peer system, create direct connections between users
         
-        # Add recipient to requester's circle
-        self._add_user_to_circle_if_not_exists(recipient_id, requester_circle.circle_id, requester_id)
+        # Add recipient to requester's connections (requester owns this connection)
+        self._add_user_connection_if_not_exists(requester_id, recipient_id)
         
-        # Add requester to recipient's circle  
-        self._add_user_to_circle_if_not_exists(requester_id, recipient_circle.circle_id, recipient_id)
+        # Add requester to recipient's connections (recipient owns this connection)
+        self._add_user_connection_if_not_exists(recipient_id, requester_id)
 
-    def _get_or_create_default_circle(self, user_id: int) -> ReviewCircle:
-        """Get user's default circle or create one if it doesn't exist."""
-        # Check if user already has a circle (as creator)
-        existing_circle = self.db.query(ReviewCircle).filter(
-            ReviewCircle.creator_id == user_id
-        ).first()
-        
-        if existing_circle:
-            return existing_circle
-        
-        # Check if user is a member of any circle
-        user_membership = self.db.query(SocialCircleMember).filter(
-            SocialCircleMember.member_id == user_id
-        ).first()
-        
-        if user_membership:
-            return self.db.query(ReviewCircle).filter(
-                ReviewCircle.circle_id == user_membership.circle_id
-            ).first()
-        
-        # Create a default circle for the user
-        user = self.db.query(User).filter(User.user_id == user_id).first()
-        if not user:
-            raise NotFoundError(f"User with ID {user_id} not found")
-        
-        default_circle = ReviewCircle(
-            name=f"{user.name}'s Review Circle",
-            description=f"Personal review circle for {user.name}",
-            is_public=True,
-            max_members=50,
-            creator_id=user_id
-        )
-        
-        self.db.add(default_circle)
-        self.db.flush()  # Get the ID without committing
-        
-        # Add user to their own circle as owner
-        user_membership = SocialCircleMember(
-            owner_id=user_id,
-            member_id=user_id,
-            circle_id=default_circle.circle_id,
-            membership_type='owner',
-            joined_at=datetime.utcnow(),
-            can_see_private_reviews=True,
-            notification_preferences={'all': True}
-        )
-        
-        self.db.add(user_membership)
-        self.db.flush()
-        
-        return default_circle
-
-    def _add_user_to_circle_if_not_exists(self, user_id: int, circle_id: int, owner_id: int):
-        """Add user to circle if they're not already a member."""
-        # Check if user is already a member
-        existing_membership = self.db.query(SocialCircleMember).filter(
+    def _add_user_connection_if_not_exists(self, owner_id: int, member_id: int):
+        """Add a user connection if it doesn't already exist."""
+        # Check if connection already exists
+        existing_connection = self.db.query(SocialCircleMember).filter(
             and_(
-                SocialCircleMember.member_id == user_id,
-                SocialCircleMember.circle_id == circle_id
+                SocialCircleMember.owner_id == owner_id,
+                SocialCircleMember.member_id == member_id
             )
         ).first()
         
-        if existing_membership:
-            return  # User is already a member
+        if existing_connection:
+            return  # Connection already exists
         
-        # Add user to circle
-        membership = SocialCircleMember(
+        # Create new connection
+        connection = SocialCircleMember(
             owner_id=owner_id,
-            member_id=user_id,
-            circle_id=circle_id,
+            member_id=member_id,
             membership_type='member',
             joined_at=datetime.utcnow(),
             can_see_private_reviews=False,
             notification_preferences={'mentions': True}
         )
         
-        self.db.add(membership)
+        self.db.add(connection)
         self.db.flush()

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, UserPlus, TrendingUp, Settings, Search, Clock, Ban } from 'lucide-react';
 import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
@@ -65,14 +65,27 @@ const ReviewCirclePageContent: React.FC = () => {
   // Local tracking for sent requests (since API may not be available)
   const [localSentRequests, setLocalSentRequests] = useState<Set<string>>(new Set());
   
-  // Create sets for quick lookup - track users we've sent requests TO
-  const sentRequestsSet = new Set([
-    ...sentRequests.map(req => {
-      const recipientId = req.recipient?.id || req.user?.id || req.target_user?.id;
-      return String(recipientId);
-    }).filter(Boolean),
-    ...Array.from(localSentRequests)
-  ]);
+  // Create sets for quick lookup - track users we've sent ACTIVE requests TO (pending/accepted only)
+  const sentRequestsSet = useMemo(() => {
+    const serverRequestIds = sentRequests
+      .filter(req => req.status === 'pending' || req.status === 'accepted') // Only track active requests
+      .map(req => {
+        const recipientId = req.recipient?.id || req.user?.id || req.target_user?.id;
+        return String(recipientId);
+      }).filter(Boolean);
+    
+    const localRequestIds = Array.from(localSentRequests);
+    const combinedSet = new Set([...serverRequestIds, ...localRequestIds]);
+    
+    console.log('🔍 sentRequestsSet updated:', {
+      serverRequests: serverRequestIds.length,
+      localRequests: localRequestIds.length,
+      totalTracked: combinedSet.size,
+      trackedUsers: Array.from(combinedSet)
+    });
+    
+    return combinedSet;
+  }, [sentRequests, localSentRequests]);
   
   // Left panel data
 
@@ -132,9 +145,7 @@ const ReviewCirclePageContent: React.FC = () => {
         if (sentRequestsResponse.status === 'fulfilled') {
           const requests = sentRequestsResponse.value.requests || [];
           setSentRequestsData(requests);
-          console.log('Loaded sent requests from API:', requests);
         } else {
-          console.log('Sent requests API not available, will use local tracking');
           setSentRequestsData([]);
         }
         // Load secondary data
@@ -175,7 +186,12 @@ const ReviewCirclePageContent: React.FC = () => {
   }, [currentUser]);
 
   const refreshData = useCallback(async () => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      console.log('❌ No current user, skipping data refresh');
+      return;
+    }
+    
+    console.log('🔄 Refreshing circle data for user:', currentUser.id);
     
     try {
       const [pendingRequestsResponse, sentRequestsResponse, membersResponse] = await Promise.allSettled([
@@ -184,20 +200,35 @@ const ReviewCirclePageContent: React.FC = () => {
         circleService.getMyCircleMembers({ page: 1, size: 50 })
       ]);
 
+      console.log('📊 Data refresh results:', {
+        pending: pendingRequestsResponse.status,
+        sent: sentRequestsResponse.status,
+        members: membersResponse.status
+      });
+
       if (pendingRequestsResponse.status === 'fulfilled') {
+        console.log('✅ Setting pending requests:', pendingRequestsResponse.value.requests?.length || 0);
         setPendingRequests(pendingRequestsResponse.value.requests);
+      } else {
+        console.error('❌ Pending requests failed:', pendingRequestsResponse.reason);
       }
 
       if (sentRequestsResponse.status === 'fulfilled') {
+        console.log('✅ Setting sent requests:', sentRequestsResponse.value.requests?.length || 0);
         setSentRequestsData(sentRequestsResponse.value.requests);
+      } else {
+        console.error('❌ Sent requests failed:', sentRequestsResponse.reason);
       }
 
       if (membersResponse.status === 'fulfilled') {
+        console.log('✅ Setting members:', membersResponse.value.members?.length || 0);
         setMembers(membersResponse.value.members);
+      } else {
+        console.error('❌ Members failed:', membersResponse.reason);
       }
 
     } catch (error) {
-      console.log('Background refresh failed:', error);
+      console.error('❌ Background refresh failed:', error);
     }
   }, [currentUser]);
 
@@ -293,39 +324,66 @@ const ReviewCirclePageContent: React.FC = () => {
   }, [members]);
 
   const handleAddToCircle = async (userId: string | number, userName?: string) => {
-    if (!currentUser) return;
+    console.log('🚀 handleAddToCircle called:', { userId, userName, currentUser: currentUser?.id });
+    
+    if (!currentUser) {
+      console.error('❌ No current user found');
+      return;
+    }
     
     const userIdString = String(userId);
+    console.log('📝 Processing request for user:', userIdString);
     
     // Check if request was already sent
     if (sentRequestsSet.has(userIdString)) {
+      console.log('⚠️ Request already sent to user:', userIdString);
       showError(`Circle request already sent to ${userName || 'this user'}.`);
       return;
     }
     
     try {
-      console.log('Attempting to send circle request:', { userId, userName });
+      console.log('📤 Sending circle request to:', userName || userIdString);
       
       // Use the proper sendCircleRequest method instead of legacy addToCircle
       const result = await circleService.sendCircleRequest(userIdString, {
         message: `Hi ${userName || 'there'}! I'd like to connect with you in my review circle.`
       });
       
-      console.log('Circle request sent successfully:', result);
+      console.log('✅ Circle request sent successfully:', result);
       
       // Add to local tracking
-      setLocalSentRequests(prev => new Set([...prev, userIdString]));
+      setLocalSentRequests(prev => {
+        const newSet = new Set([...prev, userIdString]);
+        console.log('📋 Updated local sent requests:', Array.from(newSet));
+        return newSet;
+      });
       
       // Try to reload sent requests from server (if available)
       try {
+        console.log('🔄 Refreshing sent requests from server...');
         const sentRequestsResponse = await circleService.getSentRequests();
         setSentRequestsData(sentRequestsResponse.requests || []);
+        console.log('📊 Server sent requests:', sentRequestsResponse.requests?.length || 0);
       } catch (error) {
-        console.log('Sent requests API not available, using local tracking');
+        console.log('⚠️ Sent requests API not available, using local tracking:', error);
       }
       
       // Remove from suggestions
-      setSuggestions(prev => prev.filter(s => String(s.user.id) !== userIdString));
+      setSuggestions(prev => {
+        const filtered = prev.filter(s => String(s.user.id) !== userIdString);
+        console.log('🎯 Removing user from suggestions. Before:', prev.length, 'After:', filtered.length);
+        return filtered;
+      });
+      
+      // Force reload sent requests from server to get latest data
+      try {
+        const sentRequestsResponse = await circleService.getSentRequests();
+        setSentRequestsData(sentRequestsResponse.requests || []);
+        // Clear local tracking since we have server data
+        setLocalSentRequests(new Set());
+      } catch (error) {
+        console.log('Sent requests API not available after success, keeping local tracking');
+      }
       
       showSuccess(`Circle request sent to ${userName || 'user'}!`);
     } catch (error: any) {
@@ -333,10 +391,15 @@ const ReviewCirclePageContent: React.FC = () => {
       
       // Handle specific error cases based on status code or message
       if (error?.response?.status === 409 || error?.status === 409 || 
-          error.message?.includes('already sent') || error.message?.includes('409')) {
+          error.message?.includes('already sent') || error.message?.includes('409') ||
+          error.message?.includes('Conflict')) {
         showError(`Circle request already sent to ${userName || 'this user'}.`);
         // Add to local tracking since server confirms request exists
         setLocalSentRequests(prev => new Set([...prev, userIdString]));
+        
+        // Remove from suggestions since we now know request exists
+        setSuggestions(prev => prev.filter(s => String(s.user.id || s.user.user_id) !== userIdString));
+        
         // Try to reload sent requests from server (if available)
         try {
           const sentRequestsResponse = await circleService.getSentRequests();
@@ -446,6 +509,8 @@ const ReviewCirclePageContent: React.FC = () => {
   };
 
   const handleCancelRequest = async (requestId: string, userName: string) => {
+    console.log('🗑️ handleCancelRequest called:', { requestId, userName });
+    
     const confirmed = await confirm({
       title: 'Cancel Circle Request',
       message: `Are you sure you want to cancel the circle request to ${userName}?`,
@@ -453,14 +518,23 @@ const ReviewCirclePageContent: React.FC = () => {
       cancelText: 'Keep Request'
     });
     
-    if (!confirmed) return;
+    if (!confirmed) {
+      console.log('❌ User cancelled the cancel action');
+      return;
+    }
     
     try {
+      console.log('📤 Cancelling circle request:', requestId);
       // Call the backend API to actually cancel the request
       await circleService.cancelCircleRequest(parseInt(requestId));
+      console.log('✅ Circle request cancelled successfully');
       
       // Remove from local state
-      setSentRequestsData(prev => prev.filter(req => req.id !== parseInt(requestId)));
+      setSentRequestsData(prev => {
+        const filtered = prev.filter(req => req.id !== parseInt(requestId));
+        console.log('📋 Updated sent requests after cancel. Before:', prev.length, 'After:', filtered.length);
+        return filtered;
+      });
       
       // Also remove from local tracking
       setLocalSentRequests(prev => {
@@ -468,14 +542,18 @@ const ReviewCirclePageContent: React.FC = () => {
         // Find the recipient ID and remove it
         const request = sentRequests.find(req => req.id === parseInt(requestId));
         if (request && request.recipient) {
-          newSet.delete(String(request.recipient.id || request.recipient.user_id));
+          const recipientId = String(request.recipient.id || request.recipient.user_id);
+          newSet.delete(recipientId);
+          console.log('🎯 Removed user from local tracking:', recipientId);
         }
+        console.log('📋 Updated local sent requests after cancel:', Array.from(newSet));
         return newSet;
       });
       
+      console.log('🎉 Showing success message for cancelled request');
       showSuccess(`Circle request to ${userName} cancelled.`);
     } catch (error) {
-      console.error('Failed to cancel circle request:', error);
+      console.error('❌ Failed to cancel circle request:', error);
       showError('Failed to cancel circle request. Please try again.');
     }
   };
@@ -735,9 +813,10 @@ const ReviewCirclePageContent: React.FC = () => {
         <div className="w-full space-y-6 px-8">
           {/* Circle Content */}
             
-            {/* Header Section */}
-            <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
-              <div className="flex items-center justify-between">
+            {/* Unified Circle Header and Dashboard */}
+            <div className="bg-gradient-to-br from-white via-purple-50 to-indigo-50 rounded-xl shadow-lg border-2 border-purple-200 p-6">
+              {/* Circle Header Section */}
+              <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-4">
                   <div className="p-3 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl shadow-lg">
                     <Users className="h-8 w-8 text-white" />
@@ -783,54 +862,54 @@ const ReviewCirclePageContent: React.FC = () => {
                   </button>
                 </div>
               </div>
-            </div>
 
-            {/* Enhanced Navigation Tabs - Using your purple theme */}
-            <div className="bg-gradient-to-br from-purple-50 via-white to-indigo-50 rounded-xl shadow-lg border-2 border-purple-200 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-lg font-bold text-purple-900">Circle Dashboard</h2>
-                  <p className="text-sm text-purple-600">Choose your view to manage different aspects of your circle</p>
-                </div>
-                <div className="flex items-center space-x-2 text-sm text-purple-500">
-                  <div className="flex items-center space-x-1">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                    <span className="font-medium">Active: {tabs.find(tab => tab.id === activeTab)?.label}</span>
+              {/* Dashboard Navigation Section */}
+              <div className="border-t border-purple-200 pt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-lg font-bold text-purple-900">Dashboard</h2>
+                    <p className="text-sm text-purple-600">Choose your view to manage different aspects of your circle</p>
+                  </div>
+                  <div className="flex items-center space-x-2 text-sm text-purple-500">
+                    <div className="flex items-center space-x-1">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                      <span className="font-medium">Active: {tabs.find(tab => tab.id === activeTab)?.label}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              
-              {/* Enhanced Navigation Pills */}
-              <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
-                {tabs.map((tab) => {
-                  const Icon = tab.icon;
-                  const isActive = activeTab === tab.id;
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`group flex items-center space-x-3 px-6 py-4 rounded-xl text-sm font-medium transition-all duration-300 border-2 min-w-[140px] justify-center hover:shadow-lg hover:transform hover:scale-105 ${
-                        isActive
-                          ? 'circle-nav-button-active transform scale-105'
-                          : 'bg-white text-purple-600 hover:text-purple-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-purple-100 hover:border-purple-400 border-purple-200'
-                      }`}
-                    >
-                      <Icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${isActive ? 'text-white' : 'text-current'}`} />
-                      <div className="flex flex-col items-start">
-                        <span className="font-semibold text-sm">{tab.label}</span>
-                      </div>
-                      {tab.count !== undefined && (
-                        <span className={`ml-2 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] text-center ${
+                
+                {/* Enhanced Navigation Pills */}
+                <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
+                  {tabs.map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = activeTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`group flex items-center space-x-3 px-6 py-4 rounded-xl text-sm font-medium transition-all duration-300 border-2 min-w-[140px] justify-center hover:shadow-lg hover:transform hover:scale-105 ${
                           isActive
-                            ? 'bg-white bg-opacity-25 text-black backdrop-blur-sm'
-                            : 'bg-purple-200 text-purple-700 group-hover:bg-purple-300 group-hover:text-purple-800'
-                        }`}>
-                          {tab.count > 99 ? '99+' : tab.count}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
+                            ? 'circle-nav-button-active transform scale-105'
+                            : 'bg-white text-purple-600 hover:text-purple-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-purple-100 hover:border-purple-400 border-purple-200'
+                        }`}
+                      >
+                        <Icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${isActive ? 'text-white' : 'text-current'}`} />
+                        <div className="flex flex-col items-start">
+                          <span className="font-semibold text-sm">{tab.label}</span>
+                        </div>
+                        {tab.count !== undefined && (
+                          <span className={`ml-2 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] text-center ${
+                            isActive
+                              ? 'bg-white bg-opacity-25 text-black backdrop-blur-sm'
+                              : 'bg-purple-200 text-purple-700 group-hover:bg-purple-300 group-hover:text-purple-800'
+                          }`}>
+                            {tab.count > 99 ? '99+' : tab.count}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
@@ -855,86 +934,104 @@ const ReviewCirclePageContent: React.FC = () => {
               />
             </div>
 
-            {/* Circle Members - Default View */}
+            {/* Main Tab Content Area - Only show one tab at a time */}
             <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-3">
-                  <Users className="h-6 w-6 text-purple-600" />
-                  <h2 className="text-xl font-semibold text-gray-900">Circle Members</h2>
-                  <span className="px-3 py-1 text-xs bg-purple-100 text-purple-800 rounded-full font-medium">
-                    {members.length} members
-                  </span>
-                </div>
-              </div>
-              <CircleMembers 
-                members={members}
-                openMenus={openMenus}
-                onToggleUserMenu={toggleUserMenu}
-                onUpdateTrustLevel={handleUpdateTrustLevel}
-                onRemoveUser={handleRemoveUser}
-                onBlockUser={handleBlockUser}
-              />
-            </div>
-
-            {/* Quick Actions Panel */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              
-              {/* Pending Requests */}
-              {(pendingRequests.length > 0 || receivedInvites.length > 0) && (
-                <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <Clock className="h-5 w-5 text-orange-600" />
-                    <h3 className="text-lg font-semibold text-gray-900">Pending Requests</h3>
-                    <span className="px-2 py-1 text-xs bg-orange-100 text-orange-800 rounded-full">
-                      {pendingRequests.length + receivedInvites.length}
-                    </span>
-                  </div>
-                  <div className="space-y-3">
-                    <CircleInvites 
-                      pendingRequests={pendingRequests.slice(0, 3)}
-                      receivedInvites={receivedInvites.slice(0, 3)}
-                      onRequestResponse={handleRequestResponse}
-                    />
-                    {(pendingRequests.length + receivedInvites.length) > 3 && (
-                      <button
-                        onClick={() => setActiveTab('invites')}
-                        className="w-full text-center py-2 text-sm text-purple-600 hover:text-purple-700 font-medium"
-                      >
-                        View all {pendingRequests.length + receivedInvites.length} requests
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
-
-
-            </div>
-
-            {/* Modal-style views for detailed tabs */}
-            {activeTab !== 'members' && (
-              <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
-                <div className="flex items-center justify-between mb-6">
+                  {activeTab === 'members' && <Users className="h-6 w-6 text-purple-600" />}
+                  {activeTab === 'invites' && <Clock className="h-6 w-6 text-orange-600" />}
+                  {activeTab === 'sent' && <Clock className="h-6 w-6 text-blue-600" />}
+                  {activeTab === 'suggestions' && <TrendingUp className="h-6 w-6 text-green-600" />}
+                  {activeTab === 'analytics' && <Settings className="h-6 w-6 text-indigo-600" />}
+                  {activeTab === 'blocked' && <Ban className="h-6 w-6 text-red-600" />}
+                  
                   <h2 className="text-xl font-semibold text-gray-900">
-                    {activeTab === 'invites' && 'All Invites & Requests'}
+                    {activeTab === 'members' && 'Circle Members'}
+                    {activeTab === 'invites' && 'Invites & Requests'}
                     {activeTab === 'sent' && 'Sent Requests'}
-                    {activeTab === 'suggestions' && 'All Suggestions'}
+                    {activeTab === 'suggestions' && 'Suggestions'}
                     {activeTab === 'analytics' && 'Circle Analytics'}
                     {activeTab === 'blocked' && 'Blocked Users'}
                   </h2>
-                  <button
-                    onClick={() => setActiveTab('members')}
-                    className="text-gray-500 hover:text-gray-700 transition-colors"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="max-h-[600px] overflow-y-auto">
-                  {renderContent()}
+                  
+                  {activeTab === 'members' && (
+                    <span className="px-3 py-1 text-xs bg-purple-100 text-purple-800 rounded-full font-medium">
+                      {members.length} members
+                    </span>
+                  )}
+                  {activeTab === 'invites' && (
+                    <span className="px-3 py-1 text-xs bg-orange-100 text-orange-800 rounded-full font-medium">
+                      {pendingRequests.length + receivedInvites.length} requests
+                    </span>
+                  )}
+                  {activeTab === 'sent' && (
+                    <span className="px-3 py-1 text-xs bg-blue-100 text-blue-800 rounded-full font-medium">
+                      {sentRequests.length} sent
+                    </span>
+                  )}
+                  {activeTab === 'suggestions' && (
+                    <span className="px-3 py-1 text-xs bg-green-100 text-green-800 rounded-full font-medium">
+                      {suggestions.length} suggestions
+                    </span>
+                  )}
+                  {activeTab === 'blocked' && (
+                    <span className="px-3 py-1 text-xs bg-red-100 text-red-800 rounded-full font-medium">
+                      {blockedUsers.length} blocked
+                    </span>
+                  )}
                 </div>
               </div>
-            )}
+
+              {/* Tab Content */}
+              <div className="min-h-[400px]">
+                {activeTab === 'members' && (
+                  <CircleMembers 
+                    members={members}
+                    openMenus={openMenus}
+                    onToggleUserMenu={toggleUserMenu}
+                    onUpdateTrustLevel={handleUpdateTrustLevel}
+                    onRemoveUser={handleRemoveUser}
+                    onBlockUser={handleBlockUser}
+                  />
+                )}
+                
+                {activeTab === 'invites' && (
+                  <CircleInvites 
+                    pendingRequests={pendingRequests}
+                    receivedInvites={receivedInvites}
+                    onRequestResponse={handleRequestResponse}
+                  />
+                )}
+                
+                {activeTab === 'sent' && (
+                  <SentRequests 
+                    sentRequests={sentRequests}
+                    onCancelRequest={handleCancelRequest}
+                  />
+                )}
+                
+                {activeTab === 'suggestions' && (
+                  <CircleSuggestions 
+                    suggestions={suggestions}
+                    currentUser={currentUser}
+                    sentRequestsSet={sentRequestsSet}
+                    onAddToCircle={handleAddToCircle}
+                    onError={showError}
+                  />
+                )}
+                
+                {activeTab === 'analytics' && (
+                  <CircleAnalyticsComponent analytics={analytics} />
+                )}
+                
+                {activeTab === 'blocked' && (
+                  <BlockedUsers 
+                    blockedUsers={blockedUsers}
+                    onUnblockUser={handleUnblockUser}
+                  />
+                )}
+              </div>
+            </div>
 
             {/* Active Tab Indicator - Enhanced with purple theme */}
             <div className="text-center py-6">
