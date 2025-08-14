@@ -37,7 +37,7 @@ const ReviewCirclePageContent: React.FC = () => {
   
   // Initialize confirmation system
   const { confirm, prompt, showSuccess, showError } = useConfirmation();
-  const [activeTab, setActiveTab] = useState<'members' | 'invites' | 'sent' | 'suggestions' | 'analytics' | 'blocked'>('members');
+  const [activeTab, setActiveTab] = useState<'members' | 'invites' | 'sent' | 'suggestions' | 'search' | 'analytics' | 'blocked'>('members');
   
   // Track auth changes to prevent infinite loops
   const lastUserId = useRef<string | null>(null);
@@ -86,6 +86,15 @@ const ReviewCirclePageContent: React.FC = () => {
     
     return combinedSet;
   }, [sentRequests, localSentRequests]);
+
+  // Memoized callbacks to prevent infinite re-renders
+  const handleSearchResults = useCallback((results: User[]) => {
+    setSearchResults(results);
+  }, []);
+
+  const handleUserSelect = useCallback((user: User) => {
+    console.log('Selected user:', user);
+  }, []);
   
   // Left panel data
 
@@ -95,6 +104,7 @@ const ReviewCirclePageContent: React.FC = () => {
     { id: 'invites' as const, label: 'Requests', icon: Clock, count: pendingRequests.length + receivedInvites.length },
     { id: 'sent' as const, label: 'Sent', icon: UserPlus, count: sentRequests.length },
     { id: 'suggestions' as const, label: 'Suggestions', icon: TrendingUp, count: suggestions.length },
+    { id: 'search' as const, label: 'Find People', icon: Search, count: searchResults.length },
     { id: 'analytics' as const, label: 'Analytics', icon: Settings },
     { id: 'blocked' as const, label: 'Blocked', icon: Ban, count: blockedUsers.length }
   ];
@@ -913,26 +923,6 @@ const ReviewCirclePageContent: React.FC = () => {
               </div>
             </div>
 
-            {/* Search Bar */}
-            <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
-              <div className="flex items-center space-x-3 mb-4">
-                <Search className="h-5 w-5 text-purple-600" />
-                <h2 className="text-lg font-semibold text-gray-900">Find People</h2>
-                <span className="text-sm text-gray-500">Search and connect with reviewers</span>
-              </div>
-              <UserSearchBar
-                onSearchResults={(results: User[]) => setSearchResults(results)}
-                onUserSelect={(user: User) => {
-                  console.log('Selected user:', user);
-                }}
-                currentUser={currentUser}
-                isUserInCircle={isUserInCircle}
-                sentRequestsSet={sentRequestsSet}
-                onSendRequest={handleSendRequest}
-                onBlockUser={(userId: string | number, userName: string) => handleBlockUser(userId, userName)}
-                placeholder="Search for people by name, username, or interests..."
-              />
-            </div>
 
             {/* Main Tab Content Area - Only show one tab at a time */}
             <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
@@ -942,6 +932,7 @@ const ReviewCirclePageContent: React.FC = () => {
                   {activeTab === 'invites' && <Clock className="h-6 w-6 text-orange-600" />}
                   {activeTab === 'sent' && <Clock className="h-6 w-6 text-blue-600" />}
                   {activeTab === 'suggestions' && <TrendingUp className="h-6 w-6 text-green-600" />}
+                  {activeTab === 'search' && <Search className="h-6 w-6 text-cyan-600" />}
                   {activeTab === 'analytics' && <Settings className="h-6 w-6 text-indigo-600" />}
                   {activeTab === 'blocked' && <Ban className="h-6 w-6 text-red-600" />}
                   
@@ -950,6 +941,7 @@ const ReviewCirclePageContent: React.FC = () => {
                     {activeTab === 'invites' && 'Invites & Requests'}
                     {activeTab === 'sent' && 'Sent Requests'}
                     {activeTab === 'suggestions' && 'Suggestions'}
+                    {activeTab === 'search' && 'Find People'}
                     {activeTab === 'analytics' && 'Circle Analytics'}
                     {activeTab === 'blocked' && 'Blocked Users'}
                   </h2>
@@ -972,6 +964,11 @@ const ReviewCirclePageContent: React.FC = () => {
                   {activeTab === 'suggestions' && (
                     <span className="px-3 py-1 text-xs bg-green-100 text-green-800 rounded-full font-medium">
                       {suggestions.length} suggestions
+                    </span>
+                  )}
+                  {activeTab === 'search' && (
+                    <span className="px-3 py-1 text-xs bg-cyan-100 text-cyan-800 rounded-full font-medium">
+                      {searchResults.length} found
                     </span>
                   )}
                   {activeTab === 'blocked' && (
@@ -1017,6 +1014,21 @@ const ReviewCirclePageContent: React.FC = () => {
                     sentRequestsSet={sentRequestsSet}
                     onAddToCircle={handleAddToCircle}
                     onError={showError}
+                  />
+                )}
+                
+                {activeTab === 'search' && (
+                  <UserSearch 
+                    searchResults={searchResults}
+                    currentUser={currentUser}
+                    isUserInCircle={isUserInCircle}
+                    sentRequestsSet={sentRequestsSet}
+                    onSearchResults={handleSearchResults}
+                    onUserSelect={handleUserSelect}
+                    onSendRequest={handleSendRequest}
+                    onBlockUser={handleBlockUser}
+                    onSwitchToSuggestions={() => setActiveTab('suggestions')}
+                    onSwitchToMembers={() => setActiveTab('members')}
                   />
                 )}
                 

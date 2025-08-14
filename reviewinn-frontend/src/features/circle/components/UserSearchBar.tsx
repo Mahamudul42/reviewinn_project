@@ -15,6 +15,7 @@ interface UserSearchBarProps {
   onBlockUser: (userId: string | number, userName: string) => void;
   placeholder?: string;
   initialQuery?: string;
+  showDropdown?: boolean; // Control whether to show the dropdown or not
 }
 
 interface UserFilters {
@@ -34,7 +35,8 @@ const UserSearchBar: React.FC<UserSearchBarProps> = ({
   onSendRequest,
   onBlockUser,
   placeholder = "Search for people by name, username, or interests...",
-  initialQuery = ""
+  initialQuery = "",
+  showDropdown: enableDropdown = true // Default to true for backward compatibility
 }) => {
   const [query, setQuery] = useState(initialQuery);
   const [isLoading, setIsLoading] = useState(false);
@@ -72,7 +74,7 @@ const UserSearchBar: React.FC<UserSearchBarProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [onSearchResults]);
+  }, []); // Remove onSearchResults from dependency array to prevent infinite re-renders
 
   const handleSearch = () => {
     if (query.trim().length < 2) {
@@ -115,7 +117,7 @@ const UserSearchBar: React.FC<UserSearchBarProps> = ({
       setShowDropdown(false);
       onSearchResults([]);
     }
-  }, [query, onSearchResults]);
+  }, [query]); // Remove onSearchResults from dependency array to prevent infinite re-renders
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -173,8 +175,8 @@ const UserSearchBar: React.FC<UserSearchBarProps> = ({
             </button>
           </div>
 
-          {/* Search Results Dropdown */}
-          {showDropdown && (
+          {/* Search Results Dropdown - Only show if dropdown is enabled */}
+          {enableDropdown && showDropdown && (
             <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto">
               {query.trim().length < 2 ? (
                 <div className="p-4 text-center text-gray-500">
