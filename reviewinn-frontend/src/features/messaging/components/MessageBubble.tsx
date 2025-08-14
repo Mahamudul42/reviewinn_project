@@ -5,13 +5,14 @@ import type { MsgMessage } from '../../../api/services/msgService';
 import { formatTimeAgo } from '../../../shared/utils/reviewUtils';
 
 interface MessageBubbleProps {
-  message: MsgMessage;
-  onReply?: (message: MsgMessage) => void;
+  message: any; // Changed from MsgMessage to any for compatibility
+  onReply?: (message: any) => void;
   onReaction?: (messageId: number, emoji: string) => void;
   onRemoveReaction?: (messageId: number) => void;
   showAvatar?: boolean;
   isGroupChat?: boolean;
   currentUserId?: number;
+  onUserClick?: (userId: number) => void;
 }
 
 const MessageBubble: React.FC<MessageBubbleProps> = ({
@@ -22,6 +23,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
   showAvatar = true,
   isGroupChat = false,
   currentUserId,
+  onUserClick,
 }) => {
   const [showReactions, setShowReactions] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -232,16 +234,30 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
       <div className="flex items-end space-x-2 mb-1">
         {!isOwnMessage && showAvatar && (
           <img
-            src={message.sender.avatar || `https://ui-avatars.com/api/?name=${message.sender.name}&size=32`}
-            alt={message.sender.name}
-            className="w-8 h-8 rounded-full flex-shrink-0"
+            src={message.sender?.avatar || `https://ui-avatars.com/api/?name=${message.sender?.name || 'User'}&size=24`}
+            alt={message.sender?.name || 'User'}
+            className="w-6 h-6 rounded-full flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-blue-300 transition-all"
+            onClick={() => {
+              if (message.sender_id !== currentUserId) {
+                onUserClick?.(message.sender_id);
+              }
+            }}
           />
         )}
         
         <div className={`message-bubble max-w-xs lg:max-w-md ${isOwnMessage ? 'ml-auto' : ''}`}>
           {/* Sender name for group chats */}
           {!isOwnMessage && isGroupChat && (
-            <p className="text-xs text-gray-600 mb-1 px-3">{message.sender.name}</p>
+            <p 
+              className="text-xs text-gray-600 mb-1 px-3 cursor-pointer hover:text-blue-600 transition-colors"
+              onClick={() => {
+              if (message.sender_id !== currentUserId) {
+                onUserClick?.(message.sender_id);
+              }
+            }}
+            >
+              {message.sender?.name || 'User'}
+            </p>
           )}
 
           {/* Reply indicator */}
@@ -326,9 +342,14 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
         {isOwnMessage && showAvatar && (
           <img
-            src={message.sender.avatar || `https://ui-avatars.com/api/?name=${message.sender.name}&size=32`}
-            alt={message.sender.name}
-            className="w-8 h-8 rounded-full flex-shrink-0"
+            src={message.sender?.avatar || `https://ui-avatars.com/api/?name=${message.sender?.name || 'User'}&size=24`}
+            alt={message.sender?.name || 'User'}
+            className="w-6 h-6 rounded-full flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-blue-300 transition-all"
+            onClick={() => {
+              if (message.sender_id !== currentUserId) {
+                onUserClick?.(message.sender_id);
+              }
+            }}
           />
         )}
       </div>

@@ -78,7 +78,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
     if (otherParticipant) {
       // Use actual avatar if available, otherwise fallback to generated avatar
       const avatar = (otherParticipant as any).avatar;
-      if (avatar) {
+      if (avatar && avatar.trim() !== '') {
         return avatar;
       }
       
@@ -228,6 +228,17 @@ const ConversationList: React.FC<ConversationListProps> = ({
                         src={getConversationAvatar(conversation)}
                         alt={getConversationTitle(conversation)}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Fallback to generated avatar
+                          const otherParticipant = conversation.participants?.find(p => p.user_id !== currentUserId);
+                          if (otherParticipant) {
+                            const name = (otherParticipant as any).full_name || 
+                                       otherParticipant.display_name || 
+                                       (otherParticipant as any).username ||
+                                       `User ${otherParticipant.user_id}`;
+                            (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&size=48&background=4f46e5&color=fff`;
+                          }
+                        }}
                       />
                     </div>
                     {conversation.conversation_type === 'group' && (

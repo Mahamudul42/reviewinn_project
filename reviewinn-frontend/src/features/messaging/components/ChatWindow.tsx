@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Send, Paperclip, X, Phone, Video, Info, Smile, MoreVertical, Search } from 'lucide-react';
-import type { ProfessionalConversation, ProfessionalMessage } from '../../../api/services/professionalMessagingService';
+import type { ProfessionalConversation, ProfessionalMessage, ProfessionalUser } from '../../../api/services/professionalMessagingService';
 import MessageBubble from './MessageBubble';
 import TypingIndicator from './TypingIndicator';
+import UserProfileModal from './UserProfileModal';
+import { useUserProfile, createUserForProfile } from '../../../hooks/useUserProfile';
 
 interface ChatWindowProps {
   conversation: ProfessionalConversation;
@@ -19,6 +21,7 @@ interface ChatWindowProps {
   hasMoreMessages?: boolean;
   isInitialLoad?: boolean;
   currentUserId?: number;
+  onCreateDirectConversation?: (user: ProfessionalUser, initialMessage: string) => void;
 }
 
 const ChatWindow: React.FC<ChatWindowProps> = ({
@@ -36,11 +39,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   hasMoreMessages = false,
   isInitialLoad = false,
   currentUserId,
+  onCreateDirectConversation,
 }) => {
   const [messageText, setMessageText] = useState('');
-  const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
+  const [replyToMessage, setReplyToMessage] = useState<ProfessionalMessage | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const { showProfileModal, selectedUser, openProfile, closeProfile } = useUserProfile();
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -222,11 +227,27 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         <div className="flex items-center space-x-4">
           {/* Artistic Avatar */}
           <div className="relative">
-            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 p-0.5">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 p-0.5">
               <img
                 src={getConversationAvatar()}
                 alt={getConversationTitle()}
-                className="w-full h-full rounded-full object-cover"
+                className="w-full h-full rounded-full object-cover cursor-pointer hover:ring-2 hover:ring-blue-300 transition-all"
+                onClick={() => {
+                  if (conversation.conversation_type === 'direct') {
+                    const otherParticipant = conversation.participants?.find(p => p.user_id !== currentUserId);
+                    if (otherParticipant && otherParticipant.user_id !== currentUserId) {
+                      const user = createUserForProfile({
+                        user_id: otherParticipant.user_id,
+                        username: (otherParticipant as any).username,
+                        name: (otherParticipant as any).full_name || otherParticipant.display_name,
+                        display_name: otherParticipant.display_name,
+                        full_name: (otherParticipant as any).full_name,
+                        avatar: (otherParticipant as any).avatar,
+                      });
+                      openProfile(user);
+                    }
+                  }
+                }}
               />
               {!isConnected && (
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white"></div>
@@ -238,7 +259,27 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           </div>
           
           <div>
-            <h3 className="text-xl font-bold text-gray-900 mb-1">{getConversationTitle()}</h3>
+            <h3 
+              className="text-xl font-bold text-gray-900 mb-1 cursor-pointer hover:text-blue-600 transition-colors"
+              onClick={() => {
+                if (conversation.conversation_type === 'direct') {
+                  const otherParticipant = conversation.participants?.find(p => p.user_id !== currentUserId);
+                  if (otherParticipant && otherParticipant.user_id !== currentUserId) {
+                    const user = createUserForProfile({
+                      user_id: otherParticipant.user_id,
+                      username: (otherParticipant as any).username,
+                      name: (otherParticipant as any).full_name || otherParticipant.display_name,
+                      display_name: otherParticipant.display_name,
+                      full_name: (otherParticipant as any).full_name,
+                      avatar: (otherParticipant as any).avatar,
+                    });
+                    openProfile(user);
+                  }
+                }
+              }}
+            >
+              {getConversationTitle()}
+            </h3>
             <div className="flex items-center space-x-2">
               <p className="text-sm text-gray-600">{getConversationSubtitle()}</p>
               {!isConnected && (
@@ -298,8 +339,25 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
               onReaction={onReaction}
               onRemoveReaction={onRemoveReaction}
               showAvatar={showAvatar}
-              isGroupChat={conversation.is_group}
+              isGroupChat={conversation.conversation_type === 'group'}
               currentUserId={currentUserId}
+              onUserClick={(userId) => {
+                // Only show profile for other users, not current user
+                if (userId !== currentUserId) {
+                  const participant = conversation.participants?.find(p => p.user_id === userId);
+                  if (participant) {
+                    const user = createUserForProfile({
+                      user_id: participant.user_id,
+                      username: (participant as any).username,
+                      name: (participant as any).full_name || participant.display_name,
+                      display_name: participant.display_name,
+                      full_name: (participant as any).full_name,
+                      avatar: (participant as any).avatar,
+                    });
+                    openProfile(user);
+                  }
+                }
+              }}
             />
           );
         })}
@@ -331,7 +389,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         <div className="reply-preview flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 border-t border-l-4 border-l-blue-500">
           <div className="flex-1">
             <p className="text-sm font-medium text-blue-700">
-              Replying to <strong className="text-gray-900">{replyToMessage.sender_name}</strong>
+              Replying to <strong className="text-gray-900">{replyToMessage.sender?.name || `User ${replyToMessage.sender_id}`}</strong>
             </p>
             <p className="text-sm text-gray-800 truncate mt-1">
               {replyToMessage.message_type === 'image' ? '📷 Image' :
@@ -426,6 +484,22 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           </button>
         </div>
       </form>
+
+      {/* User Profile Modal */}
+      {selectedUser && (
+        <UserProfileModal
+          user={selectedUser}
+          isOpen={showProfileModal}
+          onClose={closeProfile}
+          onStartConversation={(user) => {
+            if (onCreateDirectConversation) {
+              onCreateDirectConversation(user, `Hi ${user.name}!`);
+            }
+          }}
+          currentUserId={currentUserId}
+          showActions={true}
+        />
+      )}
 
       {/* Hidden file input */}
       <input
