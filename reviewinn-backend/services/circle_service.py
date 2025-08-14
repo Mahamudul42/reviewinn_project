@@ -144,6 +144,13 @@ class CircleService:
             self.db.commit()
             self.db.refresh(circle_request)
             
+            print(f"✅ Circle request created successfully:")
+            print(f"   - Request ID: {circle_request.request_id}")
+            print(f"   - From: {current_user.username} (ID: {current_user_id})")
+            print(f"   - To: {target_user.username} (ID: {user_id})")
+            print(f"   - Status: {circle_request.status}")
+            print(f"   - Created at: {circle_request.created_at}")
+            
             return {
                 "message": "Circle request sent successfully",
                 "request_id": circle_request.request_id
@@ -168,19 +175,37 @@ class CircleService:
             
             request_list = []
             for request in requests:
-                request_data = {
-                    "id": request.request_id,
-                    "requester": {
-                        "id": request.requester.user_id,
-                        "name": request.requester.name,
-                        "username": request.requester.username,
-                        "avatar": request.requester.avatar
-                    },
-                    "message": request.request_message,
-                    "created_at": request.created_at.isoformat(),
-                    "status": request.status
-                }
-                request_list.append(request_data)
+                try:
+                    # Safely get requester data
+                    requester_user = request.requester
+                    if not requester_user:
+                        print(f"❌ No requester found for request {request.request_id}")
+                        continue
+                    
+                    # Safely construct name
+                    requester_name = requester_user.name if hasattr(requester_user, 'name') else (
+                        requester_user.display_name or 
+                        f"{requester_user.first_name or ''} {requester_user.last_name or ''}".strip() or 
+                        requester_user.username
+                    )
+                    
+                    request_data = {
+                        "id": request.request_id,
+                        "requester": {
+                            "id": requester_user.user_id,
+                            "name": requester_name,
+                            "username": requester_user.username,
+                            "avatar": requester_user.avatar
+                        },
+                        "message": request.request_message or "Circle request",
+                        "created_at": request.created_at.isoformat(),
+                        "status": request.status
+                    }
+                    request_list.append(request_data)
+                    
+                except Exception as request_error:
+                    print(f"❌ Error processing pending request {request.request_id}: {str(request_error)}")
+                    continue
             
             return {"requests": request_list}
             
@@ -192,12 +217,20 @@ class CircleService:
         try:
             print(f"🔍 Getting sent requests for user: {current_user_id}")
             
+            # First check if the user exists
+            current_user = self.db.query(User).filter(User.user_id == current_user_id).first()
+            if not current_user:
+                print(f"❌ User {current_user_id} not found in core_users table")
+                return {"requests": []}
+            
+            print(f"✅ User found: {current_user.username} (ID: {current_user_id})")
+            
             # Get requests sent by the current user (including all statuses for tracking)
             requests = self.db.query(SocialCircleRequest).filter(
                 SocialCircleRequest.requester_id == current_user_id
             ).order_by(SocialCircleRequest.created_at.desc()).all()
             
-            print(f"📊 Found {len(requests)} sent requests")
+            print(f"📊 Found {len(requests)} sent requests for user {current_user.username}")
             
             request_list = []
             for request in requests:

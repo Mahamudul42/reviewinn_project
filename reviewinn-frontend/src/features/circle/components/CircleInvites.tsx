@@ -10,12 +10,14 @@ interface CircleInvitesProps {
   pendingRequests: CircleRequest[];
   receivedInvites: CircleInvite[];
   onRequestResponse: (requestId: string, action: 'accept' | 'decline' | 'reject' | 'keep_as_follower') => Promise<void>;
+  onCancelRequest?: (requestId: string, userName: string) => Promise<void>;
 }
 
 const CircleInvites: React.FC<CircleInvitesProps> = ({
   pendingRequests,
   receivedInvites,
-  onRequestResponse
+  onRequestResponse,
+  onCancelRequest
 }) => {
   const [pendingPage, setPendingPage] = useState(1);
   const [invitesPage, setInvitesPage] = useState(1);
@@ -192,6 +194,22 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
                                   <Heart size={14} />
                                   <span>Keep as Follower</span>
                                 </button>
+                                {onCancelRequest && (
+                                  <button
+                                    onClick={() => {
+                                      onCancelRequest(String(request.id), request.requester.name || request.requester.username);
+                                      setOpenDropdowns(prev => {
+                                        const newSet = new Set(prev);
+                                        newSet.delete(String(request.id));
+                                        return newSet;
+                                      });
+                                    }}
+                                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2 border-t border-gray-100"
+                                  >
+                                    <X size={14} />
+                                    <span>Cancel Request</span>
+                                  </button>
+                                )}
                               </div>
                             </div>
                           )}

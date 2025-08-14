@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MoreVertical, UserMinus, UserPlus, Ban, Shield, Heart, Users } from 'lucide-react';
+import '../circle-purple-buttons.css';
 
 interface UserActionsMenuProps {
   userId: string;
@@ -119,10 +120,11 @@ const UserActionsMenu: React.FC<UserActionsMenuProps> = ({
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+        className="p-2 rounded-full bg-purple-100 hover:bg-purple-200 transition-colors border border-purple-300"
         aria-label="User actions"
+        style={{ backgroundColor: '#f3e8ff', borderColor: '#c4b5fd' }}
       >
-        <MoreVertical size={16} className="text-gray-500" />
+        <MoreVertical size={16} className="text-purple-600" />
       </button>
 
       {isOpen && (

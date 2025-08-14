@@ -213,6 +213,13 @@ export class CircleService {
       const url = `${this.baseUrl}${API_ENDPOINTS.CIRCLES.SENT_REQUESTS}`;
       console.log('📤 API Request GET:', url);
       
+      // Log authentication status
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      console.log('🔐 Authentication status:', {
+        hasToken: !!token,
+        tokenLength: token?.length || 0
+      });
+      
       const response = await httpClient.get<{ requests: CircleRequest[] }>(url, true);
       
       console.log('📥 getSentRequests API Response:', response);
@@ -224,7 +231,8 @@ export class CircleService {
       console.error('Error details:', {
         status: error?.response?.status,
         statusText: error?.response?.statusText,
-        data: error?.response?.data
+        data: error?.response?.data,
+        message: error?.message
       });
       return { requests: [] };
     }

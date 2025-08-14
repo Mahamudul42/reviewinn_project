@@ -120,6 +120,16 @@ const ReviewCirclePageContent: React.FC = () => {
   // Filter sent requests to only show pending ones (not accepted)
   const pendingSentRequests = sentRequests.filter(req => req.status === 'pending');
   
+  // Debug logging for sent requests count
+  React.useEffect(() => {
+    console.log('📊 Sent requests state update:', {
+      total: sentRequests.length,
+      pending: pendingSentRequests.length,
+      localTracking: Array.from(localSentRequests),
+      sentRequestsIds: sentRequests.map(r => ({ id: r.id, status: r.status, recipient: r.recipient?.name }))
+    });
+  }, [sentRequests, pendingSentRequests, localSentRequests]);
+  
   const tabs = [
     { id: 'members' as const, label: 'Circle Mates', icon: Users, count: members.length },
     { id: 'invites' as const, label: 'Requests', icon: Clock, count: pendingRequests.length + receivedInvites.length },
@@ -260,9 +270,64 @@ const ReviewCirclePageContent: React.FC = () => {
 
       if (sentRequestsResponse.status === 'fulfilled') {
         console.log('✅ Setting sent requests:', sentRequestsResponse.value.requests?.length || 0);
-        setSentRequestsData(sentRequestsResponse.value.requests);
+        const serverSentRequests = sentRequestsResponse.value.requests || [];
+        
+        // If server returned empty but we have localStorage backup, use it
+        if (serverSentRequests.length === 0) {
+          try {
+            const persistedSentRequests = JSON.parse(localStorage.getItem('reviewinn_sent_requests') || '[]');
+            if (persistedSentRequests.length > 0) {
+              console.log('🔄 Server returned empty, using localStorage backup:', persistedSentRequests.length);
+              setSentRequestsData(persistedSentRequests);
+              return; // Exit early, using localStorage data
+            }
+          } catch (error) {
+            console.log('⚠️ Failed to load from localStorage:', error);
+          }
+        }
+        
+        // Merge server data with any local optimistic updates
+        setSentRequestsData(prev => {
+          // If we have local sent requests, merge them carefully
+          if (localSentRequests.size > 0) {
+            console.log('🔄 Merging server sent requests with local tracking');
+            
+            // Keep optimistic requests that aren't yet on server
+            const optimisticRequests = prev.filter(req => {
+              // Keep if it's a temporary ID (not yet on server)
+              const isTemporary = typeof req.id === 'number' && req.id > 1000000000000; // Temp IDs are timestamps
+              if (isTemporary) {
+                const recipientId = String(req.recipient?.id || req.recipient?.user_id);
+                // Only keep if not found in server data
+                return !serverSentRequests.some(serverReq => 
+                  String(serverReq.recipient?.id || serverReq.recipient?.user_id) === recipientId
+                );
+              }
+              return false;
+            });
+            
+            // Merge: server requests + remaining optimistic requests
+            const mergedRequests = [...serverSentRequests, ...optimisticRequests];
+            console.log('📊 Merged requests:', { server: serverSentRequests.length, optimistic: optimisticRequests.length, total: mergedRequests.length });
+            return mergedRequests;
+          } else {
+            // No local tracking, just use server data
+            return serverSentRequests;
+          }
+        });
       } else {
         console.error('❌ Sent requests failed:', sentRequestsResponse.reason);
+        
+        // Fallback to localStorage if server failed
+        try {
+          const persistedSentRequests = JSON.parse(localStorage.getItem('reviewinn_sent_requests') || '[]');
+          if (persistedSentRequests.length > 0) {
+            console.log('🔄 Server failed, using localStorage backup:', persistedSentRequests.length);
+            setSentRequestsData(persistedSentRequests);
+          }
+        } catch (error) {
+          console.log('⚠️ Failed to load from localStorage after server failure:', error);
+        }
       }
 
       if (membersResponse.status === 'fulfilled') {
@@ -321,16 +386,53 @@ const ReviewCirclePageContent: React.FC = () => {
     }
   }, [currentUser?.id, authLoading, loadCircleData]);
 
-  // Auto-refresh data when visibility changes
+  // Auto-refresh data when visibility changes (but not too aggressively)
   useEffect(() => {
+    let lastRefreshTime = 0;
+    let lastUserActionTime = 0;
+    
+    // Track user actions to avoid interfering refreshes
+    const trackUserAction = () => {
+      lastUserActionTime = Date.now();
+    };
+    
+    // Add event listeners to track user activity
+    const events = ['click', 'keydown', 'scroll'];
+    events.forEach(event => {
+      document.addEventListener(event, trackUserAction, { passive: true });
+    });
+    
     const handleVisibilityChange = () => {
       if (!document.hidden && currentUser && apiStatus === 'online') {
-        refreshData();
+        const now = Date.now();
+        const timeSinceLastRefresh = now - lastRefreshTime;
+        const timeSinceLastAction = now - lastUserActionTime;
+        
+        // Only refresh if:
+        // - It's been more than 10 seconds since last refresh
+        // - AND it's been more than 5 seconds since last user action (to avoid interfering with ongoing actions)
+        if (timeSinceLastRefresh > 10000 && timeSinceLastAction > 5000) {
+          console.log('👁️ Visibility change refresh (throttled)');
+          refreshData();
+          lastRefreshTime = now;
+        } else {
+          console.log('🚫 Visibility change refresh skipped (too recent or recent user action)', {
+            timeSinceLastRefresh,
+            timeSinceLastAction
+          });
+        }
       }
     };
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Cleanup
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      events.forEach(event => {
+        document.removeEventListener(event, trackUserAction);
+      });
+    };
   }, [currentUser, apiStatus, refreshData]);
 
   // Persist data to localStorage
@@ -449,7 +551,21 @@ const ReviewCirclePageContent: React.FC = () => {
     });
     
     // 3. Add to sent requests for instant UI feedback
-    setSentRequestsData(prev => [newSentRequest, ...prev]);
+    setSentRequestsData(prev => {
+      // Check if request already exists to avoid duplicates
+      const exists = prev.some(req => {
+        const recipientId = String(req.recipient?.id || req.recipient?.user_id);
+        return recipientId === userIdString;
+      });
+      
+      if (exists) {
+        console.log('⚠️ Request already exists in sent requests, not adding duplicate');
+        return prev;
+      }
+      
+      console.log('➕ Adding optimistic request to sent requests');
+      return [newSentRequest, ...prev];
+    });
     
     try {
       console.log('📤 Sending circle request to:', userName || userIdString);
@@ -461,18 +577,94 @@ const ReviewCirclePageContent: React.FC = () => {
       
       console.log('✅ Circle request sent successfully:', result);
       
+      // Update the optimistic request with the real request ID immediately
+      if (result.request_id) {
+        setSentRequestsData(prev => prev.map(req => 
+          req.id === tempRequestId ? { ...req, id: result.request_id } : req
+        ));
+        console.log('🔄 Updated optimistic request with real ID:', result.request_id);
+        
+        // Also ensure it persists in local storage as backup
+        try {
+          const persistedSentRequests = JSON.parse(localStorage.getItem('reviewinn_sent_requests') || '[]');
+          const updatedPersistedRequests = persistedSentRequests.map((req: any) => 
+            req.id === tempRequestId ? { ...req, id: result.request_id } : req
+          );
+          if (updatedPersistedRequests.length === persistedSentRequests.length) {
+            // Request not found in persisted data, add it
+            updatedPersistedRequests.unshift({
+              id: result.request_id,
+              recipient: newSentRequest.recipient,
+              message: newSentRequest.message,
+              status: 'pending',
+              created_at: new Date().toISOString()
+            });
+          }
+          localStorage.setItem('reviewinn_sent_requests', JSON.stringify(updatedPersistedRequests));
+          console.log('💾 Persisted request to localStorage as backup');
+        } catch (localStorageError) {
+          console.log('⚠️ Failed to persist to localStorage:', localStorageError);
+        }
+      }
+      
       // Refresh sent requests from server in background to get real data
       setTimeout(async () => {
         try {
           const sentRequestsResponse = await circleService.getSentRequests();
-          setSentRequestsData(sentRequestsResponse.requests || []);
-          // Clear local tracking since we have fresh server data
-          setLocalSentRequests(new Set());
-          console.log('📊 Background refresh - Server sent requests:', sentRequestsResponse.requests?.length || 0);
+          const serverRequests = sentRequestsResponse.requests || [];
+          
+          // Check if our new request appears in server data
+          const newRequestInServer = serverRequests.find(req => 
+            String(req.recipient?.id || req.recipient?.user_id) === userIdString
+          );
+          
+          if (newRequestInServer) {
+            // Server has our request, replace optimistic data with real data
+            setSentRequestsData(serverRequests);
+            setLocalSentRequests(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(userIdString); // Only remove this specific request from local tracking
+              return newSet;
+            });
+            console.log('✅ Server confirmed request, updating with real data:', serverRequests.length);
+          } else {
+            // Server doesn't have our request yet, keep optimistic update but merge with server data
+            setSentRequestsData(prev => {
+              // Remove temporary request and add server requests, but keep our optimistic one if not in server
+              const withoutTemp = prev.filter(req => req.id !== tempRequestId);
+              const hasOurRequest = serverRequests.some(req => 
+                String(req.recipient?.id || req.recipient?.user_id) === userIdString
+              );
+              
+              if (hasOurRequest) {
+                // Our request is in server data, use server data
+                setLocalSentRequests(prev => {
+                  const newSet = new Set(prev);
+                  newSet.delete(userIdString); // Only remove this specific request from local tracking
+                  return newSet;
+                });
+                return serverRequests;
+              } else {
+                // Keep our optimistic request and add server requests
+                const updatedOptimisticRequest = {
+                  ...newSentRequest,
+                  id: result.request_id || tempRequestId // Use real ID if available
+                };
+                return [updatedOptimisticRequest, ...serverRequests];
+              }
+            });
+            console.log('⏳ Server not ready, keeping optimistic update alongside server data');
+          }
         } catch (error) {
-          console.log('⚠️ Background refresh failed, keeping local tracking:', error);
+          console.log('⚠️ Background refresh failed, keeping optimistic tracking:', error);
+          // Update the optimistic request with real ID if we have it
+          if (result.request_id) {
+            setSentRequestsData(prev => prev.map(req => 
+              req.id === tempRequestId ? { ...req, id: result.request_id } : req
+            ));
+          }
         }
-      }, 2000); // 2 second delay for background refresh
+      }, 1000); // Reduced delay for faster feedback
       
       showSuccess(`Circle request sent to ${userName || 'user'}!`);
     } catch (error: any) {
@@ -1073,7 +1265,7 @@ const ReviewCirclePageContent: React.FC = () => {
 
 
             {/* Main Tab Content Area - Only show one tab at a time */}
-            <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 overflow-visible">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 overflow-visible" data-tab={activeTab}>
               {/* Tab Content */}
               <div className="min-h-[400px]">
                 {activeTab === 'members' && (
@@ -1093,6 +1285,7 @@ const ReviewCirclePageContent: React.FC = () => {
                     pendingRequests={pendingRequests}
                     receivedInvites={receivedInvites}
                     onRequestResponse={handleRequestResponse}
+                    onCancelRequest={handleCancelRequest}
                   />
                 )}
                 

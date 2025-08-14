@@ -119,3 +119,44 @@ button.circle-action-button-primary {
 button.circle-action-button-primary:hover {
   background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%) !important;
 }
+
+/* Purple styling for three-dot menus across all tabs */
+.user-actions-menu-button,
+button[aria-label="User actions"] {
+  background-color: #f3e8ff !important;
+  border-color: #c4b5fd !important;
+  color: #7c3aed !important;
+}
+
+.user-actions-menu-button:hover,
+button[aria-label="User actions"]:hover {
+  background-color: #e9d5ff !important;
+  border-color: #a78bfa !important;
+}
+
+.user-actions-menu-button svg,
+button[aria-label="User actions"] svg {
+  color: #7c3aed !important;
+}
+
+/* Ensure all tabs have consistent purple three-dot buttons */
+[data-tab="members"] button[aria-label="User actions"],
+[data-tab="invites"] button[aria-label="User actions"],
+[data-tab="sent"] button[aria-label="User actions"],
+[data-tab="followers"] button[aria-label="User actions"],
+[data-tab="following"] button[aria-label="User actions"],
+[data-tab="suggestions"] button[aria-label="User actions"],
+[data-tab="blocked"] button[aria-label="User actions"] {
+  background-color: #f3e8ff !important;
+  border-color: #c4b5fd !important;
+}
+
+[data-tab="members"] button[aria-label="User actions"] svg,
+[data-tab="invites"] button[aria-label="User actions"] svg,
+[data-tab="sent"] button[aria-label="User actions"] svg,
+[data-tab="followers"] button[aria-label="User actions"] svg,
+[data-tab="following"] button[aria-label="User actions"] svg,
+[data-tab="suggestions"] button[aria-label="User actions"] svg,
+[data-tab="blocked"] button[aria-label="User actions"] svg {
+  color: #7c3aed !important;
+}

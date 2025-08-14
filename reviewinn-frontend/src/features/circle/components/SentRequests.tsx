@@ -33,7 +33,7 @@ const SentRequests: React.FC<SentRequestsProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">Sent Circle Requests ({sentRequests.length})</h2>
+        <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Sent Circle Requests ({sentRequests.length})</h2>
       </div>
       
       {sentRequests.length === 0 ? (
