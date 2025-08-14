@@ -239,10 +239,27 @@ class ProfessionalMessagingService:
                         if participant.user_id == user_id:
                             current_user_role = participant.role
                         
+                        # Create full name from first_name + last_name, with fallbacks
+                        full_name = None
+                        if user.first_name and user.last_name:
+                            full_name = f"{user.first_name} {user.last_name}".strip()
+                        elif user.first_name:
+                            full_name = user.first_name
+                        elif user.last_name:
+                            full_name = user.last_name
+                        
+                        # Use display_name, full_name, username, or fallback in that order
+                        display_name = (user.display_name or 
+                                      full_name or 
+                                      user.username or 
+                                      f"User {user.user_id}")
+                        
                         participants.append({
                             "user_id": participant.user_id, 
                             "role": participant.role,
-                            "display_name": user.display_name or user.username or f"User {user.user_id}",
+                            "display_name": display_name,
+                            "full_name": full_name,
+                            "username": user.username,
                             "avatar": user.avatar,
                             "joined_at": participant.joined_at.isoformat() if participant.joined_at else None,
                             "last_read_at": participant.last_read_at.isoformat() if participant.last_read_at else None,

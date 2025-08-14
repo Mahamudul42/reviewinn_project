@@ -100,8 +100,15 @@ const MessengerPage: React.FC = () => {
   }, [showError]);
 
   const loadMessages = useCallback(async (conversationId: number, offset: number = 0, limit?: number) => {
+    console.log(`🚀 === loadMessages called for conversation ${conversationId} ===`, {
+      conversationId,
+      offset,
+      limit,
+      timestamp: new Date().toISOString()
+    });
+    
     try {
-      console.log(`=== loadMessages called for conversation ${conversationId} ===`);
+      console.log(`Setting messagesLoading to ${offset === 0}`);
       setMessagesLoading(offset === 0);
       
       const messageLimit = limit || (offset === 0 ? 15 : 20);
@@ -113,10 +120,22 @@ const MessengerPage: React.FC = () => {
       });
       
       console.log('loadMessages response:', response);
+      console.log('loadMessages response structure:', {
+        hasResponse: !!response,
+        hasSuccess: response?.success,
+        hasData: !!response?.data,
+        hasMessages: !!(response?.data?.messages),
+        messagesCount: response?.data?.messages?.length || 0
+      });
       
-      if (response.success && response.data) {
+      if (response && response.data && response.data.messages) {
         const newMessages = response.data.messages || [];
         console.log(`Got ${newMessages.length} messages from API`);
+        console.log('Sample message:', newMessages[0] ? {
+          id: newMessages[0].message_id,
+          content: newMessages[0].content?.substring(0, 50),
+          sender: newMessages[0].sender?.name
+        } : 'No messages');
         
         if (offset === 0) {
           console.log(`Initial load: got ${newMessages.length} messages`);
@@ -294,8 +313,9 @@ const MessengerPage: React.FC = () => {
     }
   }, [handleNewMessageFromWS, handleTypingUpdateFromWS, handleMessageStatusUpdateFromWS, handleReactionUpdateFromWS]);
 
-  // WebSocket hook - always called, never conditional
+  // WebSocket hook - disabled for now since backend doesn't have WebSocket support
   const { isConnected, isConnecting, hasAttemptedConnection, sendMessage } = useWebSocket({
+    enabled: false, // Disable WebSocket until backend implements it
     onMessage: handleWebSocketMessage,
     onConnect: () => {
       console.log('✅ Connected to messenger WebSocket');
@@ -335,15 +355,25 @@ const MessengerPage: React.FC = () => {
   }, [activeConversation, sendMessage]);
 
   const handleConversationSelect = useCallback((conversation: ProfessionalConversation) => {
+    console.log('=== handleConversationSelect called ===', {
+      conversationId: conversation.conversation_id,
+      title: conversation.title,
+      activeConversationId: activeConversation?.conversation_id
+    });
+    
     if (activeConversation?.conversation_id === conversation.conversation_id) {
+      console.log('Same conversation already selected, skipping');
       return;
     }
     
+    console.log('Switching to new conversation:', conversation.conversation_id);
     setActiveConversation(conversation);
     setMessages([]);
     setTypingUsers([]);
     setIsInitialLoad(true);
     setProcessedMessages(new Set());
+    
+    console.log('About to call loadMessages for conversation:', conversation.conversation_id);
     loadMessages(conversation.conversation_id);
     
     const currentConversationId = searchParams.get('conversation');
@@ -709,18 +739,36 @@ const MessengerPage: React.FC = () => {
   // Handle conversation ID from URL params
   useEffect(() => {
     const conversationId = searchParams.get('conversation');
+    console.log('🔗 URL params useEffect triggered', {
+      conversationId,
+      conversationsLength: conversations.length,
+      activeConversationId: activeConversation?.conversation_id
+    });
+    
     if (conversationId && conversations.length > 0) {
       const targetId = parseInt(conversationId);
+      console.log('🔗 Looking for conversation ID from URL:', targetId);
+      
       if (!activeConversation || activeConversation.conversation_id !== targetId) {
         const conversation = conversations.find(c => c.conversation_id === targetId);
+        console.log('🔗 Found conversation from URL:', conversation ? {
+          id: conversation.conversation_id,
+          title: conversation.title
+        } : 'Not found');
+        
         if (conversation) {
+          console.log('🔗 Setting conversation from URL params and loading messages');
           setActiveConversation(conversation);
           setMessages([]);
           setTypingUsers([]);
           setIsInitialLoad(true);
           loadMessages(conversation.conversation_id);
         }
+      } else {
+        console.log('🔗 Conversation already active, no change needed');
       }
+    } else {
+      console.log('🔗 No conversation ID in URL or no conversations loaded yet');
     }
   }, [searchParams, conversations.length, activeConversation, loadMessages]);
 

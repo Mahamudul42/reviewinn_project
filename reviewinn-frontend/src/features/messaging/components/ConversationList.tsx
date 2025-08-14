@@ -57,7 +57,11 @@ const ConversationList: React.FC<ConversationListProps> = ({
     // For direct conversations, find the other participant
     const otherParticipant = conversation.participants?.find(p => p.user_id !== currentUserId);
     if (otherParticipant) {
-      return otherParticipant.display_name || `User ${otherParticipant.user_id}`;
+      // Priority: full_name, display_name, username, fallback
+      return (otherParticipant as any).full_name || 
+             otherParticipant.display_name || 
+             (otherParticipant as any).username ||
+             `User ${otherParticipant.user_id}`;
     }
     
     return conversation.title || 'Unknown User';
@@ -71,9 +75,23 @@ const ConversationList: React.FC<ConversationListProps> = ({
     
     // For direct conversations, use other participant's avatar
     const otherParticipant = conversation.participants?.find(p => p.user_id !== currentUserId);
-    const participantName = otherParticipant?.display_name || `User ${otherParticipant?.user_id || 'Unknown'}`;
+    if (otherParticipant) {
+      // Use actual avatar if available, otherwise fallback to generated avatar
+      const avatar = (otherParticipant as any).avatar;
+      if (avatar) {
+        return avatar;
+      }
+      
+      // Generate avatar using full name if available, otherwise display_name
+      const name = (otherParticipant as any).full_name || 
+                   otherParticipant.display_name || 
+                   (otherParticipant as any).username ||
+                   `User ${otherParticipant.user_id}`;
+      
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&size=48&background=random`;
+    }
     
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(participantName)}&size=48`;
+    return `https://ui-avatars.com/api/?name=Unknown&size=48&background=random`;
   };
 
   const getLastMessagePreview = (conversation: ProfessionalConversation): string => {
@@ -189,7 +207,13 @@ const ConversationList: React.FC<ConversationListProps> = ({
             {filteredConversations.map((conversation) => (
               <div
                 key={conversation.conversation_id}
-                onClick={() => onConversationSelect(conversation)}
+                onClick={() => {
+                  console.log('ConversationList: Conversation clicked', {
+                    id: conversation.conversation_id,
+                    title: conversation.title
+                  });
+                  onConversationSelect(conversation);
+                }}
                 className={`conversation-item p-3 rounded-lg cursor-pointer transition-all duration-200 hover:bg-white ${
                   activeConversationId === conversation.conversation_id 
                     ? 'bg-blue-50 border-l-4 border-l-blue-500 shadow-sm' 

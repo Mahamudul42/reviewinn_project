@@ -395,10 +395,26 @@ export class ProfessionalMessagingService {
       if (import.meta.env.DEV) {
         try {
           console.log('🔄 Trying debug endpoint as fallback...');
+          
           // For development, try the debug endpoint that doesn't require auth
-          // Using hardcoded user_id 23 which seems to be the current user
+          // Try to get current user ID from localStorage or use fallback
+          const authData = localStorage.getItem('reviewinn_user_data');
+          let userId = 23; // fallback
+          try {
+            if (authData) {
+              const userData = JSON.parse(authData);
+              console.log('Parsed user data for conversations:', { id: userData.id, name: userData.name });
+              userId = parseInt(userData.id) || 23;
+              console.log('Converted userId to integer for conversations:', userId);
+            }
+          } catch (e) {
+            console.log('Could not parse user data for conversations, using fallback user_id 23', e);
+          }
+          
+          console.log('Using user_id for debug conversations:', userId);
+          
           const debugResponse = await httpClient.get(
-            `${this.baseURL}${this.apiPrefix}/debug/conversations/23`,
+            `${this.baseURL}${this.apiPrefix}/debug/conversations/${userId}`,
             false  // No auth required for debug endpoint
           );
           
@@ -652,50 +668,105 @@ export class ProfessionalMessagingService {
       if (options.search) params.append('search', options.search);
       if (options.messageType) params.append('message_type', options.messageType);
 
-      console.log('🔄 Getting messages with auth...');
+      console.log('🔄 Getting messages with auth...', {
+        conversationId,
+        url: `${this.baseURL}${this.apiPrefix}/conversations/${conversationId}/messages?${params}`,
+        options
+      });
       const response = await httpClient.get(
         `${this.baseURL}${this.apiPrefix}/conversations/${conversationId}/messages?${params}`,
         true
       );
       
       console.log('📥 Messages response:', response);
-      return response.data;
+      console.log('📥 Messages response structure:', {
+        hasResponse: !!response,
+        hasData: !!(response?.data),
+        hasMessages: !!(response?.data?.messages),
+        messagesCount: response?.data?.messages?.length || 0
+      });
+      return response;
     } catch (error: any) {
       console.error('❌ Messages API failed:', error);
+      console.error('Error details:', {
+        message: error?.message,
+        status: error?.status,
+        type: error?.type,
+        name: error?.name
+      });
       
       // In development, try debug endpoint as fallback
       if (import.meta.env.DEV) {
         try {
           console.log('🔄 Trying debug messages endpoint as fallback...');
+          
           // For development, try the debug endpoint that doesn't require auth
-          // Using hardcoded user_id 23 which seems to be the current user
+          // Try to get current user ID from localStorage or use fallback
+          const authData = localStorage.getItem('reviewinn_user_data');
+          let userId = 23; // fallback
+          try {
+            if (authData) {
+              const userData = JSON.parse(authData);
+              console.log('Parsed user data:', { id: userData.id, name: userData.name });
+              userId = parseInt(userData.id) || 23;
+              console.log('Converted userId to integer:', userId);
+            }
+          } catch (e) {
+            console.log('Could not parse user data, using fallback user_id 23', e);
+          }
+          
+          console.log('Using user_id for debug messages:', userId);
+          
           const debugParams = new URLSearchParams({
             limit: (options.limit || 50).toString(),
           });
           
+          const debugUrl = `${this.baseURL}${this.apiPrefix}/debug/conversations/${conversationId}/messages/${userId}?${debugParams}`;
+          console.log('Debug URL will be:', debugUrl);
+          
           const debugResponse = await httpClient.get(
-            `${this.baseURL}${this.apiPrefix}/debug/conversations/${conversationId}/messages/23?${debugParams}`,
+            `${this.baseURL}${this.apiPrefix}/debug/conversations/${conversationId}/messages/${userId}?${debugParams}`,
             false  // No auth required for debug endpoint
           );
           
           console.log('📥 Debug messages response:', debugResponse);
+          console.log('📥 Debug response structure:', {
+            hasResponse: !!debugResponse,
+            hasSuccess: !!(debugResponse?.success),
+            hasData: !!(debugResponse?.data),
+            hasMessages: !!(debugResponse?.data?.messages),
+            messagesCount: debugResponse?.data?.messages?.length || 0
+          });
           
           if (debugResponse.success && debugResponse.data) {
+            console.log('✅ Debug fallback successful, returning messages');
             return {
               success: true,
               data: {
-                messages: debugResponse.data.messages,
+                messages: debugResponse.data.messages || [],
                 count: debugResponse.data.messages?.length || 0,
                 has_more: debugResponse.data.has_more || false
               }
             };
+          } else {
+            console.log('❌ Debug fallback returned unsuccessful response:', debugResponse);
           }
         } catch (debugError) {
           console.error('❌ Debug messages endpoint also failed:', debugError);
         }
       }
       
-      throw this.handleError('Failed to get messages', error);
+      // If we get here, both regular API and debug fallback failed
+      console.error('Both regular API and debug fallback failed for messages');
+      return {
+        success: false,
+        error: `Failed to get messages: ${error.message || error}`,
+        data: {
+          messages: [],
+          count: 0,
+          has_more: false
+        }
+      };
     }
   }
 
