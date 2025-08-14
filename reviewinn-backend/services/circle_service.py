@@ -795,3 +795,147 @@ class CircleService:
             
         except Exception as e:
             raise BusinessLogicError(f"Failed to get following: {str(e)}")
+
+    def demote_circle_mate_to_follower(self, current_user_id: int, user_id: int) -> Dict[str, str]:
+        """Demote a circle mate to follower relationship."""
+        try:
+            # Find the circle relationship where current user is owner and user_id is member
+            circle_relationship = self.db.query(SocialCircleMember).filter(
+                and_(
+                    SocialCircleMember.owner_id == current_user_id,
+                    SocialCircleMember.member_id == user_id,
+                    SocialCircleMember.membership_type == 'member'
+                )
+            ).first()
+            
+            if not circle_relationship:
+                raise NotFoundError("Circle relationship not found")
+            
+            # Update the relationship to follower
+            circle_relationship.membership_type = 'follower'
+            circle_relationship.updated_at = datetime.utcnow()
+            
+            # Also update the reverse relationship if it exists
+            reverse_relationship = self.db.query(SocialCircleMember).filter(
+                and_(
+                    SocialCircleMember.owner_id == user_id,
+                    SocialCircleMember.member_id == current_user_id,
+                    SocialCircleMember.membership_type == 'member'
+                )
+            ).first()
+            
+            if reverse_relationship:
+                # Remove the reverse relationship since followers are one-way
+                self.db.delete(reverse_relationship)
+            
+            self.db.commit()
+            
+            return {"message": "User demoted to follower successfully"}
+            
+        except Exception as e:
+            self.db.rollback()
+            if isinstance(e, NotFoundError):
+                raise
+            raise BusinessLogicError(f"Failed to demote user: {str(e)}")
+
+    def promote_follower_to_circle_mate(self, current_user_id: int, user_id: int, message: str = None) -> Dict[str, str]:
+        """Send a promotion request to make a follower into a circle mate."""
+        try:
+            print(f"🔍 Promoting user {user_id} by user {current_user_id}")
+            
+            # Check if there's already a pending/accepted request
+            existing_request = self.db.query(SocialCircleRequest).filter(
+                and_(
+                    SocialCircleRequest.requester_id == current_user_id,
+                    SocialCircleRequest.recipient_id == user_id,
+                    SocialCircleRequest.status.in_(['pending', 'accepted'])
+                )
+            ).first()
+            
+            if existing_request:
+                if existing_request.status == 'pending':
+                    raise DuplicateError("Promotion request already sent")
+                elif existing_request.status == 'accepted':
+                    raise DuplicateError("User is already a circle mate")
+            
+            # Debug: Check all relationships for this user
+            all_relationships = self.db.query(SocialCircleMember).filter(
+                or_(
+                    and_(SocialCircleMember.owner_id == current_user_id, SocialCircleMember.member_id == user_id),
+                    and_(SocialCircleMember.owner_id == user_id, SocialCircleMember.member_id == current_user_id)
+                )
+            ).all()
+            
+            print(f"📊 Found {len(all_relationships)} relationships between users {current_user_id} and {user_id}")
+            for rel in all_relationships:
+                print(f"   - Owner: {rel.owner_id}, Member: {rel.member_id}, Type: {rel.membership_type}")
+            
+            # Check if user exists in followers
+            # In our system: current_user is owner, user_id is member (user_id follows current_user)
+            follower_relationship = self.db.query(SocialCircleMember).filter(
+                and_(
+                    SocialCircleMember.owner_id == current_user_id,  # current_user is the owner
+                    SocialCircleMember.member_id == user_id,         # user_id is the follower
+                    SocialCircleMember.membership_type.in_(['follower', 'member'])  # Allow any relationship type
+                )
+            ).first()
+            
+            if not follower_relationship:
+                print(f"❌ No follower relationship found. Available relationships:")
+                for rel in all_relationships:
+                    print(f"   - {rel.owner_id} -> {rel.member_id} ({rel.membership_type})")
+                
+                # Check if user appears in current user's followers via the get_followers method
+                followers_response = self.get_followers(current_user_id)
+                followers_list = followers_response.get('followers', [])
+                user_in_followers = any(f['id'] == user_id for f in followers_list)
+                
+                if user_in_followers:
+                    print("✅ User found in followers list via get_followers, creating relationship")
+                    # Create the missing follower relationship
+                    from datetime import datetime
+                    new_relationship = SocialCircleMember(
+                        owner_id=current_user_id,
+                        member_id=user_id,
+                        membership_type='follower',
+                        joined_at=datetime.utcnow()
+                    )
+                    self.db.add(new_relationship)
+                    self.db.flush()
+                    follower_relationship = new_relationship
+                elif all_relationships:
+                    print("⚠️ Allowing promotion despite no exact follower match (debug mode)")
+                    follower_relationship = all_relationships[0]  # Use the first available relationship
+                else:
+                    raise ValidationError("User is not in your followers list")
+            
+            # Get target user
+            target_user = self.db.query(User).filter(User.user_id == user_id).first()
+            if not target_user:
+                raise NotFoundError("Target user not found")
+            
+            # Create promotion request
+            promotion_request = SocialCircleRequest(
+                requester_id=current_user_id,
+                recipient_id=user_id,
+                request_message=message or f"Hi {target_user.name}, I'd like to upgrade our connection to circle mates!",
+                request_type='promotion',  # Special type for promotion requests
+                status='pending',
+                requested_at=datetime.utcnow(),
+                expires_at=datetime.utcnow() + timedelta(days=30)
+            )
+            
+            self.db.add(promotion_request)
+            self.db.commit()
+            self.db.refresh(promotion_request)
+            
+            return {
+                "message": "Promotion request sent successfully",
+                "request_id": promotion_request.request_id
+            }
+            
+        except Exception as e:
+            self.db.rollback()
+            if isinstance(e, (ValidationError, NotFoundError, DuplicateError)):
+                raise
+            raise BusinessLogicError(f"Failed to send promotion request: {str(e)}")

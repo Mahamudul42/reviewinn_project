@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { MoreVertical, UserMinus, Ban, Eye, Shield, Users, TrendingUp, UserPlus, Search } from 'lucide-react';
 import { circleService } from '../../../api/services';
 import UserDisplay from './UserDisplay';
+import UserActionsMenu from './UserActionsMenu';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import Pagination from '../../../shared/components/Pagination';
 import type { CircleMember } from '../../../types';
@@ -14,6 +15,7 @@ interface CircleMembersProps {
   onUpdateTrustLevel: (memberId: string, trustLevel: string, userName: string) => void;
   onRemoveUser: (memberId: string, userName: string) => void;
   onBlockUser: (userId: string, userName: string) => void;
+  onDemoteToFollower: (userId: string) => void;
 }
 
 const CircleMembers: React.FC<CircleMembersProps> = ({
@@ -22,7 +24,8 @@ const CircleMembers: React.FC<CircleMembersProps> = ({
   onToggleUserMenu,
   onUpdateTrustLevel,
   onRemoveUser,
-  onBlockUser
+  onBlockUser,
+  onDemoteToFollower
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -95,7 +98,7 @@ const CircleMembers: React.FC<CircleMembersProps> = ({
                     </button>
                         
                     {openMenus.has(member.connection_id) && (
-                      <div className="absolute right-0 top-8 bg-white border border-purple-200 rounded-lg shadow-lg z-10 min-w-48">
+                      <div className="absolute right-0 top-8 bg-white border border-purple-200 rounded-lg shadow-lg z-50 min-w-48 transform -translate-x-full">
                         <div className="py-1">
                           {/* Trust Level Options */}
                           <div className="px-3 py-2 text-xs font-medium text-purple-600 border-b border-purple-100">
@@ -156,10 +159,20 @@ const CircleMembers: React.FC<CircleMembersProps> = ({
                           {/* Actions */}
                           <button
                             onClick={() => {
+                              onDemoteToFollower(String(member.user.id || member.user.user_id || ''));
+                              onToggleUserMenu(member.connection_id);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-blue-50 text-blue-600 flex items-center space-x-2"
+                          >
+                            <UserMinus size={14} />
+                            <span>Demote to Follower</span>
+                          </button>
+                          <button
+                            onClick={() => {
                               onRemoveUser(member.connection_id, member.user.name);
                               onToggleUserMenu(member.connection_id);
                             }}
-                            className="w-full text-left px-3 py-2 text-sm hover:bg-red-50 text-red-600 flex items-center space-x-2"
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-orange-50 text-orange-600 flex items-center space-x-2"
                           >
                             <UserMinus size={14} />
                             <span>Remove from Circle</span>

@@ -265,7 +265,9 @@ export const API_ENDPOINTS = {
     UNBLOCK_USER: (userId: string) => `/circles/unblock-user/${userId}`,
     BLOCKED_USERS: '/circles/blocked-users',
     FOLLOWERS: '/circles/followers',
-    FOLLOWING: '/circles/following'
+    FOLLOWING: '/circles/following',
+    DEMOTE_TO_FOLLOWER: '/circles/demote-to-follower',
+    PROMOTE_TO_CIRCLE_MATE: '/circles/promote-to-circle-mate'
   }
 } as const;
 

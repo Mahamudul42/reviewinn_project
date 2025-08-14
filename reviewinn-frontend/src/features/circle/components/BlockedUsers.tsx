@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Ban, EyeOff, Shield, CheckCircle } from 'lucide-react';
 import UserDisplay from './UserDisplay';
+import UserActionsMenu from './UserActionsMenu';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import Pagination from '../../../shared/components/Pagination';
 import type { User } from '../../../types';
@@ -71,13 +72,13 @@ const BlockedUsers: React.FC<BlockedUsersProps> = ({
                     </span>
                   }
                   actions={
-                    <button
-                      onClick={() => onUnblockUser(user.id, user.name)}
-                      className="circle-action-button-primary px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 flex items-center space-x-1.5 shadow-sm"
-                    >
-                      <EyeOff size={14} />
-                      <span>Unblock</span>
-                    </button>
+                    <UserActionsMenu
+                      userId={String(user.id)}
+                      userName={user.name}
+                      userType="blocked"
+                      isBlocked={true}
+                      onUnblock={onUnblockUser}
+                    />
                   }
                   showClickable={false}
                 />

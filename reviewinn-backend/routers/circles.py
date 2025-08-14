@@ -330,3 +330,43 @@ async def get_following(
         return circle_service.get_following(current_user.user_id)
     except Exception as e:
         return handle_service_error(e)
+
+@router.post("/demote-to-follower", status_code=status.HTTP_200_OK)
+async def demote_circle_mate_to_follower(
+    request_data: dict,
+    current_user: User = Depends(AuthDependencies.get_current_user),
+    circle_service: CircleService = Depends(get_circle_service)
+):
+    """
+    Demote a circle mate to follower status.
+    
+    - **user_id**: ID of the user to demote
+    """
+    try:
+        user_id = request_data.get('user_id')
+        if not user_id:
+            raise ValueError("user_id is required")
+        return circle_service.demote_circle_mate_to_follower(current_user.user_id, int(user_id))
+    except Exception as e:
+        return handle_service_error(e)
+
+@router.post("/promote-to-circle-mate", status_code=status.HTTP_201_CREATED)
+async def promote_follower_to_circle_mate(
+    request_data: dict,
+    current_user: User = Depends(AuthDependencies.get_current_user),
+    circle_service: CircleService = Depends(get_circle_service)
+):
+    """
+    Send a promotion request to make a follower into a circle mate.
+    
+    - **user_id**: ID of the follower to promote
+    - **message**: Optional message with the promotion request
+    """
+    try:
+        user_id = request_data.get('user_id')
+        message = request_data.get('message')
+        if not user_id:
+            raise ValueError("user_id is required")
+        return circle_service.promote_follower_to_circle_mate(current_user.user_id, int(user_id), message)
+    except Exception as e:
+        return handle_service_error(e)

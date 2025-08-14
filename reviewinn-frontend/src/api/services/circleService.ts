@@ -349,6 +349,38 @@ export class CircleService {
     }
   }
 
+  /**
+   * Demote a circle mate to follower status
+   */
+  async demoteToFollower(userId: string): Promise<{ message: string }> {
+    try {
+      const response = await httpClient.post<{ message: string }>(
+        `${this.baseUrl}${API_ENDPOINTS.CIRCLES.DEMOTE_TO_FOLLOWER}`,
+        { user_id: parseInt(userId) }
+      );
+      return response.data!;
+    } catch (error) {
+      console.error('Failed to demote to follower:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Send a promotion request to make a follower into a circle mate
+   */
+  async promoteToCircleMate(userId: string, message?: string): Promise<{ message: string; request_id: number }> {
+    try {
+      const response = await httpClient.post<{ message: string; request_id: number }>(
+        `${this.baseUrl}${API_ENDPOINTS.CIRCLES.PROMOTE_TO_CIRCLE_MATE}`,
+        { user_id: parseInt(userId), message }
+      );
+      return response.data!;
+    } catch (error) {
+      console.error('Failed to promote to circle mate:', error);
+      throw error;
+    }
+  }
+
   // Legacy method aliases for backward compatibility
   async getReceivedInvites(): Promise<CircleRequestListResponse> {
     return this.getPendingRequests();

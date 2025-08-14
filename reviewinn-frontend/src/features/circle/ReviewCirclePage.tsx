@@ -19,6 +19,8 @@ import {
   CircleNavigation,
   UserSearchBar 
 } from './components';
+import UserActionsMenu from './components/UserActionsMenu';
+import UserDisplay from './components/UserDisplay';
 import type { 
   CircleMember, 
   CircleInvite, 
@@ -870,6 +872,68 @@ const ReviewCirclePageContent: React.FC = () => {
     }
   };
 
+  const handleDemoteToFollower = async (userId: string) => {
+    const member = members.find(m => String(m.user.id) === String(userId));
+    if (!member) return;
+    
+    const confirmed = await confirm({
+      title: 'Demote to Follower',
+      message: `Are you sure you want to demote ${member.user.name} from circle mate to follower?`,
+      confirmText: 'Demote',
+      cancelText: 'Cancel'
+    });
+    
+    if (!confirmed) return;
+    
+    try {
+      await circleService.demoteToFollower(userId);
+      
+      // Remove from members
+      setMembers(prev => prev.filter(m => String(m.user.id) !== String(userId)));
+      
+      // Add to followers
+      const newFollower = {
+        id: member.user.id,
+        name: member.user.name,
+        username: member.user.username,
+        avatar: member.user.avatar
+      };
+      setFollowers(prev => [newFollower, ...prev]);
+      
+      showSuccess(`${member.user.name} has been demoted to follower.`);
+    } catch (error) {
+      console.error('Failed to demote user:', error);
+      showError('Failed to demote user. Please try again.');
+    }
+  };
+
+  const handlePromoteToCircleMate = async (userId: string) => {
+    const follower = followers.find(f => String(f.id) === String(userId));
+    if (!follower) return;
+    
+    const message = await prompt({
+      title: 'Promote to Circle Mate',
+      message: `Send a promotion request to ${follower.name} to become a circle mate?`,
+      placeholder: 'Optional message...',
+      confirmText: 'Send Request',
+      cancelText: 'Cancel'
+    });
+    
+    if (message === null) return;
+    
+    try {
+      await circleService.promoteToCircleMate(userId, message);
+      showSuccess(`Promotion request sent to ${follower.name}.`);
+    } catch (error: any) {
+      console.error('Failed to send promotion request:', error);
+      if (error.message?.includes('already sent')) {
+        showError('Promotion request already sent to this user.');
+      } else {
+        showError('Failed to send promotion request. Please try again.');
+      }
+    }
+  };
+
 
   // Main render
   return (
@@ -1009,7 +1073,7 @@ const ReviewCirclePageContent: React.FC = () => {
 
 
             {/* Main Tab Content Area - Only show one tab at a time */}
-            <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 overflow-visible">
               {/* Tab Content */}
               <div className="min-h-[400px]">
                 {activeTab === 'members' && (
@@ -1020,6 +1084,7 @@ const ReviewCirclePageContent: React.FC = () => {
                     onUpdateTrustLevel={handleUpdateTrustLevel}
                     onRemoveUser={handleRemoveUser}
                     onBlockUser={handleBlockUser}
+                    onDemoteToFollower={handleDemoteToFollower}
                   />
                 )}
                 
@@ -1080,22 +1145,38 @@ const ReviewCirclePageContent: React.FC = () => {
                     ) : (
                       <div className="grid gap-4">
                         {followers.map((follower) => (
-                          <div key={follower.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-3">
-                                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
-                                  {follower.avatar ? (
-                                    <img src={follower.avatar} alt={follower.name} className="w-12 h-12 rounded-full object-cover" />
-                                  ) : (
-                                    <span className="text-white text-lg font-semibold">
-                                      {follower.name?.charAt(0) || follower.username?.charAt(0) || '?'}
-                                    </span>
-                                  )}
-                                </div>
-                                <div>
-                                  <h4 className="font-semibold text-gray-900">{follower.name || follower.username}</h4>
-                                  <p className="text-sm text-gray-500">@{follower.username}</p>
-                                </div>
+                          <div key={follower.id} className="bg-gradient-to-br from-white to-purple-50 border border-purple-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-200">
+                            <div className="space-y-3">
+                              <UserDisplay 
+                                user={{
+                                  id: follower.id,
+                                  name: follower.name,
+                                  username: follower.username,
+                                  avatar: follower.avatar
+                                }}
+                                size="lg"
+                                badge={
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    <Heart size={12} className="mr-1" />
+                                    Follower
+                                  </span>
+                                }
+                                subtitle={`Following since ${follower.followed_since ? new Date(follower.followed_since).toLocaleDateString() : 'recently'}`}
+                                actions={
+                                  <UserActionsMenu
+                                    userId={String(follower.id)}
+                                    userName={follower.name || follower.username}
+                                    userType="follower"
+                                    onPromoteToCircleMate={handlePromoteToCircleMate}
+                                    onBlock={handleBlockUser}
+                                  />
+                                }
+                              />
+                              
+                              <div className="flex items-center space-x-4 text-sm text-gray-600 pl-15">
+                                <span className="font-medium text-blue-600">Follower</span>
+                                <span>•</span>
+                                <span>Can be promoted to Circle Mate</span>
                               </div>
                             </div>
                           </div>
@@ -1122,22 +1203,37 @@ const ReviewCirclePageContent: React.FC = () => {
                     ) : (
                       <div className="grid gap-4">
                         {following.map((followingUser) => (
-                          <div key={followingUser.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-3">
-                                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center">
-                                  {followingUser.avatar ? (
-                                    <img src={followingUser.avatar} alt={followingUser.name} className="w-12 h-12 rounded-full object-cover" />
-                                  ) : (
-                                    <span className="text-white text-lg font-semibold">
-                                      {followingUser.name?.charAt(0) || followingUser.username?.charAt(0) || '?'}
-                                    </span>
-                                  )}
-                                </div>
-                                <div>
-                                  <h4 className="font-semibold text-gray-900">{followingUser.name || followingUser.username}</h4>
-                                  <p className="text-sm text-gray-500">@{followingUser.username}</p>
-                                </div>
+                          <div key={followingUser.id} className="bg-gradient-to-br from-white to-purple-50 border border-purple-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-200">
+                            <div className="space-y-3">
+                              <UserDisplay 
+                                user={{
+                                  id: followingUser.id,
+                                  name: followingUser.name,
+                                  username: followingUser.username,
+                                  avatar: followingUser.avatar
+                                }}
+                                size="lg"
+                                badge={
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <UserCheck size={12} className="mr-1" />
+                                    Following
+                                  </span>
+                                }
+                                subtitle={`Following since ${followingUser.followed_since ? new Date(followingUser.followed_since).toLocaleDateString() : 'recently'}`}
+                                actions={
+                                  <UserActionsMenu
+                                    userId={String(followingUser.id)}
+                                    userName={followingUser.name || followingUser.username}
+                                    userType="following"
+                                    onBlock={handleBlockUser}
+                                  />
+                                }
+                              />
+                              
+                              <div className="flex items-center space-x-4 text-sm text-gray-600 pl-15">
+                                <span className="font-medium text-green-600">Following</span>
+                                <span>•</span>
+                                <span className="capitalize">{followingUser.relationship_type || 'Connection'}</span>
                               </div>
                             </div>
                           </div>
