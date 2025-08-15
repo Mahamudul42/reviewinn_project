@@ -335,7 +335,7 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
   const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
   
   const modalHeight = Math.min(800, viewportHeight * 0.9);
-  const modalWidth = Math.min(800, viewportWidth * 0.9);
+  const modalWidth = Math.min(672, viewportWidth * 0.9); // Match middle panel max-w-2xl
   
   const centerTop = scrollTop + (viewportHeight / 2) - (modalHeight / 2);
   const centerLeft = scrollLeft + (viewportWidth / 2) - (modalWidth / 2);

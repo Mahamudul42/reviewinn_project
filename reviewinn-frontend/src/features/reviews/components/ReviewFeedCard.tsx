@@ -11,6 +11,7 @@ import ReviewCardActions from './ReviewCardActions';
 import ReviewCardSubRatings from '../../../shared/molecules/ReviewCardSubRatings';
 import ReviewCardMenu from './ReviewCardMenu';
 import AuthModal from '../../auth/components/AuthModal';
+import { useToast } from '../../../shared/components/ToastProvider';
 import ReviewDetailModal from './ReviewDetailModal';
 import ReviewEditModal from './ReviewEditModal';
 import ReviewDeleteModal from './ReviewDeleteModal';
@@ -56,6 +57,7 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
   onViewCountUpdate
 }) => {
   const menuButtonRef = useRef<HTMLButtonElement>(null!);
+  const { showToast } = useToast();
   
   // Local state for edit/delete modals
   const [showEditModal, setShowEditModal] = useState(false);
@@ -175,6 +177,12 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
           reviewId: review.id,
           isBookmarked: false
         });
+        showToast({
+          type: 'success',
+          title: 'Review Unsaved',
+          message: 'This review has been removed from your saved collection.',
+          icon: '📖'
+        });
       } else {
         // Save with collection and tags
         userInteractionService.updateUserInteraction(review.id, {
@@ -184,11 +192,23 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
           // collection: collectionName,
           // tags: tags
         });
+        showToast({
+          type: 'success',
+          title: 'Review Saved',
+          message: `Review has been saved to "${collectionName}" collection.`,
+          icon: '🔖'
+        });
       }
       
       console.log(collectionName ? 'Review saved!' : 'Review unsaved!');
     } catch (error) {
       console.error('Error saving review:', error);
+      showToast({
+        type: 'error',
+        title: 'Save Failed',
+        message: 'Failed to save the review. Please try again.',
+        icon: '⚠️'
+      });
       throw error;
     }
   };
@@ -223,9 +243,21 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
         reviewId: review.id,
         isHelpful: true
       });
+      showToast({
+        type: 'success',
+        title: 'Marked as Interested',
+        message: 'This review has been added to your interested list.',
+        icon: '➕'
+      });
       console.log('Marked as interested');
     } catch (error) {
       console.error('Error marking as interested:', error);
+      showToast({
+        type: 'error',
+        title: 'Action Failed',
+        message: 'Failed to mark review as interested. Please try again.',
+        icon: '⚠️'
+      });
     }
   };
 
@@ -236,9 +268,21 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
         reviewId: review.id,
         isHelpful: false
       });
+      showToast({
+        type: 'success',
+        title: 'Marked as Not Interested',
+        message: 'This review has been marked as not helpful for you.',
+        icon: '➖'
+      });
       console.log('Marked as not interested');
     } catch (error) {
       console.error('Error marking as not interested:', error);
+      showToast({
+        type: 'error',
+        title: 'Action Failed',
+        message: 'Failed to mark review as not interested. Please try again.',
+        icon: '⚠️'
+      });
     }
   };
 
@@ -247,8 +291,20 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
     try {
       // This would need a notifications service implementation
       console.log('Updated notification settings:', settings);
+      showToast({
+        type: 'success',
+        title: 'Notifications Updated',
+        message: 'Your notification preferences have been updated successfully.',
+        icon: '🔔'
+      });
     } catch (error) {
       console.error('Error updating notification settings:', error);
+      showToast({
+        type: 'error',
+        title: 'Update Failed',
+        message: 'Failed to update notification settings. Please try again.',
+        icon: '⚠️'
+      });
       throw error;
     }
   };

@@ -115,21 +115,29 @@ const SaveReviewModal: React.FC<SaveReviewModalProps> = ({
 
   if (!isOpen) return null;
 
+  // Calculate the current viewport center dynamically
+  const viewportHeight = window.innerHeight;
+  const viewportWidth = window.innerWidth;
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+  
+  const modalHeight = Math.min(600, viewportHeight * 0.9);
+  const modalWidth = Math.min(672, viewportWidth * 0.9); // Match middle panel max-w-2xl
+  
+  const centerTop = scrollTop + (viewportHeight / 2) - (modalHeight / 2);
+  const centerLeft = scrollLeft + (viewportWidth / 2) - (modalWidth / 2);
+
   return createPortal(
     <div
       style={{
-        position: 'fixed',
+        position: 'absolute',
         top: 0,
         left: 0,
-        right: 0,
-        bottom: 0,
+        width: '100%',
+        height: Math.max(document.documentElement.scrollHeight, viewportHeight),
         zIndex: 99999,
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
         background: 'rgba(0,0,0,0.5)',
-        padding: '20px',
-        boxSizing: 'border-box',
+        pointerEvents: 'auto',
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget && !isSubmitting) {
@@ -138,15 +146,18 @@ const SaveReviewModal: React.FC<SaveReviewModalProps> = ({
       }}
     >
       <div style={{
+        position: 'absolute',
+        top: `${centerTop}px`,
+        left: `${centerLeft}px`,
+        width: `${modalWidth}px`,
+        maxHeight: `${modalHeight}px`,
         background: 'white',
         borderRadius: 12,
         boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
-        maxWidth: 600,
-        width: '100%',
-        maxHeight: 'calc(100vh - 40px)',
-        overflow: 'auto',
-        position: 'relative',
-        zIndex: 100000,
+        border: '1px solid rgba(0, 0, 0, 0.05)',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
       }}>
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -177,9 +188,16 @@ const SaveReviewModal: React.FC<SaveReviewModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div style={{ 
+          flex: 1, 
+          overflowY: 'auto', 
+          padding: '24px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '20px'
+        }}>
           {/* Review Preview */}
-          <div className="bg-gray-50 rounded-lg p-4 mb-6">
+          <div className="bg-gray-50 rounded-lg p-4">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                 <span className="text-sm font-medium text-blue-600">
