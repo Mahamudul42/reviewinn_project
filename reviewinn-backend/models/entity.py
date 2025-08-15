@@ -104,10 +104,16 @@ class Entity(Base):
             "viewAnalytics": self.view_analytics,
             # Optimized engagement metrics (cached for performance)
             "averageRating": float(self.average_rating) if self.average_rating else 0,
-            "reviewCount": self.review_count,
-            "viewCount": self.view_count,
-            "reactionCount": self.reaction_count,
-            "commentCount": self.comment_count,
+            "reviewCount": self.review_count or 0,
+            "viewCount": self.view_count or 0,
+            "reactionCount": self.reaction_count or 0,
+            "commentCount": self.comment_count or 0,
+            # Snake case versions for API compatibility
+            "average_rating": float(self.average_rating) if self.average_rating else 0,
+            "review_count": self.review_count or 0,
+            "view_count": self.view_count or 0,
+            "reaction_count": self.reaction_count or 0,
+            "comment_count": self.comment_count or 0,
             # Entity status
             "isVerified": self.is_verified,
             "isClaimed": self.is_claimed,

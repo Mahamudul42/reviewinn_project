@@ -233,54 +233,66 @@ export interface LegacySubcategory {
 }
 
 export interface Entity {
-  id: string;
-  entity_id: string;
+  // Primary identifiers (from core_entities table)
+  entity_id: number;
+  id: string; // Frontend compatibility (string version of entity_id)
   name: string;
-  description: string;
-  // Use hierarchical category system exclusively
-  root_category_id?: number; // Root level category (level 1) - for fallback review questions
-  final_category_id?: number; // Final selected category (any level) - for specific review questions
-  root_category_name?: string; // Root category name for display
-  final_category_name?: string; // Final category name for display
-  category_breadcrumb?: CategoryBreadcrumb[]; // Category hierarchy path
-  category_display?: string; // Human-readable category path (e.g., "Professionals > Doctors > Cardiologists")
+  description?: string;
+  
+  // Media and contact info
   avatar?: string;
-  imageUrl?: string;
-  // Core entities fields
+  website?: string;
+  images?: string[];
+  
+  // JSONB category fields for enterprise scalability
+  root_category?: CategoryInfo; // Root category JSONB object
+  final_category?: CategoryInfo; // Final category JSONB object
+  category_breadcrumb?: CategoryBreadcrumb[]; // Computed category hierarchy
+  category_display?: string; // Human-readable category path
+  
+  // Status fields
   is_verified?: boolean;
   is_active?: boolean;
-  verification_status?: string;
-  verification_date?: string;
-  verified_by?: number;
-  // Review and engagement stats (from core_entities table)
-  review_count?: number;
+  is_claimed?: boolean;
+  claimed_by?: number;
+  claimed_at?: string;
+  
+  // Cached engagement metrics for 10M+ user performance
   average_rating?: number;
-  total_views?: number;
+  review_count?: number;
+  reaction_count?: number;
+  comment_count?: number;
   view_count?: number;
-  interaction_count?: number;
-  // Enhanced category info (JSON fields in core_entities) - overrides CategoryInfo types above
-  final_category?: any; // JSON field storing category details
-  root_category?: any; // JSON field storing root category details
-  category_path?: string; // String representation of category path
-  // Legacy compatibility
+  
+  // JSONB data fields for enterprise flexibility
+  metadata?: Record<string, any>;
+  roles?: Array<Record<string, any>>;
+  related_entities?: Array<Record<string, any>>;
+  business_info?: Record<string, any>;
+  claim_data?: Record<string, any>;
+  view_analytics?: Record<string, any>;
+  
+  // Timestamps
+  created_at?: string;
+  updated_at?: string;
+  createdAt?: string; // Frontend compatibility
+  updatedAt?: string; // Frontend compatibility
+  
+  // Legacy compatibility fields (deprecated but kept for migration)
   isVerified?: boolean;
   isClaimed?: boolean;
   claimedBy?: number;
   claimedAt?: string;
-  context?: EntityContext;
-  relatedEntityIds?: string[];
   averageRating?: number;
   reviewCount?: number;
-  createdAt: string;
-  updatedAt: string;
-  created_at?: string; // Database field name
-  updated_at?: string; // Database field name
+  reactionCount?: number;
+  commentCount?: number;
+  viewCount?: number;
+  imageUrl?: string;
+  context?: EntityContext;
+  relatedEntityIds?: string[];
   fields?: Record<string, any>;
   customFields?: Record<string, any>;
-  // Additional metadata
-  metadata?: Record<string, any>;
-  search_vector?: string; // For search optimization
-  slug?: string; // URL-friendly identifier
 }
 
 export interface EntityContext {
@@ -367,15 +379,24 @@ export interface ReviewFormData {
 
 export interface EntityFormData {
   name: string;
-  description: string;
-  // JSONB-only category approach (source of truth)
-  root_category?: UnifiedCategory; // Root level category with full details {id, name, slug, icon, color, level}
-  final_category?: UnifiedCategory; // Final selected category with full details {id, name, slug, icon, color, level}
-  avatar?: string; // Entity image/avatar URL
+  description?: string;
+  avatar?: string;
+  website?: string;
+  images?: string[];
+  // JSONB category fields for enterprise scalability
+  root_category?: Record<string, any>; // Root category JSONB object
+  final_category?: Record<string, any>; // Final category JSONB object
+  metadata?: Record<string, any>;
+  roles?: Array<Record<string, any>>;
+  related_entities?: Array<Record<string, any>>;
+  business_info?: Record<string, any>;
+  claim_data?: Record<string, any>;
+  view_analytics?: Record<string, any>;
+  // Legacy compatibility
   context?: EntityContext;
   additionalContexts?: EntityContext[];
-  fields: Record<string, any>;
-  customFields: Record<string, any>;
+  fields?: Record<string, any>;
+  customFields?: Record<string, any>;
 }
 
 export interface SubcategoryConfig {

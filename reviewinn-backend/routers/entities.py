@@ -46,17 +46,12 @@ async def get_entities(
     try:
         logger.debug(f"Getting OPTIMIZED entities: page={page}, limit={limit}, final_category_id={final_category_id}")
         
-        # PERFORMANCE OPTIMIZED: Build query with eager loading for hierarchical categories
-        from sqlalchemy.orm import selectinload
+        # PERFORMANCE OPTIMIZED: Direct query with indexed JSONB fields for 10M+ users
+        query = db.query(Entity).filter(Entity.is_active == True)
         
-        query = db.query(Entity).options(
-            selectinload(Entity.root_category),
-            selectinload(Entity.final_category)
-        )
-        
-        # Apply filters using OPTIMIZED fields (no legacy category fields)
+        # Apply filters using JSONB category fields for enterprise scalability
         if final_category_id:
-            query = query.filter(Entity.final_category_id == final_category_id)
+            query = query.filter(Entity.final_category['id'].astext == str(final_category_id))
         
         # Search in name and description with proper indexing
         search_term = search or search_query
@@ -183,20 +178,18 @@ async def search_entities(
         
         logger.debug(f"Searching entities with query: {q}, limit: {limit}, category: {category}")
         
-        # Use direct query with proper relationship loading
-        from models.unified_category import UnifiedCategory
-        from sqlalchemy.orm import selectinload
+        # Use direct JSONB query for enterprise performance
+        query = db.query(Entity).filter(Entity.is_active == True)
         
-        query = db.query(Entity).options(
-            selectinload(Entity.root_category),
-            selectinload(Entity.final_category)
-        )
-        
-        # Apply filters using hierarchical category system
+        # Apply filters using JSONB category system for enterprise scale
         if category:
-            # Map old category parameter to final_category_id if needed
-            # For now, search in entity name/description since category mapping needs clarification
-            pass  # Remove this line once proper category mapping is implemented
+            # Search by category name in JSONB fields
+            query = query.filter(
+                or_(
+                    Entity.final_category['name'].astext.ilike(f"%{category}%"),
+                    Entity.root_category['name'].astext.ilike(f"%{category}%")
+                )
+            )
         if q:
             search_filter = or_(
                 Entity.name.ilike(f"%{q}%"),
@@ -248,40 +241,40 @@ async def create_entity(
         logger.debug(f"Creating entity with data: {entity_data}")
         logger.debug(f"Avatar field value: {entity_data.avatar}")
         
-        # Create new entity instance (let entity_id auto-increment)
+        # Create new entity instance for enterprise-scale core_entities table
         new_entity = Entity(
             name=entity_data.name,
             description=entity_data.description,
-            # Use hierarchical category system only
-            final_category_id=entity_data.final_category_id,
-            root_category_id=entity_data.root_category_id,
-            avatar=entity_data.avatar,  # Store the image URL
-            context=entity_data.context or entity_data.metadata or {},  # Store context/metadata in context field
+            avatar=entity_data.avatar,
+            website=entity_data.website,
+            images=entity_data.images or [],
+            root_category=entity_data.root_category,
+            final_category=entity_data.final_category,
+            entity_metadata=entity_data.metadata or {},
+            roles=entity_data.roles or [],
+            related_entities_json=entity_data.related_entities or [],
+            business_info=entity_data.business_info or {},
+            claim_data=entity_data.claim_data or {},
+            view_analytics=entity_data.view_analytics or {},
             average_rating=0.0,
             review_count=0,
+            reaction_count=0,
+            comment_count=0,
             view_count=0,
             is_verified=False,
+            is_active=True,
             is_claimed=False,
             claimed_by=current_user.user_id if current_user else None,
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow()
         )
         
-        # Update root_category_id to the actual root category if final_category_id is provided
-        if entity_data.final_category_id:
-            # Get the root category for this final category
-            from models.unified_category import UnifiedCategory
-            category = db.query(UnifiedCategory).filter(UnifiedCategory.id == entity_data.final_category_id).first()
-            if category:
-                # Find the root category by traversing up the hierarchy
-                root_category = category
-                while root_category.parent_id is not None:
-                    root_category = db.query(UnifiedCategory).filter(UnifiedCategory.id == root_category.parent_id).first()
-                    if not root_category:
-                        break
-                
-                if root_category:
-                    new_entity.root_category_id = root_category.id
+        # Validate category data for enterprise consistency
+        if entity_data.final_category and not entity_data.root_category:
+            # Auto-populate root category if missing but final category is provided
+            # This maintains data integrity for enterprise applications
+            logger.warning(f"Root category missing for entity {entity_data.name}, using final category as fallback")
+            new_entity.root_category = entity_data.final_category
         
         logger.debug(f"Created entity with avatar: {new_entity.avatar}")
         
@@ -319,12 +312,11 @@ async def get_entity(
 ):
     """Get entity by ID"""
     try:
-        # Get entity directly from database with category relationships loaded
-        from sqlalchemy.orm import selectinload
-        entity = db.query(Entity).options(
-            selectinload(Entity.root_category),
-            selectinload(Entity.final_category)
-        ).filter(Entity.entity_id == entity_id).first()
+        # Get entity directly from database with enterprise-optimized JSONB query
+        entity = db.query(Entity).filter(
+            Entity.entity_id == entity_id,
+            Entity.is_active == True
+        ).first()
         
         if not entity:
             return error_response(

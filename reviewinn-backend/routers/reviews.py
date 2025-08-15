@@ -416,7 +416,7 @@ def get_recent_reviews(
                     user_avatar=comment.user.avatar if comment.user else None,
                     content=comment.content,
                     created_at=comment.created_at,
-                    likes=comment.likes or 0,
+                    likes=comment.reaction_count or 0,  # Use reaction_count instead of likes
                     reactions=comment_reaction_summary["reactions"],
                     user_reaction=comment_reaction_summary["user_reaction"]
                 )
@@ -585,7 +585,7 @@ def get_reviews(
                     user_avatar=comment.user.avatar if comment.user else None,
                     content=comment.content,
                     created_at=comment.created_at,
-                    likes=comment.likes or 0,
+                    likes=comment.reaction_count or 0,  # Use reaction_count instead of likes
                     reactions=comment_reaction_summary["reactions"],
                     user_reaction=comment_reaction_summary["user_reaction"]
                 )
