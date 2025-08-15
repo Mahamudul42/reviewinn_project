@@ -70,13 +70,35 @@ const ReviewCardMenu: React.FC<ReviewCardMenuProps> = ({ open, onClose, onAction
   const options = getMenuOptions(review, currentUser, isAuthenticated, userInteractionService);
 
   const handleActionClick = async (actionKey: string) => {
+    console.log('🔍 ReviewCardMenu: handleActionClick called with:', actionKey);
     setLoadingAction(actionKey);
+    
+    // Close menu immediately for modal actions to avoid conflicts
+    const modalActions = ['save', 'report', 'notify', 'block', 'unfollow', 'edit_review', 'delete_review'];
+    if (modalActions.includes(actionKey)) {
+      console.log('🔍 ReviewCardMenu: Closing menu for modal action');
+      onClose();
+    }
+    
     try {
-      await onAction?.(actionKey);
+      console.log('🔍 ReviewCardMenu: About to call onAction with:', actionKey);
+      if (onAction) {
+        await onAction(actionKey);
+        console.log('🔍 ReviewCardMenu: onAction completed successfully');
+      } else {
+        console.log('🔍 ReviewCardMenu: No onAction provided!');
+      }
+    } catch (error) {
+      console.error('ReviewCardMenu: Error in action:', error);
     } finally {
       setLoadingAction(null);
     }
-    onClose();
+    
+    // Close menu for non-modal actions
+    if (!modalActions.includes(actionKey)) {
+      console.log('🔍 ReviewCardMenu: Closing menu for non-modal action');
+      onClose();
+    }
   };
 
   useEffect(() => {

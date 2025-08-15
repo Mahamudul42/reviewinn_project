@@ -14,6 +14,13 @@ import AuthModal from '../../auth/components/AuthModal';
 import ReviewDetailModal from './ReviewDetailModal';
 import ReviewEditModal from './ReviewEditModal';
 import ReviewDeleteModal from './ReviewDeleteModal';
+import {
+  ReportReviewModal,
+  BlockUserModal,
+  SaveReviewModal,
+  NotificationToggleModal,
+  UnfollowEntityModal
+} from './modals';
 
 interface ReviewFeedCardProps {
   review: Review & {
@@ -53,6 +60,25 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
   // Local state for edit/delete modals
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  
+  // Local state for menu action modals
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [showBlockUserModal, setShowBlockUserModal] = useState(false);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [showUnfollowModal, setShowUnfollowModal] = useState(false);
+
+  // Debug modal states
+  console.log('🔍 Current modal states:', {
+    showReportModal,
+    showBlockUserModal,
+    showSaveModal,
+    showNotificationModal,
+    showUnfollowModal,
+    showEditModal,
+    showDeleteModal
+  });
+
   
   // Use the custom hook for all state management
   const {
@@ -98,18 +124,24 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
 
   // Handler for menu actions
   const handleMenuAction = async (action: string) => {
+    console.log('🔍 HandleMenuAction called with:', action);
+    
     switch (action) {
       case 'edit_review':
+        console.log('🔍 Setting showEditModal to true');
         setShowEditModal(true);
         break;
       case 'delete_review':
+        console.log('🔍 Setting showDeleteModal to true');
         setShowDeleteModal(true);
         break;
       case 'save':
-        await handleSaveReview();
+        console.log('🔍 Setting showSaveModal to true');
+        setShowSaveModal(true);
         break;
       case 'report':
-        await handleReportReview();
+        console.log('🔍 Setting showReportModal to true');
+        setShowReportModal(true);
         break;
       case 'interested':
         await handleMarkAsInterested();
@@ -118,13 +150,13 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
         await handleMarkAsNotInterested();
         break;
       case 'notify':
-        await handleToggleNotifications();
+        setShowNotificationModal(true);
         break;
       case 'block':
-        await handleBlockUser();
+        setShowBlockUserModal(true);
         break;
       case 'unfollow':
-        await handleUnfollowEntity();
+        setShowUnfollowModal(true);
         break;
       default:
         console.log('Menu action:', action);
@@ -132,45 +164,55 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
     }
   };
 
-  // Save/bookmark review
-  const handleSaveReview = async () => {
+  // Save/bookmark review (called by SaveReviewModal)
+  const handleSaveReview = async (collectionName?: string, tags?: string[]) => {
     try {
       const isCurrentlyBookmarked = userInteractionService.getUserInteraction(review.id)?.isBookmarked;
-      userInteractionService.updateUserInteraction(review.id, {
-        reviewId: review.id,
-        isBookmarked: !isCurrentlyBookmarked
-      });
       
-      // Show feedback
-      const message = !isCurrentlyBookmarked ? 'Review saved!' : 'Review unsaved!';
-      // You can add a toast notification here if available
-      console.log(message);
+      if (!collectionName) {
+        // Unsave
+        userInteractionService.updateUserInteraction(review.id, {
+          reviewId: review.id,
+          isBookmarked: false
+        });
+      } else {
+        // Save with collection and tags
+        userInteractionService.updateUserInteraction(review.id, {
+          reviewId: review.id,
+          isBookmarked: true,
+          // You can extend the interface to support these fields
+          // collection: collectionName,
+          // tags: tags
+        });
+      }
+      
+      console.log(collectionName ? 'Review saved!' : 'Review unsaved!');
     } catch (error) {
       console.error('Error saving review:', error);
+      throw error;
     }
   };
 
-  // Report review
-  const handleReportReview = async () => {
+  // Report review (called by ReportReviewModal)
+  const handleReportReview = async (reason: string, description: string) => {
     try {
-      const reason = await showReportDialog();
-      if (reason) {
-        const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.REPORT(review.id)}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-          },
-          body: JSON.stringify({ reason })
-        });
-        
-        if (response.ok) {
-          console.log('Review reported successfully');
-          // You can add a toast notification here
-        }
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.REPORT(review.id)}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        },
+        body: JSON.stringify({ reason, description })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to submit report');
       }
+      
+      console.log('Review reported successfully');
     } catch (error) {
       console.error('Error reporting review:', error);
+      throw error;
     }
   };
 
@@ -200,80 +242,57 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
     }
   };
 
-  // Toggle notifications
-  const handleToggleNotifications = async () => {
+  // Toggle notifications (called by NotificationToggleModal)
+  const handleToggleNotifications = async (settings: any) => {
     try {
       // This would need a notifications service implementation
-      console.log('Toggle notifications for review');
+      console.log('Updated notification settings:', settings);
     } catch (error) {
-      console.error('Error toggling notifications:', error);
+      console.error('Error updating notification settings:', error);
+      throw error;
     }
   };
 
-  // Block user
+  // Block user (called by BlockUserModal)
   const handleBlockUser = async () => {
     try {
-      if (confirm(`Are you sure you want to block ${review.reviewerName || 'this user'}?`)) {
-        const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.CIRCLES.BLOCK_USER}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-          },
-          body: JSON.stringify({ userId: review.reviewerId })
-        });
-        
-        if (response.ok) {
-          console.log('User blocked successfully');
-          setIsHidden(true); // Hide the review
-        }
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.CIRCLES.BLOCK_USER}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        },
+        body: JSON.stringify({ userId: review.reviewerId })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to block user');
       }
+      
+      console.log('User blocked successfully');
+      setIsHidden(true); // Hide the review
     } catch (error) {
       console.error('Error blocking user:', error);
+      throw error;
     }
   };
 
-  // Unfollow entity
+  // Unfollow entity (called by UnfollowEntityModal)
   const handleUnfollowEntity = async () => {
     try {
-      if (entity && confirm(`Are you sure you want to unfollow ${entity.name}?`)) {
-        // This would need an entity follow service implementation
-        console.log('Unfollowed entity');
+      if (!entity) {
+        throw new Error('Entity not found');
       }
+      
+      // This would need an entity follow service implementation
+      // For now, just log the action
+      console.log('Unfollowed entity:', entity.name);
     } catch (error) {
       console.error('Error unfollowing entity:', error);
+      throw error;
     }
   };
 
-  // Show report dialog
-  const showReportDialog = (): Promise<string | null> => {
-    return new Promise((resolve) => {
-      const reason = prompt(
-        'Please select a reason for reporting this review:\n' +
-        '1. Inappropriate content\n' +
-        '2. Spam\n' +
-        '3. Fake review\n' +
-        '4. Harassment\n' +
-        '5. Other\n\n' +
-        'Enter the number (1-5) or describe the issue:'
-      );
-      
-      if (reason) {
-        const reasons = {
-          '1': 'Inappropriate content',
-          '2': 'Spam',
-          '3': 'Fake review',
-          '4': 'Harassment',
-          '5': 'Other'
-        };
-        
-        const mappedReason = reasons[reason as keyof typeof reasons] || reason;
-        resolve(mappedReason);
-      } else {
-        resolve(null);
-      }
-    });
-  };
 
   // Handler for successful review update
   const handleReviewUpdate = (updatedReview: Review) => {
@@ -496,6 +515,50 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
         onClose={() => setShowDeleteModal(false)}
         onSuccess={handleReviewDelete}
       />
+
+      {/* Report Review Modal */}
+      <ReportReviewModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        review={review}
+        onReport={handleReportReview}
+      />
+
+      {/* Block User Modal */}
+      <BlockUserModal
+        isOpen={showBlockUserModal}
+        onClose={() => setShowBlockUserModal(false)}
+        review={review}
+        onBlock={handleBlockUser}
+      />
+
+      {/* Save Review Modal */}
+      <SaveReviewModal
+        isOpen={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        review={review}
+        isCurrentlySaved={userInteractionService.getUserInteraction(review.id)?.isBookmarked || false}
+        onSave={handleSaveReview}
+      />
+
+      {/* Notification Toggle Modal */}
+      <NotificationToggleModal
+        isOpen={showNotificationModal}
+        onClose={() => setShowNotificationModal(false)}
+        review={review}
+        entity={entity}
+        onToggleNotifications={handleToggleNotifications}
+      />
+
+      {/* Unfollow Entity Modal */}
+      {entity && (
+        <UnfollowEntityModal
+          isOpen={showUnfollowModal}
+          onClose={() => setShowUnfollowModal(false)}
+          entity={entity}
+          onUnfollow={handleUnfollowEntity}
+        />
+      )}
     </>
   );
 };
