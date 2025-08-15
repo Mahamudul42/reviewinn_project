@@ -14,6 +14,7 @@ interface ReviewFeedProps {
   hasMoreReviews?: boolean;
   loadingMore?: boolean;
   onLoadMore?: () => void;
+  onReactionChange?: (reviewId: string, reaction: string | null) => void;
   onCommentAdd?: (reviewId: string, content: string, parentId?: string) => void;
   onCommentDelete?: (reviewId: string, commentId: string) => void;
   onCommentReaction?: (reviewId: string, commentId: string, reaction: string | null) => void;
@@ -32,6 +33,7 @@ const ReviewFeed: React.FC<ReviewFeedProps> = ({
   hasMoreReviews = false, 
   loadingMore = false, 
   onLoadMore,
+  onReactionChange,
   onCommentAdd,
   onCommentDelete,
   onCommentReaction,
@@ -113,6 +115,7 @@ const ReviewFeed: React.FC<ReviewFeedProps> = ({
               key={`review-${review.id}-${index}`}
               review={review}
               entity={review.entity || (entities || []).find(e => e.id === review.entityId)}
+              onReactionChange={onReactionChange}
               onCommentAdd={onCommentAdd}
               onCommentDelete={onCommentDelete}
               onCommentReaction={onCommentReaction}

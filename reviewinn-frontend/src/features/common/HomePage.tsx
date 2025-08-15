@@ -30,6 +30,7 @@ const HomePage: React.FC = () => {
   const {
     reviewBarRef,
     handleReviewSubmit,
+    handleReactionChange,
     handleCommentAdd: reviewHandleCommentAdd,
     handleCommentDelete: reviewHandleCommentDelete,
     handleCommentReaction: reviewHandleCommentReaction,
@@ -118,6 +119,7 @@ const HomePage: React.FC = () => {
               loadingMore={loadingMore}
               loading={centerLoading}
               onLoadMore={handleLoadMore}
+              onReactionChange={handleReactionChange}
               onCommentAdd={handleCommentAdd}
               onCommentDelete={handleCommentDelete}
               onCommentReaction={handleCommentReaction}
@@ -136,6 +138,7 @@ const HomePage: React.FC = () => {
               loadingMore={loadingMore}
               loading={centerLoading}
               onLoadMore={handleLoadMore}
+              onReactionChange={handleReactionChange}
               onCommentAdd={handleCommentAdd}
               onCommentDelete={handleCommentDelete}
               onCommentReaction={handleCommentReaction}

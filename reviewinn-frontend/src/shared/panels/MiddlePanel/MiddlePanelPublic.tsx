@@ -18,6 +18,7 @@ interface MiddlePanelPublicProps {
   loadingMore?: boolean;
   loading?: boolean;
   onLoadMore?: () => void;
+  onReactionChange?: (reviewId: string, reaction: string | null) => void;
   onCommentAdd?: (reviewId: string, content: string, parentId?: string) => void;
   onCommentDelete?: (reviewId: string, commentId: string) => void;
   onCommentReaction?: (reviewId: string, commentId: string, reaction: string | null) => void;
@@ -40,6 +41,7 @@ const MiddlePanelPublic: React.FC<MiddlePanelPublicProps> = ({
   loadingMore = false,
   loading = false,
   onLoadMore,
+  onReactionChange,
   onCommentAdd,
   onCommentDelete,
   onCommentReaction,
@@ -103,6 +105,7 @@ const MiddlePanelPublic: React.FC<MiddlePanelPublicProps> = ({
               hasMoreReviews={hasMoreReviews}
               loadingMore={loadingMore}
               onLoadMore={onLoadMore}
+              onReactionChange={onReactionChange}
               onCommentAdd={onCommentAdd}
               onCommentDelete={onCommentDelete}
               onCommentReaction={onCommentReaction}

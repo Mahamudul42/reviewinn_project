@@ -406,6 +406,44 @@ export const useReviewManagement = () => {
     }
   };
 
+  // Handle review reactions with proper authentication handling
+  const handleReactionChange = async (reviewId: string, reaction: string | null) => {
+    if (!isAuthenticated) {
+      console.log('useReviewManagement: User not authenticated for review reaction');
+      // Trigger auth modal for unauthenticated users
+      window.dispatchEvent(new CustomEvent('openAuthModal'));
+      return;
+    }
+    
+    try {
+      // The actual reaction handling is done by useReviewCard hook
+      // This is just a placeholder for any additional homepage-specific logic
+      console.log('useReviewManagement: Review reaction change:', { reviewId, reaction });
+      
+      // Update userInteractionService cache for persistence
+      const { userInteractionService } = await import('../../../api/services/userInteractionService');
+      if (reaction) {
+        userInteractionService.updateUserInteraction(reviewId, { 
+          reviewId,
+          reaction,
+          lastInteraction: new Date()
+        });
+      } else {
+        // Remove reaction but keep other interactions (bookmarks, etc.)
+        const existingInteraction = userInteractionService.getUserInteraction(reviewId);
+        if (existingInteraction) {
+          userInteractionService.updateUserInteraction(reviewId, {
+            ...existingInteraction,
+            reaction: undefined,
+            lastInteraction: new Date()
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to handle review reaction:', error);
+    }
+  };
+
   return {
     localReviews,
     setLocalReviews,
@@ -416,6 +454,7 @@ export const useReviewManagement = () => {
     loadMoreReviews,
     fetchInitialReviews,
     handleReviewSubmit,
+    handleReactionChange,
     handleCommentAdd,
     handleCommentDelete,
     handleCommentReaction,

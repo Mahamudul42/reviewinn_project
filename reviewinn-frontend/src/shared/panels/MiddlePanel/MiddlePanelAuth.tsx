@@ -17,6 +17,7 @@ interface MiddlePanelAuthProps {
   loadingMore?: boolean;
   loading?: boolean;
   onLoadMore?: () => void;
+  onReactionChange?: (reviewId: string, reaction: string | null) => void;
   onCommentAdd?: (reviewId: string, content: string, parentId?: string) => void;
   onCommentDelete?: (reviewId: string, commentId: string) => void;
   onCommentReaction?: (reviewId: string, commentId: string, reaction: string | null) => void;
@@ -39,6 +40,7 @@ const MiddlePanelAuth: React.FC<MiddlePanelAuthProps> = ({
   loadingMore = false,
   loading = false,
   onLoadMore,
+  onReactionChange,
   onCommentAdd,
   onCommentDelete,
   onCommentReaction,
@@ -102,6 +104,7 @@ const MiddlePanelAuth: React.FC<MiddlePanelAuthProps> = ({
               hasMoreReviews={hasMoreReviews}
               loadingMore={loadingMore}
               onLoadMore={onLoadMore}
+              onReactionChange={onReactionChange}
               onCommentAdd={onCommentAdd}
               onCommentDelete={onCommentDelete}
               onCommentReaction={onCommentReaction}
