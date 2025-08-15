@@ -111,7 +111,12 @@ class EnterpriseNotificationService {
 
     try {
       const response = await httpClient.get(`${this.baseUrl}/dropdown`);
-      const data = response.success ? response : response.data;
+      
+      // Handle different response formats
+      let data = response;
+      if (response.data) {
+        data = response.data;
+      }
       
       this.setCachedData(cacheKey, data);
       return data;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell, Check, X, Trash2, ExternalLink } from 'lucide-react';
-import { notificationService } from '../../api/services/notificationService';
-import type { NotificationData, NotificationSummary } from '../../api/services/notificationService';
+import { enterpriseNotificationService } from '../../api/services/enterpriseNotificationService';
+import type { EnterpriseNotificationData, NotificationDropdownResponse } from '../../api/services/enterpriseNotificationService';
 import { useNavigate } from 'react-router-dom';
 import { useNotificationWebSocket } from '../../hooks/useNotificationWebSocket';
 import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
@@ -12,7 +12,7 @@ interface NotificationIconProps {
 
 const NotificationIcon: React.FC<NotificationIconProps> = ({ className = '' }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [summary, setSummary] = useState<NotificationSummary | null>(null);
+  const [dropdownData, setDropdownData] = useState<NotificationDropdownResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -32,29 +32,29 @@ const NotificationIcon: React.FC<NotificationIconProps> = ({ className = '' }) =
     onNewNotification: (notification) => {
       console.log('New notification received:', notification);
       // The WebSocket hook handles updating the counts automatically
-      // We just need to refresh the summary if the dropdown is open
+      // We just need to refresh the dropdown if the dropdown is open
       if (isOpen) {
-        loadSummary();
+        loadDropdownData();
       }
     },
     onNotificationRead: (notification) => {
       console.log('Notification marked as read:', notification);
-      // Refresh summary if dropdown is open
+      // Refresh dropdown if dropdown is open
       if (isOpen) {
-        loadSummary();
+        loadDropdownData();
       }
     },
     onNotificationDeleted: (notificationId) => {
       console.log('Notification deleted:', notificationId);
-      // Refresh summary if dropdown is open
+      // Refresh dropdown if dropdown is open
       if (isOpen) {
-        loadSummary();
+        loadDropdownData();
       }
     }
   });
 
-  // Load notification summary
-  const loadSummary = async () => {
+  // Load notification dropdown data
+  const loadDropdownData = async () => {
     // Only load if user is authenticated
     if (!getToken()) {
       return;
@@ -63,20 +63,20 @@ const NotificationIcon: React.FC<NotificationIconProps> = ({ className = '' }) =
     try {
       setLoading(true);
       setError(null);
-      const summaryData = await notificationService.getNotificationSummary();
-      setSummary(summaryData);
+      const data = await enterpriseNotificationService.getNotificationDropdown();
+      setDropdownData(data);
     } catch (err) {
-      console.error('Failed to load notification summary:', err);
+      console.error('Failed to load notification dropdown:', err);
       setError('Failed to load notifications');
     } finally {
       setLoading(false);
     }
   };
 
-  // Load summary on mount - only for authenticated users
+  // Load dropdown data on mount - only for authenticated users
   useEffect(() => {
     if (getToken()) {
-      loadSummary();
+      loadDropdownData();
     }
   }, []);
 
@@ -93,13 +93,13 @@ const NotificationIcon: React.FC<NotificationIconProps> = ({ className = '' }) =
   }, []);
 
   // Handle notification click
-  const handleNotificationClick = async (notification: NotificationData) => {
+  const handleNotificationClick = async (notification: EnterpriseNotificationData) => {
     try {
       // Mark as read if not already read
       if (!notification.is_read) {
-        await notificationService.markAsRead(notification.notification_id);
-        // Refresh summary
-        await loadSummary();
+        await enterpriseNotificationService.markAsRead(notification.notification_id);
+        // Refresh dropdown data
+        await loadDropdownData();
       }
 
       // Navigate based on notification type
@@ -109,7 +109,7 @@ const NotificationIcon: React.FC<NotificationIconProps> = ({ className = '' }) =
     }
   };
 
-  const navigateToNotificationTarget = (notification: NotificationData) => {
+  const navigateToNotificationTarget = (notification: EnterpriseNotificationData) => {
     const { type, entity_type, entity_id } = notification;
 
     switch (type) {
@@ -158,8 +158,8 @@ const NotificationIcon: React.FC<NotificationIconProps> = ({ className = '' }) =
   const handleMarkAsRead = async (notificationId: number, event: React.MouseEvent) => {
     event.stopPropagation();
     try {
-      await notificationService.markAsRead(notificationId);
-      await loadSummary();
+      await enterpriseNotificationService.markAsRead(notificationId);
+      await loadDropdownData();
     } catch (err) {
       console.error('Failed to mark notification as read:', err);
     }
@@ -168,8 +168,8 @@ const NotificationIcon: React.FC<NotificationIconProps> = ({ className = '' }) =
   const handleDeleteNotification = async (notificationId: number, event: React.MouseEvent) => {
     event.stopPropagation();
     try {
-      await notificationService.deleteNotification(notificationId);
-      await loadSummary();
+      await enterpriseNotificationService.deleteNotification(notificationId);
+      await loadDropdownData();
     } catch (err) {
       console.error('Failed to delete notification:', err);
     }
@@ -177,8 +177,8 @@ const NotificationIcon: React.FC<NotificationIconProps> = ({ className = '' }) =
 
   const handleMarkAllAsRead = async () => {
     try {
-      await notificationService.markAllAsRead();
-      await loadSummary();
+      await enterpriseNotificationService.markAllAsRead();
+      await loadDropdownData();
     } catch (err) {
       console.error('Failed to mark all notifications as read:', err);
     }
@@ -195,18 +195,18 @@ const NotificationIcon: React.FC<NotificationIconProps> = ({ className = '' }) =
         onClick={() => {
           setIsOpen(!isOpen);
           if (!isOpen) {
-            loadSummary();
+            loadDropdownData();
           }
         }}
         className="relative p-2 rounded-full hover:bg-blue-50 transition group"
         aria-label="Notifications"
       >
         <Bell size={22} className="text-blue-700 group-hover:text-blue-900" />
-        {/* Use WebSocket unread count with fallback to summary */}
-        {(unreadCount > 0 || (summary && summary.total_unread > 0)) && (
+        {/* Use WebSocket unread count with fallback to dropdown data */}
+        {(unreadCount > 0 || (dropdownData && dropdownData.unread_count > 0)) && (
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 font-bold shadow min-w-[20px] text-center">
             {(() => {
-              const count = unreadCount > 0 ? unreadCount : (summary?.total_unread || 0);
+              const count = unreadCount > 0 ? unreadCount : (dropdownData?.unread_count || 0);
               return count > 99 ? '99+' : count;
             })()}
           </span>
@@ -223,9 +223,9 @@ const NotificationIcon: React.FC<NotificationIconProps> = ({ className = '' }) =
           {/* Header - Facebook-style */}
           <div className="px-4 py-4 border-b border-gray-200 bg-white">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-bold text-gray-900">Review Notifications</h3>
+              <h3 className="text-xl font-bold text-gray-900">Notifications</h3>
               <div className="flex items-center space-x-3">
-                {(unreadCount > 0 || (summary && summary.total_unread > 0)) && (
+                {(unreadCount > 0 || (dropdownData && dropdownData.unread_count > 0)) && (
                   <button
                     onClick={handleMarkAllAsRead}
                     className="text-sm text-blue-600 hover:text-blue-800 font-semibold hover:bg-blue-50 px-3 py-1 rounded-full transition-colors"
@@ -257,9 +257,9 @@ const NotificationIcon: React.FC<NotificationIconProps> = ({ className = '' }) =
               </div>
             )}
 
-            {/* Use WebSocket data if available, otherwise fall back to summary */}
+            {/* Use WebSocket data if available, otherwise fall back to dropdown data */}
             {(() => {
-              const notifications = latestNotifications.length > 0 ? latestNotifications : (summary?.recent_notifications || []);
+              const notifications = latestNotifications.length > 0 ? latestNotifications : (dropdownData?.notifications || []);
               
               if (notifications.length === 0 && !loading) {
                 return (
@@ -271,7 +271,8 @@ const NotificationIcon: React.FC<NotificationIconProps> = ({ className = '' }) =
                 );
               }
 
-              return notifications.map((notification) => (
+              // Show latest 10 notifications like Facebook
+              return notifications.slice(0, 10).map((notification) => (
                 <div
                   key={notification.notification_id}
                   className={`px-4 py-4 border-b border-gray-100 cursor-pointer transition-all duration-150 hover:bg-gray-50 ${
@@ -290,7 +291,7 @@ const NotificationIcon: React.FC<NotificationIconProps> = ({ className = '' }) =
                         />
                       ) : (
                         <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white text-xl">
-                          {notificationService.getNotificationIcon(notification.type)}
+                          {enterpriseNotificationService.getNotificationIcon(notification.type)}
                         </div>
                       )}
                     </div>
@@ -305,10 +306,12 @@ const NotificationIcon: React.FC<NotificationIconProps> = ({ className = '' }) =
                                 {notification.actor_name}
                               </span>
                             )}{' '}
-                            <span className="text-gray-700">{notification.content}</span>
+                            <span className="text-gray-700">
+                              {notification.content || notification.title || `sent a ${notification.type.replace('_', ' ')} notification`}
+                            </span>
                           </p>
                           <p className="text-xs text-blue-600 mt-1 font-medium">
-                            {notificationService.formatTimeAgo(notification.created_at)}
+                            {enterpriseNotificationService.formatTimeAgo(notification.created_at)}
                           </p>
                         </div>
                         
@@ -346,14 +349,14 @@ const NotificationIcon: React.FC<NotificationIconProps> = ({ className = '' }) =
 
           {/* Footer - Facebook-style */}
           {(() => {
-            const notifications = latestNotifications.length > 0 ? latestNotifications : (summary?.recent_notifications || []);
+            const notifications = latestNotifications.length > 0 ? latestNotifications : (dropdownData?.notifications || []);
             return notifications.length > 0 && (
               <div className="px-4 py-3 border-t border-gray-200 bg-gray-50">
                 <button
                   onClick={handleViewAllNotifications}
-                  className="w-full text-center text-sm text-blue-600 hover:text-blue-800 font-semibold py-2 hover:bg-blue-50 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                  className="w-full text-center text-sm text-blue-600 hover:text-blue-800 font-semibold py-3 hover:bg-blue-50 rounded-lg transition-colors flex items-center justify-center space-x-2"
                 >
-                  <span>See All Review Notifications</span>
+                  <span>See All Notifications</span>
                   <ExternalLink size={16} />
                 </button>
               </div>
