@@ -49,7 +49,7 @@ const Layout: React.FC = () => {
         senderIdFromMessage: message.sender_id,
         conversationId: message.conversation_id,
         currentUnreadCount: unreadConversationsCount,
-        timestamp: timestamp
+        timestamp: message.timestamp
       });
       
       if (message.type === 'new_message') {
