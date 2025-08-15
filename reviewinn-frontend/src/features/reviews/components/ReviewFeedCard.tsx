@@ -2,6 +2,8 @@ import React, { useRef, useState } from 'react';
 import type { Review, Entity, Comment } from '../../../types';
 import { useReviewCard } from '../hooks/useReviewCard';
 import { formatTimeAgo } from '../../../shared/utils/reviewUtils';
+import { userInteractionService } from '../../../api/services';
+import { API_CONFIG, API_ENDPOINTS } from '../../../api/config';
 import ReviewCardUserInfo from './ReviewCardUserInfo';
 import ReviewCardEntityInfo from './ReviewCardEntityInfo';
 import ReviewCardUnifiedContent from './ReviewCardUnifiedContent';
@@ -95,7 +97,7 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
   });
 
   // Handler for menu actions
-  const handleMenuAction = (action: string) => {
+  const handleMenuAction = async (action: string) => {
     switch (action) {
       case 'edit_review':
         setShowEditModal(true);
@@ -103,10 +105,174 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
       case 'delete_review':
         setShowDeleteModal(true);
         break;
+      case 'save':
+        await handleSaveReview();
+        break;
+      case 'report':
+        await handleReportReview();
+        break;
+      case 'interested':
+        await handleMarkAsInterested();
+        break;
+      case 'not_interested':
+        await handleMarkAsNotInterested();
+        break;
+      case 'notify':
+        await handleToggleNotifications();
+        break;
+      case 'block':
+        await handleBlockUser();
+        break;
+      case 'unfollow':
+        await handleUnfollowEntity();
+        break;
       default:
         console.log('Menu action:', action);
         break;
     }
+  };
+
+  // Save/bookmark review
+  const handleSaveReview = async () => {
+    try {
+      const isCurrentlyBookmarked = userInteractionService.getUserInteraction(review.id)?.isBookmarked;
+      userInteractionService.updateUserInteraction(review.id, {
+        reviewId: review.id,
+        isBookmarked: !isCurrentlyBookmarked
+      });
+      
+      // Show feedback
+      const message = !isCurrentlyBookmarked ? 'Review saved!' : 'Review unsaved!';
+      // You can add a toast notification here if available
+      console.log(message);
+    } catch (error) {
+      console.error('Error saving review:', error);
+    }
+  };
+
+  // Report review
+  const handleReportReview = async () => {
+    try {
+      const reason = await showReportDialog();
+      if (reason) {
+        const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.REPORT(review.id)}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+          },
+          body: JSON.stringify({ reason })
+        });
+        
+        if (response.ok) {
+          console.log('Review reported successfully');
+          // You can add a toast notification here
+        }
+      }
+    } catch (error) {
+      console.error('Error reporting review:', error);
+    }
+  };
+
+  // Mark as interested
+  const handleMarkAsInterested = async () => {
+    try {
+      userInteractionService.updateUserInteraction(review.id, {
+        reviewId: review.id,
+        isHelpful: true
+      });
+      console.log('Marked as interested');
+    } catch (error) {
+      console.error('Error marking as interested:', error);
+    }
+  };
+
+  // Mark as not interested
+  const handleMarkAsNotInterested = async () => {
+    try {
+      userInteractionService.updateUserInteraction(review.id, {
+        reviewId: review.id,
+        isHelpful: false
+      });
+      console.log('Marked as not interested');
+    } catch (error) {
+      console.error('Error marking as not interested:', error);
+    }
+  };
+
+  // Toggle notifications
+  const handleToggleNotifications = async () => {
+    try {
+      // This would need a notifications service implementation
+      console.log('Toggle notifications for review');
+    } catch (error) {
+      console.error('Error toggling notifications:', error);
+    }
+  };
+
+  // Block user
+  const handleBlockUser = async () => {
+    try {
+      if (confirm(`Are you sure you want to block ${review.reviewerName || 'this user'}?`)) {
+        const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.CIRCLES.BLOCK_USER}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+          },
+          body: JSON.stringify({ userId: review.reviewerId })
+        });
+        
+        if (response.ok) {
+          console.log('User blocked successfully');
+          setIsHidden(true); // Hide the review
+        }
+      }
+    } catch (error) {
+      console.error('Error blocking user:', error);
+    }
+  };
+
+  // Unfollow entity
+  const handleUnfollowEntity = async () => {
+    try {
+      if (entity && confirm(`Are you sure you want to unfollow ${entity.name}?`)) {
+        // This would need an entity follow service implementation
+        console.log('Unfollowed entity');
+      }
+    } catch (error) {
+      console.error('Error unfollowing entity:', error);
+    }
+  };
+
+  // Show report dialog
+  const showReportDialog = (): Promise<string | null> => {
+    return new Promise((resolve) => {
+      const reason = prompt(
+        'Please select a reason for reporting this review:\n' +
+        '1. Inappropriate content\n' +
+        '2. Spam\n' +
+        '3. Fake review\n' +
+        '4. Harassment\n' +
+        '5. Other\n\n' +
+        'Enter the number (1-5) or describe the issue:'
+      );
+      
+      if (reason) {
+        const reasons = {
+          '1': 'Inappropriate content',
+          '2': 'Spam',
+          '3': 'Fake review',
+          '4': 'Harassment',
+          '5': 'Other'
+        };
+        
+        const mappedReason = reasons[reason as keyof typeof reasons] || reason;
+        resolve(mappedReason);
+      } else {
+        resolve(null);
+      }
+    });
   };
 
   // Handler for successful review update
