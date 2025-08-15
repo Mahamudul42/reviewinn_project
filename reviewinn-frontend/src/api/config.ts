@@ -21,8 +21,8 @@ const getBaseURL = (): string => {
     }
   }
   
-  // Development fallback
-  return 'http://localhost:8000/api/v1';
+  // Development fallback - use relative URL to leverage Vite proxy
+  return '/api/v1';
 };
 
 const getTimeout = (): number => {

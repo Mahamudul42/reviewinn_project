@@ -22,7 +22,7 @@ export interface UserSearchParams {
 }
 
 export class UserService {
-  private baseUrl = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.USERS.LIST}`;
+  private baseUrl = `/api/v1/users`;
 
   /**
    * Get list of users with pagination and filtering
@@ -66,7 +66,7 @@ export class UserService {
     if (params.limit) searchParams.append('limit', params.limit.toString());
 
     try {
-      const url = `${API_CONFIG.BASE_URL}/users/search?${searchParams.toString()}`;
+      const url = `/api/v1/users/search?${searchParams.toString()}`;
       const response = await httpClient.get<{
         users: User[];
         total: number;
@@ -120,7 +120,7 @@ export class UserService {
    */
   async getUser(id: string): Promise<User | null> {
     try {
-      const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.USERS.GET_BY_ID(id)}`;
+      const url = `/api/v1/users/${id}`;
       const response = await httpClient.get<User>(url, true);
       
       return response.data || null;
@@ -135,7 +135,7 @@ export class UserService {
    */
   async getCurrentUser(): Promise<User | null> {
     try {
-      const url = `${API_CONFIG.BASE_URL}/users/me`;
+      const url = `/api/v1/users/me`;
       const response = await httpClient.get<User>(url, true);
       
       return response.data || null;
@@ -150,7 +150,7 @@ export class UserService {
    */
   async getUserProfile(id: string): Promise<UserProfile | null> {
     try {
-      const url = `${API_CONFIG.BASE_URL}/users/${id}/profile`;
+      const url = `/api/v1/users/${id}/profile`;
       const response = await httpClient.get<any>(url, true);
       
       // Handle enterprise API response format
@@ -170,7 +170,7 @@ export class UserService {
    */
   async getUserProfileByIdentifier(identifier: string): Promise<UserProfile | null> {
     try {
-      const url = `${API_CONFIG.BASE_URL}/users/${identifier}/profile`;
+      const url = `/api/v1/users/${identifier}/profile`;
       
       // Use direct fetch for public profile viewing (no auth required)
       const response = await fetch(url);
@@ -192,7 +192,7 @@ export class UserService {
    * Update user profile
    */
   async updateUserProfile(id: string, profileData: Partial<UserProfile>): Promise<UserProfile> {
-    const url = `${API_CONFIG.BASE_URL}/users/me/profile`;
+    const url = `/api/v1/users/me/profile`;
     const response = await httpClient.put<any>(url, profileData);
     
     // Handle enterprise API response format
@@ -207,7 +207,7 @@ export class UserService {
    * Delete user account (added for profile deletion)
    */
   async deleteUser(id: string): Promise<void> {
-    const url = `${API_CONFIG.BASE_URL}/users/${id}`;
+    const url = `/api/v1/users/${id}`;
     await httpClient.delete(url);
   }
 
@@ -222,7 +222,7 @@ export class UserService {
    * Get user statistics
    */
   async getUserStats(id: string): Promise<UserStats | null> {
-    const url = `${API_CONFIG.BASE_URL}/users/${id}/stats`;
+    const url = `/api/v1/users/${id}/stats`;
     const response = await httpClient.get<UserStats>(url, true);
     
     return response.data || null;
@@ -232,7 +232,7 @@ export class UserService {
    * Get user badges
    */
   async getUserBadges(id: string): Promise<Badge[]> {
-    const url = `${API_CONFIG.BASE_URL}/users/${id}/badges`;
+    const url = `/api/v1/users/${id}/badges`;
     const response = await httpClient.get<Badge[]>(url, true);
     
     return response.data || [];
@@ -242,7 +242,7 @@ export class UserService {
    * Follow a user
    */
   async followUser(userId: string): Promise<void> {
-    const url = `${API_CONFIG.BASE_URL}/users/${userId}/follow`;
+    const url = `/api/v1/users/${userId}/follow`;
     await httpClient.post(url);
   }
 
@@ -250,7 +250,7 @@ export class UserService {
    * Unfollow a user
    */
   async unfollowUser(userId: string): Promise<void> {
-    const url = `${API_CONFIG.BASE_URL}/users/${userId}/follow`;
+    const url = `/api/v1/users/${userId}/follow`;
     await httpClient.delete(url);
   }
 
@@ -262,7 +262,7 @@ export class UserService {
     total: number;
     hasMore: boolean;
   }> {
-    const url = `${API_CONFIG.BASE_URL}/users/${userId}/followers?page=${page}&limit=${limit}`;
+    const url = `/api/v1/users/${userId}/followers?page=${page}&limit=${limit}`;
     const response = await httpClient.get<{ followers: User[]; total: number; hasMore: boolean }>(url, true);
     
     return response.data || { followers: [], total: 0, hasMore: false };
@@ -276,7 +276,7 @@ export class UserService {
     total: number;
     hasMore: boolean;
   }> {
-    const url = `${API_CONFIG.BASE_URL}/users/${userId}/following?page=${page}&limit=${limit}`;
+    const url = `/api/v1/users/${userId}/following?page=${page}&limit=${limit}`;
     const response = await httpClient.get<{ following: User[]; total: number; hasMore: boolean }>(url, true);
     
     return response.data || { following: [], total: 0, hasMore: false };
@@ -287,7 +287,7 @@ export class UserService {
    */
   async getUserPreferences(userId: string): Promise<UserPreferences | null> {
     try {
-      const url = `${API_CONFIG.BASE_URL}/users/${userId}/preferences`;
+      const url = `/api/v1/users/${userId}/preferences`;
       const response = await httpClient.get<UserPreferences>(url, true);
       
       return response.data || null;
@@ -301,7 +301,7 @@ export class UserService {
    * Update user preferences
    */
   async updateUserPreferences(userId: string, preferences: Partial<UserPreferences>): Promise<UserPreferences> {
-    const url = `${API_CONFIG.BASE_URL}/users/${userId}/preferences`;
+    const url = `/api/v1/users/${userId}/preferences`;
     const response = await httpClient.put<UserPreferences>(url, preferences);
     
     if (!response.data) {
@@ -316,7 +316,7 @@ export class UserService {
    */
   async getUserDailyTasks(userId: string): Promise<DailyTask[]> {
     try {
-      const url = `${API_CONFIG.BASE_URL}/users/${userId}/daily-tasks`;
+      const url = `/api/v1/users/${userId}/daily-tasks`;
       const response = await httpClient.get<DailyTask[]>(url, true);
       
       return response.data || [];
@@ -330,7 +330,7 @@ export class UserService {
    * Complete a daily task
    */
   async completeDailyTask(userId: string, taskId: string): Promise<DailyTask> {
-    const url = `${API_CONFIG.BASE_URL}/users/${userId}/daily-tasks/${taskId}/complete`;
+    const url = `/api/v1/users/${userId}/daily-tasks/${taskId}/complete`;
     const response = await httpClient.post<DailyTask>(url);
     
     if (!response.data) {
@@ -350,7 +350,7 @@ export class UserService {
     unreadCount: number;
   }> {
     try {
-      const url = `${API_CONFIG.BASE_URL}/users/${userId}/notifications?page=${page}&limit=${limit}`;
+      const url = `/api/v1/users/${userId}/notifications?page=${page}&limit=${limit}`;
       const response = await httpClient.get<{
         notifications: Notification[];
         total: number;
@@ -369,7 +369,7 @@ export class UserService {
    * Mark notification as read
    */
   async markNotificationAsRead(userId: string, notificationId: string): Promise<void> {
-    const url = `${API_CONFIG.BASE_URL}/users/${userId}/notifications/${notificationId}/read`;
+    const url = `/api/v1/users/${userId}/notifications/${notificationId}/read`;
     await httpClient.post(url);
   }
 
@@ -377,7 +377,7 @@ export class UserService {
    * Mark all notifications as read
    */
   async markAllNotificationsAsRead(userId: string): Promise<void> {
-    const url = `${API_CONFIG.BASE_URL}/users/${userId}/notifications/read-all`;
+    const url = `/api/v1/users/${userId}/notifications/read-all`;
     await httpClient.post(url);
   }
 
@@ -398,7 +398,7 @@ export class UserService {
     if (params.limit) searchParams.append('size', params.limit.toString()); // Backend uses 'size' parameter
     if (params.includeAnonymous !== undefined) searchParams.append('include_anonymous', params.includeAnonymous.toString());
 
-    const url = `${API_CONFIG.BASE_URL}/users/${userId}/reviews?${searchParams.toString()}`;
+    const url = `/api/v1/users/${userId}/reviews?${searchParams.toString()}`;
     
     // Use direct fetch to get the new optimized API response
     const directResponse = await fetch(url);
