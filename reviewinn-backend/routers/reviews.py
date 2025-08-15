@@ -1199,6 +1199,23 @@ async def add_or_update_reaction(
             
             logger.info(f"🚀 Updated denormalized data for review {review_id}: {total_reactions} total, top: {top_reactions_json}")
             
+            # 🎯 ENTITY AGGREGATION: Update entity total reaction count
+            try:
+                from models.entity import Entity
+                entity_total_reactions = db.query(
+                    func.sum(Review.reaction_count)
+                ).filter(
+                    Review.entity_id == review.entity_id
+                ).scalar() or 0
+                
+                db.query(Entity).filter(Entity.entity_id == review.entity_id).update({
+                    'reaction_count': entity_total_reactions
+                })
+                db.commit()
+                logger.info(f"🎯 Updated entity {review.entity_id} total reaction count to {entity_total_reactions}")
+            except Exception as entity_error:
+                logger.warning(f"Failed to update entity reaction count (non-critical): {entity_error}")
+            
             # 🔄 CACHE MANAGEMENT: Update user reaction cache
             try:
                 from services.user_reaction_cache_service import user_reaction_cache_service
@@ -1290,6 +1307,23 @@ async def remove_reaction(
                 db.commit()
                 
                 logger.info(f"🚀 Updated denormalized data for review {review_id}: {total_reactions} total, top: {top_reactions_json}")
+                
+                # 🎯 ENTITY AGGREGATION: Update entity total reaction count
+                try:
+                    from models.entity import Entity
+                    entity_total_reactions = db.query(
+                        func.sum(Review.reaction_count)
+                    ).filter(
+                        Review.entity_id == review.entity_id
+                    ).scalar() or 0
+                    
+                    db.query(Entity).filter(Entity.entity_id == review.entity_id).update({
+                        'reaction_count': entity_total_reactions
+                    })
+                    db.commit()
+                    logger.info(f"🎯 Updated entity {review.entity_id} total reaction count to {entity_total_reactions}")
+                except Exception as entity_error:
+                    logger.warning(f"Failed to update entity reaction count (non-critical): {entity_error}")
                 
                 # 🔄 CACHE MANAGEMENT: Invalidate user reaction cache  
                 try:
