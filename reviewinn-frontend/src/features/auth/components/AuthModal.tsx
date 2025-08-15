@@ -355,59 +355,101 @@ const AuthModal: React.FC<AuthModalProps> = ({
 
   if (!isOpen) return null;
 
-  return createPortal(
+  // Calculate the current viewport center dynamically
+  const viewportHeight = window.innerHeight;
+  const viewportWidth = window.innerWidth;
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+  
+  const modalHeight = Math.min(600, viewportHeight * 0.9);
+  const modalWidth = Math.min(450, viewportWidth * 0.9);
+  
+  const centerTop = scrollTop + (viewportHeight / 2) - (modalHeight / 2);
+  const centerLeft = scrollLeft + (viewportWidth / 2) - (modalWidth / 2);
+
+  // JavaScript-calculated positioning
+  return (
     <div
       style={{
-        position: 'fixed',
+        position: 'absolute',
         top: 0,
         left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 99999,
-        display: 'flex',
-        justifyContent: 'center',
-        background: 'rgba(0,0,0,0.5)',
-        pointerEvents: 'auto',
-        padding: '20px',
-        boxSizing: 'border-box',
-      }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          onClose();
-        }
-      }}
-    >
-      <div style={{
-        background: 'white',
-        borderRadius: 16,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
-        minWidth: 400,
-        maxWidth: 500,
         width: '100%',
-        padding: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        maxHeight: 'calc(100vh - 40px)',
-        overflow: 'hidden',
-        position: 'fixed',
-        top: '50vh',
-        left: '50vw',
-        transform: 'translate(-50%, -50%)',
-        zIndex: 100000,
-      }}>
+        height: Math.max(document.documentElement.scrollHeight, viewportHeight),
+        zIndex: 9999999,
+        background: 'rgba(255, 0, 0, 0.8)',
+        pointerEvents: 'auto',
+      }}
+      onClick={onClose}
+    >
+      <div 
+        style={{
+          position: 'absolute',
+          top: `${centerTop}px`,
+          left: `${centerLeft}px`,
+          width: `${modalWidth}px`,
+          maxHeight: `${modalHeight}px`,
+          background: 'white',
+          borderRadius: 12,
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+          border: '1px solid rgba(0, 0, 0, 0.05)',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #eee', padding: '20px 24px 12px 24px' }}>
-          <span style={{ fontWeight: 700, fontSize: 20, color: '#222' }}>{isLogin ? 'Sign In' : 'Sign Up'}</span>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between', 
+          borderBottom: '1px solid rgba(0, 0, 0, 0.1)', 
+          padding: '24px 24px 16px 24px',
+          minHeight: '64px'
+        }}>
+          <div style={{ fontWeight: 600, fontSize: 18, color: '#1f2937', lineHeight: 1.4 }}>
+            {isLogin ? 'Sign In' : 'Sign Up'}
+          </div>
           <button
-            style={{ color: '#888', fontSize: 28, fontWeight: 700, background: 'none', border: 'none', borderRadius: 999, width: 36, height: 36, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ 
+              color: '#6b7280', 
+              background: 'none', 
+              border: 'none', 
+              borderRadius: '6px', 
+              width: 32, 
+              height: 32, 
+              cursor: 'pointer', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              transition: 'all 0.2s ease',
+              fontSize: '20px',
+              fontWeight: 400
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
+              e.currentTarget.style.color = '#374151';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = '#6b7280';
+            }}
             onClick={onClose}
-            aria-label="Close"
+            aria-label="Close modal"
           >
             ×
           </button>
         </div>
+        
         {/* Content */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '0 24px 24px 24px' }}>
+        <div style={{ 
+          flex: 1, 
+          overflowY: 'auto', 
+          padding: '24px 24px 32px 24px',
+          scrollbarWidth: 'thin',
+          scrollbarColor: 'rgba(0, 0, 0, 0.2) transparent',
+        }}>
           <div style={{ textAlign: 'center', marginBottom: 20 }}>
             <p style={{ color: '#666', fontSize: 14, margin: '8px 0' }}>
               {isLogin ? 'Welcome back! Please sign in to your account.' : 'Create a new account to get started.'}
@@ -446,86 +488,6 @@ const AuthModal: React.FC<AuthModalProps> = ({
             />
           )}
           
-          {/* Enhanced error guidance section */}
-          {error && lastErrorStatus === 401 && isLogin && (
-            <div style={{
-              marginTop: 16,
-              padding: 16,
-              backgroundColor: '#fef3c7',
-              border: '1px solid #f59e0b',
-              borderRadius: 8,
-              fontSize: 14
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ color: '#d97706', marginRight: 8 }}>💡</span>
-                <strong style={{ color: '#d97706' }}>Need help?</strong>
-              </div>
-              <ul style={{ margin: 0, paddingLeft: 16, color: '#92400e' }}>
-                <li>Double-check your email address for typos</li>
-                <li>Make sure your password is correct (case-sensitive)</li>
-                <li>
-                  Don't have an account?{' '}
-                  <button
-                    onClick={() => {
-                      setIsLogin(false);
-                      clearError();
-                      setAgreeToTerms(false);
-                    }}
-                    style={{
-                      color: '#3b82f6',
-                      fontWeight: 500,
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      textDecoration: 'underline'
-                    }}
-                  >
-                    Create one here
-                  </button>
-                </li>
-              </ul>
-            </div>
-          )}
-          
-          {/* Enhanced error guidance section for signup */}
-          {error && lastErrorStatus === 409 && !isLogin && (
-            <div style={{
-              marginTop: 16,
-              padding: 16,
-              backgroundColor: '#fef2f2',
-              border: '1px solid #f87171',
-              borderRadius: 8,
-              fontSize: 14
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ color: '#dc2626', marginRight: 8 }}>⚠️</span>
-                <strong style={{ color: '#dc2626' }}>Email already registered</strong>
-              </div>
-              <div style={{ color: '#7f1d1d', marginBottom: 8 }}>
-                This email address is already associated with an account.
-              </div>
-              <button
-                onClick={() => {
-                  setIsLogin(true);
-                  clearError();
-                  setLastErrorStatus(null);
-                  setAgreeToTerms(false);
-                }}
-                style={{
-                  color: '#3b82f6',
-                  fontWeight: 500,
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  textDecoration: 'underline',
-                  fontSize: 14
-                }}
-              >
-                Sign in to your existing account instead
-              </button>
-            </div>
-          )}
-          
           {/* Switch between login and register */}
           <div style={{ textAlign: 'center', marginTop: 20 }}>
             {isLogin ? (
@@ -538,7 +500,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
                     setLastErrorStatus(null);
                     setAgreeToTerms(false);
                   }}
-                  style={{ color: '#3b82f6', fontWeight: 500, background: 'none', border: 'none', cursor: 'pointer' }}
+                  style={{ color: '#a855f7', fontWeight: 500, background: 'none', border: 'none', cursor: 'pointer' }}
                 >
                   Sign up
                 </button>
@@ -553,7 +515,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
                     setLastErrorStatus(null);
                     setAgreeToTerms(false);
                   }}
-                  style={{ color: '#3b82f6', fontWeight: 500, background: 'none', border: 'none', cursor: 'pointer' }}
+                  style={{ color: '#a855f7', fontWeight: 500, background: 'none', border: 'none', cursor: 'pointer' }}
                 >
                   Sign in
                 </button>
@@ -562,8 +524,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
           </div>
         </div>
       </div>
-    </div>,
-    document.body
+    </div>
   );
 };
 

@@ -130,6 +130,18 @@ const ReviewDeleteModal: React.FC<ReviewDeleteModalProps> = ({
 
   if (!isOpen) return null;
 
+  // Calculate the current viewport center dynamically
+  const viewportHeight = window.innerHeight;
+  const viewportWidth = window.innerWidth;
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+  
+  const modalHeight = Math.min(700, viewportHeight * 0.9);
+  const modalWidth = Math.min(600, viewportWidth * 0.9);
+  
+  const centerTop = scrollTop + (viewportHeight / 2) - (modalHeight / 2);
+  const centerLeft = scrollLeft + (viewportWidth / 2) - (modalWidth / 2);
+
   const risks = [
     {
       icon: AlertTriangle,
@@ -151,18 +163,15 @@ const ReviewDeleteModal: React.FC<ReviewDeleteModalProps> = ({
   return createPortal(
     <div
       style={{
-        position: 'fixed',
+        position: 'absolute',
         top: 0,
         left: 0,
-        right: 0,
-        bottom: 0,
+        width: '100%',
+        height: Math.max(document.documentElement.scrollHeight, viewportHeight),
         zIndex: 99999,
-        display: 'flex',
-        justifyContent: 'center',
-        background: 'rgba(0,0,0,0.5)',
+        background: 'rgba(0, 0, 0, 0.6)',
+        backdropFilter: 'blur(4px)',
         pointerEvents: 'auto',
-        padding: '20px',
-        boxSizing: 'border-box',
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
@@ -171,22 +180,19 @@ const ReviewDeleteModal: React.FC<ReviewDeleteModalProps> = ({
       }}
     >
       <div style={{
+        position: 'absolute',
+        top: `${centerTop}px`,
+        left: `${centerLeft}px`,
+        width: `${modalWidth}px`,
+        maxHeight: `${modalHeight}px`,
         background: 'white',
-        borderRadius: 16,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
-        minWidth: 500,
-        maxWidth: 600,
-        width: '100%',
+        borderRadius: 12,
+        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+        border: '1px solid rgba(0, 0, 0, 0.05)',
         padding: 0,
         display: 'flex',
         flexDirection: 'column',
-        maxHeight: 'calc(100vh - 40px)',
         overflow: 'hidden',
-        position: 'fixed',
-        top: '50vh',
-        left: '50vw',
-        transform: 'translate(-50%, -50%)',
-        zIndex: 100000,
       }}>
         {/* Header */}
         <div style={{ 

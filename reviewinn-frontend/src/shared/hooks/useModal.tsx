@@ -46,7 +46,7 @@ export const useModal = (isOpen: boolean, onClose?: () => void) => {
     }
   };
 
-  // Common modal backdrop styles
+  // Enterprise-grade backdrop styles with proper centering
   const backdropStyles: React.CSSProperties = {
     position: 'fixed',
     top: 0,
@@ -55,29 +55,31 @@ export const useModal = (isOpen: boolean, onClose?: () => void) => {
     bottom: 0,
     zIndex: 99999,
     display: 'flex',
+    alignItems: 'center',
     justifyContent: 'center',
-    background: 'rgba(0,0,0,0.5)',
+    background: 'rgba(0, 0, 0, 0.6)',
+    backdropFilter: 'blur(4px)',
     pointerEvents: 'auto',
     padding: '20px',
     boxSizing: 'border-box',
   };
 
-  // Common modal content styles
+  // Enterprise-grade modal content styles with proper positioning
   const getModalContentStyles = (customStyles?: React.CSSProperties): React.CSSProperties => ({
     background: 'white',
-    borderRadius: 16,
-    boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
+    borderRadius: 12,
+    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+    border: '1px solid rgba(0, 0, 0, 0.05)',
     width: '100%',
+    maxWidth: '500px',
+    minWidth: '320px',
     padding: 0,
     display: 'flex',
     flexDirection: 'column',
     maxHeight: 'calc(100vh - 40px)',
     overflow: 'hidden',
-    position: 'fixed',
-    top: '50vh',
-    left: '50vw',
-    transform: 'translate(-50%, -50%)',
-    zIndex: 100000,
+    position: 'relative',
+    margin: 'auto',
     ...customStyles,
   });
 

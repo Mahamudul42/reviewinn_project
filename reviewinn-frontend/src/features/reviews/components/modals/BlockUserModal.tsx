@@ -60,21 +60,29 @@ const BlockUserModal: React.FC<BlockUserModalProps> = ({
 
   const userName = review.reviewerName || 'this user';
 
+  // Calculate the current viewport center dynamically
+  const viewportHeight = window.innerHeight;
+  const viewportWidth = window.innerWidth;
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+  
+  const modalHeight = Math.min(600, viewportHeight * 0.9);
+  const modalWidth = Math.min(500, viewportWidth * 0.9);
+  
+  const centerTop = scrollTop + (viewportHeight / 2) - (modalHeight / 2);
+  const centerLeft = scrollLeft + (viewportWidth / 2) - (modalWidth / 2);
+
   return createPortal(
     <div
       style={{
-        position: 'fixed',
+        position: 'absolute',
         top: 0,
         left: 0,
-        right: 0,
-        bottom: 0,
+        width: '100%',
+        height: Math.max(document.documentElement.scrollHeight, viewportHeight),
         zIndex: 99999,
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
         background: 'rgba(0,0,0,0.5)',
-        padding: '20px',
-        boxSizing: 'border-box',
+        pointerEvents: 'auto',
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget && !isSubmitting) {
@@ -83,15 +91,18 @@ const BlockUserModal: React.FC<BlockUserModalProps> = ({
       }}
     >
       <div style={{
+        position: 'absolute',
+        top: `${centerTop}px`,
+        left: `${centerLeft}px`,
+        width: `${modalWidth}px`,
+        maxHeight: `${modalHeight}px`,
         background: 'white',
         borderRadius: 12,
         boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
-        maxWidth: 500,
-        width: '100%',
-        maxHeight: 'calc(100vh - 40px)',
-        overflow: 'auto',
-        position: 'relative',
-        zIndex: 100000,
+        border: '1px solid rgba(0, 0, 0, 0.05)',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
       }}>
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -114,9 +125,16 @@ const BlockUserModal: React.FC<BlockUserModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div style={{ 
+          flex: 1, 
+          overflowY: 'auto', 
+          padding: '24px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '20px'
+        }}>
           {/* User Info */}
-          <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg mb-6">
+          <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
               <span className="text-lg font-medium text-blue-600">
                 {userName.charAt(0).toUpperCase()}
@@ -129,7 +147,7 @@ const BlockUserModal: React.FC<BlockUserModalProps> = ({
           </div>
 
           {/* Warning Message */}
-          <div className="mb-6">
+          <div>
             <h3 className="font-medium text-gray-900 mb-2">
               Are you sure you want to block {userName}?
             </h3>
@@ -149,7 +167,7 @@ const BlockUserModal: React.FC<BlockUserModalProps> = ({
 
           {/* Error Message */}
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+            <div className="p-3 bg-red-50 border border-red-200 rounded-md">
               <p className="text-sm text-red-600">{error}</p>
             </div>
           )}

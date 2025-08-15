@@ -328,22 +328,30 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
 
   if (!open) return null;
 
+  // Calculate the current viewport center dynamically
+  const viewportHeight = window.innerHeight;
+  const viewportWidth = window.innerWidth;
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+  
+  const modalHeight = Math.min(800, viewportHeight * 0.9);
+  const modalWidth = Math.min(800, viewportWidth * 0.9);
+  
+  const centerTop = scrollTop + (viewportHeight / 2) - (modalHeight / 2);
+  const centerLeft = scrollLeft + (viewportWidth / 2) - (modalWidth / 2);
+
   return createPortal(
     <>
       <div
         style={{
-          position: 'fixed',
+          position: 'absolute',
           top: 0,
           left: 0,
-          right: 0,
-          bottom: 0,
+          width: '100%',
+          height: Math.max(document.documentElement.scrollHeight, viewportHeight),
           zIndex: 99999,
-          display: 'flex',
-          justifyContent: 'center',
           background: 'rgba(0,0,0,0.5)',
           pointerEvents: 'auto',
-          padding: '20px',
-          boxSizing: 'border-box',
         }}
         onClick={(e) => {
           if (e.target === e.currentTarget) {
@@ -354,20 +362,19 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
         <div 
           className="modal-container"
           style={{
+            position: 'absolute',
+            top: `${centerTop}px`,
+            left: `${centerLeft}px`,
+            width: `${modalWidth}px`,
+            maxHeight: `${modalHeight}px`,
             background: 'linear-gradient(135deg, #ffffff 0%, #f9fafb 100%)', // Match homepage gradient
             borderRadius: 16, // Match homepage panel border radius
             boxShadow: '0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)', // Enhanced shadow to match homepage
-            width: '600px', // Exact match to middle panel width
-            maxWidth: '600px', // Ensure it doesn't exceed middle panel width
-            maxHeight: 'calc(100vh - 80px)', // Better mobile spacing
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
             border: '1px solid #e5e7eb', // Match homepage panel border
-            position: 'fixed',
-            top: '50vh',
-            left: '50vw',
-            transform: 'translate(-50%, -50%)',
+            position: 'relative',
             zIndex: 100000,
           }}
         >

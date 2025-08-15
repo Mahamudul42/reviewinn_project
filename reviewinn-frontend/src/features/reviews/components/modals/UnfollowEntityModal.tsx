@@ -58,21 +58,29 @@ const UnfollowEntityModal: React.FC<UnfollowEntityModalProps> = ({
 
   if (!isOpen) return null;
 
+  // Calculate the current viewport center dynamically
+  const viewportHeight = window.innerHeight;
+  const viewportWidth = window.innerWidth;
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+  
+  const modalHeight = Math.min(400, viewportHeight * 0.9);
+  const modalWidth = Math.min(450, viewportWidth * 0.9);
+  
+  const centerTop = scrollTop + (viewportHeight / 2) - (modalHeight / 2);
+  const centerLeft = scrollLeft + (viewportWidth / 2) - (modalWidth / 2);
+
   return createPortal(
     <div
       style={{
-        position: 'fixed',
+        position: 'absolute',
         top: 0,
         left: 0,
-        right: 0,
-        bottom: 0,
+        width: '100%',
+        height: Math.max(document.documentElement.scrollHeight, viewportHeight),
         zIndex: 99999,
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
         background: 'rgba(0,0,0,0.5)',
-        padding: '20px',
-        boxSizing: 'border-box',
+        pointerEvents: 'auto',
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget && !isSubmitting) {
@@ -81,15 +89,18 @@ const UnfollowEntityModal: React.FC<UnfollowEntityModalProps> = ({
       }}
     >
       <div style={{
+        position: 'absolute',
+        top: `${centerTop}px`,
+        left: `${centerLeft}px`,
+        width: `${modalWidth}px`,
+        maxHeight: `${modalHeight}px`,
         background: 'white',
         borderRadius: 12,
         boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
-        maxWidth: 500,
-        width: '100%',
-        maxHeight: 'calc(100vh - 40px)',
-        overflow: 'auto',
-        position: 'relative',
-        zIndex: 100000,
+        border: '1px solid rgba(0, 0, 0, 0.05)',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
       }}>
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">

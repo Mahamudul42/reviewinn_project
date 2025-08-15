@@ -82,6 +82,18 @@ const NotificationToggleModal: React.FC<NotificationToggleModalProps> = ({
 
   if (!isOpen) return null;
 
+  // Calculate the current viewport center dynamically
+  const viewportHeight = window.innerHeight;
+  const viewportWidth = window.innerWidth;
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+  
+  const modalHeight = Math.min(500, viewportHeight * 0.9);
+  const modalWidth = Math.min(450, viewportWidth * 0.9);
+  
+  const centerTop = scrollTop + (viewportHeight / 2) - (modalHeight / 2);
+  const centerLeft = scrollLeft + (viewportWidth / 2) - (modalWidth / 2);
+
   return createPortal(
     <div
       style={{

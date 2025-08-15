@@ -478,7 +478,10 @@ const Layout: React.FC = () => {
       console.log('Layout: Showing Sign In button - not authenticated or no user');
       return (
         <button
-          onClick={() => setShowAuthModal(true)}
+          onClick={() => {
+            console.log('🔥 Sign In clicked!');
+            setShowAuthModal(true);
+          }}
           className="sign-in-button"
         >
           <LogIn size={18} />

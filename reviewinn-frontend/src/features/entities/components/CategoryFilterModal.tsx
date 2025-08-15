@@ -201,8 +201,8 @@ const CategoryFilterModal: React.FC<CategoryFilterModalProps> = ({
             minWidth: '400px',
             maxHeight: 'calc(100vh - 40px)',
             position: 'fixed',
-            top: '50vh',
-            left: '50vw',
+            top: '50%',
+            left: '50%',
             transform: 'translate(-50%, -50%)',
             zIndex: 100002,
           }}

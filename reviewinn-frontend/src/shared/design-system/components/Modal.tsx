@@ -81,9 +81,15 @@ const ModalHeader: React.FC<{ title?: string; children?: React.ReactNode; showCl
   );
 };
 
-// Modal footer component
+// Enterprise-grade modal footer component
 const ModalFooter: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+  <div style={{
+    padding: '16px 24px 24px 24px',
+    borderTop: '1px solid rgba(0, 0, 0, 0.1)',
+    backgroundColor: '#f9fafb',
+    borderBottomLeftRadius: '12px',
+    borderBottomRightRadius: '12px',
+  }}>
     {children}
   </div>
 );
@@ -199,13 +205,11 @@ export const Modal: React.FC<ModalProps> = ({
       @keyframes modalSlideIn {
         from {
           opacity: 0;
-          transform: translate(-50%, -60%);
-          scale: 0.95;
+          transform: scale(0.95) translateY(-20px);
         }
         to {
           opacity: 1;
-          transform: translate(-50%, -50%);
-          scale: 1;
+          transform: scale(1) translateY(0);
         }
       }
     `;
@@ -214,7 +218,7 @@ export const Modal: React.FC<ModalProps> = ({
   
   if (!isOpen) return null;
   
-  // Use AuthModal approach - inline styles for everything
+  // Enterprise-grade overlay with proper viewport centering
   const overlayStyles = {
     position: 'fixed' as const,
     top: 0,
@@ -223,72 +227,73 @@ export const Modal: React.FC<ModalProps> = ({
     bottom: 0,
     zIndex: 99999,
     display: 'flex',
+    alignItems: 'center',
     justifyContent: 'center',
-    // NO alignItems: 'center' - this allows top menu bar to show (like AuthModal)
-    background: 'rgba(0,0,0,0.5)',
+    background: 'rgba(0, 0, 0, 0.6)',
+    backdropFilter: 'blur(4px)',
     pointerEvents: 'auto' as const,
-    padding: '20px', // This creates the 20px buffer space like AuthModal
+    padding: '20px',
     boxSizing: 'border-box' as const,
   };
   
-  // Modal styles matching AuthModal exactly
+  // Enterprise-grade modal positioning with proper constraints
   const getModalStyles = () => {
-    const authModalStyles = {
+    const baseModalStyles = {
       background: 'white',
-      borderRadius: 16,
-      boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
-      minWidth: 400,
-      maxWidth: 500, // Keep AuthModal's exact width constraint
-      width: '100%',
+      borderRadius: 12,
+      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+      border: '1px solid rgba(0, 0, 0, 0.05)',
       padding: 0,
       display: 'flex',
       flexDirection: 'column' as const,
       overflow: 'hidden',
-      // Exact AuthModal positioning - properly constrained
-      position: 'fixed' as const,
-      top: '50vh',
-      left: '50vw',  
-      transform: 'translate(-50%, -50%)',
-      zIndex: 100000,
-      // Ensure modal respects viewport bounds with padding (like AuthModal)
-      maxHeight: 'calc(100vh - 40px)', // 20px top + 20px bottom spacing
+      position: 'relative' as const,
+      maxHeight: 'calc(100vh - 40px)',
+      maxWidth: 'calc(100vw - 40px)',
+      width: '100%',
+      margin: 'auto',
     };
 
     if (size === 'full') {
       return {
-        ...authModalStyles,
+        ...baseModalStyles,
+        position: 'fixed' as const,
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
-        transform: 'none',
-        minWidth: 'auto',
-        maxWidth: 'none',
-        width: '100%',
-        height: '100%',
+        margin: 0,
+        maxWidth: '100vw',
         maxHeight: '100vh',
+        borderRadius: 0,
       };
-    }
-    
-    if (size === 'auth') {
-      return authModalStyles;
     }
     
     if (size === 'top-right') {
       return {
-        ...authModalStyles,
+        ...baseModalStyles,
+        position: 'fixed' as const,
         top: '20px',
         right: '20px',
-        left: 'auto',
-        transform: 'none',
-        maxWidth: 500,
+        margin: 0,
+        maxWidth: '400px',
+        width: 'auto',
       };
     }
     
-    // For other sizes, keep the auth modal structure but adjust max-width
+    // Responsive width based on size
+    const sizeWidths = {
+      sm: '400px',
+      md: '500px', 
+      lg: '700px',
+      xl: '900px',
+      auth: '450px',
+    };
+    
     return {
-      ...authModalStyles,
-      maxWidth: size === 'sm' ? 384 : size === 'md' ? 512 : size === 'lg' ? 768 : size === 'xl' ? 1024 : 500,
+      ...baseModalStyles,
+      maxWidth: sizeWidths[size] || sizeWidths.md,
+      minWidth: size === 'sm' ? '320px' : '400px',
     };
   };
   
@@ -307,36 +312,46 @@ export const Modal: React.FC<ModalProps> = ({
         aria-modal="true"
         aria-labelledby={title ? 'modal-title' : undefined}
       >
-        {/* Header - matching AuthModal structure */}
+        {/* Enterprise-grade header */}
         {(header || title || showCloseButton) && (
           <div style={{ 
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'space-between', 
-            borderBottom: '1px solid #eee', 
-            padding: '20px 24px 12px 24px' 
+            borderBottom: '1px solid rgba(0, 0, 0, 0.1)', 
+            padding: '24px 24px 16px 24px',
+            minHeight: '64px'
           }}>
-            <span style={{ fontWeight: 700, fontSize: 20, color: '#222' }}>
+            <div style={{ fontWeight: 600, fontSize: 18, color: '#1f2937', lineHeight: 1.4 }}>
               {header || title}
-            </span>
+            </div>
             {showCloseButton && (
               <button
                 style={{ 
-                  color: '#888', 
-                  fontSize: 28, 
-                  fontWeight: 700, 
+                  color: '#6b7280', 
                   background: 'none', 
                   border: 'none', 
-                  borderRadius: 999, 
-                  width: 36, 
-                  height: 36, 
+                  borderRadius: '6px', 
+                  width: 32, 
+                  height: 32, 
                   cursor: 'pointer', 
                   display: 'flex', 
                   alignItems: 'center', 
-                  justifyContent: 'center' 
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease',
+                  fontSize: '20px',
+                  fontWeight: 400
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
+                  e.currentTarget.style.color = '#374151';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = '#6b7280';
                 }}
                 onClick={onClose}
-                aria-label="Close"
+                aria-label="Close modal"
               >
                 ×
               </button>
@@ -344,14 +359,15 @@ export const Modal: React.FC<ModalProps> = ({
           </div>
         )}
         
-        {/* Content - matching AuthModal structure with proper overflow */}
+        {/* Enterprise-grade content area */}
         <div style={{ 
           flex: 1, 
           overflowY: 'auto',
           overflowX: 'hidden',
-          padding: footer ? '24px 24px 0 24px' : '0 24px 24px 24px',
-          // Ensure content area respects modal height constraints
-          minHeight: 0, // Allow flex item to shrink below content size
+          padding: footer ? '24px' : '24px 24px 32px 24px',
+          minHeight: 0,
+          scrollbarWidth: 'thin',
+          scrollbarColor: 'rgba(0, 0, 0, 0.2) transparent',
         }}>
           {children}
         </div>

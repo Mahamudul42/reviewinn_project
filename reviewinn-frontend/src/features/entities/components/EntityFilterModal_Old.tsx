@@ -274,8 +274,8 @@ const EntityFilterModal: React.FC<EntityFilterModalProps> = ({
         maxHeight: 'calc(100vh - 40px)',
         overflow: 'hidden',
         position: 'fixed',
-        top: '50vh',
-        left: '50vw',
+        top: '50%',
+        left: '50%',
         transform: 'translate(-50%, -50%)',
         zIndex: 100000,
       }}>

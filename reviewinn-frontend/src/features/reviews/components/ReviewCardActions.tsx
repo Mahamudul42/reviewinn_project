@@ -46,6 +46,25 @@ const ReviewCardActions: React.FC<ReviewCardActionsProps> = ({
   review,
   entity
 }) => {
+  const [forceUpdate, setForceUpdate] = useState(0);
+
+  // Listen for auth state changes and force re-render
+  useEffect(() => {
+    const handleAuthChange = () => {
+      console.log('🔄 ReviewCardActions: Auth state changed, forcing re-render');
+      setForceUpdate(prev => prev + 1);
+    };
+
+    // Listen for both login success and general auth state changes
+    window.addEventListener('loginSuccess', handleAuthChange);
+    window.addEventListener('authStateChanged', handleAuthChange);
+
+    return () => {
+      window.removeEventListener('loginSuccess', handleAuthChange);
+      window.removeEventListener('authStateChanged', handleAuthChange);
+    };
+  }, []);
+
   // Debug logging for comment count
   console.log('🔍 ReviewCardActions: Received props', {
     reviewId,
@@ -54,8 +73,11 @@ const ReviewCardActions: React.FC<ReviewCardActionsProps> = ({
     totalReactions
   });
   
-  const { isAuthenticated, requireAuth } = useUnifiedAuth();
+  const { isAuthenticated, requireAuth, user } = useUnifiedAuth();
   const { showSuccess, showError } = useConfirmation();
+  
+  // Debug authentication state
+  console.log('🔐 ReviewCardActions auth state:', { isAuthenticated, hasUser: !!user, forceUpdate });
   const [showImageShareModal, setShowImageShareModal] = useState(false);
   const [showShareDropdown, setShowShareDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);

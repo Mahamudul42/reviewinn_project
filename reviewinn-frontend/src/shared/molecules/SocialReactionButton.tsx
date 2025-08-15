@@ -63,8 +63,29 @@ const SocialReactionButton: React.FC<SocialReactionButtonProps> = ({
   onReactionChange,
   onRequireAuth
 }) => {
-  const { isAuthenticated } = useUnifiedAuth();
+  const { isAuthenticated, user } = useUnifiedAuth();
   const [isHovered, setIsHovered] = useState(false);
+  const [forceUpdate, setForceUpdate] = useState(0);
+
+  // Listen for auth state changes and force re-render
+  useEffect(() => {
+    const handleAuthChange = () => {
+      console.log('🔄 SocialReactionButton: Auth state changed, forcing re-render');
+      setForceUpdate(prev => prev + 1);
+    };
+
+    // Listen for both login success and general auth state changes
+    window.addEventListener('loginSuccess', handleAuthChange);
+    window.addEventListener('authStateChanged', handleAuthChange);
+
+    return () => {
+      window.removeEventListener('loginSuccess', handleAuthChange);
+      window.removeEventListener('authStateChanged', handleAuthChange);
+    };
+  }, []);
+
+  // Debug authentication state
+  console.log('🔐 SocialReactionButton auth state:', { isAuthenticated, hasUser: !!user, forceUpdate });
   const [localReactions, setLocalReactions] = useState(reactions || {});
   const [localUserReaction, setLocalUserReaction] = useState(userReaction);
   const [popupPosition, setPopupPosition] = useState<'left' | 'center' | 'right'>('left');
