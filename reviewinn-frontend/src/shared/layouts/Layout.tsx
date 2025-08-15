@@ -28,8 +28,6 @@ const Layout: React.FC = () => {
   const [showRecentActivityDropdown, setShowRecentActivityDropdown] = useState(false);
   const [showMessagesDropdown, setShowMessagesDropdown] = useState(false);
   const [unreadConversationsCount, setUnreadConversationsCount] = useState(0); // Track unread conversations (industry standard)
-  const [lastMessageReceived, setLastMessageReceived] = useState<string>(''); // Debug: track last message
-  const [messageHistory, setMessageHistory] = useState<string[]>([]); // Debug: track message history
   const {
     notifications,
     removeNotification,
@@ -42,15 +40,6 @@ const Layout: React.FC = () => {
     enabled: isAuthenticated && !!user,
     onMessage: (message) => {
       // Update last message indicator for visual debugging
-      const timestamp = new Date().toLocaleTimeString();
-      const messageLog = `${message.type} at ${timestamp}`;
-      setLastMessageReceived(messageLog);
-      
-      // Keep history of last 5 messages
-      setMessageHistory(prev => {
-        const newHistory = [messageLog, ...prev].slice(0, 5);
-        return newHistory;
-      });
       
       console.log('🔔 Layout: WebSocket message received:', {
         type: message.type,
@@ -695,100 +684,6 @@ const Layout: React.FC = () => {
           </div>
         </div>
         
-        {/* Debug Panel - Outside all buttons to avoid nesting */}
-        {process.env.NODE_ENV === 'development' && isAuthenticated && (
-          <div className="fixed top-20 right-4 bg-blue-500 text-white text-xs px-3 py-2 rounded shadow-lg z-50 max-w-64 flex flex-col gap-2" style={{fontSize: '10px'}}>
-            <div className="font-bold">🔍 Real-time Debug Panel</div>
-            {lastMessageReceived && <div>Last: {lastMessageReceived}</div>}
-            {messageHistory.length > 1 && (
-              <div className="text-xs opacity-75 max-h-20 overflow-y-auto">
-                <div className="font-semibold">History:</div>
-                {messageHistory.slice(1).map((msg, idx) => (
-                  <div key={idx} className="truncate">{msg}</div>
-                ))}
-              </div>
-            )}
-            <div className="flex gap-1">
-              <button 
-                onClick={() => {
-                  console.log('🔄 Manual refresh triggered');
-                  loadUnreadConversationsCount();
-                }}
-                className="bg-yellow-500 text-black px-2 py-1 rounded text-xs hover:bg-yellow-400"
-              >
-                Refresh
-              </button>
-              <button 
-                onClick={() => {
-                  console.log('🧪 Test: Simulating unread message');
-                  setUnreadConversationsCount(prev => prev + 1);
-                }}
-                className="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-400"
-              >
-                Test +1
-              </button>
-              <button 
-                onClick={() => {
-                  console.log('🧪 Test: Resetting counter');
-                  setUnreadConversationsCount(0);
-                }}
-                className="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-400"
-              >
-                Reset
-              </button>
-            </div>
-            <div className="flex gap-1">
-              <button 
-                onClick={() => {
-                  console.log('🧪 Test: Simulating WebSocket new_message event');
-                  const fakeMessage = {
-                    type: 'new_message',
-                    conversation_id: 1,
-                    sender_id: 999, // Different from current user
-                    content: 'Test message from debug panel',
-                    created_at: new Date().toISOString()
-                  };
-                  // Trigger the same WebSocket handler
-                  setLastMessageReceived(`new_message at ${new Date().toLocaleTimeString()}`);
-                  setUnreadConversationsCount(prev => prev + 1);
-                  console.log('🧪 Simulated message:', fakeMessage);
-                }}
-                className="bg-purple-500 text-white px-1 py-0.5 rounded text-xs hover:bg-purple-400"
-              >
-                Sim WS
-              </button>
-            </div>
-            <div className="text-xs opacity-75">
-              Count: {unreadConversationsCount} | Connected: {isConnected ? 'Yes' : 'No'}
-            </div>
-            <div className="text-xs opacity-75">
-              User ID: {user?.id} | Messages in History: {messageHistory.length}
-            </div>
-            <div className="flex gap-1 mt-1">
-              <button 
-                onClick={() => {
-                  console.log('🏓 Test: WebSocket ping test');
-                  setLastMessageReceived(`ping_test at ${new Date().toLocaleTimeString()}`);
-                  console.log('🏓 If you see this log but no response from server, WebSocket is one-way only');
-                }}
-                className="bg-orange-500 text-white px-1 py-0.5 rounded text-xs hover:bg-orange-400"
-              >
-                Ping
-              </button>
-              <button 
-                onClick={() => {
-                  console.log('🧪 Force Backend Check: Sending a test message via API to trigger WebSocket');
-                  // This will help us see if the backend sends WebSocket messages when messages are sent
-                  setLastMessageReceived(`test_api_call at ${new Date().toLocaleTimeString()}`);
-                  loadUnreadConversationsCount(); // Force API call
-                }}
-                className="bg-teal-500 text-white px-1 py-0.5 rounded text-xs hover:bg-teal-400"
-              >
-                Force API
-              </button>
-            </div>
-          </div>
-        )}
       </header>
 
       <main className="main-content">
