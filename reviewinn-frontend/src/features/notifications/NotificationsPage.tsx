@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Check, CheckCheck, Trash2, Filter, RefreshCw, Bell, User, MessageCircle, Award, ChevronLeft, ChevronRight, Sliders } from 'lucide-react';
-import { notificationService } from '../../api/services/notificationService';
-import type { NotificationData, NotificationListResponse } from '../../api/services/notificationService';
+import { enterpriseNotificationService } from '../../api/services/enterpriseNotificationService';
+import type { EnterpriseNotificationData, NotificationListResponse } from '../../api/services/enterpriseNotificationService';
 import { useNavigate } from 'react-router-dom';
 import ThreePanelLayout from '../../shared/layouts/ThreePanelLayout';
 import { homepageService } from '../../api/services';
 import type { Entity, Review } from '../../types';
 import NotificationFilterModal from './components/NotificationFilterModal';
 import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
+import { useAuthStore } from '../../stores/authStore';
 
 interface NotificationFilters {
   readStatus?: 'all' | 'unread' | 'read';
@@ -39,7 +40,18 @@ const NotificationsPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await notificationService.getNotifications(page, perPage);
+      
+      // Debug: Check auth state before making API call
+      console.log('🔍 NotificationsPage: Loading notifications with auth state:', {
+        isAuthenticated,
+        hasUser: !!currentUser,
+        userId: currentUser?.id,
+        userToken: currentUser ? 'exists' : 'missing',
+        authStoreToken: useAuthStore.getState().token ? 'exists' : 'missing',
+        localStorageToken: localStorage.getItem('reviewinn_jwt_token') ? 'exists' : 'missing'
+      });
+      
+      const data = await enterpriseNotificationService.getNotifications(page, perPage);
       setNotifications(data);
       setCurrentPage(page);
     } catch (err) {
@@ -48,7 +60,7 @@ const NotificationsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [perPage]);
+  }, [perPage, isAuthenticated, currentUser]);
 
   // Check authentication and load notifications
   useEffect(() => {
@@ -79,7 +91,7 @@ const NotificationsPage: React.FC = () => {
   }, [currentUser?.id, authLoading, navigate, loadNotifications]);
 
   // Filter notifications based on modal filters
-  const filteredNotifications = notifications?.notifications.filter(notification => {
+  const filteredNotifications = notifications?.notifications?.filter(notification => {
     // Apply read status filter
     if (filters.readStatus && filters.readStatus !== 'all') {
       if (filters.readStatus === 'unread' && notification.is_read) return false;
@@ -90,13 +102,13 @@ const NotificationsPage: React.FC = () => {
     if (filters.notificationType && filters.notificationType !== 'all') {
       switch (filters.notificationType) {
         case 'circle':
-          return notification.notification_type.includes('circle');
+          return notification.type.includes('circle');
         case 'review':
-          return notification.notification_type.includes('review');
+          return notification.type.includes('review');
         case 'gamification':
-          return ['badge_earned', 'level_up', 'milestone_reached', 'daily_task_complete'].includes(notification.notification_type);
+          return ['badge_earned', 'level_up', 'milestone_reached', 'daily_task_complete'].includes(notification.type);
         case 'social':
-          return ['friend_request', 'friend_accepted', 'user_followed', 'user_mentioned'].includes(notification.notification_type);
+          return ['friend_request', 'friend_accepted', 'user_followed', 'user_mentioned'].includes(notification.type);
         default:
           return true;
       }
@@ -106,11 +118,11 @@ const NotificationsPage: React.FC = () => {
   }) || [];
 
   // Handle notification click
-  const handleNotificationClick = async (notification: NotificationData) => {
+  const handleNotificationClick = async (notification: EnterpriseNotificationData) => {
     try {
       // Mark as read if not already read
       if (!notification.is_read) {
-        await notificationService.markAsRead(notification.notification_id);
+        await enterpriseNotificationService.markAsRead(notification.notification_id);
         // Refresh notifications
         await loadNotifications(currentPage);
       }
@@ -122,8 +134,8 @@ const NotificationsPage: React.FC = () => {
     }
   };
 
-  const navigateToNotificationTarget = (notification: NotificationData) => {
-    const { notification_type, entity_id } = notification;
+  const navigateToNotificationTarget = (notification: EnterpriseNotificationData) => {
+    const { type: notification_type, entity_id } = notification;
 
     switch (notification_type) {
       case 'circle_request':
@@ -185,7 +197,7 @@ const NotificationsPage: React.FC = () => {
     setBulkActionLoading(true);
     try {
       const promises = Array.from(selectedNotifications).map(id => 
-        notificationService.markAsRead(id)
+        enterpriseNotificationService.markAsRead(id)
       );
       await Promise.all(promises);
       setSelectedNotifications(new Set());
@@ -201,7 +213,7 @@ const NotificationsPage: React.FC = () => {
     setBulkActionLoading(true);
     try {
       const promises = Array.from(selectedNotifications).map(id => 
-        notificationService.deleteNotification(id)
+        enterpriseNotificationService.deleteNotification(id)
       );
       await Promise.all(promises);
       setSelectedNotifications(new Set());
@@ -215,7 +227,7 @@ const NotificationsPage: React.FC = () => {
 
   const handleMarkAllAsRead = async () => {
     try {
-      await notificationService.markAllAsRead();
+      await enterpriseNotificationService.markAllAsRead();
       await loadNotifications(currentPage);
     } catch (err) {
       console.error('Failed to mark all notifications as read:', err);
@@ -229,10 +241,10 @@ const NotificationsPage: React.FC = () => {
       all: allNotifications.length,
       unread: allNotifications.filter(n => !n.is_read).length,
       read: allNotifications.filter(n => n.is_read).length,
-      circle: allNotifications.filter(n => n.notification_type.includes('circle')).length,
-      review: allNotifications.filter(n => n.notification_type.includes('review')).length,
-      gamification: allNotifications.filter(n => ['badge_earned', 'level_up', 'milestone_reached', 'daily_task_complete'].includes(n.notification_type)).length,
-      social: allNotifications.filter(n => ['friend_request', 'friend_accepted', 'user_followed', 'user_mentioned'].includes(n.notification_type)).length,
+      circle: allNotifications.filter(n => n.type.includes('circle')).length,
+      review: allNotifications.filter(n => n.type.includes('review')).length,
+      gamification: allNotifications.filter(n => ['badge_earned', 'level_up', 'milestone_reached', 'daily_task_complete'].includes(n.type)).length,
+      social: allNotifications.filter(n => ['friend_request', 'friend_accepted', 'user_followed', 'user_mentioned'].includes(n.type)).length,
     };
   };
 
@@ -330,7 +342,7 @@ const NotificationsPage: React.FC = () => {
                   <div>
                     <h1 className="text-xl font-bold text-gray-900">Notifications</h1>
                     <p className="text-xs text-gray-600">
-                      {notifications ? `${notifications.total} total notifications` : 'Loading...'}
+                      {notifications ? `${notifications.total || 0} total notifications` : 'Loading...'}
                     </p>
                   </div>
                 </div>
@@ -343,7 +355,7 @@ const NotificationsPage: React.FC = () => {
                     <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
                     <span>Refresh</span>
                   </button>
-                  {notifications && notifications.notifications.some(n => !n.is_read) && (
+                  {notifications?.notifications?.some(n => !n.is_read) && (
                     <button
                       onClick={handleMarkAllAsRead}
                       className="flex items-center space-x-1 px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
@@ -430,7 +442,7 @@ const NotificationsPage: React.FC = () => {
                     
                     <div className="flex-shrink-0 mt-1">
                       <span className="text-2xl">
-                        {notificationService.getNotificationIcon(notification.notification_type)}
+                        {enterpriseNotificationService.getNotificationIcon(notification.type)}
                       </span>
                     </div>
 
@@ -441,7 +453,7 @@ const NotificationsPage: React.FC = () => {
                         </p>
                         <div className="flex items-center space-x-2">
                           <p className="text-xs text-gray-500">
-                            {notificationService.formatTimeAgo(notification.created_at)}
+                            {enterpriseNotificationService.formatTimeAgo(notification.created_at)}
                           </p>
                           {!notification.is_read && (
                             <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
@@ -474,23 +486,23 @@ const NotificationsPage: React.FC = () => {
           </div>
 
           {/* Pagination */}
-          {notifications && notifications.total > perPage && (
+          {notifications && (notifications.total || 0) > perPage && (
             <div className="flex items-center justify-between mt-6">
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => loadNotifications(currentPage - 1)}
-                  disabled={!notifications.has_prev || loading}
+                  disabled={!notifications?.has_prev || loading}
                   className="flex items-center space-x-1 px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
                 >
                   <ChevronLeft size={16} />
                   <span>Previous</span>
                 </button>
                 <span className="text-sm text-gray-700">
-                  Page {currentPage} of {Math.ceil(notifications.total / perPage)}
+                  Page {currentPage} of {Math.ceil((notifications?.total || 0) / perPage)}
                 </span>
                 <button
                   onClick={() => loadNotifications(currentPage + 1)}
-                  disabled={!notifications.has_next || loading}
+                  disabled={!notifications?.has_next || loading}
                   className="flex items-center space-x-1 px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
                 >
                   <span>Next</span>
@@ -498,7 +510,7 @@ const NotificationsPage: React.FC = () => {
                 </button>
               </div>
               <div className="text-sm text-gray-600">
-                Showing {((currentPage - 1) * perPage) + 1} to {Math.min(currentPage * perPage, notifications.total)} of {notifications.total} notifications
+                Showing {((currentPage - 1) * perPage) + 1} to {Math.min(currentPage * perPage, notifications?.total || 0)} of {notifications?.total || 0} notifications
               </div>
             </div>
           )}

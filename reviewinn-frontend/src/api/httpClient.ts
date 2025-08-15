@@ -150,7 +150,7 @@ export class HttpClient {
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
       // Debug: Log token info when sending requests to protected endpoints
-      if (url && (url.includes('/users/me') || url.includes('/circles/') || url.includes('/messaging/'))) {
+      if (url && (url.includes('/users/me') || url.includes('/circles/') || url.includes('/messaging/') || url.includes('/enterprise-notifications/'))) {
         console.log('🔐 HttpClient: Sending protected request with token:', {
           url: url,
           tokenLength: token.length,
@@ -161,7 +161,7 @@ export class HttpClient {
       }
     } else {
       // Debug: Log when no token is available
-      if (url && (url.includes('/users/me') || url.includes('/circles/') || url.includes('/messaging/'))) {
+      if (url && (url.includes('/users/me') || url.includes('/circles/') || url.includes('/messaging/') || url.includes('/enterprise-notifications/'))) {
         console.log('⚠️ HttpClient: Sending protected request WITHOUT token:', {
           url: url,
           instanceToken: !!this.authToken,
@@ -355,6 +355,7 @@ export class HttpClient {
     const isProtectedEndpoint = (url.includes('/users/me') || url.includes('/auth/profile') || 
                                 url.includes('/reviews/create') || url.includes('/entities/create') ||
                                 url.includes('/circles/') || url.includes('/notifications/') ||
+                                url.includes('/enterprise-notifications/') ||
                                 url.includes('/messenger/') || url.includes('/messaging/')) &&
                                 !url.includes('/messaging/debug/'); // Exclude debug endpoints from auth requirement
     
@@ -409,7 +410,8 @@ export class HttpClient {
           // Only log unauthorized errors in development or for protected endpoints
           const isProtectedEndpoint = (url.includes('/users/me') || url.includes('/auth/') || 
                                       url.includes('/reviews/create') || url.includes('/circles/') ||
-                                      url.includes('/notifications/') || url.includes('/messenger/')) &&
+                                      url.includes('/notifications/') || url.includes('/enterprise-notifications/') ||
+                                      url.includes('/messenger/')) &&
                                       !url.includes('/messaging/debug/'); // Exclude debug endpoints from auth requirement
           if (import.meta.env.DEV || isProtectedEndpoint) {
             console.log('HttpClient: Received 401 Unauthorized, attempting token refresh...');

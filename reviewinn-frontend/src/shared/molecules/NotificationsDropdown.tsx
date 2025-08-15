@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Bell, Check, X } from 'lucide-react';
-import { notificationService } from '../../api/services/notificationService';
+import { enterpriseNotificationService } from '../../api/services/enterpriseNotificationService';
 import { PurpleButton } from '../design-system';
-import type { NotificationData } from '../../api/services/notificationService';
+import type { EnterpriseNotificationData } from '../../api/services/enterpriseNotificationService';
 
 interface NotificationsDropdownProps {
   open: boolean;
@@ -11,7 +11,7 @@ interface NotificationsDropdownProps {
 }
 
 const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ open, onClose }) => {
-  const [notifications, setNotifications] = useState<NotificationData[]>([]);
+  const [notifications, setNotifications] = useState<EnterpriseNotificationData[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -23,7 +23,7 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ open, onC
   const loadRecentNotifications = async () => {
     try {
       setLoading(true);
-      const response = await notificationService.getNotifications(1, 10); // Get first 10 notifications
+      const response = await enterpriseNotificationService.getNotifications(1, 10); // Get first 10 notifications
       setNotifications(response.notifications);
     } catch (error) {
       console.error('Failed to load recent notifications:', error);
@@ -43,11 +43,11 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ open, onC
     return `${Math.floor(diffInMinutes / 1440)}d ago`;
   };
 
-  const handleNotificationClick = async (notification: NotificationData) => {
+  const handleNotificationClick = async (notification: EnterpriseNotificationData) => {
     try {
       // Mark as read if not already read
       if (!notification.is_read) {
-        await notificationService.markAsRead(notification.notification_id);
+        await enterpriseNotificationService.markAsRead(notification.notification_id);
         // Update local state
         setNotifications(prev => 
           prev.map(n => 
@@ -66,8 +66,8 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ open, onC
     }
   };
 
-  const navigateToNotificationTarget = (notification: NotificationData) => {
-    const { notification_type, entity_id } = notification;
+  const navigateToNotificationTarget = (notification: EnterpriseNotificationData) => {
+    const { type: notification_type, entity_id } = notification;
     
     // This is the same logic from NotificationsPage.tsx
     switch (notification_type) {
@@ -100,7 +100,7 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ open, onC
   };
 
   const getNotificationIcon = (notificationType: string) => {
-    return notificationService.getNotificationIcon(notificationType);
+    return enterpriseNotificationService.getNotificationIcon(notificationType);
   };
 
   if (!open) return null;
@@ -143,7 +143,7 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ open, onC
             >
               <div className="flex-shrink-0 mt-1">
                 <span className="text-xl">
-                  {getNotificationIcon(notification.notification_type)}
+                  {getNotificationIcon(notification.type)}
                 </span>
               </div>
               <div className="flex-1 min-w-0">

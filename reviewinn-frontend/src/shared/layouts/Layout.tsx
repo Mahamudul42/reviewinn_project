@@ -7,6 +7,7 @@ import QuickActionsPanel from '../organisms/QuickActionsPanel';
 import RecentActivityDropdown from '../molecules/RecentActivityDropdown';
 import MessagesDropdown from '../molecules/MessagesDropdown';
 import NotificationsDropdown from '../molecules/NotificationsDropdown';
+import NotificationBell from '../components/NotificationBell';
 import { professionalMessagingService } from '../../api/services/professionalMessagingService';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
@@ -588,37 +589,9 @@ const Layout: React.FC = () => {
 
             <div className="header-actions">
               {/* Notification and Message icons */}
-              <div className="relative inline-block">
-                <button
-                  className="relative p-3 rounded-xl bg-white bg-opacity-10 backdrop-blur-sm border border-white border-opacity-20 hover:bg-opacity-20 transition-all duration-300 group mr-3 shadow-lg hover:shadow-xl"
-                  aria-label={isAuthenticated ? "Notifications" : "Sign in to view notifications"}
-                  title={isAuthenticated ? "View your notifications" : "Sign in to access notifications"}
-                  onClick={handleShowRecentActivity}
-                >
-                  <Bell size={20} className="text-white group-hover:scale-110 transition-transform duration-200" />
-                  {isAuthenticated && !recentActivityShown && recentInteractions.length > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-pink-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold shadow-lg animate-pulse" style={{fontSize:'11px'}}>
-                      {recentInteractions.length}
-                    </span>
-                  )}
-                  {!isAuthenticated && (
-                    <span className="absolute -top-2 -right-2 bg-gradient-to-r from-gray-400 to-gray-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold shadow-md" style={{fontSize:'11px'}}>
-                      ?
-                    </span>
-                  )}
-                </button>
-                {isAuthenticated ? (
-                  <NotificationsDropdown
-                    open={showRecentActivityDropdown}
-                    onClose={() => setShowRecentActivityDropdown(false)}
-                  />
-                ) : (
-                  <RecentActivityDropdown
-                    open={showRecentActivityDropdown}
-                    onClose={() => setShowRecentActivityDropdown(false)}
-                    interactions={recentInteractions}
-                  />
-                )}
+              {/* Enterprise Notification Bell */}
+              <div className="relative inline-block mr-3">
+                <NotificationBell className="p-3 rounded-xl bg-white bg-opacity-10 backdrop-blur-sm border border-white border-opacity-20 hover:bg-opacity-20 transition-all duration-300 group shadow-lg hover:shadow-xl" />
               </div>
               <div className="relative inline-block">
                 <button

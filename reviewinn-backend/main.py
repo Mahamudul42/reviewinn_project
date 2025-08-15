@@ -28,6 +28,7 @@ from routers.msg_api import router as msg_api_router
 from routers.professional_messaging_api import router as professional_messaging_router
 from routers.websocket import router as websocket_router
 from routers.notifications import router as notifications_router
+from routers.enterprise_notifications import router as enterprise_notifications_router
 from routers.user_profile import router as user_profile_router
 from routers.core_user_profile import router as core_user_profile_router
 from routers.homepage import router as homepage_router
@@ -212,6 +213,8 @@ class APIApplication(LoggerMixin):
         # Legacy messaging API (basic features)
         app.include_router(msg_api_router)
         app.include_router(notifications_router, prefix="/api/v1")
+        # Enterprise notifications using core_notifications table
+        app.include_router(enterprise_notifications_router, prefix="/api/v1")
         app.include_router(user_profile_router, prefix="/api/v1")
         # Enterprise-grade user profiles using core_users table
         app.include_router(core_user_profile_router, prefix="/api/v1")

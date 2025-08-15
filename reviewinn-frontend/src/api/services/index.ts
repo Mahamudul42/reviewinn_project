@@ -48,11 +48,12 @@ import { homepageService } from './homepageService';
 import { professionalMessagingService } from './professionalMessagingService';
 import { circleService } from './circleService';
 import { reviewinnRightPanelService } from './reviewinnRightPanelService';
+import { enterpriseNotificationService } from './enterpriseNotificationService';
 
 // Export service instances
 export const entityService = _entityService;
 export const reviewService = new ReviewService();
 export const userService = new UserService();
 export const commentService = new CommentService();
-export { userInteractionService, gamificationService, homepageService, professionalMessagingService, circleService, reviewinnRightPanelService };
+export { userInteractionService, gamificationService, homepageService, professionalMessagingService, circleService, reviewinnRightPanelService, enterpriseNotificationService };
 // entityServiceFactory removed - use entityService directly 
