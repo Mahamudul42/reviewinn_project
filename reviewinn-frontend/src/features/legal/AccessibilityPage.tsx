@@ -7,9 +7,9 @@ const AccessibilityPage: React.FC = () => {
   
   return (
     <LegalPageLayout
-      title="♿ Accessibility"
-      subtitle="Inclusive design"
-      description={`Last Updated: ${lastUpdated}`}
+      title="Accessibility"
+      lastUpdated={lastUpdated}
+      icon={Accessibility}
     >
       <div>
 

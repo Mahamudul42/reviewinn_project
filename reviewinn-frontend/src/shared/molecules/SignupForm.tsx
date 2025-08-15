@@ -3,14 +3,14 @@ import AuthFormField from './AuthFormField';
 import AuthButton from '../atoms/AuthButton';
 import AuthError from '../atoms/AuthError';
 import PasswordStrength from './PasswordStrength';
-import { Mail, Lock, User } from 'lucide-react';
+import { Mail, Lock, User, FileText } from 'lucide-react';
 
 interface SignupFormProps {
   firstName: string;
   lastName: string;
   email: string;
   password: string;
-  confirmPassword: string;
+  agreeToTerms: boolean;
   showPassword: boolean;
   loading: boolean;
   error?: string;
@@ -18,14 +18,14 @@ interface SignupFormProps {
   onLastNameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onEmailChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onPasswordChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onConfirmPasswordChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onAgreeToTermsChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onTogglePassword: () => void;
   onSubmit: (e: React.FormEvent) => void;
 }
 
 const SignupForm: React.FC<SignupFormProps> = ({
-  firstName, lastName, email, password, confirmPassword, showPassword, loading, error,
-  onFirstNameChange, onLastNameChange, onEmailChange, onPasswordChange, onConfirmPasswordChange, onTogglePassword, onSubmit
+  firstName, lastName, email, password, agreeToTerms, showPassword, loading, error,
+  onFirstNameChange, onLastNameChange, onEmailChange, onPasswordChange, onAgreeToTermsChange, onTogglePassword, onSubmit
 }) => (
   <form onSubmit={onSubmit} className="auth-form">
     <AuthError message={error} />
@@ -74,18 +74,34 @@ const SignupForm: React.FC<SignupFormProps> = ({
       />
       {password && <PasswordStrength password={password} />}
     </div>
-    <AuthFormField
-      id="confirm-password"
-      label="Confirm Password"
-      type="password"
-      value={confirmPassword}
-      onChange={onConfirmPasswordChange}
-      icon={<Lock size={18} className="input-icon" />}
-      showPassword={showPassword}
-      onTogglePassword={onTogglePassword}
-      required
-      placeholder="Confirm your password"
-    />
+    <div className="flex items-start space-x-3 py-3">
+      <input
+        id="agree-terms"
+        type="checkbox"
+        checked={agreeToTerms}
+        onChange={onAgreeToTermsChange}
+        className="mt-1 h-4 w-4 text-blue-600 border-2 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+        required
+      />
+      <label htmlFor="agree-terms" className="text-sm text-gray-700 leading-relaxed">
+        I agree to the{' '}
+        <button
+          type="button"
+          onClick={() => window.open('/terms-of-service', '_blank')}
+          className="text-blue-600 hover:text-blue-800 underline font-medium"
+        >
+          Terms of Service
+        </button>
+        {' '}and{' '}
+        <button
+          type="button"
+          onClick={() => window.open('/privacy-policy', '_blank')}
+          className="text-blue-600 hover:text-blue-800 underline font-medium"
+        >
+          Privacy Policy
+        </button>
+      </label>
+    </div>
     <AuthButton type="submit" disabled={loading}>
       {loading ? 'Creating Account...' : 'Create Account'}
     </AuthButton>

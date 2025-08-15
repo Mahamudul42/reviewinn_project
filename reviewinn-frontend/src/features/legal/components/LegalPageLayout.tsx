@@ -1,10 +1,9 @@
 import React from 'react';
-import { LucideIcon } from 'lucide-react';
 
 interface LegalPageLayoutProps {
   title: string;
   lastUpdated: string;
-  icon: LucideIcon;
+  icon: React.ComponentType<{ className?: string }>;
   children: React.ReactNode;
 }
 

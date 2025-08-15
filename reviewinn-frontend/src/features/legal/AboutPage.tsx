@@ -5,9 +5,9 @@ import LegalPageLayout from './components/LegalPageLayout';
 const AboutPage: React.FC = () => {
   return (
     <LegalPageLayout
-      title="📋 About Us"
-      subtitle="Learn our story"
-      description="Your trusted platform for authentic reviews and informed decisions. We connect people with genuine experiences to help build a more transparent marketplace."
+      title="About Us"
+      lastUpdated="January 11, 2025"
+      icon={Users}
     >
       <div>
         {/* Header - removed since it's now handled by LegalPageLayout */}

@@ -7,9 +7,9 @@ const DataProtectionPage: React.FC = () => {
   
   return (
     <LegalPageLayout
-      title="🛡️ Data Protection"
-      subtitle="GDPR compliance"
-      description={`Last Updated: ${lastUpdated}`}
+      title="Data Protection"
+      lastUpdated={lastUpdated}
+      icon={Shield}
     >
       <div>
 

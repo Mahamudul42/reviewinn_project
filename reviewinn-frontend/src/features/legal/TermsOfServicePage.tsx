@@ -7,9 +7,9 @@ const TermsOfServicePage: React.FC = () => {
   
   return (
     <LegalPageLayout
-      title="📜 Terms of Service"
-      subtitle="Usage agreement"
-      description={`Last Updated: ${lastUpdated}`}
+      title="Terms of Service"
+      lastUpdated={lastUpdated}
+      icon={FileText}
     >
       <div>
 

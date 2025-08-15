@@ -7,9 +7,9 @@ const ContentGuidelinesPage: React.FC = () => {
   
   return (
     <LegalPageLayout
-      title="📝 Content Guidelines"
-      subtitle="Community standards"
-      description={`Last Updated: ${lastUpdated}`}
+      title="Content Guidelines"
+      lastUpdated={lastUpdated}
+      icon={BookOpen}
     >
       <div>
 

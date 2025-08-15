@@ -7,9 +7,9 @@ const ConsumerHealthPrivacyPage: React.FC = () => {
   
   return (
     <LegalPageLayout
-      title="🏥 Health Privacy"
-      subtitle="Consumer protection"
-      description={`Last Updated: ${lastUpdated}`}
+      title="Health Privacy"
+      lastUpdated={lastUpdated}
+      icon={Heart}
     >
       <div>
 

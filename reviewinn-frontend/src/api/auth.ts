@@ -14,7 +14,6 @@ export interface RegisterData {
   lastName: string;
   email: string;
   password: string;
-  confirmPassword: string;
 }
 
 export interface AuthResponse {
@@ -258,9 +257,6 @@ class AuthService {
     this.updateAuthState({ isLoading: true, error: null });
 
     try {
-      if (data.password !== data.confirmPassword) {
-        throw new Error('Passwords do not match');
-      }
 
       // Call the real backend registration endpoint
       const response = await httpClient.post<{ user_id: number; username: string; full_name: string; email: string; is_verified: boolean; created_at: string }>(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.AUTH.REGISTER}`, {

@@ -7,9 +7,9 @@ const CookiesPolicyPage: React.FC = () => {
   
   return (
     <LegalPageLayout
-      title="🍪 Cookies Policy"
-      subtitle="Website preferences"
-      description={`Last Updated: ${lastUpdated}`}
+      title="Cookies Policy"
+      lastUpdated={lastUpdated}
+      icon={Cookie}
     >
       <div>
 

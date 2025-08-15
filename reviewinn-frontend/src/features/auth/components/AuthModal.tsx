@@ -42,6 +42,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
       // Clear any previous errors when modal opens
       clearError();
       setLastErrorStatus(null);
+      setAgreeToTerms(false);
       
       return () => {
         document.body.style.overflow = originalOverflow;
@@ -59,9 +60,10 @@ const AuthModal: React.FC<AuthModalProps> = ({
     firstName: '',
     lastName: '',
     email: '',
-    password: '',
-    confirmPassword: ''
+    password: ''
   });
+
+  const [agreeToTerms, setAgreeToTerms] = useState<boolean>(false);
 
   // Industry-standard email validation with additional checks
   const validateEmail = (email: string) => {
@@ -288,14 +290,9 @@ const AuthModal: React.FC<AuthModalProps> = ({
       return;
     }
 
-    // Confirm password validation
-    if (!registerForm.confirmPassword) {
-      setError('Please confirm your password');
-      setIsLoading(false);
-      return;
-    }
-    if (registerForm.password !== registerForm.confirmPassword) {
-      setError('Passwords do not match. Please ensure both passwords are identical.');
+    // Terms of service validation
+    if (!agreeToTerms) {
+      setError('Please agree to the Terms of Service and Privacy Policy to continue');
       setIsLoading(false);
       return;
     }
@@ -314,8 +311,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
         firstName: registerForm.firstName.trim(),
         lastName: registerForm.lastName.trim(),
         email: registerForm.email.trim().toLowerCase(),
-        password: registerForm.password,
-        confirmPassword: registerForm.confirmPassword
+        password: registerForm.password
       };
 
       await register(sanitizedData);
@@ -436,7 +432,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
               lastName={registerForm.lastName}
               email={registerForm.email}
               password={registerForm.password}
-              confirmPassword={registerForm.confirmPassword}
+              agreeToTerms={agreeToTerms}
               showPassword={showPassword}
               loading={isLoading}
               error={error || undefined}
@@ -444,7 +440,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
               onLastNameChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegisterForm((prev: RegisterData) => ({ ...prev, lastName: e.target.value }))}
               onEmailChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegisterForm((prev: RegisterData) => ({ ...prev, email: e.target.value }))}
               onPasswordChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegisterForm((prev: RegisterData) => ({ ...prev, password: e.target.value }))}
-              onConfirmPasswordChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegisterForm((prev: RegisterData) => ({ ...prev, confirmPassword: e.target.value }))}
+              onAgreeToTermsChange={(e: React.ChangeEvent<HTMLInputElement>) => setAgreeToTerms(e.target.checked)}
               onTogglePassword={() => setShowPassword(!showPassword)}
               onSubmit={handleRegister}
             />
@@ -473,6 +469,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
                     onClick={() => {
                       setIsLogin(false);
                       clearError();
+                      setAgreeToTerms(false);
                     }}
                     style={{
                       color: '#3b82f6',
@@ -512,6 +509,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
                   setIsLogin(true);
                   clearError();
                   setLastErrorStatus(null);
+                  setAgreeToTerms(false);
                 }}
                 style={{
                   color: '#3b82f6',
@@ -538,6 +536,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
                     setIsLogin(false);
                     clearError();
                     setLastErrorStatus(null);
+                    setAgreeToTerms(false);
                   }}
                   style={{ color: '#3b82f6', fontWeight: 500, background: 'none', border: 'none', cursor: 'pointer' }}
                 >
@@ -552,6 +551,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
                     setIsLogin(true);
                     clearError();
                     setLastErrorStatus(null);
+                    setAgreeToTerms(false);
                   }}
                   style={{ color: '#3b82f6', fontWeight: 500, background: 'none', border: 'none', cursor: 'pointer' }}
                 >
