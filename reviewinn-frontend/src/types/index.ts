@@ -362,7 +362,8 @@ export interface Comment {
   authorName: string;
   createdAt: Date;
   reactions: Record<string, number>;
-  userReaction?: string;
+  user_reaction?: string; // Changed to match Review interface naming
+  userReaction?: string; // Keep for backward compatibility
 }
 
 export interface ReviewFormData {

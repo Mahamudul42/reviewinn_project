@@ -74,6 +74,16 @@ const SocialReactionButton: React.FC<SocialReactionButtonProps> = ({
   const [isUpdating, setIsUpdating] = useState(false);
   const [showOnClick, setShowOnClick] = useState(false);
 
+  // Sync local state when props change (important for persistence after refresh)
+  useEffect(() => {
+    setLocalReactions(reactions || {});
+  }, [reactions]);
+
+  useEffect(() => {
+    setLocalUserReaction(userReaction);
+    console.log('🔄 SocialReactionButton: Updated local user reaction from prop:', userReaction);
+  }, [userReaction]);
+
   // Debug logging
   console.log('SocialReactionButton received:', { reactions, userReaction, hasOnReactionChange: !!onReactionChange });
 

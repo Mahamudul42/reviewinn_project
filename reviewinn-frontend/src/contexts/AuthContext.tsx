@@ -85,6 +85,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         await initialize();
         
+        // Load user interactions if user is already authenticated after initialization
+        const authState = useAuthStore.getState();
+        if (authState.isAuthenticated && authState.token) {
+          try {
+            const { userInteractionService } = await import('../api/services/userInteractionService');
+            await userInteractionService.loadUserInteractions();
+            console.log('AuthProvider: User interactions loaded during initialization');
+          } catch (interactionError) {
+            console.warn('AuthProvider: Failed to load user interactions during initialization:', interactionError);
+          }
+        }
+        
         if (isMounted) {
           setIsInitialized(true);
           console.log('AuthProvider: Initialization complete');
@@ -135,6 +147,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         hasUser: !!user,
         hasToken: !!token
       });
+      
+      // Load user interactions after successful login
+      try {
+        const { userInteractionService } = await import('../api/services/userInteractionService');
+        await userInteractionService.loadUserInteractions();
+        console.log('AuthProvider: User interactions loaded after login');
+      } catch (interactionError) {
+        console.warn('AuthProvider: Failed to load user interactions after login:', interactionError);
+      }
     } catch (error) {
       console.error('AuthProvider: Login failed:', error);
       throw error;
@@ -152,6 +173,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // The authService.register already handles Zustand state updates
       console.log('AuthProvider: Registration successful');
+      
+      // Load user interactions after successful registration
+      try {
+        const { userInteractionService } = await import('../api/services/userInteractionService');
+        await userInteractionService.loadUserInteractions();
+        console.log('AuthProvider: User interactions loaded after registration');
+      } catch (interactionError) {
+        console.warn('AuthProvider: Failed to load user interactions after registration:', interactionError);
+      }
     } catch (error) {
       console.error('AuthProvider: Registration failed:', error);
       throw error;
@@ -163,6 +193,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       await zustandLogout();
       console.log('AuthProvider: Logout successful');
+      
+      // Clear user interactions on logout
+      try {
+        const { userInteractionService } = await import('../api/services/userInteractionService');
+        userInteractionService.clearInteractions();
+        console.log('AuthProvider: User interactions cleared after logout');
+      } catch (interactionError) {
+        console.warn('AuthProvider: Failed to clear user interactions after logout:', interactionError);
+      }
       
       // Emit custom event for other parts of the app
       window.dispatchEvent(new CustomEvent('authLogout'));

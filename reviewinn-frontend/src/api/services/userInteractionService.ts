@@ -65,10 +65,19 @@ class UserInteractionService {
     });
     
     if (!authState.isAuthenticated || !authState.token || !authState.user) {
-      console.log('🔍 UserInteractionService: Not authenticated, skipping interactions load');
+      console.log('🔍 UserInteractionService: Not authenticated, using localStorage cache only');
       return;
     }
 
+    // For now, skip the backend call and rely on localStorage cache
+    // TODO: Implement backend user interactions endpoint when available
+    console.log('🔍 UserInteractionService: Using localStorage cache for user interactions');
+    
+    // Just notify subscribers that we've "loaded" (from localStorage)
+    this.notifySubscribers();
+    
+    /*
+    // Backend endpoint not implemented yet - keeping code for future use
     try {
       console.log('🔍 UserInteractionService: Making authenticated request to interactions');
       const response = await httpClient.get(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.USERS.ME_INTERACTIONS}`, true);
@@ -93,6 +102,7 @@ class UserInteractionService {
       console.warn('User interactions endpoint not available, using localStorage only:', error);
       // Don't throw error - just use localStorage cache
     }
+    */
   }
 
   // Get user interaction for a specific review

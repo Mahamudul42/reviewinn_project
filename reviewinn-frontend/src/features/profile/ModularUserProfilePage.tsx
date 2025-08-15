@@ -754,9 +754,21 @@ const ModularUserProfilePage: React.FC = () => {
       // Save to userInteractionService cache for persistence across page refreshes
       const { userInteractionService } = await import('../../api/services/userInteractionService');
       if (reaction) {
-        userInteractionService.updateUserInteraction(reviewId, { reaction });
+        userInteractionService.updateUserInteraction(reviewId, { 
+          reviewId,
+          reaction,
+          lastInteraction: new Date()
+        });
       } else {
-        userInteractionService.removeUserInteraction(reviewId);
+        // Remove reaction but keep other interactions (bookmarks, etc.)
+        const existingInteraction = userInteractionService.getUserInteraction(reviewId);
+        if (existingInteraction) {
+          userInteractionService.updateUserInteraction(reviewId, {
+            ...existingInteraction,
+            reaction: undefined,
+            lastInteraction: new Date()
+          });
+        }
       }
       
       // Let the useReviewCard hook handle the optimistic update

@@ -29,6 +29,7 @@ export const useReviewCard = ({ review, entity, onEntityClick, onReactionChange,
   const [topReactions, setTopReactions] = useState<any[]>(review.top_reactions || []);
   const [totalReactions, setTotalReactions] = useState<number>(review.total_reactions || 0);
   const [optimisticError, setOptimisticError] = useState<string | null>(null);
+  const [isReactionUpdating, setIsReactionUpdating] = useState<boolean>(false);
 
   // View tracking state
   const [viewCount, setViewCount] = useState<number>(review.view_count || 0);
@@ -103,16 +104,54 @@ export const useReviewCard = ({ review, entity, onEntityClick, onReactionChange,
     // Check userInteractionService for user reaction if not provided by backend
     if (review.user_reaction !== undefined) {
       setLocalUserReaction(review.user_reaction);
+      console.log('🔄 useReviewCard: Setting user reaction from review prop:', review.user_reaction, 'for review:', review.id);
     } else if (isAuthenticated) {
-      // Load from userInteractionService for persistence
-      import('../../../api/services/userInteractionService').then(({ userInteractionService }) => {
-        const cachedReaction = userInteractionService.getUserReaction(review.id);
-        if (cachedReaction) {
-          setLocalUserReaction(cachedReaction);
-        }
-      });
+      // Load from userInteractionService for persistence with small delay to ensure cache is ready
+      setTimeout(() => {
+        import('../../../api/services/userInteractionService').then(({ userInteractionService }) => {
+          const cachedReaction = userInteractionService.getUserReaction(review.id);
+          if (cachedReaction) {
+            console.log('🔄 useReviewCard: Setting user reaction from cache:', cachedReaction, 'for review:', review.id);
+            setLocalUserReaction(cachedReaction);
+          }
+        });
+      }, 100);
     }
   }, [review.reactions, review.top_reactions, review.total_reactions, review.view_count, review.comment_count, review.user_reaction, review.id, isAuthenticated]);
+
+  // Load user interactions on mount if authenticated and subscribe to updates
+  useEffect(() => {
+    if (isAuthenticated) {
+      let unsubscribe: (() => void) | undefined;
+      
+      import('../../../api/services/userInteractionService').then(({ userInteractionService }) => {
+        // Load interactions
+        userInteractionService.loadUserInteractions().catch(error => {
+          console.warn('Failed to load user interactions:', error);
+        });
+        
+        // Subscribe to interaction updates
+        unsubscribe = userInteractionService.subscribe((interactions) => {
+          const userReaction = interactions[review.id]?.reaction;
+          if (userReaction !== localUserReaction) {
+            console.log('🔄 useReviewCard: User interaction updated from cache subscription:', userReaction, 'for review:', review.id);
+            setLocalUserReaction(userReaction);
+          }
+        });
+        
+        // Also check immediately for existing cached reactions
+        const existingReaction = userInteractionService.getUserReaction(review.id);
+        if (existingReaction && existingReaction !== localUserReaction) {
+          console.log('🔄 useReviewCard: Found existing cached reaction:', existingReaction, 'for review:', review.id);
+          setLocalUserReaction(existingReaction);
+        }
+      });
+      
+      return () => {
+        unsubscribe?.();
+      };
+    }
+  }, [isAuthenticated, review.id, localUserReaction]);
 
   // Auth is now handled by context, no need for manual subscription
 
@@ -171,6 +210,12 @@ export const useReviewCard = ({ review, entity, onEntityClick, onReactionChange,
 
   // Reaction handling
   const handleReactionChange = async (reaction: string | null) => {
+    // Prevent race conditions from rapid clicks
+    if (isReactionUpdating) {
+      console.log('useReviewCard: Reaction update already in progress, ignoring request');
+      return;
+    }
+
     // Check authentication using the new unified context
     console.log('useReviewCard: Reaction change requested', { 
       reaction, 
@@ -179,12 +224,14 @@ export const useReviewCard = ({ review, entity, onEntityClick, onReactionChange,
       checkAuthResult: checkAuth()
     });
     
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !checkAuth()) {
       console.log('useReviewCard: User not authenticated, showing auth modal');
       setShowAuthModal(true);
       setOptimisticError('Please sign in to react to reviews.');
       return;
     }
+
+    setIsReactionUpdating(true);
 
     // Save previous state for rollback
     const prevReactions = { ...localReactions };
@@ -305,6 +352,8 @@ export const useReviewCard = ({ review, entity, onEntityClick, onReactionChange,
       } else {
         setOptimisticError('Failed to update reaction. Please try again.');
       }
+    } finally {
+      setIsReactionUpdating(false);
     }
   };
 

@@ -141,7 +141,7 @@ const ReviewCardMenu: React.FC<ReviewCardMenuProps> = ({ open, onClose, onAction
       top: adjustedTop,
       right,
       width: MENU_WIDTH,
-      zIndex: 999 // Higher z-index to ensure it's above other elements
+      zIndex: 100001 // Higher z-index to ensure it's above modal content
     });
   }, [open, menuButtonRef]);
 

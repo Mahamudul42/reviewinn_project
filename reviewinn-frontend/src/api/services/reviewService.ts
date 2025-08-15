@@ -809,8 +809,14 @@ export class ReviewService {
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.ADD_REACTION(reviewId)}`;
     const response = await httpClient.post(url, { reaction_type: reactionType });
     
-    // Update local interaction cache
-    userInteractionService.updateUserInteraction(reviewId, { reaction: reactionType });
+    // Update local interaction cache with the reaction
+    userInteractionService.updateUserInteraction(reviewId, { 
+      reviewId,
+      reaction: reactionType,
+      lastInteraction: new Date()
+    });
+    
+    console.log('🔄 ReviewService: Updated user interaction cache with reaction:', reactionType, 'for review:', reviewId);
     
     return response.data;
   }
@@ -827,8 +833,17 @@ export class ReviewService {
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.REMOVE_REACTION(reviewId)}`;
     const response = await httpClient.delete(url);
     
-    // Remove from local interaction cache
-    userInteractionService.removeUserInteraction(reviewId);
+    // Update local interaction cache to remove the reaction but keep other interactions
+    const existingInteraction = userInteractionService.getUserInteraction(reviewId);
+    if (existingInteraction) {
+      userInteractionService.updateUserInteraction(reviewId, {
+        ...existingInteraction,
+        reaction: undefined,
+        lastInteraction: new Date()
+      });
+    }
+    
+    console.log('🔄 ReviewService: Removed reaction from user interaction cache for review:', reviewId);
     
     return response.data;
   }

@@ -43,6 +43,7 @@ const transformApiReview = (apiReview: any): Review => {
     commentCount: apiReview.comment_count || 0,
     reactions: apiReview.top_reactions || {},
     top_reactions: Object.keys(apiReview.top_reactions || {}),
+    user_reaction: apiReview.user_reaction || undefined, // Will be loaded from cache if not in API
     createdAt: apiReview.created_at,
     updatedAt: apiReview.updated_at,
     entity: {
@@ -69,11 +70,20 @@ const transformApiReview = (apiReview: any): Review => {
 
 // Optimized API fetch function
 const fetchTestHomeData = async (limit: number = 15): Promise<TestHomeData> => {
+  // Include user reactions in the request
+  const token = localStorage.getItem('reviewinn_jwt_token');
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  
+  // Add authorization header if user is logged in
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
   const response = await fetch(`http://localhost:8000/api/v1/homepage/test_home?limit=${limit}`, {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     credentials: 'include',
   });
 
