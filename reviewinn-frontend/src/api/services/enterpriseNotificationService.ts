@@ -141,8 +141,11 @@ class EnterpriseNotificationService {
 
     try {
       const response = await httpClient.get(`${this.baseUrl}/summary`);
-      const data = response.success ? response : response.data;
       
+      let data = response;
+      if (response.data) {
+        data = response.data;
+      }
       this.setCachedData(cacheKey, data);
       return data;
     } catch (error: any) {
@@ -181,8 +184,17 @@ class EnterpriseNotificationService {
         params.append('priority_filter', priority_filter);
       }
 
-      const response = await httpClient.get(`${this.baseUrl}?${params.toString()}`);
-      return response.success ? response : response.data;
+      const url = `${this.baseUrl}/?${params.toString()}`;
+      
+      const response = await httpClient.get(url);
+      
+      // Handle different response formats
+      let data = response;
+      if (response.data) {
+        data = response.data;
+      }
+      
+      return data;
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
       throw error;
@@ -194,7 +206,9 @@ class EnterpriseNotificationService {
    */
   async markAsRead(notificationId: number): Promise<boolean> {
     try {
-      const response = await httpClient.patch(`${this.baseUrl}/${notificationId}/read`);
+      const response = await httpClient.patch(`${this.baseUrl}/${notificationId}`, {
+        is_read: true
+      });
       
       // Clear cache to force refresh
       this.clearCache();

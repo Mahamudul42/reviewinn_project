@@ -394,8 +394,8 @@ async def notifications_websocket_endpoint(websocket: WebSocket, token: str, db:
                 notification_id = message.get("notification_id")
                 if notification_id:
                     # Update notification in database
-                    from services.notification_service import NotificationService
-                    notification_service = NotificationService(db)
+                    from services.enterprise_notification_service import EnterpriseNotificationService
+                    notification_service = EnterpriseNotificationService(db)
                     
                     try:
                         notification_service.mark_as_read(notification_id, user.user_id)
@@ -413,8 +413,8 @@ async def notifications_websocket_endpoint(websocket: WebSocket, token: str, db:
                 # Handle deleting notification
                 notification_id = message.get("notification_id")
                 if notification_id:
-                    from services.notification_service import NotificationService
-                    notification_service = NotificationService(db)
+                    from services.enterprise_notification_service import EnterpriseNotificationService
+                    notification_service = EnterpriseNotificationService(db)
                     
                     try:
                         notification_service.delete_notification(notification_id, user.user_id)

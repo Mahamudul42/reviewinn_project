@@ -10,7 +10,7 @@ import random
 
 from models.review_circle import SocialCircleMember, SocialCircleRequest, SocialCircleBlock
 from models.user import User
-from services.notification_trigger_service import NotificationTriggerService
+from services.notification_trigger_service_enterprise import NotificationTriggerService
 from schemas.circle import (
     CircleCreateRequest,
     CircleUpdateRequest,

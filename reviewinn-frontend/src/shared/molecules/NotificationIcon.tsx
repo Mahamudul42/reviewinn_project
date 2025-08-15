@@ -110,9 +110,9 @@ const NotificationIcon: React.FC<NotificationIconProps> = ({ className = '' }) =
   };
 
   const navigateToNotificationTarget = (notification: NotificationData) => {
-    const { notification_type, entity_type, entity_id } = notification;
+    const { type, entity_type, entity_id } = notification;
 
-    switch (notification_type) {
+    switch (type) {
       case 'CIRCLE_REQUEST':
       case 'CIRCLE_ACCEPTED':
       case 'CIRCLE_DECLINED':
@@ -290,7 +290,7 @@ const NotificationIcon: React.FC<NotificationIconProps> = ({ className = '' }) =
                         />
                       ) : (
                         <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white text-xl">
-                          {notificationService.getNotificationIcon(notification.notification_type)}
+                          {notificationService.getNotificationIcon(notification.type)}
                         </div>
                       )}
                     </div>

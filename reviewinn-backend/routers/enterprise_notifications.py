@@ -72,7 +72,7 @@ async def get_notification_summary(
         return NotificationSummary(
             total_unread=dropdown_data.unread_count,
             total_urgent=dropdown_data.urgent_count,
-            total_critical=len([n for n in dropdown_data.notifications if n.get('priority') == 'critical']),
+            total_critical=len([n for n in dropdown_data.notifications if n.priority == 'critical']),
             recent_notifications=dropdown_data.notifications[:5],  # Top 5 for summary
             has_more=dropdown_data.has_more
         )
@@ -131,6 +131,50 @@ async def create_notification(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create notification"
+        )
+
+@router.patch("/{notification_id}")
+async def update_notification(
+    notification_id: int,
+    update_data: NotificationUpdate,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Update a specific notification (supports is_read and other fields)."""
+    try:
+        service = EnterpriseNotificationService(db)
+        
+        # Check if notification exists and belongs to user
+        from models.notification import Notification
+        notification = db.query(Notification).filter(
+            Notification.notification_id == notification_id,
+            Notification.user_id == current_user.user_id
+        ).first()
+        
+        if not notification:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Notification not found"
+            )
+        
+        # Update fields
+        if update_data.is_read is not None:
+            success = await service.mark_as_read(notification_id, current_user.user_id)
+            if not success:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Failed to update notification"
+                )
+        
+        return {"success": True, "message": "Notification updated successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to update notification: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update notification"
         )
 
 @router.patch("/{notification_id}/read")

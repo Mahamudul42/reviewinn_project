@@ -14,6 +14,7 @@ from schemas.notification import (
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta, timezone
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +58,9 @@ class EnterpriseNotificationService:
             self.db.add(notification)
             self.db.commit()
             self.db.refresh(notification)
+            
+            # Send real-time WebSocket notification
+            await self._send_websocket_notification(notification)
             
             logger.info(f"Created enterprise notification {notification.notification_id} for user {data.user_id}")
             return notification
@@ -181,8 +185,16 @@ class EnterpriseNotificationService:
                 )
             ).scalar() or 0
             
+            # Convert to NotificationRead objects
+            from schemas.notification import NotificationRead
+            notification_reads = []
+            for notification in notifications:
+                notification_dict = notification.to_dict()
+                notification_read = NotificationRead(**notification_dict)
+                notification_reads.append(notification_read)
+            
             return NotificationDropdownResponse(
-                notifications=[notification.to_dict() for notification in notifications],
+                notifications=notification_reads,
                 unread_count=unread_count,
                 urgent_count=urgent_count,
                 has_more=total_count > 20,
@@ -436,3 +448,30 @@ class EnterpriseNotificationService:
         except Exception as e:
             logger.error(f"Failed to create system notification: {str(e)}")
             raise
+    
+    async def _send_websocket_notification(self, notification: Notification) -> None:
+        """Send real-time WebSocket notification to user."""
+        try:
+            # Import here to avoid circular imports
+            from services.websocket_service import connection_manager
+            
+            # Convert notification to dict for WebSocket message
+            notification_data = notification.to_dict()
+            
+            # Send WebSocket message to user
+            websocket_message = {
+                "type": "new_notification",
+                "data": notification_data
+            }
+            
+            # Send to user if they're connected
+            if notification.user_id and notification.user_id in connection_manager.active_connections:
+                await connection_manager.send_to_user(notification.user_id, websocket_message)
+                logger.info(f"Sent WebSocket notification to user {notification.user_id}")
+            else:
+                logger.debug(f"User {notification.user_id} not connected, notification will be delivered on next page load")
+                
+        except Exception as e:
+            # WebSocket errors shouldn't break notification creation
+            logger.warning(f"Failed to send WebSocket notification: {str(e)}")
+            pass

@@ -5,13 +5,16 @@ export interface NotificationData {
   notification_id: number;
   user_id: number;
   actor_id?: number;
-  notification_type: string;
+  type: string; // Changed from notification_type to type
   entity_type?: string;
   entity_id?: number;
   title: string;
   content: string;
   is_read: boolean;
-  data?: Record<string, unknown>;
+  priority: string; // Added enterprise fields
+  delivery_status: string;
+  notification_data?: Record<string, unknown>; // Changed from data to notification_data
+  expires_at?: string;
   created_at: string;
   updated_at: string;
   actor_name?: string;
@@ -36,12 +39,14 @@ export interface NotificationListResponse {
 export interface NotificationCreate {
   user_id: number;
   actor_id?: number;
-  notification_type: string;
+  type: string; // Changed from notification_type to type
   entity_type?: string;
   entity_id?: number;
   title: string;
   content: string;
-  data?: Record<string, unknown>;
+  priority?: string;
+  delivery_status?: string;
+  notification_data?: Record<string, unknown>; // Changed from data to notification_data
 }
 
 export interface NotificationUpdate {
@@ -49,7 +54,7 @@ export interface NotificationUpdate {
 }
 
 class NotificationService {
-  private baseUrl = `${API_CONFIG.BASE_URL}/notifications`;
+  private baseUrl = `${API_CONFIG.BASE_URL}/enterprise-notifications`;
 
   async getNotificationSummary(): Promise<NotificationSummary> {
     try {

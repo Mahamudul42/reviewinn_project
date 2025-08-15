@@ -767,6 +767,16 @@ async def create_comment(
         db.commit()
         db.refresh(comment)
         
+        # 🔔 TRIGGER NOTIFICATION: Comment created
+        try:
+            from services.notification_trigger_service_enterprise import NotificationTriggerService
+            trigger_service = NotificationTriggerService(db)
+            await trigger_service.trigger_comment_notifications(comment, action='created')
+            logger.info(f"✅ Notification triggered for comment {comment.comment_id} on review {review_id}")
+        except Exception as notification_error:
+            logger.warning(f"⚠️ Failed to trigger notification for comment {comment.comment_id}: {notification_error}")
+            # Don't fail the request if notification fails
+        
         # Get comment user info for response
         comment_user = db.query(User).filter(User.user_id == comment.user_id).first()
         comment_reaction_summary = get_comment_reaction_summary_response(comment.comment_id, db, current_user.user_id)
@@ -990,6 +1000,22 @@ async def add_comment_reaction(
         
         db.commit()
         
+        # 🔔 TRIGGER NOTIFICATION: Comment reaction added
+        try:
+            from services.notification_trigger_service_enterprise import NotificationTriggerService
+            trigger_service = NotificationTriggerService(db)
+            await trigger_service.trigger_reaction_notifications(
+                target_type='comment',
+                target_id=comment_id,
+                reactor_user_id=current_user.user_id,
+                reaction_type=reaction_request.reaction_type,
+                action='added'
+            )
+            logger.info(f"✅ Notification triggered for comment {comment_id} reaction: {reaction_request.reaction_type}")
+        except Exception as notification_error:
+            logger.warning(f"⚠️ Failed to trigger notification for comment reaction: {notification_error}")
+            # Don't fail the request if notification fails
+        
         # Get updated reaction summary
         reaction_summary = get_comment_reaction_summary_response(comment_id, db, current_user.user_id)
         
@@ -1125,6 +1151,23 @@ async def add_or_update_reaction(
                 message="Could not add reaction",
                 status_code=500
             )
+        
+        # 🔔 TRIGGER NOTIFICATION: Review reaction added
+        try:
+            from services.notification_trigger_service_enterprise import NotificationTriggerService
+            trigger_service = NotificationTriggerService(db)
+            reaction_type_str = reaction_type.value if hasattr(reaction_type, 'value') else str(reaction_type)
+            await trigger_service.trigger_reaction_notifications(
+                target_type='review',
+                target_id=review_id,
+                reactor_user_id=current_user.user_id,
+                reaction_type=reaction_type_str,
+                action='added'
+            )
+            logger.info(f"✅ Notification triggered for review {review_id} reaction: {reaction_type_str}")
+        except Exception as notification_error:
+            logger.warning(f"⚠️ Failed to trigger notification for reaction: {notification_error}")
+            # Don't fail the request if notification fails
         
         # 🚀 ULTRA-OPTIMIZATION: Update denormalized counters AND top reactions JSON
         try:
