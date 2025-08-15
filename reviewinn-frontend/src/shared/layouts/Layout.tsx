@@ -479,10 +479,10 @@ const Layout: React.FC = () => {
       return (
         <button
           onClick={() => setShowAuthModal(true)}
-          className="btn btn-primary"
+          className="sign-in-button"
         >
-          <LogIn size={16} />
-          Sign In
+          <LogIn size={18} />
+          <span className="sign-in-text">Sign In</span>
         </button>
       );
     }
@@ -884,6 +884,42 @@ const Layout: React.FC = () => {
           color: rgba(255, 255, 255, 1);
         }
 
+        .sign-in-button {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 0.5rem 1.25rem;
+          border: none;
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          cursor: pointer;
+          border-radius: 12px;
+          transition: all 0.3s ease;
+          color: white;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          font-weight: 600;
+          font-size: 14px;
+        }
+
+        .sign-in-button:hover {
+          background: rgba(255, 255, 255, 0.2);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .sign-in-button:hover .sign-in-text {
+          color: rgba(255, 255, 255, 1);
+        }
+
+        .sign-in-text {
+          color: white;
+          font-weight: 600;
+          font-size: 14px;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+          transition: all 0.2s ease;
+        }
+
         .user-menu-dropdown {
           position: absolute;
           top: 100%;
@@ -982,6 +1018,15 @@ const Layout: React.FC = () => {
 
           .user-name {
             display: none;
+          }
+
+          .sign-in-text {
+            display: none;
+          }
+
+          .sign-in-button {
+            padding: 0.5rem;
+            gap: 0;
           }
 
           .header-actions {
