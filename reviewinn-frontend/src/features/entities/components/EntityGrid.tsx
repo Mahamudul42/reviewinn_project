@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Building2, Search } from 'lucide-react';
+import { Building2 } from 'lucide-react';
 import EntityListCard from '../../../shared/components/EntityListCard';
 import { useUnifiedAuth } from '../../../hooks/useUnifiedAuth';
 import type { Entity } from '../../../types';
@@ -9,6 +9,9 @@ interface EntityGridProps {
   loading: boolean;
   isSearchMode: boolean;
   onEntityClick: (entityId: string) => void;
+  currentUser?: { id: string; name: string; email: string };
+  authState?: { isLoading: boolean };
+  onRequireAuth?: () => void;
 }
 
 // Dropdown Menu Component
@@ -103,8 +106,17 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ isOpen, onClose, actions, m
   );
 };
 
-const EntityGrid: React.FC<EntityGridProps> = ({ entities, loading, isSearchMode, onEntityClick }) => {
-  const { user: currentUser } = useUnifiedAuth();
+const EntityGrid: React.FC<EntityGridProps> = ({ 
+  entities, 
+  loading, 
+  isSearchMode, 
+  onEntityClick,
+  currentUser
+}) => {
+  const { user: authUser } = useUnifiedAuth();
+  
+  // Use props currentUser if provided, otherwise fallback to auth hook
+  const user = currentUser || authUser;
   
   // Dropdown state management
   const [entityDropdown, setEntityDropdown] = useState<{
@@ -126,10 +138,10 @@ const EntityGrid: React.FC<EntityGridProps> = ({ entities, loading, isSearchMode
     const actions = [];
 
     // Check if current user owns this entity
-    const userOwnsEntity = currentUser && (
-      entity.claimedBy === parseInt(currentUser.id) || 
-      entity.claimedBy === currentUser.id ||
-      entity.claimedBy?.toString() === currentUser.id
+    const userOwnsEntity = user && (
+      entity.claimedBy === parseInt(user.id) || 
+      entity.claimedBy === user.id ||
+      entity.claimedBy?.toString() === user.id
     );
 
     // Show Edit/Delete options if user owns the entity
@@ -166,7 +178,7 @@ const EntityGrid: React.FC<EntityGridProps> = ({ entities, loading, isSearchMode
         label: 'Copy link to entity',
         icon: '🔗',
         onClick: () => {
-          navigator.clipboard.writeText(`${window.location.origin}/entity/${entity.id}`);
+          navigator.clipboard.writeText(`${window.location.origin}/entity/${entity.entity_id}`);
           console.log('Link copied to clipboard');
         }
       },
@@ -252,7 +264,7 @@ const EntityGrid: React.FC<EntityGridProps> = ({ entities, loading, isSearchMode
           />
           
           {/* Dropdown Menu */}
-          {entityDropdown.open && entityDropdown.entity?.id === entity.id && (
+          {entityDropdown.open && entityDropdown.entity?.entity_id === entity.entity_id && (
             <DropdownMenu
               isOpen={true}
               onClose={() => setEntityDropdown({ open: false, entity: null, buttonRef: null })}

@@ -114,7 +114,7 @@ const HomePage: React.FC = () => {
               onAddReviewClick={handleShowReviewModal}
               reviewBarRef={reviewBarRef}
               reviews={reviews}
-              entities={[]} // TODO: Get entities from reviews or fetch separately
+              entities={reviews.map(r => r.entity).filter(Boolean) as Entity[]}
               hasMoreReviews={hasMoreReviews}
               loadingMore={loadingMore}
               loading={centerLoading}
@@ -133,7 +133,7 @@ const HomePage: React.FC = () => {
               onAddReviewClick={handleShowReviewModal}
               reviewBarRef={reviewBarRef}
               reviews={reviews}
-              entities={[]} // TODO: Get entities from reviews or fetch separately
+              entities={reviews.map(r => r.entity).filter(Boolean) as Entity[]}
               hasMoreReviews={hasMoreReviews}
               loadingMore={loadingMore}
               loading={centerLoading}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Search, Edit3, X, ArrowRight } from 'lucide-react';
+import { Search, Edit3, X } from 'lucide-react';
 import { PurpleButton } from '../../../shared/design-system/components/PurpleButton';
 import { searchService } from '../../../api/services/searchService';
 import type { Review } from '../../../types';

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ThreePanelLayout from '../../shared/layouts/ThreePanelLayout';
-import { entityService, reviewService } from '../../api/services';
+import { entityService } from '../../api/services';
 import { enhanceEntityWithVerification } from '../../shared/utils/verificationUtils';
 import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
 import EntitySearchBar from './components/EntitySearchBar';
@@ -10,26 +10,10 @@ import EntitySearchResults from './components/EntitySearchResults';
 import PanelLoadingState from '../../shared/panels/components/PanelLoadingState';
 import type { Entity, SearchResult } from '../../types/index';
 
-// Local type definition to fix import issue
-interface UnifiedCategory {
-  id: number;
-  name: string;
-  slug: string;
-  description?: string;
-  parent_id?: number;
-  path: string;
-  level: number;
-  icon?: string;
-  color?: string;
-  is_active: boolean;
-  sort_order: number;
-  created_at: string;
-  updated_at?: string;
-}
 
 const EntityListPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user: currentUser, isAuthenticated, isLoading: authLoading } = useUnifiedAuth();
+  const { user: currentUser, isLoading: authLoading } = useUnifiedAuth();
 
   // State for entities and data
   const [entities, setEntities] = useState<Entity[]>([]);
@@ -50,24 +34,7 @@ const EntityListPage: React.FC = () => {
       setError(null);
       try {
         // Load initial entities without filters (EntitySearchBar will handle filtering)
-        console.log('🏢 EntityListPage: Loading initial entities...');
-        
         const entityData = await entityService.getEntities({ limit: 20, sortBy: 'createdAt', sortOrder: 'desc' });
-        
-        console.log('🏢 EntityListPage: Raw entity data received:', {
-          totalEntities: entityData?.entities?.length || 0,
-          sampleEntity: entityData?.entities?.[0] ? {
-            id: entityData.entities[0].id,
-            name: entityData.entities[0].name,
-            is_verified: entityData.entities[0].is_verified,
-            review_count: entityData.entities[0].review_count,
-            average_rating: entityData.entities[0].average_rating,
-            total_views: entityData.entities[0].total_views,
-            final_category: entityData.entities[0].final_category,
-            root_category: entityData.entities[0].root_category,
-            created_at: entityData.entities[0].created_at
-          } : null
-        });
         
         if (entityData && entityData.entities && entityData.entities.length > 0) {
           // Step 1: Show basic entities immediately for fast UI feedback
@@ -75,30 +42,10 @@ const EntityListPage: React.FC = () => {
             enhanceEntityWithVerification(entity)
           );
           
-          console.log('🏢 Core entities loaded and enhanced:', basicEntities.length, 'entities');
-          console.log('🏢 Sample core entity data (all fields):', JSON.stringify(basicEntities[0], null, 2));
-          console.log('🏢 Sample core entity keys:', Object.keys(basicEntities[0]));
-          console.log('🏢 Core entity verification status mapping:', {
-            is_verified: basicEntities[0]?.is_verified,
-            isVerified: basicEntities[0]?.isVerified,
-            verification_status: basicEntities[0]?.verification_status
-          });
-          console.log('🏢 Core entity stats mapping:', {
-            review_count: basicEntities[0]?.review_count,
-            reviewCount: basicEntities[0]?.reviewCount,
-            average_rating: basicEntities[0]?.average_rating,
-            averageRating: basicEntities[0]?.averageRating,
-            total_views: basicEntities[0]?.total_views,
-            viewCount: basicEntities[0]?.viewCount
-          });
-          
           setEntities(basicEntities);
           setFilteredEntities(basicEntities);
           setTotalEntities(entityData.total || 0);
           setLoading(false); // Show UI immediately with basic data
-          
-          // The unified backend service should provide all aggregated data directly
-          console.log('✅ Using unified backend data directly - no client-side enhancement needed');
         } else {
           // No entities found - this is not an error, just empty state
           setEntities([]);
@@ -133,7 +80,6 @@ const EntityListPage: React.FC = () => {
 
   // Handle search results
   const handleSearchResults = (results: SearchResult) => {
-    console.log('Search results received:', results);
     setSearchResults(results);
     setFilteredEntities(results.entities);
     setIsSearchMode(results.entities.length > 0 || results.total > 0);
@@ -153,8 +99,6 @@ const EntityListPage: React.FC = () => {
 
   // Get entities to display
   const displayEntities = isSearchMode ? filteredEntities : entities;
-
-  console.log('EntityListPage render - entities:', entities.length, 'filtered:', filteredEntities.length, 'display:', displayEntities.length);
 
   if (loading) {
     return (
@@ -205,8 +149,11 @@ const EntityListPage: React.FC = () => {
       <div className="w-full space-y-6 px-8">
         {/* Page Title */}
         <div className="text-center mb-6">
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">Browse Entities</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Browse Entities</h2>
           <p className="text-gray-600">Discover and explore businesses, services, and organizations</p>
+          {totalEntities > 0 && (
+            <p className="text-sm text-gray-500 mt-1">{totalEntities} entities available</p>
+          )}
         </div>
 
         {/* Search Bar */}

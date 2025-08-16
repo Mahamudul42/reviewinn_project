@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Search, Filter, X } from 'lucide-react';
 import { entityService } from '../../../api/services';
 import EntityFilterModal from './EntityFilterModal';
@@ -10,23 +10,36 @@ interface EntitySearchBarProps {
   onEntitySelect: (entity: Entity) => void;
   placeholder?: string;
   initialQuery?: string;
+  currentUser?: { id: string; name: string; email: string };
+  authState?: { isLoading: boolean };
+}
+
+interface EntityFilters {
+  category?: EntityCategory;
+  sortBy?: string;
+  sortOrder?: string;
+  isVerified?: boolean;
+  isClaimed?: boolean;
+  minRating?: number;
+  hasReviews?: boolean;
+  selectedRootCategory?: { id: number; name: string };
+  selectedFinalCategory?: { id: number; name: string };
 }
 
 const EntitySearchBar: React.FC<EntitySearchBarProps> = ({
   onSearchResults,
-  onEntitySelect,
   placeholder = "Search entities...",
   initialQuery = ""
 }) => {
   const [query, setQuery] = useState(initialQuery);
   const [isLoading, setIsLoading] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
-  const [appliedFilters, setAppliedFilters] = useState<any>({});
+  const [appliedFilters, setAppliedFilters] = useState<EntityFilters>({});
   const [filterCount, setFilterCount] = useState(0);
 
   // Remove automatic initial search - let EntityListPage handle initial entity loading
 
-  const performSearch = async (searchQuery: string, filters: any) => {
+  const performSearch = async (searchQuery: string, filters: EntityFilters) => {
     setIsLoading(true);
     console.log('🔍 EntitySearchBar: Performing search with:', { searchQuery, filters });
     try {
@@ -93,7 +106,7 @@ const EntitySearchBar: React.FC<EntitySearchBarProps> = ({
     performSearch('', appliedFilters);
   };
 
-  const handleFilterApply = (filters: any) => {
+  const handleFilterApply = (filters: EntityFilters) => {
     console.log('🎯 EntitySearchBar: Filter applied:', filters);
     setAppliedFilters(filters);
     

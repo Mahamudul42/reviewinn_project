@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Suspense, lazy, useEffect } from 'react';
+import { Suspense, lazy } from 'react';
 // Homepage component (now using the enhanced design)
 import Layout from './shared/layouts/Layout';
 import ProtectedRoute from './shared/components/ProtectedRoute';
@@ -19,7 +19,7 @@ const reviewInnAuthService = new ReviewInnAuthService();
 const authManager = initializeAuthManager(reviewInnAuthService);
 
 // Make auth manager globally available for debugging
-(window as any).authManager = authManager;
+(window as { authManager: typeof authManager }).authManager = authManager;
 
 // Lazy load components for better performance
 const HomePage = lazy(() => import('./features/common/HomePage'));

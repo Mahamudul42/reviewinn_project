@@ -88,8 +88,8 @@ const ThreePanelLayout: React.FC<ThreePanelLayoutProps> = ({
       <div className={`container mx-auto ${containerPadding}`}>
         {/* Page Header */}
         {showPageHeader && (
-          <div className="text-center mb-4">
-            <h1 className={`text-4xl md:text-5xl font-bold bg-gradient-to-r ${headerGradient} bg-clip-text text-transparent mb-2`}>
+          <div className="text-center mb-6">
+            <h1 className={`text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r ${headerGradient} bg-clip-text text-transparent mb-2`}>
               {pageTitle}
             </h1>
           </div>

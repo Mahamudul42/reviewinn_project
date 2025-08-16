@@ -1,9 +1,61 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { Review } from '../../../types';
 
-interface TestHomeData {
-  reviews: any[];
+interface HomepageData {
+  reviews: ApiReview[];
   hasMore: boolean;
+}
+
+interface ApiReview {
+  review_id: number;
+  title?: string;
+  content: string;
+  overall_rating: number;
+  view_count?: number;
+  comment_count?: number;
+  reaction_count?: number;
+  is_verified?: boolean;
+  is_anonymous?: boolean;
+  pros?: string[];
+  cons?: string[];
+  images?: string[];
+  ratings?: Record<string, number>;
+  top_reactions?: Record<string, number>;
+  user_reaction?: string;
+  created_at: string;
+  updated_at?: string;
+  entity?: {
+    entity_id: number;
+    name: string;
+    description?: string;
+    avatar?: string;
+    imageUrl?: string;
+    is_verified?: boolean;
+    is_claimed?: boolean;
+    average_rating?: number;
+    review_count?: number;
+    view_count?: number;
+    root_category?: {
+      id: number;
+      name: string;
+      slug: string;
+      level: number;
+    };
+    final_category?: {
+      id: number;
+      name: string;
+      slug: string;
+      level: number;
+    };
+  };
+  user?: {
+    user_id: number;
+    name: string;
+    username?: string;
+    avatar?: string;
+    level?: number;
+    is_verified?: boolean;
+  };
 }
 
 interface UseHomeDataReturn {
@@ -18,7 +70,7 @@ interface UseHomeDataReturn {
 }
 
 // Optimized data transformation with memoization
-const transformApiReview = (apiReview: any): Review => {
+const transformApiReview = (apiReview: ApiReview): Review => {
   return {
     id: apiReview.review_id.toString(),
     entityId: apiReview.entity?.entity_id?.toString() || '',
@@ -68,8 +120,8 @@ const transformApiReview = (apiReview: any): Review => {
   };
 };
 
-// Optimized API fetch function
-const fetchTestHomeData = async (limit: number = 15): Promise<TestHomeData> => {
+// Optimized API fetch function using the proper reviews endpoint
+const fetchHomepageData = async (page: number = 1, limit: number = 15): Promise<HomepageData> => {
   // Include user reactions in the request
   const token = localStorage.getItem('reviewinn_jwt_token');
   const headers: Record<string, string> = {
@@ -81,14 +133,14 @@ const fetchTestHomeData = async (limit: number = 15): Promise<TestHomeData> => {
     headers['Authorization'] = `Bearer ${token}`;
   }
   
-  const response = await fetch(`http://localhost:8000/api/v1/homepage/test_home?limit=${limit}`, {
+  const response = await fetch(`http://localhost:8000/api/v1/homepage/reviews?page=${page}&limit=${limit}`, {
     method: 'GET',
     headers,
     credentials: 'include',
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch test home data: ${response.statusText}`);
+    throw new Error(`Failed to fetch homepage data: ${response.statusText}`);
   }
 
   const result = await response.json();
@@ -112,7 +164,7 @@ export const useHomeData = (): UseHomeDataReturn => {
   const [localViewCounts, setLocalViewCounts] = useState<Record<string, number>>({});
 
   // Memoized transformation function
-  const transformReviews = useCallback((apiReviews: any[]): Review[] => {
+  const transformReviews = useCallback((apiReviews: ApiReview[]): Review[] => {
     return apiReviews.map(transformApiReview);
   }, []);
 
@@ -122,7 +174,7 @@ export const useHomeData = (): UseHomeDataReturn => {
     setError(null);
     
     try {
-      const data = await fetchTestHomeData(15);
+      const data = await fetchHomepageData(1, 15);
       const transformedReviews = transformReviews(data.reviews);
       
       setReviews(transformedReviews);
@@ -140,10 +192,12 @@ export const useHomeData = (): UseHomeDataReturn => {
     
     setLoadingMore(true);
     try {
-      const data = await fetchTestHomeData(reviews.length + 10);
+      const currentPage = Math.floor(reviews.length / 15) + 1;
+      const data = await fetchHomepageData(currentPage + 1, 15);
       const transformedReviews = transformReviews(data.reviews);
       
-      setReviews(transformedReviews);
+      // Append new reviews to existing ones
+      setReviews(prev => [...prev, ...transformedReviews]);
       setHasMoreReviews(data.hasMore);
     } catch (err) {
       console.error('Error loading more reviews:', err);
