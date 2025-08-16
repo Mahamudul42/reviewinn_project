@@ -48,13 +48,17 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className = '' }) =
     }
   }, [isAuthenticated, currentUser, loadNotificationSummary]);
 
-  // Auto-refresh every 60 seconds
+  // Auto-refresh every 60 seconds with proper cleanup
   useEffect(() => {
     if (!isAuthenticated || !currentUser) return;
 
     const interval = setInterval(loadNotificationSummary, 60000);
-    return () => clearInterval(interval);
-  }, [isAuthenticated, currentUser, loadNotificationSummary]);
+    
+    // Cleanup function to prevent memory leaks
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isAuthenticated, currentUser?.id, loadNotificationSummary]); // Use currentUser?.id instead of full object
 
   // Refresh when dropdown closes (in case notifications were marked as read)
   const handleDropdownClose = useCallback(() => {

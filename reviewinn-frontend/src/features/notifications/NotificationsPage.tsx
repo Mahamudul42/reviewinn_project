@@ -35,21 +35,15 @@ const NotificationsPage: React.FC = () => {
 
   const perPage = 20;
 
-  // Load notifications
+  // Load notifications - optimized to prevent excessive API calls
   const loadNotifications = useCallback(async (page: number = 1) => {
+    if (!isAuthenticated || !currentUser) {
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
-      
-      // Debug: Check auth state before making API call
-      console.log('🔍 NotificationsPage: Loading notifications with auth state:', {
-        isAuthenticated,
-        hasUser: !!currentUser,
-        userId: currentUser?.id,
-        userToken: currentUser ? 'exists' : 'missing',
-        authStoreToken: useAuthStore.getState().token ? 'exists' : 'missing',
-        localStorageToken: localStorage.getItem('reviewinn_jwt_token') ? 'exists' : 'missing'
-      });
       
       const data = await enterpriseNotificationService.getNotifications(page, perPage);
       setNotifications(data);
@@ -60,7 +54,7 @@ const NotificationsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [perPage, isAuthenticated, currentUser]);
+  }, [perPage, isAuthenticated, currentUser?.id]); // Only depend on user ID, not full user object
 
   // Check authentication and load notifications
   useEffect(() => {
@@ -375,6 +369,7 @@ const NotificationsPage: React.FC = () => {
                     checked={selectedNotifications.size === filteredNotifications.length && filteredNotifications.length > 0}
                     onChange={handleSelectAll}
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    aria-label="Select all notifications"
                   />
                   <span className="text-sm font-medium text-gray-900">
                     {filteredNotifications.length} notification(s)
@@ -410,8 +405,17 @@ const NotificationsPage: React.FC = () => {
               )}
 
               {error && (
-                <div className="px-4 py-8 text-center text-red-600">
-                  {error}
+                <div className="px-4 py-8 text-center">
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
+                    <div className="text-red-600 text-sm font-medium mb-2">Error Loading Notifications</div>
+                    <div className="text-red-500 text-sm mb-4">{error}</div>
+                    <button
+                      onClick={() => loadNotifications(currentPage)}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+                    >
+                      Try Again
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -430,6 +434,15 @@ const NotificationsPage: React.FC = () => {
                     !notification.is_read ? 'bg-blue-50' : 'bg-white'
                   }`}
                   onClick={() => handleNotificationClick(notification)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleNotificationClick(notification);
+                    }
+                  }}
+                  aria-label={`Notification: ${notification.title}. ${notification.is_read ? 'Read' : 'Unread'}`}
                 >
                   <div className="flex items-start space-x-3">
                     <input
@@ -438,6 +451,7 @@ const NotificationsPage: React.FC = () => {
                       onChange={() => handleSelectNotification(notification.notification_id)}
                       onClick={(e) => e.stopPropagation()}
                       className="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      aria-label={`Select notification: ${notification.title}`}
                     />
                     
                     <div className="flex-shrink-0 mt-1">

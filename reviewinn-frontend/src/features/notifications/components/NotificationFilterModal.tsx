@@ -123,33 +123,14 @@ const NotificationFilterModal: React.FC<NotificationFilterModalProps> = ({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Simple Header */}
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between', 
-          borderBottom: '1px solid #eee', 
-          padding: '20px 24px 12px 24px' 
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Filter style={{ width: '20px', height: '20px', color: '#3b82f6' }} />
-            <span style={{ fontWeight: 700, fontSize: 18, color: '#222' }}>Filter Notifications</span>
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-5">
+          <div className="flex items-center gap-3">
+            <Filter className="w-5 h-5 text-blue-600" />
+            <span className="font-bold text-lg text-gray-900">Filter Notifications</span>
           </div>
           <button
-            style={{ 
-              color: '#888', 
-              fontSize: 28, 
-              fontWeight: 700, 
-              background: 'none', 
-              border: 'none', 
-              borderRadius: 999, 
-              width: 36, 
-              height: 36, 
-              cursor: 'pointer', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center' 
-            }}
+            className="text-gray-400 hover:text-gray-600 text-2xl font-bold bg-none border-none rounded-full w-9 h-9 cursor-pointer flex items-center justify-center transition-colors"
             onClick={onClose}
             aria-label="Close"
           >
@@ -158,13 +139,9 @@ const NotificationFilterModal: React.FC<NotificationFilterModalProps> = ({
         </div>
 
         {/* Content */}
-        <div style={{ 
-          flex: 1, 
-          overflowY: 'auto', 
-          padding: '0 24px 24px 24px' 
-        }}>
-          <div style={{ textAlign: 'center', marginBottom: 20 }}>
-            <p style={{ color: '#666', fontSize: 14, margin: '8px 0' }}>
+        <div className="flex-1 overflow-y-auto px-6 pb-6">
+          <div className="text-center mb-5 pt-4">
+            <p className="text-gray-600 text-sm">
               Filter your notifications by status and type
             </p>
           </div>

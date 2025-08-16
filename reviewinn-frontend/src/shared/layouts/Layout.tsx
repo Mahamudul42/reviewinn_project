@@ -6,7 +6,6 @@ import NotificationSystem, { useNotifications } from '../organisms/NotificationS
 import QuickActionsPanel from '../organisms/QuickActionsPanel';
 import RecentActivityDropdown from '../molecules/RecentActivityDropdown';
 import MessagesDropdown from '../molecules/MessagesDropdown';
-import NotificationsDropdown from '../molecules/NotificationsDropdown';
 import NotificationBell from '../components/NotificationBell';
 import { professionalMessagingService } from '../../api/services/professionalMessagingService';
 import { useWebSocket } from '../../hooks/useWebSocket';

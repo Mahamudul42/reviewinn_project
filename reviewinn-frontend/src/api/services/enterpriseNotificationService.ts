@@ -112,11 +112,8 @@ class EnterpriseNotificationService {
     try {
       const response = await httpClient.get(`${this.baseUrl}/dropdown`);
       
-      // Handle different response formats
-      let data = response;
-      if (response.data) {
-        data = response.data;
-      }
+      // Standardized response handling
+      const data = response?.data || response;
       
       this.setCachedData(cacheKey, data);
       return data;
@@ -147,10 +144,8 @@ class EnterpriseNotificationService {
     try {
       const response = await httpClient.get(`${this.baseUrl}/summary`);
       
-      let data = response;
-      if (response.data) {
-        data = response.data;
-      }
+      // Standardized response handling
+      const data = response?.data || response;
       this.setCachedData(cacheKey, data);
       return data;
     } catch (error: any) {
@@ -193,13 +188,8 @@ class EnterpriseNotificationService {
       
       const response = await httpClient.get(url);
       
-      // Handle different response formats
-      let data = response;
-      if (response.data) {
-        data = response.data;
-      }
-      
-      return data;
+      // Standardized response handling
+      return response?.data || response;
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
       throw error;
