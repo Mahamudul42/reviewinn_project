@@ -23,35 +23,19 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({ suggestion, currentUser
   const userId = suggestion.user.id || suggestion.user.user_id;
   const userIdString = String(userId);
 
-  console.log('💡 SuggestionCard render:', {
-    userName: suggestion.user.name,
-    userId: userIdString
-  });
-
   const handleAddClick = async () => {
-    console.log('🎯 SuggestionCard handleAddClick:', {
-      userName: suggestion.user.name,
-      userId: userIdString
-    });
-    
     setIsAdding(true);
-    console.log('⏳ Setting isAdding to true');
     
     try {
       if (!userId) {
-        console.error('❌ No valid user ID found in suggestion:', suggestion.user);
         onError('Error: User ID not found');
         return;
       }
       
-      console.log('📤 Calling onAddToCircle with userId:', userId);
       await onAddToCircle(userId, suggestion.user.name);
-      console.log('✅ onAddToCircle completed successfully');
-      
     } catch (error) {
-      console.error('❌ Error in handleAddClick:', error);
+      console.error('Error in handleAddClick:', error);
     } finally {
-      console.log('🔄 Setting isAdding to false');
       setIsAdding(false);
     }
   };
@@ -144,10 +128,6 @@ const CircleSuggestions: React.FC<CircleSuggestionsProps> = ({
       const userId = String(suggestion.user.id || suggestion.user.user_id || '');
       const hasPendingRequest = sentRequestsSet.has(userId);
       
-      if (hasPendingRequest) {
-        console.log('🚫 Filtering out suggestion with pending request:', suggestion.user.name, userId);
-      }
-      
       return !hasPendingRequest;
     });
   }, [suggestions, sentRequestsSet]);
@@ -196,28 +176,17 @@ const CircleSuggestions: React.FC<CircleSuggestionsProps> = ({
       ) : (
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
           <div className="grid gap-4 p-4">
-            {paginatedSuggestions.map((suggestion, index) => {
-            try {
-              return (
-                <SuggestionCard
-                  key={suggestion.user.id || index}
-                  suggestion={suggestion}
-                  currentUser={currentUser}
-                  sentRequestsSet={sentRequestsSet}
-                  onAddToCircle={(userId) => onAddToCircle(String(suggestion.user.id || suggestion.user.user_id || userId), suggestion.user.name)}
-                  onError={onError}
-                  onBlockUser={onBlockUser}
-                />
-              );
-            } catch (renderError) {
-              console.error('Error rendering suggestion:', renderError, suggestion);
-              return (
-                <div key={index} className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <p className="text-red-600">Error rendering suggestion</p>
-                </div>
-              );
-            }
-            })}
+            {paginatedSuggestions.map((suggestion, index) => (
+              <SuggestionCard
+                key={suggestion.user.id || index}
+                suggestion={suggestion}
+                currentUser={currentUser}
+                sentRequestsSet={sentRequestsSet}
+                onAddToCircle={(userId) => onAddToCircle(String(suggestion.user.id || suggestion.user.user_id || userId), suggestion.user.name)}
+                onError={onError}
+                onBlockUser={onBlockUser}
+              />
+            ))}
           </div>
           
           {/* Pagination */}

@@ -32,6 +32,7 @@ import type {
 } from '../../types';
 import type { CircleAnalytics } from '../../types';
 import { TrustLevel } from '../../types';
+import { getUserId, createOptimisticRequest, persistRequestToLocalStorage } from './utils/circleHelpers';
 
 // Main component
 const ReviewCirclePageContent: React.FC = () => {
@@ -71,38 +72,25 @@ const ReviewCirclePageContent: React.FC = () => {
   // Track users who have rejected requests (cannot send again)
   const [rejectedUsers, setRejectedUsers] = useState<Set<string>>(new Set());
   
+
   // Create sets for quick lookup - track users we cannot send requests to
   const sentRequestsSet = useMemo(() => {
-    // Pending requests
     const serverRequestIds = sentRequests
-      .filter(req => req.status === 'pending') // Only track pending requests, not accepted ones
-      .map(req => {
-        const recipientId = req.recipient?.id || req.user?.id || req.target_user?.id;
-        return String(recipientId);
-      }).filter(Boolean);
+      .filter(req => req.status === 'pending')
+      .map(req => getUserId(req.recipient || req.user || req.target_user))
+      .filter(Boolean);
     
-    // Rejected requests from server (these users have rejected us)
     const rejectedRequestIds = sentRequests
       .filter(req => req.status === 'rejected')
-      .map(req => {
-        const recipientId = req.recipient?.id || req.user?.id || req.target_user?.id;
-        return String(recipientId);
-      }).filter(Boolean);
+      .map(req => getUserId(req.recipient || req.user || req.target_user))
+      .filter(Boolean);
     
-    const localRequestIds = Array.from(localSentRequests);
-    const localRejectedIds = Array.from(rejectedUsers);
-    const combinedSet = new Set([...serverRequestIds, ...localRequestIds, ...rejectedRequestIds, ...localRejectedIds]);
-    
-    console.log('🔍 sentRequestsSet updated:', {
-      serverPending: serverRequestIds.length,
-      serverRejected: rejectedRequestIds.length,
-      localRequests: localRequestIds.length,
-      localRejected: localRejectedIds.length,
-      totalBlocked: combinedSet.size,
-      blockedUsers: Array.from(combinedSet)
-    });
-    
-    return combinedSet;
+    return new Set([
+      ...serverRequestIds,
+      ...Array.from(localSentRequests),
+      ...rejectedRequestIds,
+      ...Array.from(rejectedUsers)
+    ]);
   }, [sentRequests, localSentRequests, rejectedUsers]);
 
   // Memoized callbacks to prevent infinite re-renders
@@ -120,15 +108,6 @@ const ReviewCirclePageContent: React.FC = () => {
   // Filter sent requests to only show pending ones (not accepted)
   const pendingSentRequests = sentRequests.filter(req => req.status === 'pending');
   
-  // Debug logging for sent requests count
-  React.useEffect(() => {
-    console.log('📊 Sent requests state update:', {
-      total: sentRequests.length,
-      pending: pendingSentRequests.length,
-      localTracking: Array.from(localSentRequests),
-      sentRequestsIds: sentRequests.map(r => ({ id: r.id, status: r.status, recipient: r.recipient?.name }))
-    });
-  }, [sentRequests, pendingSentRequests, localSentRequests]);
   
   const tabs = [
     { id: 'members' as const, label: 'Circle Mates', icon: Users, count: members.length },
@@ -435,27 +414,23 @@ const ReviewCirclePageContent: React.FC = () => {
     };
   }, [currentUser, apiStatus, refreshData]);
 
-  // Persist data to localStorage
+  // Centralized localStorage management
   useEffect(() => {
-    if (currentUser && members.length > 0) {
-      const membersKey = `circle_members_${currentUser.id}`;
-      localStorage.setItem(membersKey, JSON.stringify(members));
-    }
-  }, [members, currentUser]);
-
-  useEffect(() => {
-    if (currentUser) {
-      const requestsKey = `circle_requests_${currentUser.id}`;
-      localStorage.setItem(requestsKey, JSON.stringify(pendingRequests));
-    }
-  }, [pendingRequests, currentUser]);
-
-  useEffect(() => {
-    if (currentUser) {
-      const suggestionsKey = `circle_suggestions_${currentUser.id}`;
-      localStorage.setItem(suggestionsKey, JSON.stringify(suggestions));
-    }
-  }, [suggestions, currentUser]);
+    if (!currentUser) return;
+    
+    const userId = currentUser.id;
+    const dataToCache = {
+      members: members.length > 0 ? members : null,
+      requests: pendingRequests,
+      suggestions: suggestions
+    };
+    
+    Object.entries(dataToCache).forEach(([key, data]) => {
+      if (data !== null) {
+        localStorage.setItem(`circle_${key}_${userId}`, JSON.stringify(data));
+      }
+    });
+  }, [currentUser, members, pendingRequests, suggestions]);
 
   // Update analytics when members change
   useEffect(() => {
@@ -485,234 +460,85 @@ const ReviewCirclePageContent: React.FC = () => {
   }, [members]);
 
   const handleAddToCircle = async (userId: string | number, userName?: string): Promise<void> => {
-    console.log('🚀 handleAddToCircle called:', { userId, userName, currentUser: currentUser?.id });
-    
-    if (!currentUser) {
-      console.error('❌ No current user found');
-      return;
-    }
+    if (!currentUser) return;
     
     const userIdString = String(userId);
-    console.log('📝 Processing request for user:', userIdString);
     
     // Check if request was already sent
     if (sentRequestsSet.has(userIdString)) {
-      console.log('⚠️ Request already sent to user:', userIdString);
       showError(`Circle request already sent to ${userName || 'this user'}.`);
       return;
     }
     
-    // Create a unique temporary ID for optimistic update tracking
-    const tempRequestId = Date.now() + Math.random() * 1000;
-    
-    // Find the user from suggestions to get complete user data BEFORE API call
     const suggestion = suggestions.find(s => String(s.user.id) === userIdString);
+    const newSentRequest = createOptimisticRequest(currentUser, suggestion, userIdString, userName);
+    const tempRequestId = newSentRequest.id;
     
-    // Create a new sent request object for optimistic UI update
-    const newSentRequest: CircleRequest = {
-      id: tempRequestId, // Temporary ID until server refresh
-      requester: {
-        id: currentUser.id,
-        name: currentUser.name,
-        username: currentUser.username,
-        avatar: currentUser.avatar
-      },
-      recipient: suggestion ? {
-        id: suggestion.user.id,
-        name: suggestion.user.name,
-        username: suggestion.user.username,
-        avatar: suggestion.user.avatar
-      } : {
-        id: parseInt(userIdString),
-        name: userName || 'Unknown User',
-        username: userName || 'unknown',
-        avatar: null
-      },
-      message: `Hi ${userName || 'there'}! I'd like to connect with you in my review circle.`,
-      status: 'pending' as const,
-      created_at: new Date().toISOString()
-    };
-    
-    // IMMEDIATELY update UI before API call for instant feedback
-    console.log('🚀 Performing optimistic UI updates BEFORE API call');
-    
-    // 1. Add to local tracking for suggestions filtering
-    setLocalSentRequests(prev => {
-      const newSet = new Set([...prev, userIdString]);
-      console.log('📋 Updated local sent requests:', Array.from(newSet));
-      return newSet;
-    });
-    
-    // 2. Remove from suggestions immediately
-    setSuggestions(prev => {
-      const filtered = prev.filter(s => String(s.user.id) !== userIdString);
-      console.log('🎯 Removing user from suggestions. Before:', prev.length, 'After:', filtered.length);
-      return filtered;
-    });
-    
-    // 3. Add to sent requests for instant UI feedback
+    // Optimistic UI updates
+    setLocalSentRequests(prev => new Set([...prev, userIdString]));
+    setSuggestions(prev => prev.filter(s => String(s.user.id) !== userIdString));
     setSentRequestsData(prev => {
-      // Check if request already exists to avoid duplicates
-      const exists = prev.some(req => {
-        const recipientId = String(req.recipient?.id || req.recipient?.user_id);
-        return recipientId === userIdString;
-      });
-      
-      if (exists) {
-        console.log('⚠️ Request already exists in sent requests, not adding duplicate');
-        return prev;
-      }
-      
-      console.log('➕ Adding optimistic request to sent requests');
-      return [newSentRequest, ...prev];
+      const exists = prev.some(req => getUserId(req.recipient) === userIdString);
+      return exists ? prev : [newSentRequest, ...prev];
     });
     
     try {
-      console.log('📤 Sending circle request to:', userName || userIdString);
-      
-      // Use the proper sendCircleRequest method
       const result = await circleService.sendCircleRequest(userIdString, {
         message: `Hi ${userName || 'there'}! I'd like to connect with you in my review circle.`
       });
       
-      console.log('✅ Circle request sent successfully:', result);
-      
-      // Update the optimistic request with the real request ID immediately
+      // Update with real ID
       if (result.request_id) {
         setSentRequestsData(prev => prev.map(req => 
           req.id === tempRequestId ? { ...req, id: result.request_id } : req
         ));
-        console.log('🔄 Updated optimistic request with real ID:', result.request_id);
-        
-        // Also ensure it persists in local storage as backup
-        try {
-          const persistedSentRequests = JSON.parse(localStorage.getItem('reviewinn_sent_requests') || '[]');
-          const updatedPersistedRequests = persistedSentRequests.map((req: any) => 
-            req.id === tempRequestId ? { ...req, id: result.request_id } : req
-          );
-          if (updatedPersistedRequests.length === persistedSentRequests.length) {
-            // Request not found in persisted data, add it
-            updatedPersistedRequests.unshift({
-              id: result.request_id,
-              recipient: newSentRequest.recipient,
-              message: newSentRequest.message,
-              status: 'pending',
-              created_at: new Date().toISOString()
-            });
-          }
-          localStorage.setItem('reviewinn_sent_requests', JSON.stringify(updatedPersistedRequests));
-          console.log('💾 Persisted request to localStorage as backup');
-        } catch (localStorageError) {
-          console.log('⚠️ Failed to persist to localStorage:', localStorageError);
-        }
+        persistRequestToLocalStorage(newSentRequest, result.request_id);
       }
       
-      // Refresh sent requests from server in background to get real data
+      // Background refresh
       setTimeout(async () => {
         try {
-          const sentRequestsResponse = await circleService.getSentRequests();
-          const serverRequests = sentRequestsResponse.requests || [];
+          const response = await circleService.getSentRequests();
+          const serverRequests = response.requests || [];
+          const requestExists = serverRequests.some(req => getUserId(req.recipient) === userIdString);
           
-          // Check if our new request appears in server data
-          const newRequestInServer = serverRequests.find(req => 
-            String(req.recipient?.id || req.recipient?.user_id) === userIdString
-          );
-          
-          if (newRequestInServer) {
-            // Server has our request, replace optimistic data with real data
+          if (requestExists) {
             setSentRequestsData(serverRequests);
             setLocalSentRequests(prev => {
               const newSet = new Set(prev);
-              newSet.delete(userIdString); // Only remove this specific request from local tracking
+              newSet.delete(userIdString);
               return newSet;
             });
-            console.log('✅ Server confirmed request, updating with real data:', serverRequests.length);
-          } else {
-            // Server doesn't have our request yet, keep optimistic update but merge with server data
-            setSentRequestsData(prev => {
-              // Remove temporary request and add server requests, but keep our optimistic one if not in server
-              const withoutTemp = prev.filter(req => req.id !== tempRequestId);
-              const hasOurRequest = serverRequests.some(req => 
-                String(req.recipient?.id || req.recipient?.user_id) === userIdString
-              );
-              
-              if (hasOurRequest) {
-                // Our request is in server data, use server data
-                setLocalSentRequests(prev => {
-                  const newSet = new Set(prev);
-                  newSet.delete(userIdString); // Only remove this specific request from local tracking
-                  return newSet;
-                });
-                return serverRequests;
-              } else {
-                // Keep our optimistic request and add server requests
-                const updatedOptimisticRequest = {
-                  ...newSentRequest,
-                  id: result.request_id || tempRequestId // Use real ID if available
-                };
-                return [updatedOptimisticRequest, ...serverRequests];
-              }
-            });
-            console.log('⏳ Server not ready, keeping optimistic update alongside server data');
           }
         } catch (error) {
-          console.log('⚠️ Background refresh failed, keeping optimistic tracking:', error);
-          // Update the optimistic request with real ID if we have it
-          if (result.request_id) {
-            setSentRequestsData(prev => prev.map(req => 
-              req.id === tempRequestId ? { ...req, id: result.request_id } : req
-            ));
-          }
+          console.log('Background refresh failed:', error);
         }
-      }, 1000); // Reduced delay for faster feedback
+      }, 1000);
       
       showSuccess(`Circle request sent to ${userName || 'user'}!`);
     } catch (error: any) {
-      console.error('Failed to send circle request:', error);
+      // Handle errors and revert optimistic updates
+      const isConflict = error?.response?.status === 409 || error?.status === 409 || 
+                        error.message?.includes('already sent') || error.message?.includes('409');
       
-      // Handle specific error cases based on status code or message
-      if (error?.response?.status === 409 || error?.status === 409 || 
-          error.message?.includes('already sent') || error.message?.includes('409') ||
-          error.message?.includes('Conflict')) {
+      if (isConflict) {
         showError(`Circle request already sent to ${userName || 'this user'}.`);
-        // Add to local tracking since server confirms request exists
         setLocalSentRequests(prev => new Set([...prev, userIdString]));
-        
-        // Remove from suggestions since we now know request exists
-        setSuggestions(prev => prev.filter(s => String(s.user.id || s.user.user_id) !== userIdString));
-        
-        // Try to reload sent requests from server (if available)
-        try {
-          const sentRequestsResponse = await circleService.getSentRequests();
-          setSentRequestsData(sentRequestsResponse.requests || []);
-        } catch (reloadError) {
-          console.log('Sent requests API not available after conflict, using local tracking');
-        }
       } else {
-        // For other errors, revert ALL optimistic updates
-        console.log('❌ Reverting optimistic updates due to API failure');
         showError(`Failed to send circle request to ${userName || 'user'}. Please try again.`);
         
-        // 1. Remove the optimistic sent request
+        // Revert optimistic updates
         setSentRequestsData(prev => prev.filter(req => req.id !== tempRequestId));
-        
-        // 2. Remove from local tracking
         setLocalSentRequests(prev => {
           const newSet = new Set(prev);
           newSet.delete(userIdString);
           return newSet;
         });
         
-        // 3. Add back to suggestions if we have the suggestion data
         if (suggestion) {
           setSuggestions(prev => {
-            // Check if user is already in suggestions to avoid duplicates
             const userExists = prev.some(s => String(s.user.id) === userIdString);
-            if (!userExists) {
-              console.log('🔄 Adding user back to suggestions after failed request');
-              return [suggestion, ...prev];
-            }
-            return prev;
+            return userExists ? prev : [suggestion, ...prev];
           });
         }
       }
