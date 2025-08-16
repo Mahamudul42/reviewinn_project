@@ -54,13 +54,6 @@ const AddToCircleModal: React.FC<AddToCircleModalProps> = ({
     }
   }, [isOpen]);
 
-  // Load user's circles when modal opens
-  useEffect(() => {
-    if (isOpen && currentUser) {
-      loadUserCircles();
-    }
-  }, [isOpen, currentUser, loadUserCircles]);
-
   const loadUserCircles = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -78,6 +71,13 @@ const AddToCircleModal: React.FC<AddToCircleModalProps> = ({
       setIsLoading(false);
     }
   }, [currentUser.id, showToast]);
+
+  // Load user's circles when modal opens
+  useEffect(() => {
+    if (isOpen && currentUser) {
+      loadUserCircles();
+    }
+  }, [isOpen, currentUser, loadUserCircles]);
 
   const toggleCircleSelection = (circleId: number) => {
     setSelectedCircles(prev => {

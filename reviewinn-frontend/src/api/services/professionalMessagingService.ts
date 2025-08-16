@@ -292,6 +292,62 @@ export class ProfessionalMessagingService {
   // ========== CONVERSATION METHODS ==========
 
   /**
+   * Create or get existing direct conversation with a user
+   * Following the same pattern as MessengerPage.handleCreateDirectConversation
+   */
+  async createOrGetDirectConversation(participantId: number | string): Promise<ProfessionalConversation> {
+    console.log('=== professionalMessagingService.createOrGetDirectConversation ===');
+    console.log('participantId:', participantId);
+    
+    try {
+      // First, check for existing conversations (same as MessengerPage)
+      const conversationsResponse = await this.getConversations();
+      console.log('Conversations response:', conversationsResponse);
+      
+      let conversations = [];
+      if (conversationsResponse && conversationsResponse.data && conversationsResponse.data.conversations) {
+        conversations = conversationsResponse.data.conversations;
+      } else if (conversationsResponse && conversationsResponse.conversations) {
+        conversations = conversationsResponse.conversations;
+      }
+      
+      // Look for existing direct conversation with this participant
+      const existingConversation = conversations.find(conv => 
+        conv.conversation_type === 'direct' && 
+        conv.participants.some(p => p.user_id.toString() === participantId.toString())
+      );
+      
+      if (existingConversation) {
+        console.log('Found existing conversation:', existingConversation.conversation_id);
+        return existingConversation;
+      }
+      
+      // Create new conversation using exact same method as MessengerPage
+      console.log('Creating new conversation...');
+      const response = await this.createConversation({
+        participant_ids: [parseInt(participantId.toString())],
+        conversation_type: 'direct'
+      });
+      console.log('Conversation response:', response);
+
+      // Handle response same way as MessengerPage
+      let conversationId;
+      if (response && response.data && response.data.conversation_id) {
+        conversationId = response.data.conversation_id;
+        return response.data;
+      } else if (response && response.conversation_id) {
+        conversationId = response.conversation_id;
+        return response;
+      }
+      
+      throw new Error('Failed to create conversation');
+    } catch (error: any) {
+      console.error('Error in createOrGetDirectConversation:', error);
+      throw new Error(`Failed to create or get direct conversation: ${error.message || error}`);
+    }
+  }
+
+  /**
    * Create a new conversation
    */
   async createConversation(data: ConversationCreateRequest): Promise<ProfessionalMessagingResponse<ProfessionalConversation>> {

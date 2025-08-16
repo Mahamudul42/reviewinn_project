@@ -168,7 +168,7 @@ export class ReviewService {
       createdAt: apiReview.created_at ?? apiReview.createdAt,
       updatedAt: apiReview.updated_at ?? apiReview.updatedAt,
       comments: Array.isArray(apiReview.comments)
-        ? apiReview.comments.map((c: any) => ({
+        ? apiReview.comments.filter(c => c != null).map((c: any) => ({
             id: c.comment_id?.toString() ?? c.id,
             reviewId: c.review_id?.toString() ?? c.reviewId,
             userId: c.user_id?.toString() ?? c.userId,
