@@ -32,6 +32,41 @@ export const useReviewInnLeftPanel = (): UseReviewInnLeftPanelReturn => {
     fetchData();
   }, [fetchData]);
 
+  // Enterprise-grade reactive auth state management
+  useEffect(() => {
+    const handleAuthStateChange = (event: CustomEvent) => {
+      console.log('🔄 useReviewInnLeftPanel: Auth state changed, refetching data', event.detail);
+      setTimeout(() => {
+        fetchData();
+      }, 400);
+    };
+
+    const handleLoginSuccess = () => {
+      console.log('🔄 useReviewInnLeftPanel: Login success, refetching data');
+      setTimeout(() => {
+        fetchData();
+      }, 500);
+    };
+
+    const handleUserRegistered = (event: CustomEvent) => {
+      console.log('🔄 useReviewInnLeftPanel: User registered, refetching data', event.detail);
+      setTimeout(() => {
+        fetchData();
+      }, 700);
+    };
+
+    // Add event listeners for reactive auth updates
+    window.addEventListener('authStateChanged', handleAuthStateChange as EventListener);
+    window.addEventListener('loginSuccess', handleLoginSuccess as EventListener);
+    window.addEventListener('userRegistered', handleUserRegistered as EventListener);
+
+    return () => {
+      window.removeEventListener('authStateChanged', handleAuthStateChange as EventListener);
+      window.removeEventListener('loginSuccess', handleLoginSuccess as EventListener);
+      window.removeEventListener('userRegistered', handleUserRegistered as EventListener);
+    };
+  }, [fetchData]);
+
   const refetch = useCallback(async () => {
     await fetchData();
   }, [fetchData]);

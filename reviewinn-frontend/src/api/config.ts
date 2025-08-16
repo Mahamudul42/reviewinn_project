@@ -7,9 +7,10 @@ const getBaseURL = (): string => {
     return envBaseUrl;
   }
   
-  // Detect environment based on hostname
+  // Detect environment based on hostname and port
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
+    const port = window.location.port;
     
     if (hostname === 'reviewinn.com' || hostname === 'www.reviewinn.com') {
       // Use mapped API domain for production (HTTPS required)
@@ -19,6 +20,7 @@ const getBaseURL = (): string => {
     if (hostname === 'admin.reviewinn.com') {
       return 'https://api.reviewinn.com/api/v1';
     }
+    
   }
   
   // Development fallback - use relative URL to leverage Vite proxy

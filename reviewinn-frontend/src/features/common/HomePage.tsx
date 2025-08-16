@@ -15,6 +15,15 @@ import type { ReviewFormData } from '../../types';
 const HomePage: React.FC = () => {
   const { user, isAuthenticated, isLoading: authLoading } = useUnifiedAuth();
   
+  // Debug authentication state
+  console.log('🏠 HomePage auth state:', {
+    isAuthenticated,
+    hasUser: !!user,
+    userId: user?.id,
+    authLoading,
+    userName: user?.name
+  });
+  
   // Data hooks - using the enhanced home data hook
   const {
     reviews,
@@ -107,7 +116,10 @@ const HomePage: React.FC = () => {
         </div>
       ) : (
         <div>
-          {isAuthenticated ? (
+          {(() => {
+            console.log('🎯 Middle panel rendering decision:', { isAuthenticated, user: !!user });
+            return isAuthenticated;
+          })() ? (
             <MiddlePanelAuth
               userAvatar={displayUser.avatar || ''}
               userName={displayUser.name || 'Guest'}

@@ -19,6 +19,23 @@ const RegistrationBadgeTrigger: React.FC = () => {
     }
   }, [isAuthenticated, user?.id, hasChecked]);
 
+  // Listen for new user registration events for immediate badge awarding
+  useEffect(() => {
+    const handleUserRegistered = (event: CustomEvent) => {
+      console.log('New user registered, checking for registration badge...', event.detail);
+      if (isAuthenticated && user?.id && !hasChecked) {
+        setTimeout(() => {
+          checkAndUnlockRegistrationBadge();
+        }, 500); // Small delay to ensure auth state is fully updated
+      }
+    };
+
+    window.addEventListener('userRegistered', handleUserRegistered as EventListener);
+    return () => {
+      window.removeEventListener('userRegistered', handleUserRegistered as EventListener);
+    };
+  }, [isAuthenticated, user?.id, hasChecked]);
+
   const checkAndUnlockRegistrationBadge = async () => {
     if (!user?.id) return;
 

@@ -117,7 +117,19 @@ export class ReviewInnAuthService implements IAuthService {
   }
 
   getToken(): string | null {
-    return authService.getToken();
+    const zustandToken = useAuthStore.getState().token;
+    const authServiceToken = authService.getToken();
+    
+    // Use Zustand token as primary, fallback to authService
+    const token = zustandToken || authServiceToken;
+    
+    console.log('ReviewInnAuthService.getToken():', {
+      zustandToken: !!zustandToken,
+      authServiceToken: !!authServiceToken,
+      result: !!token
+    });
+    
+    return token;
   }
 
   isInitialized(): boolean {

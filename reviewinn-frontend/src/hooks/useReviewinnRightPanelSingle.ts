@@ -21,8 +21,8 @@ export const useReviewinnRightPanelSingle = (): UseReviewinnRightPanelSingleRetu
       setLoading(true);
       setError(null);
       
-      console.log('🔍 Fetching unified right panel data...');
-      const response = await reviewinnRightPanelService.getUnifiedData();
+      console.log('🔍 Fetching unified right panel data with auth status:', isAuthenticated);
+      const response = await reviewinnRightPanelService.getUnifiedData(isAuthenticated);
       console.log('✅ Unified data received:', response);
       setData(response);
     } catch (err: any) {
@@ -49,12 +49,55 @@ export const useReviewinnRightPanelSingle = (): UseReviewinnRightPanelSingleRetu
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   // Fetch data on mount and when auth changes
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Enterprise-grade reactive auth state management
+  useEffect(() => {
+    const handleAuthStateChange = (event: CustomEvent) => {
+      console.log('🔄 useReviewinnRightPanelSingle: Auth state changed, refetching data', event.detail);
+      setTimeout(() => {
+        fetchData();
+      }, 200);
+    };
+
+    const handleLoginSuccess = () => {
+      console.log('🔄 useReviewinnRightPanelSingle: Login success, refetching data');
+      setTimeout(() => {
+        fetchData();
+      }, 300);
+    };
+
+    const handleUserRegistered = (event: CustomEvent) => {
+      console.log('🔄 useReviewinnRightPanelSingle: User registered, refetching data', event.detail);
+      setTimeout(() => {
+        fetchData();
+      }, 500);
+    };
+
+    // Add event listeners for reactive auth updates
+    window.addEventListener('authStateChanged', handleAuthStateChange as EventListener);
+    window.addEventListener('loginSuccess', handleLoginSuccess as EventListener);
+    window.addEventListener('userRegistered', handleUserRegistered as EventListener);
+
+    return () => {
+      window.removeEventListener('authStateChanged', handleAuthStateChange as EventListener);
+      window.removeEventListener('loginSuccess', handleLoginSuccess as EventListener);
+      window.removeEventListener('userRegistered', handleUserRegistered as EventListener);
+    };
+  }, [fetchData]);
+
+  // Also refetch when isAuthenticated changes (backup mechanism)
+  useEffect(() => {
+    console.log('🔄 useReviewinnRightPanelSingle: Auth status changed to:', isAuthenticated);
+    setTimeout(() => {
+      fetchData();
+    }, 100);
+  }, [isAuthenticated, fetchData]);
 
   const refetch = useCallback(async () => {
     await fetchData();

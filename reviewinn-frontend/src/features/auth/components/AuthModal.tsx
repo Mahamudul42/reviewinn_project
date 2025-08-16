@@ -185,7 +185,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
       await login(sanitizedCredentials);
       toast.success('Successfully signed in! Welcome back.');
       
-      // Emit auth success events for other components
+      // Emit auth success events for reactive state management
       window.dispatchEvent(new CustomEvent('loginSuccess'));
       window.dispatchEvent(new CustomEvent('authStateChanged', { 
         detail: { isAuthenticated: true } 
@@ -198,11 +198,6 @@ const AuthModal: React.FC<AuthModalProps> = ({
       // Small delay to ensure auth state is fully propagated before closing modal
       setTimeout(() => {
         onClose();
-        
-        // Refresh the page to show the logged-in version
-        setTimeout(() => {
-          window.location.reload();
-        }, 500); // Small delay after modal closes
       }, 100);
     } catch (err) {
       console.error('Login error:', err);
@@ -322,21 +317,23 @@ const AuthModal: React.FC<AuthModalProps> = ({
       await register(sanitizedData);
       toast.success('Account created successfully! Welcome to ReviewInn!');
       
-      // Emit auth success events for other components
+      // Emit auth success events for reactive state management
       window.dispatchEvent(new CustomEvent('loginSuccess'));
       window.dispatchEvent(new CustomEvent('authStateChanged', { 
         detail: { isAuthenticated: true } 
+      }));
+      window.dispatchEvent(new CustomEvent('userRegistered', { 
+        detail: { userId: sanitizedData.email, isNewUser: true } 
       }));
       
       console.log('AuthModal: Registration successful, calling callbacks');
       onRegisterSuccess?.();
       onSuccess?.();
-      onClose();
       
-      // Refresh the page to show the logged-in version
+      // Small delay to ensure auth state is fully propagated before closing modal
       setTimeout(() => {
-        window.location.reload();
-      }, 1000); // Small delay to let the success toast show
+        onClose();
+      }, 100);
     } catch (err) {
       console.error('Registration error:', err);
       const errorMessage = getDetailedErrorMessage(err);

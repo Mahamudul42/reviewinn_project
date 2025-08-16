@@ -88,18 +88,24 @@ class ReviewInnRightPanelService {
    */
   async getPublicData(): Promise<ReviewInnRightPanelPublicData> {
     try {
-      const url = `${this.BASE_URL}/public`;
-      console.log('🌐 Making request to public endpoint:', url);
+      const url = `${this.BASE_URL}/`;
+      console.log('🌐 Making request to main endpoint for public data:', url);
       
-      const response = await httpClient.get<ReviewInnRightPanelPublicData>(url);
+      const response = await httpClient.get<ReviewInnRightPanelPublicData>(url, { requiresAuth: false });
       console.log('📥 Public response received:', response);
       
       if (response.data) {
         console.log('✅ Returning public response.data:', response.data);
-        return response.data;
-      } else if (response.success && response.trending_topics) {
+        return {
+          type: 'public',
+          ...response.data
+        };
+      } else if (response.success) {
         console.log('✅ Returning public response directly:', response);
-        return response as unknown as ReviewInnRightPanelPublicData;
+        return {
+          type: 'public',
+          ...response
+        };
       } else {
         console.error('❌ Invalid public response structure:', response);
         throw new Error('Invalid response structure');
@@ -142,25 +148,31 @@ class ReviewInnRightPanelService {
   /**
    * Get unified right panel data - automatically returns appropriate data based on auth status
    */
-  async getUnifiedData(): Promise<any> {
+  /**
+   * Get unified data based on authentication status passed from component
+   */
+  async getUnifiedData(isAuthenticated: boolean): Promise<any> {
     try {
-      const url = `${this.BASE_URL}/`;
-      console.log('🌐 Making request to unified endpoint:', url);
+      console.log('🔍 getUnifiedData called with isAuthenticated:', isAuthenticated);
       
-      const response = await httpClient.get<any>(url, {
-        requiresAuth: false // Let the backend decide based on auth header presence
-      });
-      console.log('📥 Unified response received:', response);
-      
-      if (response.data) {
-        console.log('✅ Returning unified response.data:', response.data);
-        return response.data;
-      } else if (response.success) {
-        console.log('✅ Returning unified response directly:', response);
-        return response;
+      if (isAuthenticated) {
+        console.log('🔐 User is authenticated, fetching authenticated data');
+        try {
+          const authData = await this.getAuthenticatedData();
+          console.log('✅ Successfully got authenticated data:', authData);
+          return {
+            type: 'authenticated',
+            ...authData
+          };
+        } catch (error) {
+          console.warn('⚠️ Failed to get authenticated data, falling back to public', error);
+          // Fallback to public data if auth fails
+          return await this.getPublicData();
+        }
       } else {
-        console.error('❌ Invalid unified response structure:', response);
-        throw new Error('Invalid response structure');
+        console.log('👤 User not authenticated, fetching public data');
+        // User is not authenticated, get public data
+        return await this.getPublicData();
       }
     } catch (error) {
       console.error('❌ Error fetching unified right panel data:', error);

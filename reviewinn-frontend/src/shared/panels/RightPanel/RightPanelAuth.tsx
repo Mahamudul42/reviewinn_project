@@ -91,6 +91,48 @@ const RightPanelAuth: React.FC<RightPanelAuthProps> = ({
     }
   }, [user?.id, loadAuthenticatedData, user]);
 
+  // Enterprise-grade reactive auth state management
+  useEffect(() => {
+    const handleAuthStateChange = (event: CustomEvent) => {
+      console.log('RightPanelAuth: Auth state changed', event.detail);
+      if (event.detail?.isAuthenticated && user) {
+        // Reload data when user becomes authenticated
+        setTimeout(() => {
+          loadAuthenticatedData();
+        }, 200);
+      }
+    };
+
+    const handleLoginSuccess = () => {
+      console.log('RightPanelAuth: Login success detected, reloading data');
+      if (user) {
+        setTimeout(() => {
+          loadAuthenticatedData();
+        }, 300);
+      }
+    };
+
+    const handleUserRegistered = (event: CustomEvent) => {
+      console.log('RightPanelAuth: New user registered, reloading data', event.detail);
+      if (user) {
+        setTimeout(() => {
+          loadAuthenticatedData();
+        }, 500);
+      }
+    };
+
+    // Add event listeners for reactive updates
+    window.addEventListener('authStateChanged', handleAuthStateChange as EventListener);
+    window.addEventListener('loginSuccess', handleLoginSuccess as EventListener);
+    window.addEventListener('userRegistered', handleUserRegistered as EventListener);
+
+    return () => {
+      window.removeEventListener('authStateChanged', handleAuthStateChange as EventListener);
+      window.removeEventListener('loginSuccess', handleLoginSuccess as EventListener);
+      window.removeEventListener('userRegistered', handleUserRegistered as EventListener);
+    };
+  }, [user, loadAuthenticatedData]);
+
   const handleReview = () => {
     console.log('Review button clicked');
   };

@@ -138,7 +138,7 @@ const Layout: React.FC = () => {
       console.log('Login success event received, loading unread count');
       // Small delay to ensure token persistence is complete
       setTimeout(() => {
-        loadUnreadCount();
+        loadUnreadConversationsCount();
       }, 200);
     };
 
