@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
-import { userService, homepageService, entityService, reviewService } from '../../api/services';
+import { userService, entityService, reviewService } from '../../api/services';
 import { reviewStatsService } from '../../services/reviewStatsService';
 import ThreePanelLayout from '../../shared/layouts/ThreePanelLayout';
 import LoadingSpinner from '../../shared/atoms/LoadingSpinner';
 import { Button } from '../../shared/design-system/components/Button';
-import { useToast } from '../../shared/design-system/components/Toast';
-import { circleService } from '../../api/services/circleService';
-import { professionalMessagingService } from '../../api/services/professionalMessagingService';
 
 // Import modular components
 import {
@@ -30,7 +27,6 @@ import type { UserProfile, Review, Entity } from '../../types';
 
 const ModularUserProfilePage: React.FC = () => {
   const { userIdentifier } = useParams<{ userIdentifier: string }>();
-  const navigate = useNavigate();
   const { user: currentUser, isAuthenticated, isLoading: authLoading } = useUnifiedAuth();
   
   // Profile Data
@@ -58,11 +54,6 @@ const ModularUserProfilePage: React.FC = () => {
     buttonRef: React.RefObject<HTMLButtonElement> | null;
   }>({ open: false, entity: null, buttonRef: null });
   
-  const [reviewDropdown, setReviewDropdown] = useState<{
-    open: boolean;
-    review: Review | null;
-    buttonRef: React.RefObject<HTMLButtonElement> | null;
-  }>({ open: false, review: null, buttonRef: null });
   
   // Modal States
   const [editProfileModal, setEditProfileModal] = useState(false);
@@ -73,7 +64,7 @@ const ModularUserProfilePage: React.FC = () => {
   const [deleteModal, setDeleteModal] = useState<{
     open: boolean;
     type: 'profile' | 'entity' | 'review';
-    item: any;
+    item: Entity | Review | null;
     title: string;
     message: string;
     warning?: string;
@@ -101,7 +92,7 @@ const ModularUserProfilePage: React.FC = () => {
     
     // Compare userIdentifier with current user's ID and username
     return currentUser.id === userIdentifier || currentUser.username === userIdentifier;
-  }, [userIdentifier, currentUser?.id, currentUser?.username]);
+  }, [userIdentifier, currentUser]);
 
   // For edit profile button - only show if this is truly the current user's profile
   const isOwnProfile = useMemo(() => {
@@ -124,29 +115,14 @@ const ModularUserProfilePage: React.FC = () => {
     
     // Fallback: check userIdentifier against current user
     return currentUser.id === userIdentifier || currentUser.username === userIdentifier;
-  }, [userIdentifier, userProfile?.id, userProfile?.user_id, userProfile?.username, currentUser?.id, currentUser?.username]);
+  }, [userIdentifier, userProfile, currentUser]);
   
-  // Debug logging for profile ownership
-  console.log('🔍 Profile Ownership Check:', {
-    userIdentifier,
-    currentUserId: currentUser?.id,
-    currentUsername: currentUser?.username,
-    profileId: userProfile?.id,
-    profileUserId: userProfile?.user_id,
-    profileUsername: userProfile?.username,
-    isCurrentUser,
-    isOwnProfile,
-    isAuthenticated,
-    authLoading
-  });
 
   const loadUserProfile = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
       
-      console.log('🔍 ProfilePage: Starting loadUserProfile with userIdentifier:', userIdentifier);
-      console.log('🔍 ProfilePage: currentUser:', currentUser);
 
       // No longer need to load entities separately - optimized backend includes full entity data with reviews
       
@@ -158,23 +134,14 @@ const ModularUserProfilePage: React.FC = () => {
         if (!currentUser) {
           throw new Error('No user logged in');
         }
-        console.log('🔍 ProfilePage: Loading own profile for currentUser.id:', currentUser.id);
         const profileResponse = await userService.getUserProfile(currentUser.id);
         profile = profileResponse;
         userId = currentUser.id;
       } else {
         // Viewing someone else's profile - should work without authentication
-        console.log('🔍 ProfilePage: About to call getUserProfileByIdentifier with:', userIdentifier);
         const profileResponse = await userService.getUserProfileByIdentifier(userIdentifier);
         profile = profileResponse;
-        console.log('🔍 ProfilePage.loadUserProfile: Profile response for userIdentifier', userIdentifier, ':', {
-          profile,
-          profileId: profile?.id,
-          profileUserId: profile?.user_id,
-          profileKeys: profile ? Object.keys(profile) : []
-        });
         userId = profile?.id?.toString() || profile?.user_id?.toString() || userIdentifier;
-        console.log('🔍 ProfilePage.loadUserProfile: Final userId to use for API calls:', userId);
       }
 
       if (!profile) {
@@ -183,16 +150,57 @@ const ModularUserProfilePage: React.FC = () => {
 
       setUserProfile(profile);
       
-      console.log('🎯 ProfilePage.loadUserProfile: About to load reviews and entities for userId:', {
-        userId,
-        userIdType: typeof userId,
-        userIdentifier,
-        currentUserId: currentUser?.id
-      });
-      
+      // Load reviews and entities inline to avoid dependency issues
       await Promise.all([
-        loadUserReviews(userId, 1, true),
-        loadUserEntities(userId, 1, true)
+        (async () => {
+          try {
+            setReviewsLoading(true);
+            if (!userId || userId === 'undefined' || userId === 'null') {
+              console.error('Invalid userId provided to loadUserReviews:', userId);
+              setUserReviews([]);
+              setHasMoreReviews(false);
+              return;
+            }
+            
+            const result = await reviewStatsService.getUserReviewsWithStats(userId, {
+              page: 1,
+              limit: 5,
+              includeAnonymous: isCurrentUser
+            });
+
+            setUserReviews(result.reviews || []);
+            setHasMoreReviews(result.hasMore || false);
+            setReviewsPage(1);
+          } catch (err) {
+            console.error('Error loading user reviews:', err);
+            setUserReviews([]);
+            setHasMoreReviews(false);
+          } finally {
+            setReviewsLoading(false);
+          }
+        })(),
+        (async () => {
+          try {
+            setEntitiesLoading(true);
+            
+            const result = await entityService.getEntitiesByUser(userId, {
+              page: 1,
+              limit: 5,
+              sortBy: 'createdAt',
+              sortOrder: 'desc'
+            });
+
+            setUserEntities(result.entities || []);
+            setHasMoreEntities(result.hasMore || false);
+            setEntitiesPage(1);
+          } catch (err) {
+            console.error('Error loading user entities:', err);
+            setUserEntities([]);
+            setHasMoreEntities(false);
+          } finally {
+            setEntitiesLoading(false);
+          }
+        })()
       ]);
       
     } catch (err) {
@@ -201,7 +209,7 @@ const ModularUserProfilePage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [userIdentifier, currentUser]);
+  }, [userIdentifier, currentUser, isCurrentUser]);
 
   useEffect(() => {
     // Don't load if auth is still loading
@@ -226,96 +234,39 @@ const ModularUserProfilePage: React.FC = () => {
     
     loadUserProfile();
     
-    // TODO: Re-enable user interactions when authentication is properly fixed
     // Load user interactions for reaction persistence - only for authenticated users
-    console.log('🔍 ProfilePage: User interactions disabled temporarily to prevent 401 errors');
-    // if (currentUser && isAuthenticated) {
-    //   console.log('🔍 ProfilePage: Loading user interactions for authenticated user');
-    //   import('../../api/services/userInteractionService').then(({ userInteractionService }) => {
-    //     userInteractionService.loadUserInteractions().catch(error => {
-    //       console.warn('Failed to load user interactions:', error);
-    //     });
-    //   });
-    // } else {
-    //   console.log('🔍 ProfilePage: Skipping user interactions - not authenticated');
-    // }
-  }, [userIdentifier, currentUser?.id, authLoading, loadUserProfile]);
+    if (currentUser && isAuthenticated) {
+      import('../../api/services/userInteractionService').then(({ userInteractionService }) => {
+        userInteractionService.loadUserInteractions().catch(error => {
+          console.warn('Failed to load user interactions:', error);
+        });
+      });
+    }
+  }, [userIdentifier, currentUser?.id, authLoading, loadUserProfile, currentUser, isAuthenticated]);
 
   // Listen for new review creation to update profile in real-time
   useEffect(() => {
-    console.log('🎯 ProfilePage: Setting up reviewCreated event listener for userIdentifier:', userIdentifier);
-    console.log('🎯 ProfilePage: Current state when setting up listener:', {
-      userProfileId: userProfile?.id,
-      currentUserId: currentUser?.id,
-      isCurrentUser,
-      userIdentifier
-    });
-    
     const handleReviewCreated = (event: CustomEvent) => {
-      console.log('🔥🔥 ProfilePage: RECEIVED reviewCreated event:', {
-        eventDetail: event.detail,
-        eventSource: event.detail?.source || 'unknown'
-      });
-      
-      const { review, userId, source } = event.detail;
-      
-      // Debug current state
-      const profileUserId = userProfile?.id?.toString();
-      const currentUserId = currentUser?.id?.toString();
-      
-      console.log('🔥 ProfilePage: DETAILED Event comparison:', {
-        'Event userId': userId,
-        'Event userId type': typeof userId,
-        'Profile userId': profileUserId,
-        'Profile userId type': typeof profileUserId,
-        'Current userId': currentUserId,
-        'Current userId type': typeof currentUserId,
-        'userIdentifier': userIdentifier,
-        'isCurrentUser': isCurrentUser,
-        'reviewId': review?.id,
-        'reviewTitle': review?.title,
-        'eventSource': source
-      });
-      
-      // More flexible matching - convert all to strings for comparison
-      const eventUserIdStr = String(userId);
-      const profileUserIdStr = String(profileUserId);
-      const currentUserIdStr = String(currentUserId);
-      
-      console.log('🔥 ProfilePage: String comparison:', {
-        'eventUserIdStr': eventUserIdStr,
-        'profileUserIdStr': profileUserIdStr,
-        'currentUserIdStr': currentUserIdStr,
-        'eventUserIdStr === profileUserIdStr': eventUserIdStr === profileUserIdStr,
-        'eventUserIdStr === currentUserIdStr': eventUserIdStr === currentUserIdStr,
-        'isCurrentUser && eventUserIdStr === currentUserIdStr': isCurrentUser && eventUserIdStr === currentUserIdStr
-      });
+      const { review, userId } = event.detail;
       
       // Check if this review belongs to the current profile
-      const isReviewForThisProfile = eventUserIdStr === profileUserIdStr || 
-                                     eventUserIdStr === currentUserIdStr || 
-                                     (isCurrentUser && eventUserIdStr === currentUserIdStr);
+      const profileUserId = userProfile?.id?.toString();
+      const currentUserId = currentUser?.id?.toString();
+      const eventUserIdStr = String(userId);
       
-      // Only update if this is the current user's profile or we're viewing our own profile
+      const isReviewForThisProfile = eventUserIdStr === profileUserId || 
+                                     eventUserIdStr === currentUserId || 
+                                     (isCurrentUser && eventUserIdStr === currentUserId);
+      
       if (isReviewForThisProfile) {
-        console.log('🔥✅ ProfilePage: USER IDs MATCH - adding new review to user profile:', review.id);
-        
         // Add the new review to the top of the user's reviews
         setUserReviews(prevReviews => {
-          console.log('🔄 ProfilePage: Current user reviews count:', prevReviews.length);
-          console.log('🔄 ProfilePage: Current user reviews IDs:', prevReviews.map(r => r.id));
-          
           // Check if review already exists to avoid duplicates
           const existingIndex = prevReviews.findIndex(r => r.id === review.id);
           if (existingIndex !== -1) {
-            console.log('⚠️ ProfilePage: Review already exists at index', existingIndex, ', skipping');
             return prevReviews; // Review already exists
           }
-          // Add new review to the top
-          console.log('✅ ProfilePage: Adding new review to profile reviews, new count will be:', prevReviews.length + 1);
-          const newReviews = [review, ...prevReviews];
-          console.log('✅ ProfilePage: New reviews array:', newReviews.map(r => ({ id: r.id, title: r.title })));
-          return newReviews;
+          return [review, ...prevReviews];
         });
         
         // Update user profile stats if available
@@ -327,54 +278,28 @@ const ModularUserProfilePage: React.FC = () => {
               totalReviews: (prev.stats?.totalReviews || 0) + 1
             }
           } : null);
-          console.log('✅ ProfilePage: Updated profile stats');
         }
-        
-        console.log('🔥✅ ProfilePage: SUCCESS - new review added to profile');
-      } else {
-        console.log('🔥❌ ProfilePage: USER IDs DO NOT MATCH - not adding review to profile');
-        console.log('🔥❌ Comparison results:', {
-          'eventUserIdStr === profileUserIdStr': eventUserIdStr === profileUserIdStr,
-          'eventUserIdStr === currentUserIdStr': eventUserIdStr === currentUserIdStr,
-          'isCurrentUser': isCurrentUser,
-          'isReviewForThisProfile': isReviewForThisProfile
-        });
-        
-        // Fallback: If this looks like it could be for the current user, manually refresh
-        if (isCurrentUser) {
-          console.log('🔄 ProfilePage: Attempting manual refresh as fallback for current user');
-          setTimeout(() => {
-            const userId = userIdentifier || currentUser?.id;
-            if (userId) {
-              loadUserReviews(userId, 1, true);
-            }
-          }, 1000);
-        }
+      } else if (isCurrentUser) {
+        // Fallback refresh for current user
+        setTimeout(() => {
+          const userId = userIdentifier || currentUser?.id;
+          if (userId) {
+            loadUserReviews(userId, 1, true);
+          }
+        }, 1000);
       }
     };
 
-    // Add event listener
     window.addEventListener('reviewCreated', handleReviewCreated as EventListener);
-    console.log('🎯 ProfilePage: Event listener ADDED for reviewCreated - ready to receive real events');
     
-    // Cleanup
     return () => {
-      console.log('🎯 ProfilePage: Event listener REMOVED for reviewCreated');
       window.removeEventListener('reviewCreated', handleReviewCreated as EventListener);
     };
-  }, [userProfile?.id, currentUser?.id, isCurrentUser]);
+  }, [userProfile?.id, currentUser?.id, isCurrentUser, userIdentifier, loadUserReviews, userProfile]);
 
   const loadUserReviews = async (userId: string, page: number, reset: boolean = false) => {
     try {
       setReviewsLoading(true);
-      
-      console.log('📊 ProfilePage: Loading user reviews with full stats for userId:', userId, 'page:', page, 'reset:', reset, 'isCurrentUser:', isCurrentUser);
-      console.log('📊 ProfilePage: Current state:', {
-        userProfile: userProfile ? { id: userProfile.id, name: userProfile.name } : null,
-        currentUser: currentUser ? { id: currentUser.id, username: currentUser.username } : null,
-        userIdentifier
-      });
-      
       if (!userId || userId === 'undefined' || userId === 'null') {
         console.error('📊 ProfilePage: Invalid userId provided to loadUserReviews:', userId);
         setUserReviews([]);
@@ -389,17 +314,6 @@ const ModularUserProfilePage: React.FC = () => {
         includeAnonymous: isCurrentUser
       });
 
-      console.log('📊 ProfilePage: Got reviews with stats:', {
-        count: result.reviews.length,
-        hasMore: result.hasMore,
-        sampleReview: result.reviews[0] ? {
-          id: result.reviews[0].id,
-          reactions: result.reviews[0].reactions,
-          user_reaction: result.reviews[0].user_reaction,
-          view_count: result.reviews[0].view_count,
-          comments_length: result.reviews[0].comments?.length
-        } : null
-      });
 
       const reviews = result.reviews || [];
       const hasMore = result.hasMore || false;
@@ -414,7 +328,7 @@ const ModularUserProfilePage: React.FC = () => {
       setHasMoreReviews(hasMore);
       
     } catch (err) {
-      console.error('📊 ProfilePage: Error loading user reviews:', err);
+      console.error('Error loading user reviews:', err);
       if (reset) {
         setUserReviews([]);
         setReviewsPage(1);
@@ -530,9 +444,6 @@ const ModularUserProfilePage: React.FC = () => {
     setEntityDropdown({ open: true, entity, buttonRef });
   };
 
-  const handleReviewDropdown = (review: Review, buttonRef: React.RefObject<HTMLButtonElement>) => {
-    setReviewDropdown({ open: true, review, buttonRef });
-  };
 
   const getEntityDropdownActions = (entity: Entity) => {
     const actions = [];
@@ -584,53 +495,6 @@ const ModularUserProfilePage: React.FC = () => {
     return actions;
   };
 
-  const getReviewDropdownActions = (review: Review) => {
-    const actions = [];
-
-    if (isCurrentUser) {
-      actions.push(
-        {
-          label: 'Edit Review',
-          icon: '✏️',
-          onClick: () => setEditReviewModal({ open: true, review })
-        },
-        {
-          label: 'Delete Review',
-          icon: '🗑️',
-          onClick: () => handleDeleteReview(review),
-          variant: 'danger' as const
-        },
-        {
-          label: '---',
-          icon: '',
-          onClick: () => {}
-        }
-      );
-    }
-
-    actions.push(
-      {
-        label: 'Pin on top of profile',
-        icon: '📌',
-        onClick: () => console.log('Pin review', review)
-      },
-      {
-        label: 'Copy link to review',
-        icon: '🔗',
-        onClick: () => {
-          navigator.clipboard.writeText(`${window.location.origin}/review/${review.id}`);
-          showToast('Link copied to clipboard', 'success');
-        }
-      },
-      {
-        label: 'Embed this review',
-        icon: '📋',
-        onClick: () => console.log('Embed review', review)
-      }
-    );
-
-    return actions;
-  };
 
   // Profile Actions
   const handleEditProfile = () => {
@@ -639,17 +503,9 @@ const ModularUserProfilePage: React.FC = () => {
 
   const handleSaveProfile = async (updatedProfile: Partial<UserProfile>) => {
     try {
-      console.log('handleSaveProfile called with:', updatedProfile);
-      console.log('Current userProfile:', userProfile);
-      
       const result = await userService.updateUserProfile(userProfile!.id, updatedProfile);
-      console.log('Update result:', result);
       
-      setUserProfile(prev => {
-        const newProfile = prev ? { ...prev, ...result } : null;
-        console.log('New profile state:', newProfile);
-        return newProfile;
-      });
+      setUserProfile(prev => prev ? { ...prev, ...result } : null);
       
       showToast('Profile updated successfully', 'success');
     } catch (err) {
@@ -708,16 +564,6 @@ const ModularUserProfilePage: React.FC = () => {
     }
   };
 
-  const handleDeleteReview = (review: Review) => {
-    setDeleteModal({
-      open: true,
-      type: 'review',
-      item: review,
-      title: 'Delete Review',
-      message: 'This will permanently delete your review and all associated interactions.',
-      warning: 'All comments and reactions on this review will also be deleted.'
-    });
-  };
 
   const handleConfirmDeleteReview = async () => {
     try {
@@ -751,7 +597,6 @@ const ModularUserProfilePage: React.FC = () => {
   // Reaction and Comment Handlers for consistent stats
   const handleReactionChange = async (reviewId: string, reaction: string | null) => {
     try {
-      console.log('📊 ProfilePage: Handling reaction change for review', reviewId, 'reaction:', reaction);
       
       // Save to userInteractionService cache for persistence across page refreshes
       const { userInteractionService } = await import('../../api/services/userInteractionService');
@@ -780,14 +625,12 @@ const ModularUserProfilePage: React.FC = () => {
       });
       
     } catch (error) {
-      console.error('📊 ProfilePage: Error handling reaction change:', error);
+      console.error('Error handling reaction change:', error);
     }
   };
 
-  const handleCommentAdd = async (reviewId: string, _content: string, _parentId?: string) => {
+  const handleCommentAdd = async (reviewId: string) => {
     try {
-      console.log('📊 ProfilePage: Handling comment add for review', reviewId);
-      
       // Update local state to increment comment count
       setUserReviews(prevReviews => 
         prevReviews.map(review => {
@@ -808,14 +651,12 @@ const ModularUserProfilePage: React.FC = () => {
       });
       
     } catch (error) {
-      console.error('📊 ProfilePage: Error handling comment add:', error);
+      console.error('Error handling comment add:', error);
     }
   };
 
-  const handleCommentDelete = async (reviewId: string, _commentId: string) => {
+  const handleCommentDelete = async (reviewId: string) => {
     try {
-      console.log('📊 ProfilePage: Handling comment delete for review', reviewId);
-      
       // Update local state to decrement comment count
       setUserReviews(prevReviews => 
         prevReviews.map(review => {
@@ -836,17 +677,16 @@ const ModularUserProfilePage: React.FC = () => {
       });
       
     } catch (error) {
-      console.error('📊 ProfilePage: Error handling comment delete:', error);
+      console.error('Error handling comment delete:', error);
     }
   };
 
-  const handleCommentReaction = async (reviewId: string, commentId: string, _reaction: string | null) => {
+  const handleCommentReaction = async () => {
     try {
-      console.log('📊 ProfilePage: Handling comment reaction for review', reviewId, 'comment', commentId);
       // Comment reactions don't affect review stats directly, so no need to update review state
       // This handler is here for consistency with the API
     } catch (error) {
-      console.error('📊 ProfilePage: Error handling comment reaction:', error);
+      console.error('Error handling comment reaction:', error);
     }
   };
 
