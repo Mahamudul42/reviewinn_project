@@ -617,6 +617,19 @@ class EntityService {
    */
   async getEntitiesByUser(userId: string, params: EntityListParams = {}): Promise<SearchResult> {
     try {
+      console.log('🏢 EntityService: getEntitiesByUser called with userId:', userId, 'params:', params);
+      
+      // Ensure userId is numeric for the backend endpoint
+      const numericUserId = parseInt(userId, 10);
+      if (isNaN(numericUserId)) {
+        console.error('🏢 EntityService: Invalid userId - not a number:', userId);
+        return {
+          entities: [],
+          total: 0,
+          hasMore: false
+        };
+      }
+      
       const searchParams = new URLSearchParams();
       
       // Add pagination parameters
@@ -637,8 +650,17 @@ class EntityService {
       }
       if (params.sortOrder) searchParams.append('sort_order', params.sortOrder);
       
-      const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.LIST}/user/${userId}/entities?${searchParams.toString()}`;
+      const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.LIST}/user/${numericUserId}/entities?${searchParams.toString()}`;
+      console.log('🏢 EntityService: Making request to URL:', url);
+      console.log('🏢 EntityService: API_CONFIG.BASE_URL:', API_CONFIG.BASE_URL);
+      console.log('🏢 EntityService: API_ENDPOINTS.ENTITIES.LIST:', API_ENDPOINTS.ENTITIES.LIST);
+      console.log('🏢 EntityService: numericUserId:', numericUserId);
+      console.log('🏢 EntityService: searchParams:', Object.fromEntries(searchParams.entries()));
+      
       const response = await httpClient.get<EntityApiResponse>(url);
+      console.log('🏢 EntityService: Response received:', response);
+      console.log('🏢 EntityService: Response status:', response.success);
+      console.log('🏢 EntityService: Response data length:', Array.isArray(response.data) ? response.data.length : 'not array');
       
       if (!response.success) {
         throw new Error('Failed to fetch user entities');
@@ -672,8 +694,21 @@ class EntityService {
       };
       
     } catch (error) {
-      console.error('Error fetching user entities:', error);
-      throw error;
+      console.error('🏢 EntityService: Error fetching user entities:', error);
+      const debugUserId = parseInt(userId, 10);
+      console.error('🏢 EntityService: Error details:', {
+        userId,
+        numericUserId: isNaN(debugUserId) ? 'NaN' : debugUserId,
+        params,
+        error: error instanceof Error ? error.message : error
+      });
+      
+      // Return empty result instead of throwing to prevent UI crashes
+      return {
+        entities: [],
+        total: 0,
+        hasMore: false
+      };
     }
   }
   

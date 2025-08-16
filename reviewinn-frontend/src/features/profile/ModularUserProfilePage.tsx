@@ -183,12 +183,18 @@ const ModularUserProfilePage: React.FC = () => {
           try {
             setEntitiesLoading(true);
             
+            console.log('🔍 DEBUG: About to call getEntitiesByUser with userId:', userId);
+            console.log('🔍 DEBUG: userProfile:', userProfile);
+            console.log('🔍 DEBUG: currentUser:', currentUser);
+            
             const result = await entityService.getEntitiesByUser(userId, {
               page: 1,
               limit: 5,
               sortBy: 'createdAt',
               sortOrder: 'desc'
             });
+            
+            console.log('🔍 DEBUG: getEntitiesByUser result:', result);
 
             setUserEntities(result.entities || []);
             setHasMoreEntities(result.hasMore || false);
@@ -282,10 +288,8 @@ const ModularUserProfilePage: React.FC = () => {
       } else if (isCurrentUser) {
         // Fallback refresh for current user
         setTimeout(() => {
-          const userId = userIdentifier || currentUser?.id;
-          if (userId) {
-            loadUserReviews(userId, 1, true);
-          }
+          // Trigger a re-fetch by calling loadUserProfile
+          loadUserProfile();
         }, 1000);
       }
     };
@@ -295,7 +299,7 @@ const ModularUserProfilePage: React.FC = () => {
     return () => {
       window.removeEventListener('reviewCreated', handleReviewCreated as EventListener);
     };
-  }, [userProfile?.id, currentUser?.id, isCurrentUser, userIdentifier, loadUserReviews, userProfile]);
+  }, [userProfile?.id, currentUser?.id, isCurrentUser, userIdentifier, userProfile, loadUserProfile]);
 
   const loadUserReviews = async (userId: string, page: number, reset: boolean = false) => {
     try {
