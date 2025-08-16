@@ -95,7 +95,7 @@ const AddEntityContent: React.FC = () => {
 
 const AddEntityPageModular: React.FC = () => {
   const navigate = useNavigate();
-  const { user: currentUser, isAuthenticated, isLoading: authLoading } = useUnifiedAuth();
+  const { user: currentUser, isLoading: authLoading } = useUnifiedAuth();
 
   // Redirect to login if not authenticated
   useEffect(() => {

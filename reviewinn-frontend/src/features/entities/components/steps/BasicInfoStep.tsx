@@ -14,7 +14,7 @@ export const BasicInfoStep: React.FC = () => {
     goToNextStep,
   } = useEntityCreation();
 
-  const isValid = state.basicInfo.name.trim() && state.basicInfo.description.trim();
+  const isValid = state.basicInfo.name.trim().length >= 2 && state.basicInfo.description.trim().length >= 10;
 
   return (
     <div>
@@ -54,7 +54,7 @@ export const BasicInfoStep: React.FC = () => {
             className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none"
           />
           <p className="text-xs text-neutral-500">
-            Tell us what makes this entity unique and important
+            Tell us what makes this entity unique and important (minimum 10 characters)
           </p>
         </div>
         

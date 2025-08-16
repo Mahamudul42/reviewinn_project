@@ -7,8 +7,6 @@ import React, { createContext, useContext, useCallback, useMemo, useState } from
 import { useNavigate } from 'react-router-dom';
 import type { UnifiedCategory, EntityContext, EntityFormData } from '../../../types/index';
 import { entityService } from '../../../api/services/entityService';
-import { EntityCategory } from '../../../types/index';
-import { convertToLegacyCategory } from '../../../shared/utils/categoryDisplayUtils';
 
 export type EntityCreationStep = 'basic-info' | 'image' | 'category' | 'entity-info' | 'roles' | 'review' | 'success';
 export type EntityType = 'professional' | 'company' | 'location' | 'product' | 'custom';
@@ -76,14 +74,6 @@ export interface EntityCreationContextType {
 
 const EntityCreationContext = createContext<EntityCreationContextType | null>(null);
 
-export const useEntityCreation = () => {
-  const context = useContext(EntityCreationContext);
-  if (!context) {
-    throw new Error('useEntityCreation must be used within EntityCreationProvider');
-  }
-  return context;
-};
-
 interface EntityCreationProviderProps {
   children: React.ReactNode;
 }
@@ -114,40 +104,26 @@ export const EntityCreationProvider: React.FC<EntityCreationProviderProps> = ({ 
     
     const selectedCategory = state.selectedCategory;
     
-    console.log('🔍 EntityCreationContext - Category detection for:', {
-      name: selectedCategory.name,
-      slug: selectedCategory.slug,
-      path: selectedCategory.path,
-      path_text: (selectedCategory as any).path_text,
-      level: selectedCategory.level,
-      category: selectedCategory
-    });
     
     // Method 1: Check path_text field first (from search API results)
-    const pathText = (selectedCategory as any).path_text;
+    const pathText = (selectedCategory as { path_text?: string }).path_text;
     if (pathText) {
       const pathLower = pathText.toLowerCase();
-      console.log('🔍 EntityCreationContext - Path text detection:', pathText);
       
       // Check for root category patterns in path_text
       if (pathLower.startsWith('products') || pathLower.includes('products >')) {
-        console.log('✅ Detected as product from path_text');
         return 'product';
       }
       if (pathLower.startsWith('professionals') || pathLower.includes('professionals >')) {
-        console.log('✅ Detected as professional from path_text');
         return 'professional';
       }
       if (pathLower.startsWith('companies') || pathLower.includes('companies') || pathLower.includes('institutes')) {
-        console.log('✅ Detected as company from path_text');
         return 'company';
       }
       if (pathLower.startsWith('places') || pathLower.includes('places >')) {
-        console.log('✅ Detected as location from path_text');
         return 'location';
       }
       if (pathLower.startsWith('other') || pathLower.includes('other >') || pathLower.includes('custom')) {
-        console.log('✅ Detected as custom from path_text');
         return 'custom';
       }
     }
@@ -155,33 +131,26 @@ export const EntityCreationProvider: React.FC<EntityCreationProviderProps> = ({ 
     // Method 2: Check path field for exact matches (from main API)
     if (selectedCategory.path) {
       const path = selectedCategory.path.toLowerCase();
-      console.log('🔍 EntityCreationContext - Path detection:', path);
       
       // Check for custom category first
       if (path.includes('other.custom') || path === 'other.custom' || path.startsWith('303')) {
-        console.log('✅ Detected as custom from path');
         return 'custom';
       }
       
       // Check root categories by path prefix (using numeric IDs from your database)
       if (path.startsWith('1.') || path === '1') { // Professionals root ID = 1
-        console.log('✅ Detected as professional from path');
         return 'professional';
       }
       if (path.startsWith('115.') || path === '115') { // Companies/Institutes root ID = 115
-        console.log('✅ Detected as company from path');
         return 'company';
       }
       if (path.startsWith('186.') || path === '186') { // Places root ID = 186
-        console.log('✅ Detected as location from path');
         return 'location';
       }
       if (path.startsWith('235.') || path === '235') { // Products root ID = 235
-        console.log('✅ Detected as product from path');
         return 'product';
       }
       if (path.startsWith('303.') || path === '303') { // Other root ID = 303
-        console.log('✅ Detected as custom from path');
         return 'custom';
       }
     }
@@ -189,7 +158,6 @@ export const EntityCreationProvider: React.FC<EntityCreationProviderProps> = ({ 
     // Method 3: Check if it's a root category by slug and level
     if (selectedCategory.is_root || selectedCategory.level <= 1) {
       const rootSlug = selectedCategory.slug.toLowerCase();
-      console.log('🔍 EntityCreationContext - Root slug detection:', rootSlug);
       
       if (rootSlug === 'professionals') return 'professional';
       if (rootSlug === 'companies_institutes' || rootSlug === 'companiesinstitutes') return 'company';
@@ -200,7 +168,6 @@ export const EntityCreationProvider: React.FC<EntityCreationProviderProps> = ({ 
     
     // Method 4: Check individual slug patterns
     const categorySlug = selectedCategory.slug.toLowerCase();
-    console.log('🔍 EntityCreationContext - Slug pattern detection:', categorySlug);
     
     if (categorySlug === 'custom') return 'custom';
     if (categorySlug.includes('company') || categorySlug.includes('institution') || categorySlug.includes('business')) return 'company';
@@ -209,7 +176,6 @@ export const EntityCreationProvider: React.FC<EntityCreationProviderProps> = ({ 
         categorySlug.includes('smartphone') || categorySlug.includes('electronics') || categorySlug.includes('fashion') ||
         categorySlug.includes('food') || categorySlug.includes('beverage') || categorySlug.includes('automotive')) return 'product';
     
-    console.log('🔍 EntityCreationContext - Fallback to professional for:', selectedCategory);
     return 'professional';
   }, [state.selectedCategory]);
 
@@ -377,7 +343,6 @@ export const EntityCreationProvider: React.FC<EntityCreationProviderProps> = ({ 
   }, []);
 
   const handleImageUpload = useCallback((imageUrl: string) => {
-    console.log('🖼️ Image uploaded, URL received:', imageUrl);
     setState(prev => ({
       ...prev,
       entityImage: imageUrl,
@@ -484,13 +449,6 @@ export const EntityCreationProvider: React.FC<EntityCreationProviderProps> = ({ 
         customFields: {},
       };
 
-      console.log('🖼️ Entity creation data for core_entities (JSONB-only):', {
-        avatar: entityData.avatar,
-        entityImage: state.entityImage,
-        rootCategory: entityData.root_category,
-        finalCategory: entityData.final_category,
-        fullEntityData: entityData
-      });
 
       const entity = await entityService.createEntity(entityData);
       
@@ -549,4 +507,12 @@ export const EntityCreationProvider: React.FC<EntityCreationProviderProps> = ({ 
       {children}
     </EntityCreationContext.Provider>
   );
+};
+
+export const useEntityCreation = () => {
+  const context = useContext(EntityCreationContext);
+  if (!context) {
+    throw new Error('useEntityCreation must be used within EntityCreationProvider');
+  }
+  return context;
 };
