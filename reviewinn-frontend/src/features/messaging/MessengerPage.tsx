@@ -43,120 +43,60 @@ const MessengerPage: React.FC = () => {
   }, [currentUserBase]);
 
   // Business logic functions - define these first
+  // Helper function to deduplicate conversations
+  const deduplicateConversations = useCallback((conversations: ProfessionalConversation[]) => {
+    const seen = new Set<number>();
+    return conversations.filter(conv => {
+      if (seen.has(conv.conversation_id)) {
+        return false;
+      }
+      seen.add(conv.conversation_id);
+      return true;
+    });
+  }, []);
+
   const loadConversations = useCallback(async () => {
-    console.log('=== loadConversations called ===');
     try {
       setLoading(true);
-      console.log('Making getConversations API call...');
       const response = await professionalMessagingService.getConversations();
-      console.log('getConversations response:', response);
-      console.log('getConversations success:', response?.success);
-      console.log('getConversations error:', response?.error);
       
-      if (response && response.data && response.data.conversations) {
-        console.log('Response conversations:', response.data.conversations);
-        
-        // Remove duplicates based on conversation_id
-        const uniqueConversations = response.data.conversations.filter((conversation, index, self) => 
-          index === self.findIndex(c => c.conversation_id === conversation.conversation_id)
-        );
-        
-        console.log('Filtered unique conversations:', uniqueConversations.length, 'from', response.data.conversations.length);
+      let conversationsData: ProfessionalConversation[] = [];
+      if (response?.data?.conversations) {
+        conversationsData = response.data.conversations;
+      } else if (response?.conversations) {
+        conversationsData = response.conversations;
+      }
+      
+      if (conversationsData.length > 0) {
+        const uniqueConversations = deduplicateConversations(conversationsData);
         setConversations(uniqueConversations);
-        console.log('Conversations updated to', uniqueConversations.length);
-      } else if (response && response.conversations) {
-        console.log('Response conversations (direct):', response.conversations);
-        
-        // Remove duplicates based on conversation_id
-        const uniqueConversations = response.conversations.filter((conversation, index, self) => 
-          index === self.findIndex(c => c.conversation_id === conversation.conversation_id)
-        );
-        
-        console.log('Filtered unique conversations:', uniqueConversations.length, 'from', response.conversations.length);
-        
-        // Debug: Show sample conversations to see if they include new messages
-        console.log('Sample conversations with last messages:');
-        uniqueConversations.slice(0, 2).forEach((conv, idx) => {
-          console.log(`Conversation ${idx + 1}:`, {
-            id: conv.conversation_id,
-            title: conv.title,
-            lastMessage: conv.latest_message?.content || conv.last_message?.content || 'No message',
-            lastMessageTime: conv.latest_message?.created_at || conv.last_message?.created_at || 'No time',
-            unreadCount: conv.user_unread_count || conv.unread_count || 0
-          });
-        });
-        
-        setConversations(uniqueConversations);
-        console.log('Conversations updated to', uniqueConversations.length);
-      } else {
-        console.log('getConversations failed or no data:', response);
-        console.log('Response structure:', {
-          hasResponse: !!response,
-          hasData: !!(response?.data),
-          hasConversations: !!(response?.data?.conversations),
-          directConversations: !!(response?.conversations),
-          responseKeys: response ? Object.keys(response) : null
-        });
       }
     } catch (error) {
       console.error('Failed to load conversations:', error);
-      console.error('Error details:', {
-        message: error?.message,
-        status: error?.status,
-        name: error?.name
-      });
       showError('Failed to load conversations');
     } finally {
       setLoading(false);
-      console.log('loadConversations finished');
     }
-  }, [showError]);
+  }, [showError, deduplicateConversations]);
 
   const loadMessages = useCallback(async (conversationId: number, offset: number = 0, limit?: number) => {
-    console.log(`🚀 === loadMessages called for conversation ${conversationId} ===`, {
-      conversationId,
-      offset,
-      limit,
-      timestamp: new Date().toISOString()
-    });
-    
     try {
-      console.log(`Setting messagesLoading to ${offset === 0}`);
       setMessagesLoading(offset === 0);
       
       const messageLimit = limit || (offset === 0 ? 15 : 20);
-      console.log(`Loading ${messageLimit} messages with offset ${offset}`);
-      
       const response = await professionalMessagingService.getMessages(conversationId, { 
         limit: messageLimit, 
         beforeMessageId: offset > 0 ? messages[messages.length - 1]?.message_id : undefined 
       });
       
-      console.log('loadMessages response:', response);
-      console.log('loadMessages response structure:', {
-        hasResponse: !!response,
-        hasSuccess: response?.success,
-        hasData: !!response?.data,
-        hasMessages: !!(response?.data?.messages),
-        messagesCount: response?.data?.messages?.length || 0
-      });
-      
-      if (response && response.data && response.data.messages) {
-        const newMessages = response.data.messages || [];
-        console.log(`Got ${newMessages.length} messages from API`);
-        console.log('Sample message:', newMessages[0] ? {
-          id: newMessages[0].message_id,
-          content: newMessages[0].content?.substring(0, 50),
-          sender: newMessages[0].sender?.name
-        } : 'No messages');
+      if (response?.data?.messages) {
+        const newMessages = response.data.messages;
         
         if (offset === 0) {
-          console.log(`Initial load: got ${newMessages.length} messages`);
           setMessages(newMessages);
           setIsInitialLoad(true);
           setTimeout(() => setIsInitialLoad(false), 100);
         } else {
-          console.log(`Loading more: got ${newMessages.length} additional messages`);
           setMessages(prev => [...prev, ...newMessages]);
         }
         
@@ -164,30 +104,17 @@ const MessengerPage: React.FC = () => {
       }
     } catch (error) {
       console.error('Failed to load messages:', error);
-      console.error('Message loading error details:', {
-        conversationId,
-        message: error?.message,
-        status: error?.status,
-        name: error?.name
-      });
       showError('Failed to load messages');
     } finally {
       setMessagesLoading(false);
     }
-  }, [showError]);
+  }, [showError, messages]);
 
   // WebSocket message handlers - now we can safely reference functions above
   const handleMarkAsRead = useCallback(async (messageId?: number) => {
     if (!activeConversation) return;
 
     try {
-      // Skip problematic API call - just update local state
-      // The API has validation issues, but UI updates work fine
-      console.log('🟢 Marking conversation as read (UI only):', {
-        conversationId: activeConversation.conversation_id,
-        messageId: messageId
-      });
-      
       // Update local state optimistically
       setConversations(prev => 
         prev.map(conv => 
@@ -202,23 +129,13 @@ const MessengerPage: React.FC = () => {
   }, [activeConversation]);
 
   const handleNewMessageFromWS = useCallback((message: any, conversationId?: number) => {
-    console.log('🔥 HandleNewMessage called with:', message);
-    
-    // Always update conversation list when any new message arrives (with a slight delay to avoid too many calls)
-    setTimeout(async () => {
-      try {
-        await loadConversations();
-      } catch (error) {
-        console.error('Failed to refresh conversations from WebSocket:', error);
-      }
-    }, 100);
+    // Update conversation list when new message arrives
+    loadConversations();
     
     const messageConversationId = conversationId || message.conversation_id;
     
     // Add message to current conversation if it matches
     if (activeConversation && messageConversationId === activeConversation.conversation_id) {
-      console.log('✅ Message is for current active conversation');
-      
       // Only add if it's not from current user (to avoid duplicates with optimistic updates)
       if (message.sender_id !== currentUser?.user_id) {
         setMessages(prev => {
@@ -226,14 +143,12 @@ const MessengerPage: React.FC = () => {
           const exists = prev.some(m => m.message_id === message.message_id);
           
           if (exists || processedMessages.has(message.message_id)) {
-            console.log('⚠️ Message already exists, skipping');
             return prev;
           }
           
           // Add to processed messages set
           setProcessedMessages(prevSet => new Set([...prevSet, message.message_id]));
           
-          console.log('🎉 Adding new WebSocket message to chat window');
           return [message, ...prev]; // Add to beginning for column-reverse layout
         });
         

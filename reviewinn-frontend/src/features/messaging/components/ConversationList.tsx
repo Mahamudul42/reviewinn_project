@@ -49,6 +49,13 @@ const ConversationList: React.FC<ConversationListProps> = ({
     setFilteredConversations(filtered);
   }, [searchQuery, conversations]);
 
+  const getParticipantName = (participant: any): string => {
+    return participant.full_name || 
+           participant.display_name || 
+           participant.username ||
+           `User ${participant.user_id}`;
+  };
+
   const getConversationTitle = (conversation: ProfessionalConversation): string => {
     if (conversation.conversation_type === 'group') {
       return conversation.title || 'Group Chat';
@@ -57,11 +64,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
     // For direct conversations, find the other participant
     const otherParticipant = conversation.participants?.find(p => p.user_id !== currentUserId);
     if (otherParticipant) {
-      // Priority: full_name, display_name, username, fallback
-      return (otherParticipant as any).full_name || 
-             otherParticipant.display_name || 
-             (otherParticipant as any).username ||
-             `User ${otherParticipant.user_id}`;
+      return getParticipantName(otherParticipant);
     }
     
     return conversation.title || 'Unknown User';
@@ -77,17 +80,13 @@ const ConversationList: React.FC<ConversationListProps> = ({
     const otherParticipant = conversation.participants?.find(p => p.user_id !== currentUserId);
     if (otherParticipant) {
       // Use actual avatar if available, otherwise fallback to generated avatar
-      const avatar = (otherParticipant as any).avatar;
+      const avatar = otherParticipant.avatar;
       if (avatar && avatar.trim() !== '') {
         return avatar;
       }
       
-      // Generate avatar using full name if available, otherwise display_name
-      const name = (otherParticipant as any).full_name || 
-                   otherParticipant.display_name || 
-                   (otherParticipant as any).username ||
-                   `User ${otherParticipant.user_id}`;
-      
+      // Generate avatar using participant name
+      const name = getParticipantName(otherParticipant);
       return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&size=48&background=random`;
     }
     
@@ -207,13 +206,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
             {filteredConversations.map((conversation) => (
               <div
                 key={conversation.conversation_id}
-                onClick={() => {
-                  console.log('ConversationList: Conversation clicked', {
-                    id: conversation.conversation_id,
-                    title: conversation.title
-                  });
-                  onConversationSelect(conversation);
-                }}
+                onClick={() => onConversationSelect(conversation)}
                 className={`conversation-item p-3 rounded-lg cursor-pointer transition-all duration-200 hover:bg-white ${
                   activeConversationId === conversation.conversation_id 
                     ? 'bg-blue-50 border-l-4 border-l-blue-500 shadow-sm' 
@@ -232,10 +225,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
                           // Fallback to generated avatar
                           const otherParticipant = conversation.participants?.find(p => p.user_id !== currentUserId);
                           if (otherParticipant) {
-                            const name = (otherParticipant as any).full_name || 
-                                       otherParticipant.display_name || 
-                                       (otherParticipant as any).username ||
-                                       `User ${otherParticipant.user_id}`;
+                            const name = getParticipantName(otherParticipant);
                             (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&size=48&background=4f46e5&color=fff`;
                           }
                         }}
@@ -290,40 +280,6 @@ const ConversationList: React.FC<ConversationListProps> = ({
         )}
       </div>
 
-      {/* <style jsx={true}>{`
-        .conversation-list {
-          width: 100%;
-          max-width: 350px;
-        }
-        
-        .conversation-scroll {
-          scrollbar-width: thin;
-          scrollbar-color: #cbd5e0 #f7fafc;
-        }
-        
-        .conversation-scroll::-webkit-scrollbar {
-          width: 6px;
-        }
-        
-        .conversation-scroll::-webkit-scrollbar-track {
-          background: #f7fafc;
-        }
-        
-        .conversation-scroll::-webkit-scrollbar-thumb {
-          background-color: #cbd5e0;
-          border-radius: 3px;
-        }
-        
-        .conversation-item:last-child {
-          border-bottom: none;
-        }
-        
-        @media (max-width: 768px) {
-          .conversation-list {
-            max-width: 100%;
-          }
-        }
-      `} */}
     </div>
   );
 };

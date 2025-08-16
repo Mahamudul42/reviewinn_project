@@ -139,7 +139,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     if (!currentUserId) return;
     
     // Check if current user already reacted with this emoji
-    const userHasReacted = message.reactions && message.reactions.some(r => r.user.user_id === currentUserId && r.reaction_type === emoji);
+    const userHasReacted = message.reactions && (
+      Array.isArray(message.reactions)
+        ? message.reactions.some(r => r.user.user_id === currentUserId && r.reaction_type === emoji)
+        : message.reactions[currentUserId.toString()] === emoji
+    );
 
     if (userHasReacted) {
       onRemoveReaction?.(message.message_id);
@@ -152,21 +156,23 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
   const getReactionCounts = () => {
     const counts: Record<string, number> = {};
     
-    // Handle reactions as object (new format) or array (legacy format)
-    if (message.reactions) {
-      if (Array.isArray(message.reactions)) {
-        // Legacy array format
-        message.reactions.forEach((reaction) => {
-          counts[reaction.reaction_type] = (counts[reaction.reaction_type] || 0) + 1;
-        });
-      } else {
-        // New object format: { user_id: reaction_type }
-        Object.entries(message.reactions).forEach(([userId, reactionType]) => {
-          if (typeof reactionType === 'string') {
-            counts[reactionType] = (counts[reactionType] || 0) + 1;
-          }
-        });
-      }
+    if (!message.reactions) return counts;
+    
+    if (Array.isArray(message.reactions)) {
+      // Legacy array format
+      message.reactions.forEach((reaction) => {
+        const reactionType = reaction.reaction_type;
+        if (reactionType) {
+          counts[reactionType] = (counts[reactionType] || 0) + 1;
+        }
+      });
+    } else {
+      // New object format: { user_id: reaction_type }
+      Object.values(message.reactions).forEach((reactionType) => {
+        if (typeof reactionType === 'string') {
+          counts[reactionType] = (counts[reactionType] || 0) + 1;
+        }
+      });
     }
     
     return counts;
@@ -320,7 +326,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
           {Object.keys(reactionCounts).length > 0 && (
             <div className="reactions flex flex-wrap gap-1 mt-2 px-1 animate-in fade-in duration-300">
               {Object.entries(reactionCounts).map(([emoji, count]) => {
-                const userHasThisReaction = currentUserId && message.reactions && message.reactions.some(r => r.user.user_id === currentUserId && r.reaction_type === emoji);
+                const userHasThisReaction = currentUserId && message.reactions && (
+                  Array.isArray(message.reactions) 
+                    ? message.reactions.some(r => r.user.user_id === currentUserId && r.reaction_type === emoji)
+                    : message.reactions[currentUserId.toString()] === emoji
+                );
                 return (
                   <button
                     key={emoji}
@@ -383,7 +393,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
         >
           <div className="flex space-x-2">
             {reactions.map((emoji) => {
-              const userHasThisReaction = currentUserId && message.reactions && message.reactions.some(r => r.user.user_id === currentUserId && r.reaction_type === emoji);
+              const userHasThisReaction = currentUserId && message.reactions && (
+                Array.isArray(message.reactions) 
+                  ? message.reactions.some(r => r.user.user_id === currentUserId && r.reaction_type === emoji)
+                  : message.reactions[currentUserId.toString()] === emoji
+              );
               return (
                 <button
                   key={emoji}
