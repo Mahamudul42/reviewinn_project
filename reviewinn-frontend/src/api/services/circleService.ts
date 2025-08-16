@@ -75,36 +75,6 @@ export class CircleService {
     return response.data || { items: [], total: 0, page: 1, size: 20, total_pages: 0 };
   }
 
-  /**
-   * Get circles for a specific user (for AddToCircleModal)
-   */
-  async getUserCircles(userId: string | number): Promise<CircleListResponse> {
-    console.log('🌐 CircleService.getUserCircles called:', { userId });
-    try {
-      // For now, get current user's circles (in the future this could be user-specific)
-      return await this.getCircles({ page: 1, size: 100 });
-    } catch (error) {
-      console.error('Failed to get user circles:', error);
-      return { items: [], total: 0, page: 1, size: 20, total_pages: 0 };
-    }
-  }
-
-  /**
-   * Invite a user to a circle
-   */
-  async inviteUserToCircle(circleId: number, userId: string | number): Promise<{ message: string }> {
-    console.log('🌐 CircleService.inviteUserToCircle called:', { circleId, userId });
-    try {
-      // Use the existing sendCircleRequest method with the circle context
-      const response = await this.sendCircleRequest(userId.toString(), {
-        message: `You've been invited to join a circle!`
-      });
-      return { message: response.message };
-    } catch (error) {
-      console.error('Failed to invite user to circle:', error);
-      throw error;
-    }
-  }
 
   /**
    * Get current user's circle members

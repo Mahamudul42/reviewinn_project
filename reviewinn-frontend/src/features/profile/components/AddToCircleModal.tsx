@@ -57,8 +57,9 @@ const AddToCircleModal: React.FC<AddToCircleModalProps> = ({
   const loadUserCircles = useCallback(async () => {
     try {
       setIsLoading(true);
-      const circles = await circleService.getUserCircles(currentUser.id);
-      setUserCircles(circles.items || []);
+      // Follow the exact same pattern as ReviewCirclePage.loadCircleData
+      const response = await circleService.getCircles({ page: 1, size: 100 });
+      setUserCircles(response.items || []);
     } catch (error) {
       console.error('Error loading user circles:', error);
       showToast({
@@ -70,7 +71,7 @@ const AddToCircleModal: React.FC<AddToCircleModalProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [currentUser.id, showToast]);
+  }, [showToast]);
 
   // Load user's circles when modal opens
   useEffect(() => {
@@ -105,30 +106,42 @@ const AddToCircleModal: React.FC<AddToCircleModalProps> = ({
     try {
       setIsSubmitting(true);
       
-      // Send invitations to selected circles
-      const promises = Array.from(selectedCircles).map(circleId =>
-        circleService.inviteUserToCircle(circleId, userProfile.id)
-      );
-      
-      await Promise.all(promises);
+      // Follow the same pattern as ReviewCirclePage.handleAddToCircle
+      // Send a single circle request (the circle page doesn't use multiple circles)
+      const result = await circleService.sendCircleRequest(userProfile.id.toString(), {
+        message: `Hi ${userProfile.name}! I'd like to connect with you in my review circle.`
+      });
       
       showToast({
         type: 'success',
-        title: 'Invitations Sent! 🎉',
-        message: `${userProfile.name} has been invited to ${selectedCircles.size} circle(s).`,
+        title: 'Circle Request Sent! 🎉',
+        message: `Circle request sent to ${userProfile.name}!`,
         icon: '✅'
       });
       
       onClose();
       setSelectedCircles(new Set());
-    } catch (error) {
-      console.error('Error adding to circles:', error);
-      showToast({
-        type: 'error',
-        title: 'Invitation Failed',
-        message: 'Failed to send circle invitations. Please try again.',
-        icon: '⚠️'
-      });
+    } catch (error: any) {
+      console.error('Error sending circle request:', error);
+      
+      // Handle specific error cases like the circle page does
+      if (error?.response?.status === 409 || error?.status === 409 || 
+          error.message?.includes('already sent') || error.message?.includes('409') ||
+          error.message?.includes('Conflict')) {
+        showToast({
+          type: 'error',
+          title: 'Request Already Sent',
+          message: `Circle request already sent to ${userProfile.name}.`,
+          icon: '⚠️'
+        });
+      } else {
+        showToast({
+          type: 'error',
+          title: 'Request Failed',
+          message: `Failed to send circle request to ${userProfile.name}. Please try again.`,
+          icon: '⚠️'
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
