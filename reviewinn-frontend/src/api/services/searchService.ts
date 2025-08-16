@@ -12,13 +12,11 @@ export class SearchService {
 
   async search(params: SearchParams): Promise<UnifiedSearchResult> {
     // Use fallback search by default since unified API may not be implemented yet
-    console.log('Performing search with params:', params);
     return this.fallbackSearch(params);
   }
 
   async searchSuggestions(query: string, limit = 5): Promise<string[]> {
     // Skip API call for now since endpoint doesn't exist, use fallback directly
-    console.log('Using fallback suggestions for query:', query);
     return this.generateFallbackSuggestions(query, limit);
   }
 
@@ -83,7 +81,6 @@ export class SearchService {
       query: params.query
     };
 
-    console.log('Starting fallback search for:', params.query);
 
     try {
       // Import services dynamically to avoid circular dependencies
@@ -99,7 +96,6 @@ export class SearchService {
       // Search entities using working implementation
       if (params.type === 'all' || params.type === 'entities') {
         try {
-          console.log('Searching entities using working implementation...');
           const entityResults = await searchEntities(params.query, {
             category: params.filters.category,
             rating: params.filters.minRating ? { min: params.filters.minRating, max: 5 } : undefined,
@@ -108,8 +104,6 @@ export class SearchService {
             sortBy: params.filters.sortBy as any,
             sortOrder: params.filters.sortOrder
           });
-          
-          console.log('Entity search results:', entityResults);
           result.entities = (entityResults.entities || []).slice(0, entityLimit);
           result.total += entityResults.total || 0;
           result.hasMore = result.hasMore || entityResults.hasMore || false;
@@ -118,7 +112,6 @@ export class SearchService {
           
           // Try backend search as last resort
           try {
-            console.log('Trying backend entity search...');
             const backendUrl = `${API_CONFIG.BASE_URL}/entities/search?q=${encodeURIComponent(params.query)}&limit=${entityLimit}`;
             const backendResponse = await httpClient.get(backendUrl, true);
             
@@ -126,7 +119,6 @@ export class SearchService {
               result.entities = backendResponse.data.entities.slice(0, entityLimit);
               result.total += backendResponse.data.total || 0;
               result.hasMore = result.hasMore || backendResponse.data.hasMore || false;
-              console.log('Backend entity search successful:', result.entities.length);
             }
           } catch (backendError) {
             console.error('Backend entity search also failed:', backendError);
@@ -137,8 +129,6 @@ export class SearchService {
       // Search reviews - enhanced to include entity context
       if (params.type === 'all' || params.type === 'reviews') {
         try {
-          console.log('Searching reviews...');
-          
           // First, search reviews normally
           const reviewResults = await reviewService.searchReviews(params.query, {
             page: params.page,
@@ -147,8 +137,6 @@ export class SearchService {
             rating: params.filters.minRating,
             dateRange: params.filters.reviewDateRange
           });
-          
-          console.log('Review search results:', reviewResults);
           if (reviewResults) {
             result.reviews = reviewResults.reviews || [];
             result.total += reviewResults.total || 0;
@@ -158,16 +146,12 @@ export class SearchService {
           // Additionally, search for reviews whose entities match the search query
           // This covers entity descriptions and names not already covered
           if (result.entities.length > 0) {
-            console.log('Searching for reviews of entities that match the search query...');
             const entityReviewPromises = result.entities.slice(0, 5).map(entity => 
               reviewService.getReviewsForEntity(entity.id, { 
-                limit: 2, // Get a few reviews per matching entity
+                limit: 2,
                 sortBy: 'overall_rating',
                 sortOrder: 'desc'
-              }).catch(error => {
-                console.error(`Failed to get reviews for entity ${entity.id}:`, error);
-                return { reviews: [], total: 0, hasMore: false };
-              })
+              }).catch(() => ({ reviews: [], total: 0, hasMore: false }))
             );
 
             const entityReviews = await Promise.all(entityReviewPromises);
@@ -178,7 +162,6 @@ export class SearchService {
             const newReviews = additionalReviews.filter(review => !existingReviewIds.has(review.id));
             
             result.reviews = [...result.reviews, ...newReviews].slice(0, reviewLimit);
-            console.log(`Added ${newReviews.length} reviews from matching entities`);
           }
 
           // For "all" search, also search for reviews associated with found entities
@@ -237,7 +220,6 @@ export class SearchService {
       console.error('Fallback search failed:', error);
     }
 
-    console.log('Final search result:', result);
     return result;
   }
 }

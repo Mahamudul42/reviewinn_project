@@ -31,7 +31,7 @@ import { formatTimeAgo } from '../../../shared/utils/reviewUtils';
 import type { SearchType, UnifiedSearchResult } from '../types/searchTypes';
 import type { Entity, Review, User as UserType } from '../../../types';
 
-interface ModernSearchResultsProps {
+interface SearchResultsProps {
   results: UnifiedSearchResult;
   searchType: SearchType;
   query: string;
@@ -40,7 +40,7 @@ interface ModernSearchResultsProps {
   hasMore: boolean;
 }
 
-const ModernSearchResults: React.FC<ModernSearchResultsProps> = ({
+const SearchResults: React.FC<SearchResultsProps> = ({
   results,
   searchType,
   query,
@@ -191,7 +191,7 @@ const ModernSearchResults: React.FC<ModernSearchResultsProps> = ({
               )}
               <div className="flex items-center gap-1">
                 <Eye className="w-4 h-4 text-green-500" />
-                <span className="font-medium">{Math.floor(Math.random() * 1000) + 500}</span>
+                <span className="font-medium">{entity.viewCount || 0}</span>
               </div>
               <div className="flex items-center gap-1">
                 <TrendingUp className="w-4 h-4 text-purple-500" />
@@ -597,4 +597,4 @@ const ModernSearchResults: React.FC<ModernSearchResultsProps> = ({
   );
 };
 
-export default ModernSearchResults;
+export default SearchResults;

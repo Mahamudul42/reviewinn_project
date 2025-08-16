@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import ThreePanelLayout from '../../shared/layouts/ThreePanelLayout';
-import ReviewSearchHeader from './components/ReviewSearchHeader';
+import SearchHeader from './components/SearchHeader';
 import SearchResults from './components/SearchResults';
 import SearchFilterModal from './components/SearchFilterModal';
 import { searchService } from '../../api/services/searchService';
@@ -14,6 +14,7 @@ import type {
   SearchFilters as SearchFiltersType, 
   UnifiedSearchResult 
 } from './types/searchTypes';
+import './SearchPage.css';
 
 const SearchPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -170,13 +171,12 @@ const SearchPage: React.FC = () => {
     >
       {/* Search Middle Panel Content */}
       <div className="w-full space-y-6">
-        {/* Review Search Header */}
-        <ReviewSearchHeader
+        {/* Search Header */}
+        <SearchHeader
           query={query}
           searchType={searchType}
           onQueryChange={handleQueryChange}
           onTypeChange={handleTypeChange}
-          onSearch={handleManualSearch}
           totalResults={searchResults?.total || 0}
           loading={loading}
           onShowFilters={() => setShowFilterModal(true)}
@@ -230,14 +230,6 @@ const SearchPage: React.FC = () => {
               onLoadMore={handleLoadMore}
               loading={loading}
               hasMore={searchResults.hasMore}
-              currentUser={currentUser}
-              authState={{ isLoading: authLoading }}
-              onRequireAuth={() => {
-                if (authLoading) return;
-                if (!currentUser) {
-                  navigate('/login', { state: { from: `/search?${searchParams.toString()}` } });
-                }
-              }}
             />
           )}
         </div>
@@ -253,22 +245,6 @@ const SearchPage: React.FC = () => {
         onApplyFilters={handleApplyFilters}
       />
 
-      {/* Review search CSS */}
-      <style>{`
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        .line-clamp-2 {
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-      `}</style>
     </ThreePanelLayout>
   );
 };
