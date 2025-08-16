@@ -428,6 +428,7 @@ const ModularUserProfilePage: React.FC = () => {
   const loadUserEntities = async (userId: string, page: number, reset: boolean = false) => {
     try {
       setEntitiesLoading(true);
+      console.log('📋 ProfilePage: Starting loadUserEntities for userId:', userId, 'page:', page, 'reset:', reset);
       
       const result = await entityService.getEntitiesByUser(userId, {
         page,
@@ -436,20 +437,36 @@ const ModularUserProfilePage: React.FC = () => {
         sortOrder: 'desc'
       });
 
+      console.log('📋 ProfilePage: Entities result received:', {
+        entitiesCount: result.entities?.length || 0,
+        hasMore: result.hasMore,
+        total: result.total,
+        sampleEntity: result.entities?.[0] ? {
+          id: result.entities[0].id,
+          name: result.entities[0].name
+        } : null
+      });
+
       const entities = result.entities || [];
       const hasMore = result.hasMore || false;
 
       if (reset) {
         setUserEntities(entities);
         setEntitiesPage(1);
+        console.log('📋 ProfilePage: Set user entities (reset):', entities.length, 'entities');
+      console.log('📋 ProfilePage: Entities list:', entities.map(e => ({ id: e.id, name: e.name })));
       } else {
-        setUserEntities(prev => [...prev, ...entities]);
+        setUserEntities(prev => {
+          const newEntities = [...prev, ...entities];
+          console.log('📋 ProfilePage: Added user entities:', prev.length, '+', entities.length, '=', newEntities.length);
+          return newEntities;
+        });
       }
       
       setHasMoreEntities(hasMore);
       
     } catch (err) {
-      console.error('Error loading user entities:', err);
+      console.error('📋 ProfilePage: Error loading user entities:', err);
       if (reset) {
         setUserEntities([]);
         setEntitiesPage(1);

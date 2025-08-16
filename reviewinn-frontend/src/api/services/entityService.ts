@@ -637,14 +637,24 @@ class EntityService {
       }
       if (params.sortOrder) searchParams.append('sort_order', params.sortOrder);
       
-      const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.LIST}/user/${userId}/entities?${searchParams.toString()}`;
+      const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.BY_USER(userId)}?${searchParams.toString()}`;
+      console.log('📋 EntityService.getEntitiesByUser: API call to:', url);
       const response = await httpClient.get<EntityApiResponse>(url);
       
       if (!response.success) {
+        console.error('📋 EntityService.getEntitiesByUser: API returned error:', response);
         throw new Error('Failed to fetch user entities');
       }
       
       // Handle the backend response structure: { success, data: Entity[], pagination, message }
+      console.log('📋 EntityService.getEntitiesByUser: Raw response structure:', {
+        success: response.success,
+        dataIsArray: Array.isArray(response.data),
+        dataLength: Array.isArray(response.data) ? response.data.length : 'not array',
+        paginationExists: !!(response as any).pagination,
+        fullResponse: response
+      });
+      
       const entities = Array.isArray(response.data) ? response.data : [];
       const pagination = (response as any).pagination || {
         total: 0,
@@ -653,23 +663,34 @@ class EntityService {
         pages: 0
       };
       
-      return {
-        entities: entities.map((entity: any) => {
-          const normalizedEntity = {
-            ...entity,
-            id: entity.id || entity.entity_id,
-            imageUrl: entity.imageUrl || entity.avatar || this.generateEntityImage(entity),
-            hasRealImage: Boolean(entity.avatar && !entity.avatar.includes('ui-avatars.com'))
-          };
-          // Enhance with hierarchical category data for consistent display
-          return enhanceEntityWithHierarchicalCategories(normalizedEntity);
-        }),
+      const normalizedEntities = entities.map((entity: any) => {
+        const normalizedEntity = {
+          ...entity,
+          id: entity.id || entity.entity_id,
+          imageUrl: entity.imageUrl || entity.avatar || this.generateEntityImage(entity),
+          hasRealImage: Boolean(entity.avatar && !entity.avatar.includes('ui-avatars.com'))
+        };
+        // Enhance with hierarchical category data for consistent display
+        return enhanceEntityWithHierarchicalCategories(normalizedEntity);
+      });
+
+      const result = {
+        entities: normalizedEntities,
         total: pagination.total,
         page: pagination.page,
         limit: pagination.limit,
         hasMore: pagination.page < pagination.pages,
         hasPrev: pagination.page > 1
       };
+
+      console.log('📋 EntityService.getEntitiesByUser: Final result:', {
+        entitiesCount: result.entities.length,
+        total: result.total,
+        hasMore: result.hasMore,
+        firstEntityName: result.entities[0]?.name || 'no entities'
+      });
+
+      return result;
       
     } catch (error) {
       console.error('Error fetching user entities:', error);

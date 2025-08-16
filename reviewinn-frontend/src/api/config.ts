@@ -102,7 +102,8 @@ export const API_ENDPOINTS = {
     BULK_OPERATIONS: '/entities/bulk',
     TRACK_VIEW: (id: string) => `/entities/${id}/view`,
     CLAIM: (id: string) => `/entities/${id}/claim`,
-    UNCLAIM: (id: string) => `/entities/${id}/unclaim`
+    UNCLAIM: (id: string) => `/entities/${id}/unclaim`,
+    BY_USER: (userId: string) => `/entities/user/${userId}/entities`
   },
   
   // Reviews
