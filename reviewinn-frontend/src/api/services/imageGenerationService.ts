@@ -458,6 +458,7 @@ export class ImageGenerationService {
     }) : '';
     
     console.log('🎨 Creating review card HTML with rating:', ratingValue, 'from review:', review.id);
+    console.log('🎨 Rating sources - overallRating:', review.overallRating, 'rating:', review.rating, 'overall_rating:', review.overall_rating);
 
     return `
       <div style="
@@ -719,44 +720,55 @@ export class ImageGenerationService {
             </h3>
           </div>
           
-          <!-- Star Rating Display -->
+          <!-- Overall Rating Display - Prominent -->
           <div style="
             display: flex;
             align-items: center;
-            gap: 12px;
-            background: #eff6ff;
-            padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            border: 1px solid #bfdbfe;
+            gap: 16px;
+            background: linear-gradient(135deg, #fef3c7 0%, #fbbf24 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 16px 0 20px 0;
+            border: 2px solid #f59e0b;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
           ">
+            <!-- Large Rating Badge -->
             <div style="
-              width: 40px;
-              height: 40px;
+              width: 60px;
+              height: 60px;
               background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
-              border-radius: 8px;
+              border-radius: 12px;
               display: flex;
               align-items: center;
               justify-content: center;
               color: white;
               font-weight: bold;
-              font-size: 18px;
+              font-size: 24px;
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             ">${ratingValue.toFixed(1)}</div>
-            <div>
-              <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 4px;">
+            
+            <!-- Rating Details -->
+            <div style="flex: 1;">
+              <div style="
+                font-size: 18px;
+                font-weight: bold;
+                color: #92400e;
+                margin-bottom: 6px;
+              ">Overall Rating</div>
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
                 ${this.generateStarRatingHTML(Math.floor(ratingValue))}
                 <span style="
-                  font-size: 16px;
-                  font-weight: 600;
-                  color: #374151;
-                  margin-left: 6px;
-                ">${ratingValue.toFixed(1)} out of 5</span>
+                  font-size: 18px;
+                  font-weight: 700;
+                  color: #92400e;
+                  margin-left: 8px;
+                ">${ratingValue.toFixed(1)} out of 5 stars</span>
               </div>
               <div style="
                 font-size: 14px;
-                color: #6b7280;
+                color: #a16207;
                 font-weight: 500;
-              ">Overall Rating</div>
+              ">Based on review evaluation</div>
             </div>
           </div>
           
@@ -1059,13 +1071,14 @@ export class ImageGenerationService {
       
       starsHTML += `<span style="
         color: ${color}; 
-        font-size: 20px; 
-        margin-right: 2px;
+        font-size: 22px; 
+        margin-right: 3px;
         font-family: Arial, sans-serif;
         font-weight: bold;
         display: inline-block;
         line-height: 1;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
       ">★</span>`;
     }
     return starsHTML;
