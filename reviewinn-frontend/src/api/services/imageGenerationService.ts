@@ -22,8 +22,8 @@ export interface GeneratedImageData {
 
 export class ImageGenerationService {
   private defaultOptions: Required<ReviewImageOptions> = {
-    width: 800, // Reduced width to match review card better
-    height: 700, // Reduced height to remove empty space
+    width: 800, // Optimized width for review card
+    height: 700, // Optimized height for review card
     backgroundColor: '#ffffff',
     textColor: '#1f2937',
     accentColor: '#a855f7',
@@ -31,11 +31,58 @@ export class ImageGenerationService {
     showQRCode: false,
     format: 'png',
     quality: 0.9,
-    useScreenshot: true // NEW: Default to screenshot approach
+    useScreenshot: true // Always use screenshot approach for realistic results
   };
 
   /**
-   * Generate a shareable image for a review
+   * Test method to generate a simple image to verify the service works
+   */
+  async generateTestImage(): Promise<GeneratedImageData> {
+    console.log('🧪 Generating test image to verify service works');
+    
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    if (!ctx) {
+      throw new Error('Canvas context not available');
+    }
+
+    // Set dimensions
+    canvas.width = 400;
+    canvas.height = 200;
+    
+    // Draw test pattern
+    ctx.fillStyle = '#3b82f6';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '24px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Test Image - Service Working!', canvas.width / 2, canvas.height / 2);
+    
+    // Convert to blob
+    const blob = await new Promise<Blob>((resolve) => {
+      canvas.toBlob((blob) => {
+        resolve(blob || new Blob());
+      }, 'image/png', 0.9);
+    });
+
+    const dataUrl = canvas.toDataURL('image/png', 0.9);
+    
+    console.log('🧪 Test image generated - blob size:', blob.size, 'dataUrl length:', dataUrl.length);
+
+    return {
+      dataUrl,
+      blob,
+      filename: 'test-image.png'
+    };
+  }
+
+  /**
+   * Generate a shareable image for a review using screenshot approach only
+   * This ensures the most realistic representation by capturing actual DOM elements
+   * or creating temporary elements that match the real component styling exactly
    */
   async generateReviewImage(
     review: Review,
@@ -44,13 +91,16 @@ export class ImageGenerationService {
   ): Promise<GeneratedImageData> {
     const opts = { ...this.defaultOptions, ...options };
     
-    // Use screenshot approach by default for better accuracy
-    if (opts.useScreenshot) {
-      return this.generateReviewImageScreenshot(review, entity, opts);
-    }
+    console.log('🚀 Starting screenshot-only image generation for review:', review.id);
     
-    // Fallback to canvas approach
-    return this.generateReviewImageCanvas(review, entity, opts);
+    try {
+      // Use only screenshot approach for most realistic results
+      console.log('📸 Using screenshot approach for realistic card rendering');
+      return await this.generateReviewImageScreenshot(review, entity, opts);
+    } catch (error) {
+      console.error('❌ Screenshot image generation failed:', error);
+      throw new Error(`Screenshot image generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
@@ -61,14 +111,18 @@ export class ImageGenerationService {
     entity: Entity | undefined,
     options: Required<ReviewImageOptions>
   ): Promise<GeneratedImageData> {
+    console.log('🚀 Starting generateReviewImageScreenshot for review:', review.id);
+    
     // Find existing review card on page or create a temporary one
     const existingCard = this.findReviewCardElement(review.id);
     
     if (existingCard) {
-      // Screenshot existing card
+      console.log('✅ Found existing card on page, using direct screenshot for maximum realism');
+      // Screenshot existing card for most realistic results
       return this.screenshotElement(existingCard, review, entity, options);
     } else {
-      // Create temporary card for screenshot
+      console.log('📝 No existing card found, creating temporary card with exact styling');
+      // Create temporary card that matches the actual component styling
       return this.createAndScreenshotCard(review, entity, options);
     }
   }
@@ -81,6 +135,8 @@ export class ImageGenerationService {
     entity: Entity | undefined,
     options: Required<ReviewImageOptions>
   ): Promise<GeneratedImageData> {
+    console.log('🎨 Using canvas fallback approach for review:', review.id);
+    
     // Create canvas
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -98,16 +154,26 @@ export class ImageGenerationService {
 
     // Draw content
     await this.drawReviewContent(ctx, review, entity, options);
+    
+    console.log('🎨 Canvas fallback completed, dimensions:', canvas.width, 'x', canvas.height);
 
     // Convert to blob
     const blob = await new Promise<Blob>((resolve) => {
       canvas.toBlob((blob) => {
-        resolve(blob!);
+        if (blob) {
+          console.log('✅ Canvas fallback blob created successfully, size:', blob.size);
+          resolve(blob);
+        } else {
+          console.error('❌ Canvas fallback failed to create blob');
+          resolve(new Blob()); // Empty fallback
+        }
       }, `image/${options.format}`, options.quality);
     });
 
     const dataUrl = canvas.toDataURL(`image/${options.format}`, options.quality);
     const filename = this.generateFilename(review, entity);
+
+    console.log('🎨 Canvas fallback result - dataUrl length:', dataUrl.length, 'blob size:', blob.size);
 
     return {
       dataUrl,
@@ -120,20 +186,38 @@ export class ImageGenerationService {
    * Find existing review card element on the page
    */
   private findReviewCardElement(reviewId: string | number): HTMLElement | null {
+    console.log('🔍 Looking for review card with ID:', reviewId);
+    
     // Try common selectors for review cards
     const selectors = [
       `[data-review-id="${reviewId}"]`,
+      `[data-review-card="true"][data-review-id="${reviewId}"]`,
       `[data-id="${reviewId}"]`,
       `.review-card[data-review-id="${reviewId}"]`,
       // Look for cards containing this review ID in any attribute
-      `div[class*="review"][data-review-id="${reviewId}"]`
+      `div[class*="review"][data-review-id="${reviewId}"]`,
+      // More specific selector for our ReviewFeedCard component
+      `div[data-review-card="true"][data-review-id="${reviewId}"]`
     ];
     
+    // Debug: Check what review cards exist on the page
+    const allReviewCards = document.querySelectorAll('[data-review-card="true"]');
+    console.log('🔍 Found review cards on page:', allReviewCards.length);
+    allReviewCards.forEach((card, index) => {
+      const cardReviewId = card.getAttribute('data-review-id');
+      console.log(`🔍 Card ${index}: review-id=${cardReviewId}`);
+    });
+    
     for (const selector of selectors) {
+      console.log('🔍 Trying selector:', selector);
       const element = document.querySelector(selector) as HTMLElement;
-      if (element) return element;
+      if (element) {
+        console.log('✅ Found review card element:', element);
+        return element;
+      }
     }
     
+    console.log('❌ No review card found for ID:', reviewId);
     return null;
   }
 
@@ -147,29 +231,91 @@ export class ImageGenerationService {
     options: Required<ReviewImageOptions>
   ): Promise<GeneratedImageData> {
     try {
+      console.log('📸 Starting screenshot of existing element:', element);
+      console.log('📸 Element dimensions:', element.offsetWidth, 'x', element.offsetHeight);
+      
+      // Ensure element is visible and has proper dimensions
+      if (element.offsetWidth === 0 || element.offsetHeight === 0) {
+        console.warn('⚠️ Element has zero dimensions, forcing visibility');
+        element.style.display = 'block';
+        element.style.visibility = 'visible';
+        element.style.opacity = '1';
+        
+        // Wait for reflow
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
       // Ensure element is visible and scrolled into view
       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       
       // Wait a bit for any animations to complete
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Use html2canvas to screenshot the element
+      // Use html2canvas to screenshot the element with simplified, working settings
+      console.log('📸 Element styles before capture:', {
+        display: element.style.display,
+        visibility: element.style.visibility,
+        opacity: element.style.opacity,
+        position: element.style.position
+      });
+      
       const canvas = await html2canvas(element, {
-        backgroundColor: options.backgroundColor,
-        scale: 2, // Reduced scale to avoid rendering issues
+        backgroundColor: options.backgroundColor || '#ffffff',
+        scale: 1, // Reduced scale to avoid issues
         useCORS: true,
         allowTaint: true,
-        logging: true, // Enable logging to debug issues
+        logging: true,
         imageTimeout: 15000,
         removeContainer: false,
-        width: element.offsetWidth,
-        height: element.offsetHeight
+        // Removed problematic options that might cause white screen
+        onclone: (clonedDoc) => {
+          console.log('📸 Cloning document for screenshot');
+          // Find all elements with review card data
+          const allCards = clonedDoc.querySelectorAll('[data-review-card="true"]');
+          console.log('📸 Found cards in cloned doc:', allCards.length);
+          
+          // Ensure the specific element is visible
+          const clonedElement = clonedDoc.querySelector(`[data-review-id="${review.id}"]`) as HTMLElement;
+          if (clonedElement) {
+            console.log('📸 Making cloned element visible');
+            clonedElement.style.visibility = 'visible';
+            clonedElement.style.opacity = '1';
+            clonedElement.style.display = 'block';
+            clonedElement.style.position = 'static';
+          }
+          
+          // Also ensure parent containers are visible
+          const containers = clonedDoc.querySelectorAll('div');
+          containers.forEach(container => {
+            if (container.style.visibility === 'hidden') {
+              container.style.visibility = 'visible';
+            }
+            if (container.style.display === 'none') {
+              container.style.display = 'block';
+            }
+          });
+        }
       });
+      
+      console.log('📸 Screenshot canvas created:', canvas.width, 'x', canvas.height);
+
+      // Basic canvas validation
+      if (canvas.width === 0 || canvas.height === 0) {
+        console.log('⚠️ Canvas has zero dimensions');
+        throw new Error('Canvas has invalid dimensions');
+      }
+      
+      console.log('📸 Canvas created successfully with valid dimensions');
 
       // Convert to blob
       const blob = await new Promise<Blob>((resolve) => {
         canvas.toBlob((blob) => {
-          resolve(blob!);
+          if (blob) {
+            console.log('✅ Successfully created blob, size:', blob.size);
+            resolve(blob);
+          } else {
+            console.error('❌ Failed to create blob from canvas');
+            resolve(new Blob());
+          }
         }, `image/${options.format}`, options.quality);
       });
 
@@ -182,9 +328,8 @@ export class ImageGenerationService {
         filename
       };
     } catch (error) {
-      console.warn('Screenshot failed, falling back to canvas approach:', error);
-      // Fallback to canvas approach
-      return this.generateReviewImageCanvas(review, entity, options);
+      console.error('❌ Screenshot of existing element failed:', error);
+      throw new Error(`Failed to screenshot existing review card: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -196,20 +341,29 @@ export class ImageGenerationService {
     entity: Entity | undefined,
     options: Required<ReviewImageOptions>
   ): Promise<GeneratedImageData> {
-    // Create a temporary container
+    console.log('🔧 Creating temporary card for screenshot');
+    
+    // Create a temporary container that's visible but off-screen
     const container = document.createElement('div');
-    container.style.position = 'fixed';
-    container.style.top = '-9999px'; // Hide off-screen
-    container.style.left = '-9999px'; 
+    container.style.position = 'absolute';
+    container.style.top = '0px';
+    container.style.left = '0px'; 
     container.style.width = `${options.width}px`;
-    container.style.zIndex = '-1000'; 
-    container.style.backgroundColor = options.backgroundColor;
+    container.style.height = 'auto';
+    container.style.zIndex = '9999'; 
+    container.style.backgroundColor = options.backgroundColor || '#ffffff';
     container.style.padding = '20px';
     container.style.visibility = 'visible';
     container.style.opacity = '1';
+    container.style.display = 'block';
+    container.style.boxSizing = 'border-box';
     
-    // Create the review card HTML structure (simplified version of the actual component)
+    // Create the review card HTML structure that matches the actual ReviewFeedCard component
     container.innerHTML = this.createReviewCardHTML(review, entity);
+    
+    // Add the same data attributes as the real component for consistency
+    container.setAttribute('data-review-id', review.id.toString());
+    container.setAttribute('data-review-card', 'true');
     
     // Add styles
     this.addReviewCardStyles(container);
@@ -221,31 +375,48 @@ export class ImageGenerationService {
       // Wait for fonts and images to load
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      console.log('Container dimensions:', container.offsetWidth, container.offsetHeight);
-      console.log('Container content:', container.innerHTML.substring(0, 200));
+      console.log('🔧 Container dimensions:', container.offsetWidth, container.offsetHeight);
+      console.log('🔧 Container has children:', container.children.length);
       
-      // Screenshot the container
+      // Ensure container has proper dimensions
+      if (container.offsetWidth === 0 || container.offsetHeight === 0) {
+        console.warn('⚠️ Container has zero dimensions, setting minimum size');
+        container.style.width = `${options.width}px`;
+        container.style.minHeight = '300px';
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
+      // Screenshot the container with simplified options
+      console.log('🔧 Starting html2canvas for temporary container');
       const canvas = await html2canvas(container, {
-        backgroundColor: options.backgroundColor,
-        scale: 2, // Reduced scale to avoid rendering issues
+        backgroundColor: options.backgroundColor || '#ffffff',
+        scale: 1,
         useCORS: true,
         allowTaint: true,
-        logging: true, // Enable logging to debug issues
-        imageTimeout: 20000,
+        logging: true,
+        imageTimeout: 15000,
         width: container.offsetWidth || options.width,
-        height: container.offsetHeight || options.height
+        height: container.offsetHeight || 300
       });
 
-      console.log('Canvas dimensions:', canvas.width, canvas.height);
+      console.log('🔧 Temporary canvas dimensions:', canvas.width, canvas.height);
+      
+      // Basic validation for temporary canvas
+      if (canvas.width === 0 || canvas.height === 0) {
+        console.error('❌ Temporary canvas has zero dimensions');
+        throw new Error('Temporary canvas has invalid dimensions');
+      }
+      
+      console.log('🔧 Temporary canvas created successfully');
       
       // Convert to blob
       const blob = await new Promise<Blob>((resolve) => {
         canvas.toBlob((blob) => {
           if (blob) {
-            console.log('Blob created successfully, size:', blob.size);
+            console.log('✅ Temporary card blob created successfully, size:', blob.size);
             resolve(blob);
           } else {
-            console.error('Failed to create blob');
+            console.error('❌ Failed to create blob from temporary canvas');
             resolve(new Blob()); // Fallback empty blob
           }
         }, `image/${options.format}`, options.quality);
@@ -263,11 +434,13 @@ export class ImageGenerationService {
         filename
       };
     } catch (error) {
-      console.warn('Temporary card screenshot failed, falling back to canvas:', error);
-      return this.generateReviewImageCanvas(review, entity, options);
+      console.error('❌ Temporary card screenshot failed:', error);
+      throw new Error(`Failed to screenshot temporary review card: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       // Clean up
-      document.body.removeChild(container);
+      if (document.body.contains(container)) {
+        document.body.removeChild(container);
+      }
     }
   }
 
@@ -276,84 +449,93 @@ export class ImageGenerationService {
    */
   private createReviewCardHTML(review: Review, entity?: Entity): string {
     const entityInfo = entity || review.entity;
-    const rating = review.overallRating || 0;
+    // Extract rating from multiple possible fields
+    const rating = review.overallRating || review.rating || review.overall_rating || 4.5;
+    const ratingValue = typeof rating === 'number' ? rating : parseFloat(rating) || 4.5;
     const formattedDate = review.createdAt ? new Date(review.createdAt).toLocaleDateString('en-US', { 
       month: 'short', 
       day: 'numeric' 
     }) : '';
+    
+    console.log('🎨 Creating review card HTML with rating:', ratingValue, 'from review:', review.id);
 
     return `
       <div style="
+        width: 100%; 
         background: white; 
-        border-radius: 12px; 
-        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        border-radius: 8px; 
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
         border: 1px solid #e5e7eb; 
         overflow: hidden;
-        max-width: 850px; 
+        position: relative;
+        transition: all 0.3s ease;
+        transform: translateZ(0);
+        max-width: 100%;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         line-height: 1.5;
         text-rendering: optimizeLegibility;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
       ">
-        <!-- Header Section -->
-        <div style="
-          background: #f9fafb; 
-          border-bottom: 1px solid #e5e7eb; 
-          padding: 16px; 
-          display: flex; 
-          justify-content: space-between; 
-          align-items: center;
-          word-spacing: 0.2em;
-          letter-spacing: 0.03em;
-        ">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <!-- Avatar -->
-            <div style="
-              width: 40px; 
-              height: 40px; 
-              border-radius: 50%; 
-              background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%); 
-              display: flex; 
-              align-items: center; 
-              justify-content: center; 
-              color: white; 
-              font-weight: bold; 
-              font-size: 16px;
-            ">
-              ${(review.reviewerName || 'U').charAt(0).toUpperCase()}
-            </div>
-            
-            <!-- User info -->
-            <div>
-              <div style="
-                font-weight: 600; 
-                font-size: 16px; 
-                color: #111827;
-                letter-spacing: 0.04em;
-                word-spacing: 0.2em;
-                margin-bottom: 2px;
-              ">
-                ${review.reviewerName || 'KabboHasan'}
+        <div style="padding: 12px 16px; min-width: 0; width: 100%;">
+          <!-- Header Row - Matches ReviewFeedCard structure -->
+          <div style="
+            background: #f9fafb; 
+            border: 1px solid #e5e7eb; 
+            border-radius: 8px; 
+            padding: 8px 12px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            gap: 8px; 
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.2s ease;
+            margin-bottom: 12px;
+          ">
+            <div style="display: flex; align-items: center; gap: 8px 16px; min-width: 0; flex: 1;">
+              <!-- User Info -->
+              <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                <div style="
+                  width: 32px; 
+                  height: 32px; 
+                  border-radius: 50%; 
+                  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); 
+                  display: flex; 
+                  align-items: center; 
+                  justify-content: center; 
+                  color: white; 
+                  font-weight: 600; 
+                  font-size: 12px;
+                  flex-shrink: 0;
+                ">
+                  ${(review.reviewerName || 'A').charAt(0).toUpperCase()}
+                </div>
+                <div style="min-width: 0; flex: 1;">
+                  <div style="
+                    font-weight: 600; 
+                    font-size: 14px; 
+                    color: #111827;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                  ">
+                    ${review.reviewerName || 'Anonymous'}
+                  </div>
+                </div>
               </div>
-              <div style="
-                font-size: 14px; 
-                color: #6b7280;
-                letter-spacing: 0.05em;
-                word-spacing: 0.15em;
-                display: flex;
-                align-items: center;
-                gap: 4px;
-              ">
+              
+              <!-- Date -->
+              <div style="display: flex; align-items: center; gap: 4px; flex-shrink: 0;">
+                <svg style="width: 12px; height: 12px; color: #9ca3af;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
                 <span style="
-                  width: 16px;
-                  height: 16px;
-                  background: #6b7280;
-                  border-radius: 50%;
-                  display: inline-block;
-                  margin-right: 4px;
-                "></span>
-                ${formattedDate} ago
+                  font-size: 12px; 
+                  color: #6b7280;
+                  white-space: nowrap;
+                ">
+                  ${formattedDate}
+                </span>
               </div>
             </div>
           </div>
@@ -492,14 +674,14 @@ export class ImageGenerationService {
               <!-- Rating -->
               <div style="display: flex; align-items: center; gap: 10px;">
                 <div style="display: flex; align-items: center; gap: 4px;">
-                  ${this.generateStarRatingHTML(Math.floor(rating || 4.8))}
+                  ${this.generateStarRatingHTML(Math.floor(ratingValue))}
                 </div>
                 <span style="
                   font-weight: bold;
                   font-size: 20px;
                   color: #111827;
                   letter-spacing: 0.02em;
-                ">${rating || '4.8'}</span>
+                ">${ratingValue.toFixed(1)}</span>
                 <span style="
                   background: #f3f4f6;
                   color: #6b7280;
@@ -507,7 +689,7 @@ export class ImageGenerationService {
                   border-radius: 12px;
                   font-size: 13px;
                   font-weight: 500;
-                ">1 review</span>
+                ">★ Rating</span>
               </div>
             </div>
           </div>
@@ -548,21 +730,33 @@ export class ImageGenerationService {
             margin-bottom: 16px;
             border: 1px solid #bfdbfe;
           ">
-            <span style="
-              width: 20px;
-              height: 20px;
-              background: #a855f7;
-              border-radius: 2px;
-              display: inline-block;
-            "></span>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              ${this.generateStarRatingHTML(rating || 5)}
-              <span style="
-                font-size: 18px;
-                font-weight: bold;
-                color: #7c3aed;
-                margin-left: 8px;
-              ">${rating || 5}/5</span>
+            <div style="
+              width: 40px;
+              height: 40px;
+              background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+              border-radius: 8px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: white;
+              font-weight: bold;
+              font-size: 18px;
+            ">${ratingValue.toFixed(1)}</div>
+            <div>
+              <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 4px;">
+                ${this.generateStarRatingHTML(Math.floor(ratingValue))}
+                <span style="
+                  font-size: 16px;
+                  font-weight: 600;
+                  color: #374151;
+                  margin-left: 6px;
+                ">${ratingValue.toFixed(1)} out of 5</span>
+              </div>
+              <div style="
+                font-size: 14px;
+                color: #6b7280;
+                font-weight: 500;
+              ">Overall Rating</div>
             </div>
           </div>
           
@@ -850,16 +1044,28 @@ export class ImageGenerationService {
    */
   private generateStarRatingHTML(rating: number): string {
     let starsHTML = '';
+    const actualRating = Math.min(5, Math.max(0, rating)); // Ensure rating is between 0 and 5
+    
     for (let i = 0; i < 5; i++) {
-      const isFilled = i < rating;
+      const isFilled = i < Math.floor(actualRating);
+      const isPartial = i < actualRating && i >= Math.floor(actualRating);
+      
+      let color = '#d1d5db'; // Empty star color
+      if (isFilled) {
+        color = '#fbbf24'; // Filled star color
+      } else if (isPartial) {
+        color = '#fbbf24'; // Partial star color
+      }
+      
       starsHTML += `<span style="
-        color: ${isFilled ? '#fbbf24' : '#d1d5db'}; 
+        color: ${color}; 
         font-size: 20px; 
-        margin-right: 4px;
+        margin-right: 2px;
         font-family: Arial, sans-serif;
         font-weight: bold;
         display: inline-block;
         line-height: 1;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
       ">★</span>`;
     }
     return starsHTML;
@@ -886,6 +1092,8 @@ export class ImageGenerationService {
   private drawBackground(ctx: CanvasRenderingContext2D, options: Required<ReviewImageOptions>) {
     const { width, height, backgroundColor, accentColor } = options;
     
+    console.log('🎨 Drawing background with dimensions:', width, 'x', height);
+    
     // Create gradient background
     const gradient = ctx.createLinearGradient(0, 0, width, height);
     gradient.addColorStop(0, backgroundColor);
@@ -896,6 +1104,8 @@ export class ImageGenerationService {
 
     // Add subtle pattern
     this.drawPattern(ctx, width, height);
+    
+    console.log('🎨 Background drawn successfully');
   }
 
   /**
@@ -1404,7 +1614,9 @@ export class ImageGenerationService {
     ctx.fillText('Overall Score:', padding + 28, ratingY + 8);
     
     // Star rating - matches your StarRating component
-    const rating = review.overallRating || 0;
+    const rating = review.overallRating || review.rating || review.overall_rating || 4.5;
+    const ratingValue = typeof rating === 'number' ? rating : parseFloat(rating) || 4.5;
+    console.log('🎨 Canvas drawing rating:', ratingValue, 'for review:', review.id);
     const starSize = 16;
     const starSpacing = 4;
     const startX = padding + 140;
@@ -1412,7 +1624,7 @@ export class ImageGenerationService {
 
     for (let i = 0; i < 5; i++) {
       const x = startX + (i * (starSize + starSpacing));
-      const isFilled = i < rating;
+      const isFilled = i < Math.floor(ratingValue);
       
       ctx.fillStyle = isFilled ? '#fbbf24' : '#d1d5db';
       this.drawStar(ctx, x, starY, starSize / 2);
@@ -1421,7 +1633,7 @@ export class ImageGenerationService {
     // Rating value - matches your showValue={true}
     ctx.fillStyle = '#7c3aed';
     ctx.font = 'bold 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    ctx.fillText(`${rating}/5`, startX + 100, ratingY + 8);
+    ctx.fillText(`${ratingValue.toFixed(1)}/5`, startX + 100, ratingY + 8);
 
     // Review content - matches your text-base text-gray-700 leading-relaxed
     const contentY = ratingY + 50;
