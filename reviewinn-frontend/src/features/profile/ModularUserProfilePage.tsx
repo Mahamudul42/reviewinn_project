@@ -7,6 +7,8 @@ import ThreePanelLayout from '../../shared/layouts/ThreePanelLayout';
 import LoadingSpinner from '../../shared/atoms/LoadingSpinner';
 import { Button } from '../../shared/design-system/components/Button';
 import { useToast } from '../../shared/design-system/components/Toast';
+import { circleService } from '../../api/services/circleService';
+import { professionalMessagingService } from '../../api/services/professionalMessagingService';
 
 // Import modular components
 import {
@@ -18,6 +20,8 @@ import {
 
 // Import existing modals
 import EditProfileModal from './components/EditProfileModal';
+import AddToCircleModal from './components/AddToCircleModal';
+import MessageModal from './components/MessageModal';
 import EditEntityModal from './components/EditEntityModal';
 import EditReviewModal from './components/EditReviewModal';
 import DeleteConfirmationModal from './components/DeleteConfirmationModal';
@@ -62,6 +66,8 @@ const ModularUserProfilePage: React.FC = () => {
   
   // Modal States
   const [editProfileModal, setEditProfileModal] = useState(false);
+  const [addToCircleModal, setAddToCircleModal] = useState(false);
+  const [messageModal, setMessageModal] = useState(false);
   const [editEntityModal, setEditEntityModal] = useState<{ open: boolean; entity: Entity | null }>({ open: false, entity: null });
   const [editReviewModal, setEditReviewModal] = useState<{ open: boolean; review: Review | null }>({ open: false, review: null });
   const [deleteModal, setDeleteModal] = useState<{
@@ -500,27 +506,23 @@ const ModularUserProfilePage: React.FC = () => {
   };
 
   const handleAddToCircle = async () => {
-    if (!userProfile || !currentUser) return;
-    
-    try {
-      console.log('Adding user to circle:', userProfile.id);
-      showToast('Circle invitation sent!', 'success');
-    } catch (err) {
-      console.error('Error adding to circle:', err);
-      showToast('Failed to send circle invitation', 'error');
+    if (!userProfile || !currentUser) {
+      showToast('Please sign in to add users to your circle', 'error');
+      return;
     }
+    
+    // Open the Add To Circle modal
+    setAddToCircleModal(true);
   };
 
   const handleMessage = async () => {
-    if (!userProfile || !currentUser) return;
-    
-    try {
-      console.log('Opening message with user:', userProfile.id);
-      showToast('Messaging feature coming soon!', 'info');
-    } catch (err) {
-      console.error('Error opening message:', err);
-      showToast('Failed to open message', 'error');
+    if (!userProfile || !currentUser) {
+      showToast('Please sign in to send messages', 'error');
+      return;
     }
+    
+    // Open the Message modal
+    setMessageModal(true);
   };
 
   // Action Handlers
@@ -1054,6 +1056,25 @@ const ModularUserProfilePage: React.FC = () => {
         type={deleteModal.type}
         warningMessage={deleteModal.warning}
       />
+
+      {/* New Beautiful Modals */}
+      {userProfile && currentUser && (
+        <>
+          <AddToCircleModal
+            isOpen={addToCircleModal}
+            onClose={() => setAddToCircleModal(false)}
+            userProfile={userProfile}
+            currentUser={currentUser}
+          />
+
+          <MessageModal
+            isOpen={messageModal}
+            onClose={() => setMessageModal(false)}
+            userProfile={userProfile}
+            currentUser={currentUser}
+          />
+        </>
+      )}
 
       {/* Toast Notifications */}
       {toast && (

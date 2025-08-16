@@ -218,27 +218,48 @@ export const Modal: React.FC<ModalProps> = ({
   
   if (!isOpen) return null;
   
+  // Calculate the current viewport center dynamically for enterprise-grade positioning
+  const viewportHeight = window.innerHeight;
+  const viewportWidth = window.innerWidth;
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+  
   // Enterprise-grade overlay with proper viewport centering
   const overlayStyles = {
-    position: 'fixed' as const,
+    position: 'absolute' as const,
     top: 0,
     left: 0,
-    right: 0,
-    bottom: 0,
+    width: '100%',
+    height: Math.max(document.documentElement.scrollHeight, viewportHeight),
     zIndex: 99999,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
     background: 'rgba(0, 0, 0, 0.6)',
     backdropFilter: 'blur(4px)',
     pointerEvents: 'auto' as const,
-    padding: '20px',
-    boxSizing: 'border-box' as const,
   };
   
   // Enterprise-grade modal positioning with proper constraints
   const getModalStyles = () => {
+    // Responsive width based on size (matching middle panel max-w-2xl = 672px)
+    const sizeWidths = {
+      sm: 400,
+      md: 500, 
+      lg: 672, // Match middle panel max-w-2xl
+      xl: 672, // Match middle panel max-w-2xl  
+      auth: 672, // Match middle panel max-w-2xl for consistency
+    };
+    
+    const modalWidth = Math.min(sizeWidths[size] || sizeWidths.md, viewportWidth * 0.9);
+    const modalHeight = Math.min(700, viewportHeight * 0.9);
+    
+    const centerTop = scrollTop + (viewportHeight / 2) - (modalHeight / 2);
+    const centerLeft = scrollLeft + (viewportWidth / 2) - (modalWidth / 2);
+
     const baseModalStyles = {
+      position: 'absolute' as const,
+      top: `${centerTop}px`,
+      left: `${centerLeft}px`,
+      width: `${modalWidth}px`,
+      maxHeight: `${modalHeight}px`,
       background: 'white',
       borderRadius: 12,
       boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
@@ -247,11 +268,6 @@ export const Modal: React.FC<ModalProps> = ({
       display: 'flex',
       flexDirection: 'column' as const,
       overflow: 'hidden',
-      position: 'relative' as const,
-      maxHeight: 'calc(100vh - 40px)',
-      maxWidth: 'calc(100vw - 40px)',
-      width: '100%',
-      margin: 'auto',
     };
 
     if (size === 'full') {
@@ -263,7 +279,7 @@ export const Modal: React.FC<ModalProps> = ({
         right: 0,
         bottom: 0,
         margin: 0,
-        maxWidth: '100vw',
+        width: '100vw',
         maxHeight: '100vh',
         borderRadius: 0,
       };
@@ -276,25 +292,11 @@ export const Modal: React.FC<ModalProps> = ({
         top: '20px',
         right: '20px',
         margin: 0,
-        maxWidth: '400px',
-        width: 'auto',
+        width: '400px',
       };
     }
     
-    // Responsive width based on size
-    const sizeWidths = {
-      sm: '400px',
-      md: '500px', 
-      lg: '700px',
-      xl: '900px',
-      auth: '450px',
-    };
-    
-    return {
-      ...baseModalStyles,
-      maxWidth: sizeWidths[size] || sizeWidths.md,
-      minWidth: size === 'sm' ? '320px' : '400px',
-    };
+    return baseModalStyles;
   };
   
   const modalStyles = getModalStyles();
