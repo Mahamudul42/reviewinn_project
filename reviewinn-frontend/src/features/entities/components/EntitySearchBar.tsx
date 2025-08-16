@@ -24,10 +24,7 @@ const EntitySearchBar: React.FC<EntitySearchBarProps> = ({
   const [appliedFilters, setAppliedFilters] = useState<any>({});
   const [filterCount, setFilterCount] = useState(0);
 
-  // Initial load with no filters when component mounts
-  useEffect(() => {
-    performSearch('', {});
-  }, []);
+  // Remove automatic initial search - let EntityListPage handle initial entity loading
 
   const performSearch = async (searchQuery: string, filters: any) => {
     setIsLoading(true);
@@ -109,12 +106,7 @@ const EntitySearchBar: React.FC<EntitySearchBarProps> = ({
     performSearch(query, filters);
   };
 
-  // Auto-search when filters change
-  useEffect(() => {
-    if (Object.keys(appliedFilters).length > 0) {
-      performSearch(query, appliedFilters);
-    }
-  }, [appliedFilters]);
+  // Remove auto-search on filter change - filters are applied manually through handleFilterApply
 
   return (
     <div className="w-full space-y-4">

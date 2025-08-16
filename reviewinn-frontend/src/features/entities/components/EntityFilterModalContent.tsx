@@ -277,64 +277,12 @@ const EntityFilterModalContent: React.FC<EntityFilterModalContentProps> = ({
   );
 
   return (
-    <div style={{
-      background: 'white',
-      borderRadius: 16,
-      boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
-      minWidth: 400,
-      maxWidth: 500,
-      width: '100%',
-      padding: 0,
-      display: 'flex',
-      flexDirection: 'column',
-      maxHeight: 'calc(100vh - 40px)',
-      overflow: 'hidden',
-      position: 'fixed',
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-      zIndex: 100000,
-    }}>
-      {/* Header */}
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'space-between', 
-        borderBottom: '1px solid #eee', 
-        padding: '20px 24px 12px 24px' 
-      }}>
-        <span style={{ fontWeight: 700, fontSize: 20, color: '#222' }}>
-          Filter Entities
-        </span>
-        <button
-          style={{ 
-            color: '#888', 
-            fontSize: 28, 
-            fontWeight: 700, 
-            background: 'none', 
-            border: 'none', 
-            borderRadius: 999, 
-            width: 36, 
-            height: 36, 
-            cursor: 'pointer', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center' 
-          }}
-          onClick={onClose}
-          aria-label="Close"
-        >
-          ×
-        </button>
+    <div>
+      <div style={{ textAlign: 'center', marginBottom: 20 }}>
+        <p style={{ color: '#666', fontSize: 14, margin: '8px 0' }}>
+          {getFilterCount()} active filters
+        </p>
       </div>
-
-      {/* Content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '0 24px 24px 24px' }}>
-        <div style={{ textAlign: 'center', marginBottom: 20 }}>
-          <p style={{ color: '#666', fontSize: 14, margin: '8px 0' }}>
-            {getFilterCount()} active filters
-          </p>
-        </div>
 
         {/* Category Filter */}
         {renderSection(
@@ -852,7 +800,6 @@ const EntityFilterModalContent: React.FC<EntityFilterModalContentProps> = ({
             Apply {getFilterCount() > 0 && `(${getFilterCount()})`}
           </button>
         </div>
-      </div>
     </div>
   );
 };

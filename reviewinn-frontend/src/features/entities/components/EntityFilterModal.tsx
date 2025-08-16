@@ -88,11 +88,12 @@ const EntityFilterModal: React.FC<EntityFilterModalProps> = ({
   const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
   
   const modalHeight = Math.min(600, viewportHeight * 0.9);
-  const modalWidth = Math.min(672, viewportWidth * 0.9);
+  const modalWidth = 672; // Exact match to middle panel max-w-2xl (42rem)
   
   const centerTop = scrollTop + (viewportHeight / 2) - (modalHeight / 2);
   const centerLeft = scrollLeft + (viewportWidth / 2) - (modalWidth / 2);
 
+  // JavaScript-calculated positioning
   return createPortal(
     <div
       style={{
@@ -101,36 +102,91 @@ const EntityFilterModal: React.FC<EntityFilterModalProps> = ({
         left: 0,
         width: '100%',
         height: Math.max(document.documentElement.scrollHeight, viewportHeight),
-        zIndex: 99999,
-        background: 'rgba(0,0,0,0.5)',
+        zIndex: 9999999,
+        background: 'rgba(0, 0, 0, 0.5)',
         pointerEvents: 'auto',
       }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          onClose();
-        }
-      }}
+      onClick={onClose}
     >
-      <div
+      <div 
         style={{
           position: 'absolute',
           top: `${centerTop}px`,
           left: `${centerLeft}px`,
           width: `${modalWidth}px`,
           maxHeight: `${modalHeight}px`,
+          background: 'white',
+          borderRadius: 12,
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+          border: '1px solid rgba(0, 0, 0, 0.05)',
+          display: 'flex',
+          flexDirection: 'column',
           overflow: 'hidden',
         }}
+        onClick={(e) => e.stopPropagation()}
       >
-        <EntityFilterModalContent
-          filters={filters}
-          setFilters={setFilters}
-          expandedSections={expandedSections}
-          toggleSection={toggleSection}
-          onClear={handleClear}
-          onApply={handleApply}
-          onClose={onClose}
-          getFilterCount={getFilterCount}
-        />
+        {/* Header */}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between', 
+          borderBottom: '1px solid rgba(0, 0, 0, 0.1)', 
+          padding: '24px 24px 16px 24px',
+          minHeight: '64px'
+        }}>
+          <div style={{ fontWeight: 600, fontSize: 18, color: '#1f2937', lineHeight: 1.4 }}>
+            Filter Entities
+          </div>
+          <button
+            style={{ 
+              color: '#6b7280', 
+              background: 'none', 
+              border: 'none', 
+              borderRadius: '6px', 
+              width: 32, 
+              height: 32, 
+              cursor: 'pointer', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              transition: 'all 0.2s ease',
+              fontSize: '20px',
+              fontWeight: 400
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
+              e.currentTarget.style.color = '#374151';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = '#6b7280';
+            }}
+            onClick={onClose}
+            aria-label="Close modal"
+          >
+            ×
+          </button>
+        </div>
+        
+        {/* Content */}
+        <div style={{ 
+          flex: 1, 
+          overflowY: 'auto', 
+          padding: '24px 24px 32px 24px',
+          scrollbarWidth: 'thin',
+          scrollbarColor: 'rgba(0, 0, 0, 0.2) transparent',
+        }}>
+          <EntityFilterModalContent
+            filters={filters}
+            setFilters={setFilters}
+            expandedSections={expandedSections}
+            toggleSection={toggleSection}
+            onClear={handleClear}
+            onApply={handleApply}
+            onClose={onClose}
+            getFilterCount={getFilterCount}
+          />
+        </div>
       </div>
     </div>,
     document.body
