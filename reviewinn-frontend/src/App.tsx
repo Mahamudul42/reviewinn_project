@@ -9,6 +9,7 @@ import { PanelDataProvider } from './contexts/PanelDataContext';
 import { authService } from './api/auth';
 import { initializeAuthManager } from './services/authInterface';
 import { ReviewInnAuthService } from './services/ReviewInnAuthService';
+import RegistrationBadgeTrigger from './features/badges/components/RegistrationBadgeTrigger';
 import "./styles/App.css";
 
 // Make auth service globally available for demo notifications
@@ -64,6 +65,9 @@ function App() {
         <ConfirmationProvider>
           <Router>
             <Suspense fallback={<PageLoader />}>
+              {/* Badge System Components */}
+              <RegistrationBadgeTrigger />
+              
               <Routes>
             <Route path="/" element={<Layout />}>
               <Route index element={<HomePage />} />

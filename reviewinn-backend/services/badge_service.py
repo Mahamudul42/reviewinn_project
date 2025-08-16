@@ -7,7 +7,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_, func
 from models.user import User
 from models.review import Review
-from models.enhanced_badge_system import BadgeDefinition, BadgeAward, BadgeTier, BadgeCategory
+from models.badge_definition import BadgeDefinition
+from models.badge_award import BadgeAward
 import json
 from datetime import datetime, timedelta
 
@@ -23,25 +24,21 @@ class BadgeService:
         if not user:
             return []
         
-        # Get all active badge definitions
-        badge_definitions = self.db.query(BadgeDefinition).filter(
-            BadgeDefinition.is_active == True,
-            BadgeDefinition.is_auto_awarded == True
-        ).all()
+        # Get all badge definitions
+        badge_definitions = self.db.query(BadgeDefinition).all()
         
         newly_awarded = []
         
         for badge_def in badge_definitions:
-            # Check if user already has this badge (for non-repeatable)
-            if not badge_def.is_repeatable:
-                existing_award = self.db.query(BadgeAward).filter(
-                    and_(
-                        BadgeAward.user_id == user_id,
-                        BadgeAward.badge_definition_id == badge_def.badge_definition_id
-                    )
-                ).first()
-                if existing_award:
-                    continue
+            # Check if user already has this badge
+            existing_award = self.db.query(BadgeAward).filter(
+                and_(
+                    BadgeAward.user_id == user_id,
+                    BadgeAward.badge_definition_id == badge_def.badge_definition_id
+                )
+            ).first()
+            if existing_award:
+                continue
             
             # Evaluate criteria
             if await self._evaluate_criteria(user, badge_def.criteria):
@@ -203,39 +200,13 @@ class BadgeService:
     def _award_badge(self, user_id: int, badge_definition_id: int) -> Optional[BadgeAward]:
         """Award a badge to a user"""
         try:
-            # For repeatable badges, increment count
-            badge_def = self.db.query(BadgeDefinition).filter(
-                BadgeDefinition.badge_definition_id == badge_definition_id
-            ).first()
-            
-            if badge_def and badge_def.is_repeatable:
-                existing_award = self.db.query(BadgeAward).filter(
-                    and_(
-                        BadgeAward.user_id == user_id,
-                        BadgeAward.badge_definition_id == badge_definition_id
-                    )
-                ).first()
-                
-                if existing_award:
-                    existing_award.award_count += 1
-                    self.db.commit()
-                    return existing_award
-            
             # Create new award
             award = BadgeAward(
                 user_id=user_id,
-                badge_definition_id=badge_definition_id,
-                progress_data={}
+                badge_definition_id=badge_definition_id
             )
             
             self.db.add(award)
-            
-            # Update user points
-            if badge_def and badge_def.points_value > 0:
-                user = self.db.query(User).filter(User.user_id == user_id).first()
-                if user:
-                    user.points += badge_def.points_value
-            
             self.db.commit()
             return award
             
@@ -250,7 +221,21 @@ class BadgeService:
             BadgeAward.user_id == user_id
         ).join(BadgeDefinition).all()
         
-        return [award.to_dict() for award in awards]
+        result = []
+        for award in awards:
+            result.append({
+                "award_id": award.award_id,
+                "badge": {
+                    "badge_definition_id": award.badge_definition.badge_definition_id,
+                    "name": award.badge_definition.name,
+                    "description": award.badge_definition.description,
+                    "image_url": award.badge_definition.image_url,
+                    "criteria": award.badge_definition.criteria
+                },
+                "awarded_at": award.awarded_at.isoformat() if award.awarded_at else None
+            })
+        
+        return result
     
     def get_available_badges(self, user_id: int) -> List[Dict[str, Any]]:
         """Get badges that user hasn't earned yet"""
@@ -259,10 +244,17 @@ class BadgeService:
         ).subquery()
         
         available_badges = self.db.query(BadgeDefinition).filter(
-            and_(
-                BadgeDefinition.is_active == True,
-                BadgeDefinition.badge_definition_id.notin_(earned_badge_ids)
-            )
+            BadgeDefinition.badge_definition_id.notin_(earned_badge_ids)
         ).all()
         
-        return [badge.to_dict() for badge in available_badges]
+        result = []
+        for badge in available_badges:
+            result.append({
+                "badge_definition_id": badge.badge_definition_id,
+                "name": badge.name,
+                "description": badge.description,
+                "image_url": badge.image_url,
+                "criteria": badge.criteria
+            })
+        
+        return result

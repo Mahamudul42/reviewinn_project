@@ -9,6 +9,7 @@ import BadgeDisplay from '../../molecules/BadgeDisplay';
 import DailyMissions from '../../molecules/DailyMissions';
 import WhatsNext from '../../molecules/WhatsNext';
 import WeeklyChart from '../../molecules/WeeklyChart';
+import BadgesPanel from '../../../features/badges/components/BadgesPanel';
 import { PANEL_STYLES } from '../styles';
 import PanelHeader from '../components/PanelHeader';
 import PanelLoadingState from '../components/PanelLoadingState';
@@ -225,6 +226,9 @@ const RightPanelAuth: React.FC<RightPanelAuthProps> = ({
       <div className={PANEL_STYLES.cardWrapper}>
         <BadgeDisplay badges={dashboardData.badges || []} />
       </div>
+
+      {/* New Badge System */}
+      <BadgesPanel className={PANEL_STYLES.cardWrapper} />
 
       <div className={PANEL_STYLES.cardWrapper}>
         <DailyMissions dailyTasks={dashboardData.daily_tasks || []} />
