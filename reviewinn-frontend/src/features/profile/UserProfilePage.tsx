@@ -112,7 +112,7 @@ const UserProfilePage: React.FC = () => {
 
       console.log('🔍 ProfilePage: Loading profile for identifier:', targetUserId);
       
-      const profileData = await userService.getUserProfile(targetUserId);
+      const profileData = await userService.getUserProfileByIdentifier(targetUserId);
       console.log('✅ ProfilePage: Profile loaded successfully:', profileData);
       
       setUserProfile(profileData);
@@ -145,7 +145,7 @@ const UserProfilePage: React.FC = () => {
 
       console.log('📊 ProfilePage: Loading user reviews for userId:', userId, 'page:', page);
       
-      const response = await reviewService.getUserReviews(userId, page, 10);
+      const response = await userService.getUserReviews(userId, { page, limit: 10 });
       console.log('📊 ProfilePage: Reviews loaded:', response);
       
       const newReviews = response.reviews || [];
@@ -178,7 +178,7 @@ const UserProfilePage: React.FC = () => {
 
       console.log('🏢 ProfilePage: Loading user entities for userId:', userId, 'page:', page);
       
-      const response = await entityService.getUserEntities(userId, page, 12);
+      const response = await entityService.getEntitiesByUser(userId, { page, limit: 12 });
       console.log('🏢 ProfilePage: Entities loaded:', response);
       
       const newEntities = response.entities || [];

@@ -3,6 +3,7 @@ import { CheckCircle, Eye, TrendingUp } from 'lucide-react';
 import EntityImage from '../../../shared/molecules/EntityImage';
 import { getCategoryIcon, formatCategoryLabel } from '../../../shared/utils/categoryUtils';
 import type { Entity } from '../../../types';
+import StarRating from '../../../shared/atoms/StarRating';
 
 interface EntityHeaderProps {
   entity: Entity;
@@ -64,19 +65,13 @@ const EntityHeader: React.FC<EntityHeaderProps> = ({ entity, className = '' }) =
                     <div className="text-3xl font-bold mb-2 text-yellow-300 drop-shadow-md">
                       {entity.averageRating?.toFixed(1) || 'N/A'}
                     </div>
-                    <div className="flex items-center justify-center gap-1 mb-2">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <span
-                          key={star}
-                          className={`text-lg ${
-                            star <= Math.round(entity.averageRating || 0)
-                              ? 'filter drop-shadow-sm'
-                              : 'opacity-40'
-                          }`}
-                        >
-                          ⭐
-                        </span>
-                      ))}
+                    <div className="flex items-center justify-center mb-2">
+                      <StarRating 
+                        rating={entity.averageRating || 0} 
+                        size="lg" 
+                        showValue={false}
+                        style="golden"
+                      />
                     </div>
                     <div className="text-white/90 text-sm font-medium">Overall Rating</div>
                   </div>

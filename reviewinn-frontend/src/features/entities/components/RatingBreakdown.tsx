@@ -1,6 +1,7 @@
 import React from 'react';
 import { BarChart3 } from 'lucide-react';
 import type { Review } from '../../../types';
+import StarRating from '../../../shared/atoms/StarRating';
 
 interface RatingBreakdownProps {
   reviews: Review[];
@@ -86,12 +87,13 @@ export const RatingBreakdown: React.FC<RatingBreakdownProps> = ({
             <div className="text-4xl font-bold text-indigo-600 mb-3">
               {averageRating?.toFixed(1) || 'N/A'}
             </div>
-            <div className="flex items-center justify-center gap-1 mb-3">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <span key={star} className="text-lg">
-                  {star <= Math.round(averageRating || 0) ? '⭐' : '☆'}
-                </span>
-              ))}
+            <div className="flex items-center justify-center mb-3">
+              <StarRating 
+                rating={averageRating || 0} 
+                size="lg" 
+                showValue={false}
+                style="golden"
+              />
             </div>
             <div className="text-sm font-medium text-gray-900 mt-3">
               {(() => {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Bookmark, Share2, Edit3, ExternalLink, Heart, Star, Plus } from 'lucide-react';
 import type { Entity } from '../../../types';
+import StarRating from '../../../shared/atoms/StarRating';
 
 interface EntityActionsProps {
   entity: Entity;
@@ -50,7 +51,7 @@ const EntityActions: React.FC<EntityActionsProps> = ({
               >
                 <Edit3 className="h-5 w-5" />
                 Write a Review
-                <span className="text-xl">⭐</span>
+                <StarRating rating={5} maxRating={1} showValue={false} style="default" size="lg" />
               </button>
             </div>
 
