@@ -1,5 +1,5 @@
 // Main Profile Page
-export { default as ModularUserProfilePage } from './ModularUserProfilePage';
+export { default as UserProfilePage } from './UserProfilePage';
 
 // Profile Components
 export * from './components';

@@ -30,7 +30,7 @@ const EntityListPage = lazy(() => import('./features/entities/EntityListPage'));
 const EntityDetailPage = lazy(() => import('./features/entities/EntityDetailPage'));
 const DashboardPage = lazy(() => import('./features/common/DashboardPage'));
 const SearchPage = lazy(() => import('./features/search/SearchPage'));
-const ModularUserProfilePage = lazy(() => import('./features/profile/ModularUserProfilePage'));
+const UserProfilePage = lazy(() => import('./features/profile/UserProfilePage'));
 const ReviewPage = lazy(() => import('./features/reviews/ReviewPage'));
 const MessengerPage = lazy(() => import('./features/messaging/MessengerPage'));
 const ReviewCirclePage = lazy(() => import('./features/circle/ReviewCirclePage'));
@@ -107,7 +107,7 @@ function App() {
                   description="Manage your profile, review history, and connect with the ReviewInn community."
                   feature="profile"
                 >
-                  <ModularUserProfilePage />
+                  <UserProfilePage />
                 </ProtectedRoute>
               } />
               <Route path="circle" element={

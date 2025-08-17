@@ -1,10 +1,9 @@
-// Modular Profile Components
-export { default as ModularProfileHeader } from './ModularProfileHeader';
-export { default as ModularProfileStats } from './ModularProfileStats';
-export { default as ModularProfileEntitiesSection } from './ModularProfileEntitiesSection';
-export { default as ModularProfileReviewsSection } from './ModularProfileReviewsSection';
-
-// Note: Legacy components have been removed as they were replaced by modular components
+// Profile Components (Clean Architecture)
+export { default as ProfileLayout, ProfileLoading, ProfileError, ProfileNotFound } from './ProfileLayout';
+export { default as ProfileHeader } from './ProfileHeader';
+export { default as ProfileStats } from './ProfileStats';
+export { default as ProfileEntities } from './ProfileEntities';
+export { default as ProfileReviews } from './ProfileReviews';
 
 // Modal Components
 export { default as EditProfileModal } from './EditProfileModal';
