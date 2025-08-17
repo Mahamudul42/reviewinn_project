@@ -90,6 +90,42 @@ export function buildCategoryDisplay(
 }
 
 /**
+ * Infer root category name from final category name
+ */
+function inferRootCategoryFromFinal(finalCategoryName: string): string | null {
+  const lowerName = finalCategoryName.toLowerCase();
+  
+  // Map final categories to their likely root categories
+  if (lowerName.includes('professor') || lowerName.includes('doctor') || lowerName.includes('lawyer') || 
+      lowerName.includes('engineer') || lowerName.includes('consultant') || lowerName.includes('therapist')) {
+    return 'Professionals';
+  }
+  
+  if (lowerName.includes('restaurant') || lowerName.includes('hotel') || lowerName.includes('hospital') || 
+      lowerName.includes('school') || lowerName.includes('university') || lowerName.includes('shop') ||
+      lowerName.includes('store') || lowerName.includes('center') || lowerName.includes('clinic')) {
+    return 'Places & Venues';
+  }
+  
+  if (lowerName.includes('company') || lowerName.includes('corporation') || lowerName.includes('business') ||
+      lowerName.includes('agency') || lowerName.includes('firm') || lowerName.includes('organization')) {
+    return 'Companies & Organizations';
+  }
+  
+  if (lowerName.includes('product') || lowerName.includes('service') || lowerName.includes('software') ||
+      lowerName.includes('app') || lowerName.includes('tool') || lowerName.includes('device')) {
+    return 'Products & Services';
+  }
+  
+  // For "University Professors" specifically
+  if (lowerName.includes('university') && lowerName.includes('professor')) {
+    return 'Professionals';
+  }
+  
+  return null; // Can't infer
+}
+
+/**
  * Convert unified category to legacy EntityCategory
  */
 export function convertToLegacyCategory(categorySlug: string): EntityCategory {
@@ -120,18 +156,7 @@ export function normalizeEntityCategoryData(entity: any): {
   rootCategory?: CategoryInfo;
   finalCategory?: CategoryInfo;
 } {
-  // Debug logging in development
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🔍 normalizeEntityCategoryData input:', {
-      entityName: entity.name,
-      root_category: entity.root_category,
-      final_category: entity.final_category,
-      root_category_name: entity.root_category_name,
-      final_category_name: entity.final_category_name,
-      root_category_id: entity.root_category_id,
-      final_category_id: entity.final_category_id
-    });
-  }
+  // Debug logging disabled for performance
 
   // Handle different possible field names from API responses
   let rootCategory = entity.root_category || entity.rootCategory as CategoryInfo | undefined;
@@ -143,22 +168,43 @@ export function normalizeEntityCategoryData(entity: any): {
   // This happens on homepage reviews where only *_category_name & *_category_id arrive
   if (!rootCategory && (entity.root_category_name || entity.rootCategoryName)) {
     const name = entity.root_category_name || entity.rootCategoryName;
-    rootCategory = {
-      id: entity.root_category_id || entity.rootCategoryId || -1,
-      name,
-      slug: (name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
-      level: 1
-    };
+    if (name && name !== 'null' && name !== 'undefined' && name !== 'Root Category' && name !== 'Unknown Category') {
+      rootCategory = {
+        id: entity.root_category_id || entity.rootCategoryId || -1,
+        name,
+        slug: (name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+        level: 1
+      };
+    }
+  }
+  
+  // SPECIAL CASE: If no root category but we have a final category, try to infer the root category
+  if (!rootCategory && finalCategory) {
+    // Try to determine root category from final category name
+    const finalCategoryName = finalCategory.name || entity.final_category_name || entity.finalCategoryName;
+    if (finalCategoryName) {
+      const inferredRootName = inferRootCategoryFromFinal(finalCategoryName);
+      if (inferredRootName) {
+        rootCategory = {
+          id: -1, // Temporary ID
+          name: inferredRootName,
+          slug: inferredRootName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+          level: 1
+        };
+      }
+    }
   }
   if (!finalCategory && (entity.final_category_name || entity.finalCategoryName)) {
     const name = entity.final_category_name || entity.finalCategoryName;
-    finalCategory = {
-      id: entity.final_category_id || entity.finalCategoryId || (rootCategory ? rootCategory.id : -1),
-      name,
-      slug: (name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
-      // If same as root or no explicit level given, default intelligently
-      level: entity.final_category_level || (rootCategory && rootCategory.id === (entity.final_category_id || entity.finalCategoryId) ? rootCategory.level :  (entity.final_category_id ? 2 : 1))
-    };
+    if (name && name !== 'null' && name !== 'undefined') {
+      finalCategory = {
+        id: entity.final_category_id || entity.finalCategoryId || (rootCategory ? rootCategory.id : -1),
+        name,
+        slug: (name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+        // If same as root or no explicit level given, default intelligently
+        level: entity.final_category_level || (rootCategory && rootCategory.id === (entity.final_category_id || entity.finalCategoryId) ? rootCategory.level :  (entity.final_category_id ? 2 : 1))
+      };
+    }
   }
 
   const result = {
@@ -168,16 +214,7 @@ export function normalizeEntityCategoryData(entity: any): {
     finalCategory
   };
 
-  // Debug logging in development
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🔍 normalizeEntityCategoryData output:', {
-      entityName: entity.name,
-      rootCategory: result.rootCategory,
-      finalCategory: result.finalCategory,
-      categoryDisplay: result.categoryDisplay,
-      breadcrumbLength: result.categoryBreadcrumb.length
-    });
-  }
+  // Debug logging disabled for performance
 
   return result;
 }

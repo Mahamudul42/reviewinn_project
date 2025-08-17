@@ -412,14 +412,64 @@ export const EntityCreationProvider: React.FC<EntityCreationProviderProps> = ({ 
         // In a real implementation, you might want to fetch this from your category hierarchy
         const rootCategoryId = category.path ? parseInt(category.path.split('.')[0]) : category.id;
         
-        // Create a minimal root category object (you might want to fetch full details)
+        // Map root category IDs to their actual names and details
+        const getRootCategoryData = (id: number) => {
+          switch (id) {
+            case 1:
+              return {
+                name: 'Professionals',
+                slug: 'professionals',
+                icon: '👨‍💼',
+                color: 'green'
+              };
+            case 115:
+              return {
+                name: 'Companies & Institutes',
+                slug: 'companies-institutes',
+                icon: '🏢',
+                color: 'blue'
+              };
+            case 186:
+              return {
+                name: 'Places',
+                slug: 'places',
+                icon: '📍',
+                color: 'red'
+              };
+            case 235:
+              return {
+                name: 'Products',
+                slug: 'products',
+                icon: '📦',
+                color: 'orange'
+              };
+            case 303:
+              return {
+                name: 'Other',
+                slug: 'other',
+                icon: '🔖',
+                color: 'purple'
+              };
+            default:
+              return {
+                name: 'Unknown Category',
+                slug: 'unknown-category',
+                icon: '📂',
+                color: 'gray'
+              };
+          }
+        };
+        
+        const rootData = getRootCategoryData(rootCategoryId);
+        
+        // Create a minimal root category object with proper name mapping
         return {
           id: rootCategoryId,
-          name: 'Root Category', // This should be fetched from your category data
-          slug: 'root-category',
+          name: rootData.name,
+          slug: rootData.slug,
           level: 1,
-          icon: '📂',
-          color: 'blue',
+          icon: rootData.icon,
+          color: rootData.color,
           description: 'Root level category',
           is_active: true,
           parent_id: null,

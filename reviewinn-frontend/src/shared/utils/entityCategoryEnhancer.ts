@@ -17,9 +17,13 @@ interface CategoryEnhancementOptions {
 export function generateHierarchicalCategoryData(options: CategoryEnhancementOptions) {
   const { category, subcategory } = options;
   
+  // Use proper display names instead of raw category strings
+  const rootDisplayName = getCategoryDisplayName(category);
+  const subcategoryDisplayName = subcategory ? getCategoryDisplayName(subcategory) : '';
+  
   const rootCategoryData: CategoryInfo = {
     id: 1,
-    name: category,
+    name: rootDisplayName,
     slug: category.toLowerCase().replace(/\s+/g, '-'),
     level: 1,
     icon: getCategoryIcon(category),
@@ -28,7 +32,7 @@ export function generateHierarchicalCategoryData(options: CategoryEnhancementOpt
   
   const finalCategoryData: CategoryInfo = subcategory && subcategory !== category ? {
     id: 2,
-    name: subcategory,
+    name: subcategoryDisplayName,
     slug: subcategory.toLowerCase().replace(/\s+/g, '-'),
     level: 2,
     icon: '🏷️',
@@ -36,15 +40,15 @@ export function generateHierarchicalCategoryData(options: CategoryEnhancementOpt
   } : rootCategoryData;
   
   const categoryBreadcrumb: CategoryBreadcrumb[] = subcategory && subcategory !== category ? [
-    { id: 1, name: category, slug: rootCategoryData.slug, level: 1 },
-    { id: 2, name: subcategory, slug: finalCategoryData.slug, level: 2 }
+    { id: 1, name: rootDisplayName, slug: rootCategoryData.slug, level: 1 },
+    { id: 2, name: subcategoryDisplayName, slug: finalCategoryData.slug, level: 2 }
   ] : [
-    { id: 1, name: category, slug: rootCategoryData.slug, level: 1 }
+    { id: 1, name: rootDisplayName, slug: rootCategoryData.slug, level: 1 }
   ];
   
   const categoryDisplay = subcategory && subcategory !== category 
-    ? `${category} > ${subcategory}` 
-    : category;
+    ? `${rootDisplayName} > ${subcategoryDisplayName}` 
+    : rootDisplayName;
   
   return {
     root_category: rootCategoryData,
@@ -73,6 +77,8 @@ export function enhanceEntityWithHierarchicalCategories(entity: Entity): Entity 
       subcategory: entity.subcategory
     });
     
+    // Debug logging disabled for performance
+    
     return {
       ...entity,
       category: defaultCategory as any,
@@ -91,6 +97,8 @@ export function enhanceEntityWithHierarchicalCategories(entity: Entity): Entity 
     subcategory: entity.subcategory
   });
   
+  // Debug logging disabled for performance
+  
   return {
     ...entity,
     root_category_id: entity.root_category_id || hierarchicalData.root_category.id,
@@ -102,7 +110,7 @@ export function enhanceEntityWithHierarchicalCategories(entity: Entity): Entity 
   };
 }
 
-// Helper functions for category icons and colors
+// Helper functions for category icons, colors, and names
 function getCategoryIcon(category: string): string {
   const categoryLower = category.toLowerCase();
   if (categoryLower.includes('professional') || categoryLower.includes('doctor') || categoryLower.includes('lawyer')) return '👨‍⚕️';
@@ -119,4 +127,14 @@ function getCategoryColor(category: string): string {
   if (categoryLower.includes('place')) return '#f59e0b';
   if (categoryLower.includes('product')) return '#8b5cf6';
   return '#6b7280';
+}
+
+function getCategoryDisplayName(category: string): string {
+  const categoryLower = category.toLowerCase();
+  if (categoryLower.includes('professional')) return 'Professionals';
+  if (categoryLower.includes('company') || categoryLower.includes('business')) return 'Companies & Organizations';
+  if (categoryLower.includes('place') || categoryLower.includes('restaurant') || categoryLower.includes('hotel')) return 'Places & Venues';
+  if (categoryLower.includes('product') || categoryLower.includes('service')) return 'Products & Services';
+  // Capitalize the category name as fallback
+  return category.charAt(0).toUpperCase() + category.slice(1).replace(/_/g, ' ');
 }

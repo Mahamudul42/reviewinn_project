@@ -638,22 +638,16 @@ class EntityService {
       if (params.sortOrder) searchParams.append('sort_order', params.sortOrder);
       
       const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.BY_USER(userId)}?${searchParams.toString()}`;
-      console.log('📋 EntityService.getEntitiesByUser: API call to:', url);
+      // Making API call to get user entities
       const response = await httpClient.get<EntityApiResponse>(url);
       
       if (!response.success) {
-        console.error('📋 EntityService.getEntitiesByUser: API returned error:', response);
+        console.error('EntityService.getEntitiesByUser: API returned error:', response);
         throw new Error('Failed to fetch user entities');
       }
       
       // Handle the backend response structure: { success, data: Entity[], pagination, message }
-      console.log('📋 EntityService.getEntitiesByUser: Raw response structure:', {
-        success: response.success,
-        dataIsArray: Array.isArray(response.data),
-        dataLength: Array.isArray(response.data) ? response.data.length : 'not array',
-        paginationExists: !!(response as any).pagination,
-        fullResponse: response
-      });
+      // Process the response structure
       
       const entities = Array.isArray(response.data) ? response.data : [];
       const pagination = (response as any).pagination || {
@@ -683,12 +677,7 @@ class EntityService {
         hasPrev: pagination.page > 1
       };
 
-      console.log('📋 EntityService.getEntitiesByUser: Final result:', {
-        entitiesCount: result.entities.length,
-        total: result.total,
-        hasMore: result.hasMore,
-        firstEntityName: result.entities[0]?.name || 'no entities'
-      });
+      // Return processed result
 
       return result;
       

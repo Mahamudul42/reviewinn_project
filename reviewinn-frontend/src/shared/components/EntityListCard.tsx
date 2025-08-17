@@ -66,21 +66,7 @@ const EntityListCard: React.FC<EntityListCardProps> = ({
     }
   };
 
-  // Debug entity data structure (only in development)
-  if (import.meta.env.DEV) {
-    console.log('🔍 EntityListCard received entity data:', {
-      entityId: entity.entity_id || entity.id,
-      name: entity.name,
-      hasAvatar: !!entity.avatar,
-      hasImageUrl: !!entity.imageUrl,
-      isVerified: entity.isVerified || entity.is_verified,
-      isClaimed: entity.isClaimed || entity.is_claimed,
-      rootCategory: entity.root_category,
-      finalCategory: entity.final_category,
-      categoryBreadcrumb: entity.category_breadcrumb,
-      entityKeys: Object.keys(entity)
-    });
-  }
+  // Debug logging disabled for performance
 
   // Extract entity data with proper fallbacks
   const entityName = entity.name || 'Unknown Entity';
@@ -99,29 +85,13 @@ const EntityListCard: React.FC<EntityListCardProps> = ({
   // Get hierarchical category information using utility
   const { categoryBreadcrumb, categoryDisplay, rootCategory, finalCategory } = normalizeEntityCategoryData(entity);
   
-  // Debug category data (only in development)
-  if (import.meta.env.DEV) {
-    console.log('🔍 EntityListCard category data:', {
-      rootCategory,
-      finalCategory, 
-      categoryBreadcrumb,
-      categoryDisplay
-    });
-  }
+  // Category data processed
   
   // Use utility functions for consistent image handling across the app
   const displayAvatar = getEntityImage(entity, entityName);
   const hasRealImage = hasRealEntityImage(entity);
   
-  // Debug image data (only in development)
-  if (import.meta.env.DEV) {
-    console.log('🔍 EntityListCard image data:', {
-      avatar: entity.avatar,
-      imageUrl: entity.imageUrl,
-      displayAvatar,
-      hasRealImage
-    });
-  }
+  // Image data processed
   
   
   const CategoryIcon = getCategoryIcon(entityCategory);
