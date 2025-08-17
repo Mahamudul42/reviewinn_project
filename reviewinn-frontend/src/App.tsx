@@ -40,6 +40,7 @@ const NotificationsPage = lazy(() => import('./features/notifications/Notificati
 // Group pages
 const GroupDiscoveryPage = lazy(() => import('./features/groups/GroupDiscoveryPage'));
 const GroupDetailPage = lazy(() => import('./features/groups/GroupDetailPage'));
+const GroupsFeedPage = lazy(() => import('./features/groups/GroupsFeedPage'));
 
 // Legal pages  
 const AboutPage = lazy(() => import('./features/legal/AboutPage'));
@@ -130,6 +131,15 @@ function App() {
                   feature="groups"
                 >
                   <GroupDiscoveryPage />
+                </ProtectedRoute>
+              } />
+              <Route path="groups/feed" element={
+                <ProtectedRoute 
+                  title="Groups Feed Access Required" 
+                  description="View reviews and discussions from your joined groups and discover new content."
+                  feature="groups"
+                >
+                  <GroupsFeedPage />
                 </ProtectedRoute>
               } />
               <Route path="groups/:groupId" element={

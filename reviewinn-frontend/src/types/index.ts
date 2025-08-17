@@ -351,6 +351,7 @@ export interface Review {
   entity_summary?: any; // Database JSONB field
   user_summary?: any; // Database JSONB field
   reports_summary?: any; // Database JSONB field
+  groupName?: string; // Group name for group feed display
 }
 
 export interface Comment {

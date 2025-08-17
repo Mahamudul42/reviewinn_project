@@ -1,6 +1,7 @@
 // Groups feature exports
 export { default as GroupDiscoveryPage } from './GroupDiscoveryPage';
 export { default as GroupDetailPage } from './GroupDetailPage';
+export { default as GroupsFeedPage } from './GroupsFeedPage';
 
 // Components
 export * from './components';

@@ -9,3 +9,4 @@ export { default as GroupMemberManagement } from './GroupMemberManagement';
 export { default as GroupInvitationManagement } from './GroupInvitationManagement';
 export { default as GroupSettings } from './GroupSettings';
 export { default as GroupReviews } from './GroupReviews';
+export { default as GroupFeed } from './GroupFeed';
