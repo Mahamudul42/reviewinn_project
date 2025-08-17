@@ -5,7 +5,13 @@ from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field, validator
 from datetime import datetime
 from decimal import Decimal
+from enum import Enum
 from .common import BaseResponseSchema, TimestampMixin
+
+class ReviewScope(str, Enum):
+    PUBLIC = "public"
+    GROUP_ONLY = "group_only"
+    MIXED = "mixed"
 
 
 class ReviewCreateRequest(BaseModel):
@@ -29,6 +35,15 @@ class ReviewCreateRequest(BaseModel):
     service_rating: Optional[Decimal] = Field(None, ge=1.0, le=5.0, description="Service rating")
     quality_rating: Optional[Decimal] = Field(None, ge=1.0, le=5.0, description="Quality rating")
     value_rating: Optional[Decimal] = Field(None, ge=1.0, le=5.0, description="Value rating")
+    
+    # Group-related fields
+    group_id: Optional[int] = Field(None, description="ID of the group to post this review in")
+    review_scope: ReviewScope = Field(ReviewScope.PUBLIC, description="Review visibility scope")
+    group_context: Optional[Dict[str, Any]] = Field(None, description="Group-specific context")
+    visibility_settings: Optional[Dict[str, bool]] = Field(
+        default_factory=lambda: {"public": True, "group_members": True},
+        description="Detailed visibility settings"
+    )
     
     @validator('pros', 'cons')
     def validate_pros_cons(cls, v):

@@ -37,6 +37,10 @@ const ReviewCirclePage = lazy(() => import('./features/circle/ReviewCirclePage')
 const ShareableReviewPage = lazy(() => import('./features/reviews/ShareableReviewPage'));
 const NotificationsPage = lazy(() => import('./features/notifications/NotificationsPage'));
 
+// Group pages
+const GroupDiscoveryPage = lazy(() => import('./features/groups/GroupDiscoveryPage'));
+const GroupDetailPage = lazy(() => import('./features/groups/GroupDetailPage'));
+
 // Legal pages  
 const AboutPage = lazy(() => import('./features/legal/AboutPage'));
 const PrivacyPolicyPage = lazy(() => import('./features/legal/PrivacyPolicyPage'));
@@ -117,6 +121,24 @@ function App() {
                   feature="circle"
                 >
                   <ReviewCirclePage />
+                </ProtectedRoute>
+              } />
+              <Route path="groups" element={
+                <ProtectedRoute 
+                  title="Groups Access Required" 
+                  description="Join and discover review groups to connect with like-minded reviewers and share experiences."
+                  feature="groups"
+                >
+                  <GroupDiscoveryPage />
+                </ProtectedRoute>
+              } />
+              <Route path="groups/:groupId" element={
+                <ProtectedRoute 
+                  title="Group Access Required" 
+                  description="Access group details and participate in group activities."
+                  feature="groups"
+                >
+                  <GroupDetailPage />
                 </ProtectedRoute>
               } />
               <Route path="add-entity" element={

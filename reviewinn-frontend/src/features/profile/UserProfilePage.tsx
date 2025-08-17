@@ -4,7 +4,7 @@ import { Edit, Trash2 } from 'lucide-react';
 import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
 import { userService, homepageService, entityService, reviewService } from '../../api/services';
 import { reviewStatsService } from '../../services/reviewStatsService';
-import { useToast } from '../../shared/design-system/components/Toast';
+import { useToast } from '../../shared/components/ToastProvider';
 import { circleService } from '../../api/services/circleService';
 import { professionalMessagingService } from '../../api/services/professionalMessagingService';
 
@@ -17,14 +17,14 @@ import {
   ProfileHeader,
   ProfileStats,
   ProfileEntities,
-  ProfileReviews,
-  EditProfileModal,
-  AddToCircleModal,
-  MessageModal,
-  EditEntityModal,
-  EditReviewModal,
-  DeleteConfirmationModal
+  ProfileReviews
 } from './components';
+import EditProfileModal from './components/EditProfileModal';
+import AddToCircleModal from './components/AddToCircleModal';
+import MessageModal from './components/MessageModal';
+import EditEntityModal from './components/EditEntityModal';
+import EditReviewModal from './components/EditReviewModal';
+import DeleteConfirmationModal from './components/DeleteConfirmationModal';
 
 import type { UserProfile, Review, Entity } from '../../types';
 
@@ -69,8 +69,6 @@ const UserProfilePage: React.FC = () => {
   const [entityDropdown, setEntityDropdown] = useState<{ open: boolean; entity: Entity | null; buttonRef: React.RefObject<HTMLButtonElement> | null }>({ open: false, entity: null, buttonRef: null });
   const [reviewDropdown, setReviewDropdown] = useState<{ open: boolean; review: Review | null; buttonRef: React.RefObject<HTMLButtonElement> | null }>({ open: false, review: null, buttonRef: null });
   
-  // Toast State
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   
   // Pagination States
   const [reviewPage, setReviewPage] = useState(1);
@@ -239,7 +237,12 @@ const UserProfilePage: React.FC = () => {
 
   const handleFollow = async () => {
     if (!userProfile || !currentUser) {
-      showToast('Please sign in to follow users', 'error');
+      showToast({
+        type: 'error',
+        title: 'Authentication Required',
+        message: 'Please sign in to follow users',
+        icon: '🔒'
+      });
       return;
     }
 
@@ -252,24 +255,44 @@ const UserProfilePage: React.FC = () => {
           ...prev,
           followers: prev.followers?.filter(id => id !== currentUser.id) || []
         } : null);
-        showToast('User unfollowed successfully', 'info');
+        showToast({
+          type: 'info',
+          title: 'Unfollowed',
+          message: 'User unfollowed successfully',
+          icon: '👋'
+        });
       } else {
         await userService.followUser(userProfile.id);
         setUserProfile(prev => prev ? {
           ...prev,
           followers: [...(prev.followers || []), currentUser.id]
         } : null);
-        showToast('User followed successfully', 'success');
+        showToast({
+          type: 'success',
+          title: 'Following',
+          message: 'User followed successfully',
+          icon: '✅'
+        });
       }
     } catch (err) {
       console.error('Error following/unfollowing user:', err);
-      showToast('Failed to update follow status', 'error');
+      showToast({
+        type: 'error',
+        title: 'Follow Failed',
+        message: 'Failed to update follow status',
+        icon: '⚠️'
+      });
     }
   };
 
   const handleAddToCircle = () => {
     if (!userProfile || !currentUser) {
-      showToast('Please sign in to add users to your circle', 'error');
+      showToast({
+        type: 'error',
+        title: 'Authentication Required',
+        message: 'Please sign in to add users to your circle',
+        icon: '🔒'
+      });
       return;
     }
     setAddToCircleModal(true);
@@ -277,17 +300,19 @@ const UserProfilePage: React.FC = () => {
 
   const handleMessage = () => {
     if (!userProfile || !currentUser) {
-      showToast('Please sign in to send messages', 'error');
+      showToast({
+        type: 'error',
+        title: 'Authentication Required',
+        message: 'Please sign in to send messages',
+        icon: '🔒'
+      });
       return;
     }
     setMessageModal(true);
   };
 
   // Utility Functions
-  const showToast = (message: string, type: 'success' | 'error' | 'info') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 5000);
-  };
+  const { showToast } = useToast();
 
   const getUserStats = () => {
     if (!userProfile) return { 
@@ -440,7 +465,12 @@ const UserProfilePage: React.FC = () => {
           onSave={(updatedProfile) => {
             setUserProfile(updatedProfile);
             setEditProfileModal(false);
-            showToast('Profile updated successfully', 'success');
+            showToast({
+              type: 'success',
+              title: 'Profile Updated',
+              message: 'Profile updated successfully',
+              icon: '✅'
+            });
           }}
         />
       )}
@@ -450,6 +480,7 @@ const UserProfilePage: React.FC = () => {
           isOpen={addToCircleModal}
           onClose={() => setAddToCircleModal(false)}
           userProfile={userProfile}
+          currentUser={currentUser}
         />
       )}
 
@@ -458,6 +489,7 @@ const UserProfilePage: React.FC = () => {
           isOpen={messageModal}
           onClose={() => setMessageModal(false)}
           userProfile={userProfile}
+          currentUser={currentUser}
         />
       )}
 
@@ -470,7 +502,12 @@ const UserProfilePage: React.FC = () => {
             // Update entity in the list
             setUserEntities(prev => prev.map(e => e.id === updatedEntity.id ? updatedEntity : e));
             setEditEntityModal({ open: false, entity: null });
-            showToast('Entity updated successfully', 'success');
+            showToast({
+              type: 'success',
+              title: 'Entity Updated',
+              message: 'Entity updated successfully',
+              icon: '✅'
+            });
           }}
         />
       )}
@@ -484,7 +521,12 @@ const UserProfilePage: React.FC = () => {
             // Update review in the list
             setUserReviews(prev => prev.map(r => r.id === updatedReview.id ? updatedReview : r));
             setEditReviewModal({ open: false, review: null });
-            showToast('Review updated successfully', 'success');
+            showToast({
+              type: 'success',
+              title: 'Review Updated',
+              message: 'Review updated successfully',
+              icon: '✅'
+            });
           }}
         />
       )}
@@ -500,30 +542,35 @@ const UserProfilePage: React.FC = () => {
               if (deleteModal.type === 'entity' && deleteModal.item) {
                 await entityService.deleteEntity(deleteModal.item.id);
                 setUserEntities(prev => prev.filter(e => e.id !== deleteModal.item.id));
-                showToast('Entity deleted successfully', 'success');
+                showToast({
+                  type: 'success',
+                  title: 'Entity Deleted',
+                  message: 'Entity deleted successfully',
+                  icon: '✅'
+                });
               } else if (deleteModal.type === 'review' && deleteModal.item) {
                 await reviewService.deleteReview(deleteModal.item.id);
                 setUserReviews(prev => prev.filter(r => r.id !== deleteModal.item.id));
-                showToast('Review deleted successfully', 'success');
+                showToast({
+                  type: 'success',
+                  title: 'Review Deleted',
+                  message: 'Review deleted successfully',
+                  icon: '✅'
+                });
               }
             } catch (error) {
-              showToast(`Failed to delete ${deleteModal.type}`, 'error');
+              showToast({
+                type: 'error',
+                title: 'Delete Failed',
+                message: `Failed to delete ${deleteModal.type}`,
+                icon: '⚠️'
+              });
             }
             setDeleteModal({ open: false, type: null, item: null });
           }}
         />
       )}
 
-      {/* Toast Notifications */}
-      {toast && (
-        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
-          toast.type === 'success' ? 'bg-green-500 text-white' :
-          toast.type === 'error' ? 'bg-red-500 text-white' :
-          'bg-blue-500 text-white'
-        }`}>
-          {toast.message}
-        </div>
-      )}
     </ProfileLayout>
   );
 };

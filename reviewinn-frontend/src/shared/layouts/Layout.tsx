@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link } from 'react-router-dom';
-import { User, Search, BarChart3, LogOut, LogIn, Bell, MessageCircle, Users, Building2, Home, Plus } from 'lucide-react';
+import { User, Search, BarChart3, LogOut, LogIn, Bell, MessageCircle, Users, Building2, Home, Plus, Users2 } from 'lucide-react';
 import AuthModal from '../../features/auth/components/AuthModal';
 import NotificationSystem, { useNotifications } from '../organisms/NotificationSystem';
 import QuickActionsPanel from '../organisms/QuickActionsPanel';
@@ -568,6 +568,13 @@ const Layout: React.FC = () => {
               >
                 <Search size={16} />
                 Search
+              </Link>
+              <Link 
+                to="/groups" 
+                className="nav-link"
+              >
+                <Users2 size={16} />
+                Groups
               </Link>
               
               {/* Always show these nav items, but require auth for non-authenticated users */}

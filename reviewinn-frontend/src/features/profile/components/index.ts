@@ -10,3 +10,5 @@ export { default as EditProfileModal } from './EditProfileModal';
 export { default as EditEntityModal } from './EditEntityModal';
 export { default as EditReviewModal } from './EditReviewModal';
 export { default as DeleteConfirmationModal } from './DeleteConfirmationModal';
+export { default as AddToCircleModal } from './AddToCircleModal';
+export { default as MessageModal } from './MessageModal';

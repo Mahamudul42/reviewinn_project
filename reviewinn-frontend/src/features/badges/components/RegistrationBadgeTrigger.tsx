@@ -44,9 +44,15 @@ const RegistrationBadgeTrigger: React.FC = () => {
       
       // Check if user already has the registration badge
       const userBadges = await badgeService.getUserBadges(user.id);
+      console.log('[RegistrationBadgeTrigger] User badges:', userBadges);
+      
       const hasWelcomeBadge = userBadges.some(
-        ub => ub.badge.requirements.type === 'registration'
+        ub => ub.badge?.requirements?.type === 'registration' || 
+              ub.badge?.name?.toLowerCase().includes('welcome') ||
+              ub.badge?.name?.toLowerCase().includes('registration')
       );
+
+      console.log('[RegistrationBadgeTrigger] Has welcome badge:', hasWelcomeBadge);
 
       // If they don't have it, unlock it
       if (!hasWelcomeBadge) {
@@ -62,7 +68,12 @@ const RegistrationBadgeTrigger: React.FC = () => {
           }, 2000);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
+      // Don't treat 409 conflicts as errors - the badge is already unlocked
+      if (error?.status === 409 || error?.response?.status === 409) {
+        console.log('[RegistrationBadgeTrigger] Registration badge already unlocked');
+        return;
+      }
       console.error('Failed to check/unlock registration badge:', error);
     }
   };

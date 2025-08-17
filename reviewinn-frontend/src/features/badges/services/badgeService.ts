@@ -95,7 +95,13 @@ export class BadgeService {
         true
       );
       return response.data || null;
-    } catch (error) {
+    } catch (error: any) {
+      // Handle 409 Conflict specifically - this means the badge is already unlocked
+      if (error?.status === 409 || error?.response?.status === 409) {
+        console.log('[BadgeService] Registration badge already unlocked for user:', userId);
+        return null; // Not an error, just already have the badge
+      }
+      
       console.error('Failed to unlock registration badge:', error);
       console.error('Error details:', {
         url: `${this.baseUrl}/user/${userId}/registration`,

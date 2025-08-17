@@ -15,8 +15,8 @@ interface DeleteConfirmationModalProps {
   onConfirm: () => Promise<void>;
   title: string;
   message: string;
-  itemName: string;
-  type: 'profile' | 'entity' | 'review';
+  itemName?: string;
+  type?: 'profile' | 'entity' | 'review';
   warningMessage?: string;
 }
 
@@ -26,8 +26,8 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
   onConfirm,
   title,
   message,
-  itemName,
-  type,
+  itemName = '',
+  type = 'entity',
   warningMessage
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);

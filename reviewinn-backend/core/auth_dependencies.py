@@ -60,7 +60,7 @@ class AuthDependencies:
     
     @staticmethod
     def get_current_user_optional(
-        authorization: str = Header(None, alias="Authorization"),
+        credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
         db: Session = Depends(get_db),
         auth_svc: AuthService = Depends(get_auth_service)
     ) -> Optional[User]:
@@ -68,19 +68,11 @@ class AuthDependencies:
         Get current user if authenticated, None otherwise
         Does not raise exceptions for unauthenticated requests
         """
-        if not authorization:
-            return None
-        
-        # Extract token from "Bearer <token>" format
-        if not authorization.startswith("Bearer "):
-            return None
-            
-        token = authorization.split(" ")[1] if len(authorization.split(" ")) > 1 else None
-        if not token:
+        if not credentials:
             return None
         
         try:
-            user = auth_svc.get_current_user(token, db)
+            user = auth_svc.get_current_user(credentials.credentials, db)
             return user
         except Exception:
             return None

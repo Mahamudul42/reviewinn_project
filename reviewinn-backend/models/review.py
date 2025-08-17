@@ -3,6 +3,7 @@ Review model for the Review Platform.
 """
 import enum
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, Float, ForeignKey, JSON
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from database import Base
@@ -16,6 +17,11 @@ class ReactionType(enum.Enum):
     celebration = "celebration"
     sad = "sad"
     eyes = "eyes"
+
+class ReviewScope(str, enum.Enum):
+    PUBLIC = "public"
+    GROUP_ONLY = "group_only"
+    MIXED = "mixed"
 
 class Review(Base):
     __tablename__ = "review_main"
@@ -45,12 +51,19 @@ class Review(Base):
     user_summary = Column(JSON, default={})
     reports_summary = Column(JSON, default={})
     
+    # Group-related fields
+    group_id = Column(Integer, ForeignKey("review_groups.group_id", ondelete="SET NULL"), nullable=True)
+    review_scope = Column(String(20), default=ReviewScope.PUBLIC.value)
+    group_context = Column(JSONB, default={})
+    visibility_settings = Column(JSONB, default={"public": True, "group_members": True})
+    
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
     # Relationships
     user = relationship("User", back_populates="reviews")
     entity = relationship("Entity", back_populates="reviews")
+    group = relationship("Group", back_populates="reviews")
     reactions = relationship("ReviewReaction", back_populates="review", cascade="all, delete-orphan")
     comments = relationship("Comment", back_populates="review", cascade="all, delete-orphan")
     views = relationship("ReviewView", back_populates="review", cascade="all, delete-orphan")
@@ -80,6 +93,10 @@ class Review(Base):
             "entity_summary": self.entity_summary,
             "user_summary": self.user_summary,
             "reports_summary": self.reports_summary,
+            "group_id": self.group_id,
+            "review_scope": self.review_scope,
+            "group_context": self.group_context,
+            "visibility_settings": self.visibility_settings,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None
         } 

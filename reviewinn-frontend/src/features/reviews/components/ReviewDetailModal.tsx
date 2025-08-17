@@ -374,7 +374,6 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
             display: 'flex',
             flexDirection: 'column',
             border: '1px solid #e5e7eb', // Match homepage panel border
-            position: 'relative',
             zIndex: 100000,
           }}
         >
