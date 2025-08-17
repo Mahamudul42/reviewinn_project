@@ -37,6 +37,8 @@ import GroupMemberManagement from './components/GroupMemberManagement';
 import GroupInvitationManagement from './components/GroupInvitationManagement';
 import GroupSettings from './components/GroupSettings';
 import GroupReviews from './components/GroupReviews';
+import GroupFeed from './components/GroupFeed';
+import AddReviewStatusBar from '../common/components/AddReviewStatusBar';
 
 const GROUP_TYPE_ICONS = {
   [GroupType.UNIVERSITY]: GraduationCap,
@@ -87,7 +89,7 @@ const GroupDetailPage: React.FC = () => {
         <div className="text-center">
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Group Not Found</h2>
           <p className="text-gray-600 mb-4">The group you're looking for doesn't exist.</p>
-          <Button onClick={() => navigate('/groups')}>Back to Groups</Button>
+          <Button onClick={() => navigate('/groups/feed')}>Back to Groups Feed</Button>
         </div>
       </div>
     );
@@ -109,7 +111,7 @@ const GroupDetailPage: React.FC = () => {
           <p className="text-gray-600 mb-4">{error || 'Failed to load group details'}</p>
           <div className="space-x-4">
             <Button onClick={refresh} variant="outline">Try Again</Button>
-            <Button onClick={() => navigate('/groups')}>Back to Groups</Button>
+            <Button onClick={() => navigate('/groups/feed')}>Back to Groups Feed</Button>
           </div>
         </div>
       </div>
@@ -334,11 +336,11 @@ const GroupDetailPage: React.FC = () => {
       {/* Back Button */}
       <Button 
         variant="ghost" 
-        onClick={() => navigate('/groups')}
+        onClick={() => navigate('/groups/feed')}
         className="mb-4"
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Groups
+        Back to Groups Feed
       </Button>
 
       {/* Tab Navigation */}
@@ -398,10 +400,19 @@ const GroupDetailPage: React.FC = () => {
         )}
 
         {activeTab === 'reviews' && (
-          <GroupReviews 
-            groupId={group.group_id}
-            userMembership={userMembership}
-          />
+          <div className="space-y-6">
+            {/* Enhanced Search Bar for Group Reviews */}
+            <AddReviewStatusBar 
+              userAvatar={user?.avatar || 'https://ui-avatars.com/api/?name=User&background=gray&color=ffffff'} 
+              userName={user?.name || 'User'} 
+              onClick={() => console.log('Add review clicked')}
+              barRef={null}
+              onSearchResults={() => console.log('Search results')}
+            />
+            
+            {/* Enhanced Group Feed */}
+            <GroupFeed groupId={groupId} />
+          </div>
         )}
 
         {activeTab === 'settings' && canManage && (

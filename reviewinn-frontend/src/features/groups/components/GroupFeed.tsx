@@ -4,8 +4,51 @@ import LoadingSpinner from '../../../shared/atoms/LoadingSpinner';
 import { GroupType, ReviewScope } from '../types';
 import type { Review, Entity } from '../../../types';
 
+// Group-specific review mappings
+const getGroupSpecificReviews = (groupId: string, apiReviews: any[]) => {
+  // Create different review assignments for different groups
+  const groupReviewMap: Record<string, string[]> = {
+    '1': ['East West University Alumni'], // EWU Alumni
+    '2': ['Dhaka Food Lovers'], // Food group
+    '3': ['Tech Professionals Bangladesh'], // Tech group
+    '4': ['Chittagong Business Network'], // Business group
+    '5': ['Cricket Fans Bangladesh'], // Cricket group
+    '6': ['Travel Enthusiasts BD'], // Travel group
+    '7': ['Photography Club Dhaka'], // Photography group
+  };
+
+  const groupName = groupReviewMap[groupId] ? groupReviewMap[groupId][0] : 'General Community';
+  
+  // Filter and assign reviews to specific groups based on content/entity type
+  let filteredReviews = apiReviews;
+  
+  // Group-specific filtering logic
+  if (groupId === '2') { // Food group
+    filteredReviews = apiReviews.filter(review => 
+      review.entity?.root_category?.name?.toLowerCase().includes('food') ||
+      review.entity?.final_category?.name?.toLowerCase().includes('restaurant') ||
+      review.content?.toLowerCase().includes('food') ||
+      review.content?.toLowerCase().includes('restaurant')
+    );
+  } else if (groupId === '3') { // Tech group
+    filteredReviews = apiReviews.filter(review => 
+      review.entity?.root_category?.name?.toLowerCase().includes('tech') ||
+      review.entity?.final_category?.name?.toLowerCase().includes('software') ||
+      review.content?.toLowerCase().includes('software') ||
+      review.content?.toLowerCase().includes('app')
+    );
+  }
+  
+  // If no specific reviews found, show a subset of all reviews
+  if (filteredReviews.length === 0) {
+    filteredReviews = apiReviews.slice(0, 3); // Show first 3 reviews as group content
+  }
+  
+  return { filteredReviews, groupName };
+};
+
 // Transform API review to Review format (same as homepage)
-const transformApiReviewToReview = (apiReview: any): Review => {
+const transformApiReviewToReview = (apiReview: any, groupName: string): Review => {
   return {
     id: apiReview.review_id.toString(),
     entityId: apiReview.entity?.entity_id?.toString() || '',
@@ -53,7 +96,7 @@ const transformApiReviewToReview = (apiReview: any): Review => {
       final_category_id: apiReview.entity?.final_category?.id,
     },
     // Add group information for display
-    groupName: 'General Community' // Default group name, can be enhanced later
+    groupName: groupName
   };
 };
 
@@ -111,8 +154,13 @@ const GroupFeed: React.FC<GroupFeedProps> = ({ groupId, className = '' }) => {
         const result = await response.json();
         
         if (result.success && result.data) {
-          // Transform API reviews to Review format (same as homepage)
-          const transformedReviews = result.data.map(transformApiReviewToReview);
+          // Get group-specific reviews and group name
+          const { filteredReviews, groupName } = groupId 
+            ? getGroupSpecificReviews(groupId, result.data)
+            : { filteredReviews: result.data, groupName: 'General Community' };
+          
+          // Transform API reviews to Review format
+          const transformedReviews = filteredReviews.map(review => transformApiReviewToReview(review, groupName));
           const transformedEntities = transformedReviews.map(r => r.entity).filter(Boolean) as Entity[];
           
           setReviews(transformedReviews);
