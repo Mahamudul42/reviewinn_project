@@ -4,6 +4,7 @@ import { useReviewCard } from '../hooks/useReviewCard';
 import { formatTimeAgo } from '../../../shared/utils/reviewUtils';
 import { userInteractionService } from '../../../api/services';
 import { API_CONFIG, API_ENDPOINTS } from '../../../api/config';
+import { useUnifiedAuth } from '../../../hooks/useUnifiedAuth';
 import ReviewCardUserInfo from './ReviewCardUserInfo';
 import ReviewCardEntityInfo from './ReviewCardEntityInfo';
 import ReviewCardUnifiedContent from './ReviewCardUnifiedContent';
@@ -58,6 +59,7 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
 }) => {
   const menuButtonRef = useRef<HTMLButtonElement>(null!);
   const { showToast } = useToast();
+  const { getToken } = useUnifiedAuth();
   
   // Local state for edit/delete modals
   const [showEditModal, setShowEditModal] = useState(false);
@@ -220,7 +222,7 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+          'Authorization': `Bearer ${getToken()}`
         },
         body: JSON.stringify({ reason, description })
       });
@@ -316,7 +318,7 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+          'Authorization': `Bearer ${getToken()}`
         },
         body: JSON.stringify({ userId: review.reviewerId })
       });

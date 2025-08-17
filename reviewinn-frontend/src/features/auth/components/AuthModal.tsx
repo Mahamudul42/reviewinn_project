@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useUnifiedAuth } from '../../../hooks/useUnifiedAuth';
-import { useAuthStore } from '../../../stores/authStore';
 import type { LoginCredentials, RegisterData } from '../../../api/auth';
 import LoginForm from '../../../shared/molecules/LoginForm';
 import SignupForm from '../../../shared/molecules/SignupForm';

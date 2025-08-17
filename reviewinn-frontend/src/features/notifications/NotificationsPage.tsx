@@ -8,7 +8,6 @@ import { homepageService } from '../../api/services';
 import type { Entity, Review } from '../../types';
 import NotificationFilterModal from './components/NotificationFilterModal';
 import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
-import { useAuthStore } from '../../stores/authStore';
 
 interface NotificationFilters {
   readStatus?: 'all' | 'unread' | 'read';

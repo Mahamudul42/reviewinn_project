@@ -331,8 +331,9 @@ class AnalyticsService {
 
   private getCurrentUserId(): string | undefined {
     try {
-      const user = localStorage.getItem('auth_user');
-      return user ? JSON.parse(user).id : undefined;
+      // Use the unified auth token system instead of direct localStorage access
+      const userData = localStorage.getItem('reviewinn_user');
+      return userData ? JSON.parse(userData).id : undefined;
     } catch {
       return undefined;
     }
