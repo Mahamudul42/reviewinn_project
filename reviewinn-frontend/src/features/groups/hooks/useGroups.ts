@@ -250,12 +250,14 @@ export const useGroups = (initialParams: GroupListParams = {}) => {
 };
 
 // Export a single group hook for components that need one group
-export const useGroup = (groupId: number) => {
+export const useGroup = (groupId?: number) => {
   const [group, setGroup] = useState<Group | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchGroup = useCallback(async () => {
+    if (!groupId) return;
+    
     setLoading(true);
     setError(null);
     
@@ -281,6 +283,47 @@ export const useGroup = (groupId: number) => {
     }
   }, [groupId]);
 
+  const joinGroup = useCallback(async (joinReason?: string) => {
+    if (!groupId) throw new Error('Group ID is required');
+    
+    const response = await fetch(`/api/v1/groups/${groupId}/join`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(localStorage.getItem('auth_token') && { Authorization: `Bearer ${localStorage.getItem('auth_token')}` }),
+      },
+      body: JSON.stringify({ join_reason: joinReason }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    // Refresh group data after joining
+    await fetchGroup();
+    return response.json();
+  }, [groupId, fetchGroup]);
+
+  const leaveGroup = useCallback(async () => {
+    if (!groupId) throw new Error('Group ID is required');
+    
+    const response = await fetch(`/api/v1/groups/${groupId}/leave`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(localStorage.getItem('auth_token') && { Authorization: `Bearer ${localStorage.getItem('auth_token')}` }),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    // Refresh group data after leaving
+    await fetchGroup();
+    return response.json();
+  }, [groupId, fetchGroup]);
+
   useEffect(() => {
     if (groupId) {
       fetchGroup();
@@ -291,6 +334,9 @@ export const useGroup = (groupId: number) => {
     group,
     loading,
     error,
+    joinGroup,
+    leaveGroup,
+    refresh: fetchGroup,
     refetch: fetchGroup
   };
 };

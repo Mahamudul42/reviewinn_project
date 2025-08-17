@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { Search, MessageSquare, Users, TrendingUp } from 'lucide-react';
 import ReviewFeed from '../../common/components/ReviewFeed';
 import LoadingSpinner from '../../../shared/atoms/LoadingSpinner';
+import { Button } from '../../../shared/design-system/components/Button';
 import { GroupType, ReviewScope } from '../types';
 import type { Review, Entity } from '../../../types';
 
@@ -112,18 +114,139 @@ const GroupNameBadge: React.FC<{ groupName: string }> = ({ groupName }) => (
   </div>
 );
 
+// Group Search Bar Component
+const GroupSearchBar: React.FC<{ groupName?: string, onSearch?: (query: string) => void }> = ({ 
+  groupName = 'this group', 
+  onSearch 
+}) => {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSearch?.(searchQuery);
+  };
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900">Search in {groupName}</h3>
+          <p className="text-gray-600 text-sm">Find reviews, discussions, and content from group members</p>
+        </div>
+        <MessageSquare className="w-6 h-6 text-blue-500" />
+      </div>
+      
+      <form onSubmit={handleSearch} className="relative">
+        <div className="relative">
+          <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search reviews, entities, or topics..."
+            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+          />
+        </div>
+        <Button 
+          type="submit" 
+          className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1.5"
+          size="sm"
+        >
+          Search
+        </Button>
+      </form>
+    </div>
+  );
+};
+
+// Empty State Component for Groups
+const GroupEmptyState: React.FC<{ groupName?: string, isNewGroup?: boolean }> = ({ 
+  groupName = 'this group',
+  isNewGroup = false 
+}) => {
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
+      <div className="space-y-6">
+        {/* Icon */}
+        <div className="flex justify-center">
+          <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center">
+            <MessageSquare className="w-10 h-10 text-blue-500" />
+          </div>
+        </div>
+        
+        {/* Title and Description */}
+        <div className="space-y-2">
+          <h3 className="text-xl font-semibold text-gray-900">
+            {isNewGroup ? `Welcome to ${groupName}!` : `No reviews yet in ${groupName}`}
+          </h3>
+          <p className="text-gray-600 max-w-md mx-auto">
+            {isNewGroup 
+              ? "This is a brand new group! Be the first to share a review and start building this community."
+              : "This group is just getting started. Be the first to share your experiences and help others discover great places, services, and products."
+            }
+          </p>
+        </div>
+
+        {/* Action Items */}
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-lg mx-auto">
+            <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
+              <MessageSquare className="w-5 h-5 text-blue-500 flex-shrink-0" />
+              <span className="text-sm text-blue-700">Share reviews</span>
+            </div>
+            <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
+              <Users className="w-5 h-5 text-green-500 flex-shrink-0" />
+              <span className="text-sm text-green-700">Connect with members</span>
+            </div>
+            <div className="flex items-center space-x-3 p-3 bg-purple-50 rounded-lg">
+              <TrendingUp className="w-5 h-5 text-purple-500 flex-shrink-0" />
+              <span className="text-sm text-purple-700">Discover new places</span>
+            </div>
+          </div>
+
+          {/* Call to Action */}
+          <div className="pt-4">
+            <Button 
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              onClick={() => {
+                // This could open a review modal or navigate to add review page
+                console.log('Open add review modal for group');
+              }}
+            >
+              Write the First Review
+            </Button>
+          </div>
+        </div>
+
+        {/* Tips */}
+        <div className="bg-gray-50 rounded-lg p-4 mt-6">
+          <h4 className="font-medium text-gray-900 mb-2">💡 Getting Started Tips</h4>
+          <ul className="text-sm text-gray-600 space-y-1">
+            <li>• Review places and services relevant to this group's interests</li>
+            <li>• Share honest experiences to help fellow members</li>
+            <li>• Use the search bar above to find specific content</li>
+            <li>• Engage with other members' reviews through reactions and comments</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 interface GroupFeedProps {
   groupId?: string;
   className?: string;
+  groupName?: string;
 }
 
-const GroupFeed: React.FC<GroupFeedProps> = ({ groupId, className = '' }) => {
+const GroupFeed: React.FC<GroupFeedProps> = ({ groupId, className = '', groupName }) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [entities, setEntities] = useState<Entity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasMoreReviews, setHasMoreReviews] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchGroupFeed = async () => {
@@ -131,6 +254,23 @@ const GroupFeed: React.FC<GroupFeedProps> = ({ groupId, className = '' }) => {
       setError(null);
       
       try {
+        // First, check if we have a specific group and get its details
+        if (groupId) {
+          const groupResponse = await fetch(`http://localhost:8000/api/v1/groups/${groupId}`);
+          if (groupResponse.ok) {
+            const groupData = await groupResponse.json();
+            
+            // If the group has no reviews, show empty state immediately
+            if (groupData.review_count === 0) {
+              setReviews([]);
+              setEntities([]);
+              setHasMoreReviews(false);
+              setLoading(false);
+              return;
+            }
+          }
+        }
+        
         // For now, fetch from homepage reviews as we don't have a specific group feed endpoint yet
         const token = localStorage.getItem('reviewinn_jwt_token');
         const headers: Record<string, string> = {
@@ -227,6 +367,12 @@ const GroupFeed: React.FC<GroupFeedProps> = ({ groupId, className = '' }) => {
     console.log('View count update:', reviewId, newCount);
   };
 
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    // In a real implementation, you would filter reviews or make an API call with the search query
+    console.log('Search query:', query);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center py-12">
@@ -253,39 +399,56 @@ const GroupFeed: React.FC<GroupFeedProps> = ({ groupId, className = '' }) => {
 
   return (
     <div className={`space-y-6 ${className}`}>
-      {reviews.map((review) => (
-        <div key={review.id}>
-          {/* Group Name Badge */}
-          <GroupNameBadge groupName={review.groupName || 'General Community'} />
-          
-          {/* Use the same ReviewFeed component as homepage, but just for one review */}
-          <ReviewFeed
-            reviews={[review]}
-            entities={[review.entity]}
-            hasMoreReviews={false}
-            loadingMore={false}
-            onLoadMore={handleLoadMore}
-            onReactionChange={handleReactionChange}
-            onCommentAdd={handleCommentAdd}
-            onCommentDelete={handleCommentDelete}
-            onCommentReaction={handleCommentReaction}
-            onGiveReviewClick={handleGiveReviewClick}
-            onViewCountUpdate={handleViewCountUpdate}
-          />
-        </div>
-      ))}
+      {/* Search Bar - Always show */}
+      <GroupSearchBar 
+        groupName={groupName || 'this group'} 
+        onSearch={handleSearch}
+      />
       
-      {/* Load More */}
-      {hasMoreReviews && (
-        <div className="text-center py-6">
-          <button
-            onClick={handleLoadMore}
-            disabled={loadingMore}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-          >
-            {loadingMore ? 'Loading...' : 'Load More Posts'}
-          </button>
-        </div>
+      {/* Reviews or Empty State */}
+      {reviews.length > 0 ? (
+        <>
+          {reviews.map((review) => (
+            <div key={review.id}>
+              {/* Group Name Badge */}
+              <GroupNameBadge groupName={review.groupName || 'General Community'} />
+              
+              {/* Use the same ReviewFeed component as homepage, but just for one review */}
+              <ReviewFeed
+                reviews={[review]}
+                entities={[review.entity]}
+                hasMoreReviews={false}
+                loadingMore={false}
+                onLoadMore={handleLoadMore}
+                onReactionChange={handleReactionChange}
+                onCommentAdd={handleCommentAdd}
+                onCommentDelete={handleCommentDelete}
+                onCommentReaction={handleCommentReaction}
+                onGiveReviewClick={handleGiveReviewClick}
+                onViewCountUpdate={handleViewCountUpdate}
+              />
+            </div>
+          ))}
+          
+          {/* Load More */}
+          {hasMoreReviews && (
+            <div className="text-center py-6">
+              <button
+                onClick={handleLoadMore}
+                disabled={loadingMore}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              >
+                {loadingMore ? 'Loading...' : 'Load More Posts'}
+              </button>
+            </div>
+          )}
+        </>
+      ) : (
+        /* Empty State */
+        <GroupEmptyState 
+          groupName={groupName || 'this group'} 
+          isNewGroup={true}
+        />
       )}
     </div>
   );

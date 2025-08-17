@@ -411,7 +411,7 @@ const GroupDetailPage: React.FC = () => {
             />
             
             {/* Enhanced Group Feed */}
-            <GroupFeed groupId={groupId} />
+            <GroupFeed groupId={groupId} groupName={group.name} />
           </div>
         )}
 
@@ -428,11 +428,86 @@ const GroupDetailPage: React.FC = () => {
 
   return (
     <>
-      <ThreePanelLayout
-        leftPanel={leftPanelContent}
-        rightPanel={rightPanelContent}
-        mainContent={mainContent}
-      />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+        <div className="container mx-auto px-4 py-3">
+          {/* Page Header */}
+          <div className="text-center mb-6">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-800 bg-clip-text text-transparent mb-2">
+              Groups
+            </h1>
+          </div>
+
+          {/* Three Columns Layout */}
+          <div style={{ 
+            display: 'flex', 
+            gap: '24px', 
+            maxWidth: '1400px',
+            margin: '0 auto',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            minHeight: 'calc(100vh - 140px)',
+            position: 'relative'
+          }}>
+            
+            {/* Left Panel */}
+            <div style={{ 
+              width: '350px', 
+              flexShrink: 0, 
+              position: 'sticky',
+              top: '10px',
+              alignSelf: 'flex-start',
+              minHeight: 'fit-content'
+            }}>
+              <div style={{ 
+                background: 'white', 
+                borderRadius: '16px', 
+                padding: '16px', 
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
+                border: '1px solid #e5e7eb',
+                maxHeight: 'calc(100vh - 80px)',
+                overflowY: 'auto',
+                overflowX: 'hidden'
+              }}>
+                {leftPanelContent}
+              </div>
+            </div>
+
+            {/* Center Panel */}
+            <div style={{ 
+              width: '600px', 
+              flexShrink: 0, 
+              overflowX: 'hidden',
+              position: 'relative',
+              minHeight: 'calc(100vh - 140px)'
+            }}>
+              {mainContent}
+            </div>
+
+            {/* Right Panel */}
+            <div style={{ 
+              width: '350px', 
+              flexShrink: 0, 
+              position: 'sticky',
+              top: '10px',
+              alignSelf: 'flex-start',
+              minHeight: 'fit-content'
+            }}>
+              <div style={{ 
+                background: 'white', 
+                borderRadius: '16px', 
+                padding: '16px', 
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', 
+                border: '1px solid #e5e7eb',
+                maxHeight: 'calc(100vh - 80px)',
+                overflowY: 'auto',
+                overflowX: 'hidden'
+              }}>
+                {rightPanelContent}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Join Group Modal */}
       <Modal 
