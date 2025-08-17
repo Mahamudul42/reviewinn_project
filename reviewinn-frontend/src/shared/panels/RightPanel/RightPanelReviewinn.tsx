@@ -29,8 +29,18 @@ const RightPanelReviewinn: React.FC<RightPanelReviewinnProps> = ({
   className = "",
   hideInternalLoading = false
 }) => {
-  const { user } = useUnifiedAuth();
+  const { user, isAuthenticated: authStatus } = useUnifiedAuth();
   const { data, loading, error, isAuthenticated, refetch } = useReviewinnRightPanelSingle();
+
+  // Debug logging to ensure right panel always shows logged-in user's data
+  console.log('🔍 RightPanelReviewinn: Current user context:', {
+    currentUserId: user?.id,
+    currentUserUsername: user?.username,
+    isAuthenticated: authStatus,
+    hookIsAuthenticated: isAuthenticated,
+    badgesData: data?.badges?.length || 0,
+    dataType: data?.type
+  });
 
   const handleReview = () => {
     console.log('Review button clicked');
@@ -127,7 +137,9 @@ const RightPanelReviewinn: React.FC<RightPanelReviewinnProps> = ({
         </div>
 
         <div className={PANEL_STYLES.cardWrapper}>
-          <BadgeDisplay badges={data.badges} />
+          {/* IMPORTANT: This should ALWAYS show the logged-in user's badges, 
+              regardless of which profile page is being viewed */}
+          <BadgeDisplay badges={data.badges || []} />
         </div>
 
         <div className={PANEL_STYLES.cardWrapper}>
