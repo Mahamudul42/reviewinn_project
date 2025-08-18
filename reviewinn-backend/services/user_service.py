@@ -88,9 +88,12 @@ class UserService:
         if user_data.username and self.user_repository.find_by_username(user_data.username):
             raise DuplicateError("Username already taken")
         
-        # Create user
+        # Create user with production auth system password hashing
+        from auth.production_auth_system import get_auth_system
+        auth_system = get_auth_system()
+        
         user_dict = user_data.dict(exclude={'password'})
-        user_dict['password_hash'] = self._hash_password(user_data.password)
+        user_dict['password_hash'] = auth_system._hash_password(user_data.password)
         
         user = User(**user_dict)
         created_user = self.user_repository.create(user)
@@ -309,10 +312,15 @@ class UserService:
         )
     
     def _hash_password(self, password: str) -> str:
-        """Hash password using bcrypt."""
-        from passlib.context import CryptContext
-        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-        return pwd_context.hash(password)
+        """
+        DEPRECATED: Password hashing now handled by production auth system.
+        
+        Use auth.production_auth_system.ProductionAuthSystem._hash_password() instead.
+        This method is kept for compatibility but should not be used.
+        """
+        from auth.production_auth_system import get_auth_system
+        auth_system = get_auth_system()
+        return auth_system._hash_password(password)
     
     async def get_user_profile_by_identifier(self, user_identifier: str) -> UserProfileResponse:
         """Get user profile by username or user ID."""

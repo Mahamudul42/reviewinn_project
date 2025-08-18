@@ -12,7 +12,7 @@ from models.user import User as CoreUser
 from schemas.user import UserCreateRequest, UserUpdateRequest, UserProfileResponse
 from core.exceptions.base import ValidationError, ReviewPlatformException
 from core.exceptions.domain_exceptions import UserNotFoundError, DuplicateUserError
-from passlib.context import CryptContext
+from auth.production_auth_system import get_auth_system
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ class CoreUserService:
     def __init__(self, db: Session):
         """Initialize service with database session."""
         self.db = db
-        self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        self.auth_system = get_auth_system()  # Use production auth system
 
     def get_user_by_id(self, user_id: int) -> Optional[CoreUser]:
         """Get user by ID with error handling."""
@@ -137,11 +137,11 @@ class CoreUserService:
             if user_data.username and self.get_user_by_username(user_data.username):
                 raise DuplicateUserError("username", user_data.username)
 
-            # Create new user
+            # Create new user with production auth system
             user = CoreUser(
                 username=user_data.username,
                 email=user_data.email,
-                hashed_password=self.pwd_context.hash(user_data.password),
+                hashed_password=self.auth_system._hash_password(user_data.password),  # Use production password hashing
                 first_name=getattr(user_data, 'first_name', None),
                 last_name=getattr(user_data, 'last_name', None),
                 display_name=getattr(user_data, 'display_name', user_data.username),

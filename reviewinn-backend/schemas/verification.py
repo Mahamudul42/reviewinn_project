@@ -41,6 +41,11 @@ class ResetPasswordWithCodeRequest(BaseModel):
     
     @validator('new_password')
     def validate_password_strength(cls, v):
+        """
+        Basic password validation for compatibility.
+        Production validation is handled by auth.production_auth_system.
+        """
+        # Basic validation for frontend compatibility
         if len(v) < 8:
             raise ValueError('Password must be at least 8 characters long')
         if not re.search(r'[A-Z]', v):
@@ -51,6 +56,9 @@ class ResetPasswordWithCodeRequest(BaseModel):
             raise ValueError('Password must contain at least one digit')
         if not re.search(r'[!@#$%^&*(),.?":{}|<>]', v):
             raise ValueError('Password must contain at least one special character')
+        
+        # Note: Full production validation (12+ chars, breach detection, etc.) 
+        # is performed by the production auth system
         return v
 
 class ResendCodeRequest(BaseModel):

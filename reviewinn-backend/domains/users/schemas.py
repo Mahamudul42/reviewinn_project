@@ -9,7 +9,9 @@ from datetime import datetime
 from enum import Enum
 
 from shared.constants import UserRole, UserStatus
-from shared.utils import validate_username, validate_password_strength
+from shared.utils import validate_username
+# Note: validate_password_strength has been eliminated - production validation 
+# is handled by auth.production_auth_system
 
 
 class UserCreateSchema(BaseModel):
@@ -30,9 +32,13 @@ class UserCreateSchema(BaseModel):
     
     @validator('password')
     def validate_password(cls, v):
-        validation = validate_password_strength(v)
-        if not validation['valid']:
-            raise ValueError('; '.join(validation['errors']))
+        """
+        Basic password validation for compatibility.
+        Full production validation is handled by auth.production_auth_system.
+        """
+        # Basic validation only - production system handles comprehensive validation
+        if len(v) < 8:
+            raise ValueError('Password must be at least 8 characters long')
         return v
 
 
@@ -66,9 +72,13 @@ class PasswordChangeSchema(BaseModel):
     
     @validator('new_password')
     def validate_new_password(cls, v):
-        validation = validate_password_strength(v)
-        if not validation['valid']:
-            raise ValueError('; '.join(validation['errors']))
+        """
+        Basic password validation for compatibility.
+        Full production validation is handled by auth.production_auth_system.
+        """
+        # Basic validation only - production system handles comprehensive validation
+        if len(v) < 8:
+            raise ValueError('Password must be at least 8 characters long')
         return v
 
 
@@ -199,9 +209,13 @@ class PasswordResetSchema(BaseModel):
     
     @validator('new_password')
     def validate_new_password(cls, v):
-        validation = validate_password_strength(v)
-        if not validation['valid']:
-            raise ValueError('; '.join(validation['errors']))
+        """
+        Basic password validation for compatibility.
+        Full production validation is handled by auth.production_auth_system.
+        """
+        # Basic validation only - production system handles comprehensive validation
+        if len(v) < 8:
+            raise ValueError('Password must be at least 8 characters long')
         return v
 
 

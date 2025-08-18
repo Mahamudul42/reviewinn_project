@@ -14,9 +14,8 @@ from core.exceptions import (
 )
 from core.config.settings import get_settings
 from core.config.cache import cache_manager
-from shared.utils import (
-    hash_password, verify_password, sanitize_text
-)
+from shared.utils import sanitize_text
+from auth.production_auth_system import get_auth_system
 from shared.constants import UserRole, UserStatus, CACHE_TTL_MEDIUM
 
 from .repository import UserRepository
@@ -35,6 +34,7 @@ class UserService(IUserService):
     def __init__(self, repository: UserRepository):
         self.repository = repository
         self.settings = get_settings()
+        self.auth_system = get_auth_system()  # Use production auth system
     
     async def create(self, data: Dict[str, Any], user_id: Optional[str] = None) -> User:
         """Create a new user with validation."""
@@ -42,8 +42,8 @@ class UserService(IUserService):
             # Validate input data
             user_data = UserCreateSchema(**data)
             
-            # Hash password
-            password_hash = hash_password(user_data.password)
+            # Hash password using production auth system
+            password_hash = self.auth_system._hash_password(user_data.password)
             
             # Prepare user data
             create_data = {
@@ -75,31 +75,29 @@ class UserService(IUserService):
         return await self.create(user_data)
     
     async def authenticate(self, email: str, password: str) -> Optional[User]:
-        """Authenticate user credentials."""
-        try:
-            # Get user by email
+        """
+        DEPRECATED: Authentication now handled by production auth system.
+        
+        Use auth.production_auth_system.ProductionAuthSystem.authenticate_user() instead.
+        This method is kept for compatibility but should not be used.
+        """
+        logger.warning("Legacy authenticate method called - use production auth system instead")
+        
+        # Redirect to production auth system
+        from database import get_db
+        db = next(get_db())
+        
+        auth_result = await self.auth_system.authenticate_user(
+            identifier=email,
+            password=password,
+            db=db
+        )
+        
+        if auth_result.success:
+            # Convert to domain User model for compatibility
             user = await self.repository.get_by_email(email.lower())
-            if not user:
-                raise InvalidCredentialsError()
-            
-            # Check if user is active
-            if user.status != UserStatus.ACTIVE:
-                raise InvalidCredentialsError()
-            
-            # Verify password
-            if not verify_password(password, user.password_hash):
-                raise InvalidCredentialsError()
-            
-            # Update last login
-            await self.repository.update(user.id, {"last_login_at": datetime.utcnow()})
-            
-            logger.info(f"User authenticated: {user.username}")
             return user
-            
-        except InvalidCredentialsError:
-            raise
-        except Exception as e:
-            logger.error(f"Error in user authentication: {e}")
+        else:
             raise InvalidCredentialsError()
     
     async def get_by_id(self, entity_id: str, user_id: Optional[str] = None) -> Optional[User]:
@@ -183,8 +181,8 @@ class UserService(IUserService):
             if not user:
                 raise UserNotFoundError(user_id)
             
-            # Verify old password
-            if not verify_password(old_password, user.password_hash):
+            # Verify old password using production auth system
+            if not self.auth_system._verify_password(old_password, user.password_hash):
                 raise InvalidCredentialsError()
             
             # Validate new password
@@ -193,8 +191,8 @@ class UserService(IUserService):
                 new_password=new_password
             )
             
-            # Hash new password
-            new_password_hash = hash_password(password_data.new_password)
+            # Hash new password using production auth system
+            new_password_hash = self.auth_system._hash_password(password_data.new_password)
             
             # Update password
             await self.repository.update(int(user_id), {"password_hash": new_password_hash})

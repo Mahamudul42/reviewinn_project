@@ -7,16 +7,18 @@ import asyncio
 import asyncpg
 import os
 from datetime import datetime, timedelta
-import bcrypt
 import sys
+
+# Import production auth system for password hashing
+from auth.production_auth_system import get_auth_system
 
 # Database configuration
 DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/reviewsite_db')
 
-async def hash_password(password: str) -> str:
-    """Hash a password using bcrypt."""
-    salt = bcrypt.gensalt()
-    return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
+def hash_password(password: str) -> str:
+    """Hash a password using production auth system."""
+    auth_system = get_auth_system()
+    return auth_system._hash_password(password)
 
 async def populate_database():
     """Populate the database with sample data."""
@@ -32,8 +34,8 @@ async def populate_database():
         else:
             print("📝 Creating sample users...")
             
-            # Hash password for all sample users
-            hashed_password = await hash_password('password123')
+            # Hash password for all sample users using production auth system
+            hashed_password = hash_password('password123')
             
             # Insert sample users
             users_data = [

@@ -330,10 +330,10 @@ class EnhancedVerificationService:
                 detail="User not found."
             )
         
-        # Hash and update password
-        from passlib.context import CryptContext
-        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-        user.password_hash = pwd_context.hash(new_password)
+        # Hash and update password using production auth system
+        from auth.production_auth_system import get_auth_system
+        auth_system = get_auth_system()
+        user.password_hash = auth_system._hash_password(new_password)
         user.password_reset_at = now
         db.commit()
         

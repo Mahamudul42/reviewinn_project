@@ -10,7 +10,6 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 from email_validator import validate_email, EmailNotValidError
-import bcrypt
 from sqlalchemy.orm import Query
 from sqlalchemy import func
 
@@ -25,18 +24,16 @@ def generate_short_id(length: int = 8) -> str:
     return secrets.token_urlsafe(length)[:length]
 
 
-def hash_password(password: str) -> str:
-    """Hash a password using bcrypt."""
-    salt = bcrypt.gensalt()
-    return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
-
-
-def verify_password(password: str, hashed: str) -> bool:
-    """Verify a password against its hash."""
-    try:
-        return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
-    except Exception:
-        return False
+# LEGACY PASSWORD FUNCTIONS ELIMINATED
+# All password operations now use the production authentication system:
+# - auth.production_auth_system.ProductionAuthSystem._hash_password()
+# - auth.production_auth_system.ProductionAuthSystem._verify_password()
+# 
+# To use password hashing/verification:
+# from auth.production_auth_system import get_auth_system
+# auth_system = get_auth_system()
+# hashed = auth_system._hash_password(password)
+# verified = auth_system._verify_password(password, hashed)
 
 
 
@@ -77,45 +74,22 @@ def validate_username(username: str) -> bool:
     return bool(re.match(pattern, username))
 
 
-def validate_password_strength(password: str) -> Dict[str, Any]:
-    """Validate password strength and return detailed feedback."""
-    result = {
-        "valid": True,
-        "errors": [],
-        "score": 0
-    }
-    
-    if len(password) < 8:
-        result["errors"].append("Password must be at least 8 characters long")
-        result["valid"] = False
-    else:
-        result["score"] += 1
-    
-    if not re.search(r'[a-z]', password):
-        result["errors"].append("Password must contain at least one lowercase letter")
-        result["valid"] = False
-    else:
-        result["score"] += 1
-    
-    if not re.search(r'[A-Z]', password):
-        result["errors"].append("Password must contain at least one uppercase letter")
-        result["valid"] = False
-    else:
-        result["score"] += 1
-    
-    if not re.search(r'\d', password):
-        result["errors"].append("Password must contain at least one number")
-        result["valid"] = False
-    else:
-        result["score"] += 1
-    
-    if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
-        result["errors"].append("Password must contain at least one special character")
-        result["valid"] = False
-    else:
-        result["score"] += 1
-    
-    return result
+# LEGACY PASSWORD VALIDATION ELIMINATED
+# All password validation now uses the production authentication system:
+# - auth.production_auth_system.ProductionAuthSystem._validate_production_password()
+# 
+# The production system provides enterprise-grade password validation including:
+# - 12+ character minimum (production security)
+# - Character complexity requirements
+# - Common pattern detection
+# - Personal information detection
+# - Breach database checking
+# - Advanced security validations
+#
+# To use password validation:
+# from auth.production_auth_system import get_auth_system
+# auth_system = get_auth_system()
+# errors = auth_system._validate_production_password(password, user_data)
 
 
 def format_datetime(dt: datetime, format_type: str = "iso") -> str:
