@@ -11,7 +11,7 @@ import logging
 from database import get_db
 from services.core_user_service import CoreUserService
 from models.user import User as CoreUser
-from auth.dependencies import get_current_user
+from auth.production_dependencies import CurrentUser, RequiredUser
 
 logger = logging.getLogger(__name__)
 security = HTTPBearer()
@@ -230,7 +230,7 @@ async def get_user_profile(
 async def update_user_profile(
     user_id: int,
     profile_data: Dict[str, Any],
-    current_user: CoreUser = Depends(get_current_user),
+    current_user: RequiredUser,
     db: Session = Depends(get_db)
 ):
     """
@@ -346,7 +346,7 @@ async def search_users(
 
 @router.get("/me/interactions")
 async def get_my_interactions(
-    current_user: CoreUser = Depends(get_current_user),
+    current_user: RequiredUser,
     db: Session = Depends(get_db)
 ):
     """
@@ -374,7 +374,7 @@ async def get_my_interactions(
 
 @router.get("/me/profile")
 async def get_my_profile(
-    current_user: CoreUser = Depends(get_current_user),
+    current_user: RequiredUser,
     db: Session = Depends(get_db)
 ):
     """
@@ -402,7 +402,7 @@ async def get_my_profile(
 @router.put("/me/profile")
 async def update_my_profile(
     profile_data: Dict[str, Any],
-    current_user: CoreUser = Depends(get_current_user),
+    current_user: RequiredUser,
     db: Session = Depends(get_db)
 ):
     """
@@ -436,7 +436,7 @@ async def update_my_profile(
 
 @router.post("/me/deactivate")
 async def deactivate_my_account(
-    current_user: CoreUser = Depends(get_current_user),
+    current_user: RequiredUser,
     db: Session = Depends(get_db)
 ):
     """

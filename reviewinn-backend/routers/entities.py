@@ -20,7 +20,6 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
-auth_service = AuthService()
 
 @router.get("/", response_model=None)
 async def get_entities(

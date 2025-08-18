@@ -27,7 +27,6 @@ from models.msg_message_status import (
     MsgMessageStatus, MsgTypingIndicator, MsgUserPresence, 
     MsgThread, MsgMessagePin, MsgMessageMention
 )
-# from core.auth_dependencies import AuthDependencies
 from services.websocket_service import ConnectionManager as WebSocketManager
 
 
