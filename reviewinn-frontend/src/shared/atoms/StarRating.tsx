@@ -1,12 +1,4 @@
-import React from 'react';
-
-// Add custom CSS for shimmer animation
-const shimmerStyle = `
-  @keyframes shimmer {
-    0% { transform: translateX(-100%) skewX(-12deg); }
-    100% { transform: translateX(200%) skewX(-12deg); }
-  }
-`;
+import React, { useState } from 'react';
 
 interface StarRatingProps {
   rating: number;
@@ -17,69 +9,34 @@ interface StarRatingProps {
   onRatingChange?: (rating: number) => void;
   className?: string;
   style?: 'default' | 'golden';
+  disabled?: boolean;
 }
 
+// A component that renders a star icon using an inline SVG.
+// This ensures the component is self-contained and avoids external dependencies.
 const StarIcon: React.FC<{ 
-  filled: boolean; 
-  halfFilled: boolean; 
   size: number; 
-  interactive: boolean;
-  onClick: () => void;
-}> = ({ filled, halfFilled, size, interactive, onClick }) => {
-  const gradientId = `star-gradient-${Math.random().toString(36).substr(2, 9)}`;
-  
-  return (
-    <div 
-      className={`inline-block ${interactive ? 'cursor-pointer transform transition-all duration-300 hover:scale-125 hover:rotate-12 hover:drop-shadow-2xl' : ''} ${filled ? 'animate-in fade-in duration-500' : ''}`}
-      onClick={onClick}
-      style={{ width: size, height: size }}
-    >
-      <svg
-        width={size}
-        height={size}
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className={`drop-shadow-md transition-all duration-300 ${filled ? 'filter drop-shadow-[0_0_8px_rgba(168,85,247,0.4)]' : ''}`}
-      >
-        <defs>
-          <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#C084FC" />
-            <stop offset="50%" stopColor="#A855F7" />
-            <stop offset="100%" stopColor="#9333EA" />
-          </linearGradient>
-          <linearGradient id={`${gradientId}-half`} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#C084FC" />
-            <stop offset="50%" stopColor="#A855F7" />
-            <stop offset="50%" stopColor="transparent" />
-            <stop offset="100%" stopColor="transparent" />
-          </linearGradient>
-        </defs>
-        
-        <path
-          d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-          fill={filled ? `url(#${gradientId})` : halfFilled ? `url(#${gradientId}-half)` : 'none'}
-          stroke={filled || halfFilled ? '#C084FC' : '#D1D5DB'}
-          strokeWidth="1"
-          className={`transition-all duration-300 ${
-            filled ? 'drop-shadow-md' : halfFilled ? 'drop-shadow-sm' : ''
-          }`}
-        />
-        
-        {filled && (
-          <circle
-            cx="12"
-            cy="10"
-            r="1"
-            fill="#F3E8FF"
-            opacity="0.8"
-            className="animate-pulse"
-          />
-        )}
-      </svg>
-    </div>
-  );
-};
+  color: string; 
+  className?: string;
+  onClick?: () => void;
+  onMouseEnter?: () => void;
+  interactive?: boolean;
+}> = ({ size, color, className = '', onClick, onMouseEnter, interactive, ...props }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 576 512"
+    height={size}
+    width={size}
+    fill={color}
+    className={className}
+    onClick={onClick}
+    onMouseEnter={onMouseEnter}
+    style={{ cursor: interactive ? 'pointer' : 'default' }}
+    {...props}
+  >
+    <path d="M316.9 18C324.6 24.6 331.4 32.5 338.8 41.2c16.3 22.4 36.6 63.4 46.2 92.6H496c14.7 0 28 6.9 36.8 19.3s8.8 29.5-0.1 41.5L421.1 292.1c-13.3 14-20.9 33.3-21.6 53.6-0.6 20.3 3.6 40.5 12.3 58.6L465.1 496c4 7.6 2.3 16.9-4.3 22.7s-16.1 5.9-23.7-1.4L288 436.5 138.9 517.3c-7.6 7.2-19.4 6.7-25.7-1.4-6.3-8.2-7.5-20.1-2.2-29.2l39.5-70.2c8.7-18.1 12.9-38.3 12.3-58.6-0.7-20.3-8.3-39.6-21.6-53.6L71.3 209.8c-8.9-12.1-8.9-25.9 0.1-41.5s22.1-19.3 36.8-19.3H200c9.6-29.2 29.9-70.2 46.2-92.6 7.4-8.7 14.2-16.6 21.9-23.2s17.1-10.4 26.6-10.4s19.2 3.7 26.6 10.4z" />
+  </svg>
+);
 
 const StarRating: React.FC<StarRatingProps> = ({ 
   rating, 
@@ -89,14 +46,17 @@ const StarRating: React.FC<StarRatingProps> = ({
   interactive = false,
   onRatingChange,
   className = '',
-  style = 'golden'
+  style = 'golden',
+  disabled = false
 }) => {
+  const [hover, setHover] = useState(0);
+
   const sizeMap = {
     xs: 16,
     sm: 20,
     md: 24,
-    lg: 28,
-    xl: 32
+    lg: 32,
+    xl: 40
   };
   
   const textSizeClasses = {
@@ -109,89 +69,102 @@ const StarRating: React.FC<StarRatingProps> = ({
 
   const safeRating = typeof rating === 'number' && !isNaN(rating) && rating >= 0 ? rating : 0;
 
-  const handleStarClick = (starValue: number) => {
-    if (interactive && onRatingChange) {
+  // Handles click event on a star
+  const handleClick = (starValue: number) => {
+    if (interactive && onRatingChange && !disabled) {
       onRatingChange(starValue);
     }
   };
 
-  const starContainer = style === 'golden' 
-    ? 'flex items-center gap-1 px-4 py-2.5 bg-gradient-to-r from-purple-50/80 via-violet-50/70 to-fuchsia-50/60 border border-purple-200/40 rounded-2xl shadow-lg backdrop-blur-md relative overflow-hidden'
-    : 'flex items-center space-x-1';
+  // Handles mouse enter event on a star
+  const handleMouseEnter = (starValue: number) => {
+    if (interactive && !disabled) {
+      setHover(starValue);
+    }
+  };
 
-  const wrapper = style === 'golden'
-    ? 'inline-block bg-gradient-to-br from-purple-100/20 via-violet-100/30 to-fuchsia-100/20 rounded-3xl p-[2px] shadow-xl backdrop-blur-lg relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-purple-400/50 before:via-violet-400/50 before:to-fuchsia-400/50 before:rounded-3xl before:opacity-60 hover:before:opacity-100 before:transition-opacity before:duration-500'
-    : '';
+  // Handles mouse leave event on the star container
+  const handleMouseLeave = () => {
+    if (interactive && !disabled) {
+      setHover(0);
+    }
+  };
 
-  const innerWrapper = style === 'golden'
-    ? 'bg-white/80 backdrop-blur-sm rounded-3xl p-1 relative z-10'
-    : '';
+  // Get colors based on style and state
+  const getStarColor = (starIndex: number) => {
+    const starValue = starIndex + 1;
+    const isFilled = (hover || safeRating) >= starValue;
+    
+    if (style === 'golden') {
+      return isFilled ? '#A855F7' : '#6B7280'; // Purple-500 for filled, Gray-500 for empty
+    } else {
+      return isFilled ? '#FBBF24' : '#6B7280'; // Yellow-400 for filled, Gray-500 for empty
+    }
+  };
+
+  // Get container styling based on style prop
+  const getContainerStyle = () => {
+    if (style === 'golden') {
+      return `
+        bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl
+        ${interactive ? 'transition-all duration-300 transform hover:scale-105' : ''}
+        px-4 py-3 flex items-center gap-3
+      `;
+    } else {
+      return 'flex items-center gap-1';
+    }
+  };
+
+  const containerClass = getContainerStyle();
 
   return (
-    <>
-      {/* Inject shimmer animation CSS */}
-      <style dangerouslySetInnerHTML={{ __html: shimmerStyle }} />
-      
-      <div className={`${wrapper} ${className} group relative`}>
-        {/* Awesome background glow effect */}
-        {style === 'golden' && (
-          <>
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-400/20 via-violet-400/20 to-fuchsia-400/20 rounded-3xl blur-xl opacity-60 group-hover:opacity-100 transition-opacity duration-500 z-0"></div>
-            <div className="absolute top-2 left-2 w-2 h-2 bg-purple-300/40 rounded-full blur-sm animate-pulse z-20"></div>
-            <div className="absolute bottom-3 right-3 w-1 h-1 bg-violet-400/50 rounded-full blur-sm animate-pulse delay-1000 z-20"></div>
-          </>
-        )}
-        
-        <div className={innerWrapper}>
-          <div className={starContainer}>
-        {/* Decorative shimmer effect */}
-        {style === 'golden' && (
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 opacity-0 group-hover:opacity-100 group-hover:animate-[shimmer_1.5s_ease-in-out] transition-opacity duration-300"></div>
-        )}
-        
-        <div className="flex items-center gap-0.5 relative z-10">
-          {Array.from({ length: maxRating }, (_, index) => {
-            const starValue = index + 1;
-            const isFilled = starValue <= safeRating;
-            const isHalfFilled = !isFilled && starValue - safeRating < 1 && starValue - safeRating > 0;
-            
-            return (
-              <StarIcon
-                key={starValue}
-                filled={isFilled}
-                halfFilled={isHalfFilled}
-                size={sizeMap[size]}
-                interactive={interactive}
-                onClick={() => handleStarClick(starValue)}
-              />
-            );
-          })}
-        </div>
-        
-        {showValue && (
-          <div className="flex items-center ml-3 relative">
-            {/* Glowing background for rating text */}
-            {style === 'golden' && (
-              <div className="absolute inset-0 bg-purple-500/10 rounded-lg blur-sm scale-110"></div>
-            )}
-            <span className={`${textSizeClasses[size]} ${
-              style === 'golden' 
-                ? 'font-extrabold bg-gradient-to-r from-purple-600 via-violet-600 to-purple-700 bg-clip-text text-transparent drop-shadow-sm relative z-10' 
-                : 'text-gray-600 font-medium'
-            }`}>
-              {typeof rating === 'number' && !isNaN(rating) && rating >= 0 ? safeRating.toFixed(1) : 'N/A'}
-            </span>
-            {style === 'golden' && (
-              <span className="text-purple-500/70 text-xs ml-1 font-semibold relative z-10">
-                /{maxRating}
-              </span>
-            )}
-          </div>
-        )}
-          </div>
-        </div>
+    <div className={`${containerClass} ${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
+      <div
+        className="flex justify-center items-center gap-1"
+        onMouseLeave={handleMouseLeave}
+      >
+        {/* Loop to render stars */}
+        {[...Array(maxRating)].map((_, index) => {
+          const starValue = index + 1;
+          const isFilled = (hover || safeRating) >= starValue;
+          const starColor = getStarColor(index);
+          
+          return (
+            <StarIcon
+              key={index}
+              size={sizeMap[size]}
+              color={starColor}
+              className={`
+                transition-transform duration-200 ease-in-out
+                ${interactive && !disabled ? 'cursor-pointer' : ''}
+                ${hover >= starValue && interactive && !disabled ? 'scale-125 drop-shadow-[0_5px_5px_rgba(168,85,247,0.5)]' : ''}
+                ${style === 'golden' && isFilled ? 'drop-shadow-[0_0_8px_rgba(168,85,247,0.4)]' : ''}
+              `}
+              onClick={() => handleClick(starValue)}
+              onMouseEnter={() => handleMouseEnter(starValue)}
+              interactive={interactive && !disabled}
+            />
+          );
+        })}
       </div>
-    </>
+      
+      {showValue && (
+        <div className="flex items-center">
+          <span className={`${textSizeClasses[size]} ${
+            style === 'golden' 
+              ? 'font-bold bg-gradient-to-r from-purple-300 to-violet-300 bg-clip-text text-transparent drop-shadow-sm' 
+              : 'text-gray-600 font-medium'
+          } ml-2`}>
+            {typeof rating === 'number' && !isNaN(rating) && rating >= 0 ? safeRating.toFixed(1) : 'N/A'}
+          </span>
+          {style === 'golden' && (
+            <span className="text-purple-300/70 text-xs ml-1 font-semibold">
+              /{maxRating}
+            </span>
+          )}
+        </div>
+      )}
+    </div>
   );
 };
 
