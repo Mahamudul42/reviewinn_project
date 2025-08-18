@@ -137,13 +137,7 @@ export class HttpClient {
     let token = this.authToken; // First try instance token
     
     if (!token) {
-      // Try the auth store directly for consistency
-      const authState = useAuthStore.getState();
-      token = authState.token;
-    }
-    
-    if (!token) {
-      // Fallback to localStorage
+      // Use only localStorage for consistency
       token = localStorage.getItem('reviewinn_jwt_token');
     }
     

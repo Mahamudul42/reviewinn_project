@@ -82,54 +82,35 @@ export class ReviewInnAuthService implements IAuthService {
 
   isAuthenticated(): boolean {
     const zustandState = useAuthStore.getState();
-    const authServiceAuth = authService.isUserAuthenticated();
-    const hasToken = !!(authService.getToken() || zustandState.token);
-    const hasUser = !!(authService.getCurrentUser() || zustandState.user);
-    
-    // Use Zustand state as primary, but fallback to authService
-    const isAuth = zustandState.isAuthenticated || (authServiceAuth && hasToken && hasUser);
     
     console.log('ReviewInnAuthService.isAuthenticated():', {
       zustandAuth: zustandState.isAuthenticated,
-      authServiceAuth,
-      hasToken,
-      hasUser,
-      result: isAuth
+      result: zustandState.isAuthenticated
     });
     
-    return isAuth;
+    return zustandState.isAuthenticated;
   }
 
   getCurrentUser(): User | null {
     const zustandUser = useAuthStore.getState().user;
-    const authServiceUser = authService.getCurrentUser();
-    
-    // Use Zustand user as primary, fallback to authService
-    const user = zustandUser || authServiceUser;
     
     console.log('ReviewInnAuthService.getCurrentUser():', {
       zustandUser: !!zustandUser,
-      authServiceUser: !!authServiceUser,
-      result: !!user
+      result: !!zustandUser
     });
     
-    return user;
+    return zustandUser;
   }
 
   getToken(): string | null {
     const zustandToken = useAuthStore.getState().token;
-    const authServiceToken = authService.getToken();
-    
-    // Use Zustand token as primary, fallback to authService
-    const token = zustandToken || authServiceToken;
     
     console.log('ReviewInnAuthService.getToken():', {
       zustandToken: !!zustandToken,
-      authServiceToken: !!authServiceToken,
-      result: !!token
+      result: !!zustandToken
     });
     
-    return token;
+    return zustandToken;
   }
 
   isInitialized(): boolean {

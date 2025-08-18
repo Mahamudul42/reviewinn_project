@@ -16,22 +16,8 @@ export class BadgeService {
    */
   async getAllBadges(): Promise<Badge[]> {
     try {
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const response = await fetch(this.baseUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch badges: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      return result.data || result || [];
+      const response = await httpClient.get<Badge[]>(this.baseUrl, true);
+      return response.data || [];
     } catch (error) {
       console.error('Failed to fetch badges:', error);
       // Return default badges as fallback
@@ -44,22 +30,8 @@ export class BadgeService {
    */
   async getUserBadges(userId: string): Promise<UserBadge[]> {
     try {
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const response = await fetch(`${this.baseUrl}/user/${userId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch user badges: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      return result.data || result || [];
+      const response = await httpClient.get<UserBadge[]>(`${this.baseUrl}/user/${userId}`, true);
+      return response.data || [];
     } catch (error) {
       console.error('Failed to fetch user badges:', error);
       return [];
@@ -117,28 +89,8 @@ export class BadgeService {
       const url = `${this.baseUrl}/user/${userId}/registration`;
       console.log('[BadgeService] Attempting to unlock registration badge at:', url);
       
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
-        body: JSON.stringify({}),
-        credentials: 'include',
-      });
-
-      if (response.status === 409) {
-        console.log('[BadgeService] Registration badge already unlocked for user:', userId);
-        return null; // Not an error, just already have the badge
-      }
-
-      if (!response.ok) {
-        throw new Error(`Failed to unlock registration badge: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      return result.data || result || null;
+      const response = await httpClient.post<UserBadge>(url, {});
+      return response.data || null;
     } catch (error: any) {
       console.error('Failed to unlock registration badge:', error);
       console.error('Error details:', {
