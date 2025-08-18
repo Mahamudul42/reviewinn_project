@@ -170,10 +170,6 @@ const EntityListPage: React.FC = () => {
             {/* Page Title */}
             <div className="text-center mb-6">
               <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Browse Entities</h2>
-              <p className="text-gray-600">Discover and explore businesses, services, and organizations</p>
-              {totalEntities > 0 && (
-                <p className="text-sm text-gray-500 mt-1">{totalEntities} entities available</p>
-              )}
             </div>
 
             {/* Search Bar */}

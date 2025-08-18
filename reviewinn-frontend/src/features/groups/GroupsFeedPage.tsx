@@ -588,11 +588,11 @@ const GroupsFeedPage: React.FC = () => {
               onClick={() => setActiveTab(id as TabType)}
               className={`relative flex items-center space-x-3 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-300 transform hover:scale-105 flex-1 justify-center group ${
                 activeTab === id
-                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
-                  : 'text-gray-600 hover:text-gray-800 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 border border-gray-100 hover:border-gray-200 hover:shadow-md'
+                  ? 'bg-gradient-to-r from-purple-700 to-purple-600 text-white shadow-lg ring-2 ring-purple-400'
+                  : 'text-purple-600 hover:text-purple-800 hover:bg-gradient-to-r hover:from-purple-50 hover:to-purple-100 border border-purple-200 hover:border-purple-300 hover:shadow-md'
               }`}
               style={activeTab === id ? { 
-                boxShadow: '0 10px 25px rgba(147, 51, 234, 0.3), 0 4px 12px rgba(99, 102, 241, 0.2)' 
+                boxShadow: '0 10px 25px rgba(126, 34, 206, 0.4), 0 4px 12px rgba(147, 51, 234, 0.3)' 
               } : {}}
             >
               <Icon className={`w-5 h-5 transition-all duration-300 ${activeTab === id ? 'text-white transform rotate-12' : 'group-hover:scale-110'}`} />
