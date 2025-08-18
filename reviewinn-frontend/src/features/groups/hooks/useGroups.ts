@@ -1,6 +1,22 @@
 // Custom hooks for group management
 import { useState, useEffect, useCallback } from 'react';
 
+// Helper function for API requests
+const API_BASE_URL = 'http://localhost:8000/api/v1';
+const makeApiRequest = async (endpoint: string, options: RequestInit = {}) => {
+  const token = localStorage.getItem('reviewinn_jwt_token');
+  const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
+  
+  return fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+      ...options.headers,
+    },
+  });
+};
+
 // Inline types to avoid import issues
 interface GroupUser {
   user_id: number;
@@ -131,12 +147,7 @@ const groupService = {
       });
     }
     
-    const response = await fetch(`/api/v1/groups/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(localStorage.getItem('auth_token') && { Authorization: `Bearer ${localStorage.getItem('auth_token')}` }),
-      },
-    });
+    const response = await makeApiRequest(`/groups/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`);
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -177,12 +188,8 @@ export const useGroups = (initialParams: GroupListParams = {}) => {
   }, [initialParams]);
 
   const createGroup = useCallback(async (groupData: GroupCreateRequest): Promise<Group> => {
-    const response = await fetch('/api/v1/groups/', {
+    const response = await makeApiRequest('/groups/', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(localStorage.getItem('auth_token') && { Authorization: `Bearer ${localStorage.getItem('auth_token')}` }),
-      },
       body: JSON.stringify(groupData),
     });
 
@@ -196,12 +203,8 @@ export const useGroups = (initialParams: GroupListParams = {}) => {
   }, []);
 
   const updateGroup = useCallback(async (groupId: number, updates: GroupUpdateRequest): Promise<Group> => {
-    const response = await fetch(`/api/v1/groups/${groupId}`, {
+    const response = await makeApiRequest(`/groups/${groupId}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(localStorage.getItem('auth_token') && { Authorization: `Bearer ${localStorage.getItem('auth_token')}` }),
-      },
       body: JSON.stringify(updates),
     });
 
@@ -215,12 +218,8 @@ export const useGroups = (initialParams: GroupListParams = {}) => {
   }, []);
 
   const deleteGroup = useCallback(async (groupId: number): Promise<void> => {
-    const response = await fetch(`/api/v1/groups/${groupId}`, {
+    const response = await makeApiRequest(`/groups/${groupId}`, {
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(localStorage.getItem('auth_token') && { Authorization: `Bearer ${localStorage.getItem('auth_token')}` }),
-      },
     });
 
     if (!response.ok) {
@@ -262,12 +261,7 @@ export const useGroup = (groupId?: number) => {
     setError(null);
     
     try {
-      const response = await fetch(`/api/v1/groups/${groupId}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(localStorage.getItem('auth_token') && { Authorization: `Bearer ${localStorage.getItem('auth_token')}` }),
-        },
-      });
+      const response = await makeApiRequest(`/groups/${groupId}`);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -286,12 +280,8 @@ export const useGroup = (groupId?: number) => {
   const joinGroup = useCallback(async (joinReason?: string) => {
     if (!groupId) throw new Error('Group ID is required');
     
-    const response = await fetch(`/api/v1/groups/${groupId}/join`, {
+    const response = await makeApiRequest(`/groups/${groupId}/join`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(localStorage.getItem('auth_token') && { Authorization: `Bearer ${localStorage.getItem('auth_token')}` }),
-      },
       body: JSON.stringify({ join_reason: joinReason }),
     });
 
@@ -307,12 +297,8 @@ export const useGroup = (groupId?: number) => {
   const leaveGroup = useCallback(async () => {
     if (!groupId) throw new Error('Group ID is required');
     
-    const response = await fetch(`/api/v1/groups/${groupId}/leave`, {
+    const response = await makeApiRequest(`/groups/${groupId}/leave`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(localStorage.getItem('auth_token') && { Authorization: `Bearer ${localStorage.getItem('auth_token')}` }),
-      },
     });
 
     if (!response.ok) {

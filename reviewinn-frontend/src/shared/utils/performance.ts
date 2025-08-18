@@ -288,7 +288,7 @@ export const withPerformanceTracking = <P extends object>(
 
 // Bundle size tracking (development only)
 export const trackBundleSize = () => {
-  if (process.env.NODE_ENV === 'development') {
+  if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
     const observer = new PerformanceObserver((list) => {
       list.getEntries().forEach((entry) => {
         if (entry.entryType === 'navigation') {
@@ -337,7 +337,7 @@ export const inlineCriticalCSS = (css: string) => {
 
 // Service Worker utilities
 export const registerServiceWorker = async (swPath: string = '/sw.js') => {
-  if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+  if ('serviceWorker' in navigator && typeof process !== 'undefined' && process.env?.NODE_ENV === 'production') {
     try {
       const registration = await navigator.serviceWorker.register(swPath);
       console.log('SW registered: ', registration);

@@ -75,7 +75,7 @@ class EntityErrorBoundary extends Component<Props, State> {
               </p>
 
               {/* Error details (only in development) */}
-              {process.env.NODE_ENV === 'development' && this.state.error && (
+              {typeof process !== 'undefined' && process.env?.NODE_ENV === 'development' && this.state.error && (
                 <details className="mb-6 text-left">
                   <summary className="cursor-pointer text-sm text-gray-500 mb-2">
                     Error Details

@@ -1,4 +1,3 @@
-import { httpClient } from '../httpClient';
 import { API_CONFIG, API_ENDPOINTS } from '../config';
 import type { Review, ReviewFormData, ReviewTemplate } from '../../types';
 import { EntityCategory } from '../../types';
@@ -233,14 +232,21 @@ export class ReviewService {
     searchParams.append('include_engagement_stats', 'true');
 
     const url = `${this.baseUrl}?${searchParams.toString()}`;
-    const response = await httpClient.get<{ 
-      reviews: Review[]; 
-      total: number; 
-      page: number;
-      limit: number;
-      pages: number;
-      has_more?: boolean;  // Add the new efficient pagination flag
-    }>(url, true);
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const fetchResponse = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      credentials: 'include',
+    });
+
+    if (!fetchResponse.ok) {
+      throw new Error(`Failed to get reviews: ${fetchResponse.statusText}`);
+    }
+
+    const response = await fetchResponse.json();
     
     const data = response.data || { reviews: [], total: 0, page: 1, limit: 20, pages: 0 };
     
@@ -259,7 +265,21 @@ export class ReviewService {
    */
   async getReviewById(id: string): Promise<Review | null> {
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.GET_BY_ID(id)}`;
-    const response = await httpClient.get<Review>(url, true);
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const fetchResponse = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      credentials: 'include',
+    });
+
+    if (!fetchResponse.ok) {
+      throw new Error(`Failed to get review: ${fetchResponse.statusText}`);
+    }
+
+    const response = await fetchResponse.json();
     
     return response.data || null;
   }
@@ -281,7 +301,21 @@ export class ReviewService {
     };
   } | null> {
     const url = `${API_CONFIG.BASE_URL}/reviews/${id}`;
-    const response = await httpClient.get(url, true);
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const fetchResponse = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      credentials: 'include',
+    });
+
+    if (!fetchResponse.ok) {
+      throw new Error(`Failed to get shareable review: ${fetchResponse.statusText}`);
+    }
+
+    const response = await fetchResponse.json();
     
     if (!response.data) return null;
     
@@ -323,7 +357,21 @@ export class ReviewService {
     email_share: string;
   } | null> {
     const url = `${API_CONFIG.BASE_URL}/reviews/${id}/share-metadata`;
-    const response = await httpClient.get(url, true);
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const fetchResponse = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      credentials: 'include',
+    });
+
+    if (!fetchResponse.ok) {
+      throw new Error(`Failed to get review share metadata: ${fetchResponse.statusText}`);
+    }
+
+    const response = await fetchResponse.json();
     
     return response.data || null;
   }
@@ -394,16 +442,21 @@ export class ReviewService {
     try {
       // Use the same optimized endpoint as homepage for consistent data structure
       const url = `${API_CONFIG.BASE_URL}/homepage/search_reviews?${searchParams.toString()}`;
-      const response = await httpClient.get<{
-        success: boolean;
-        data: any[];
-        pagination: {
-          limit: number;
-          has_more: boolean;
-          total: number | null;
-        };
-        message: string;
-      }>(url, true);
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const fetchResponse = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        credentials: 'include',
+      });
+
+      if (!fetchResponse.ok) {
+        throw new Error(`Failed to search reviews: ${fetchResponse.statusText}`);
+      }
+
+      const response = await fetchResponse.json();
 
       if (!response.success || !response.data) {
         throw new Error('Search response was not successful');
@@ -540,7 +593,22 @@ export class ReviewService {
     
     let response;
     try {
-      response = await httpClient.post<any>(url, backendData);
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const fetchResponse = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        body: JSON.stringify(backendData),
+        credentials: 'include',
+      });
+
+      if (!fetchResponse.ok) {
+        throw new Error(`Failed to create review: ${fetchResponse.statusText}`);
+      }
+
+      response = await fetchResponse.json();
       console.log('Backend response:', response);
       
       if (!response.success || !response.data) {
@@ -613,12 +681,27 @@ export class ReviewService {
     }
 
     try {
-      const response = await httpClient.get(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.USERS.ME}`);
-      if (response.data) {
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.USERS.ME}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        credentials: 'include',
+      });
+
+      if (!fetchResponse.ok) {
+        throw new Error(`Failed to get current user: ${fetchResponse.statusText}`);
+      }
+
+      const response = await fetchResponse.json();
+      if (response.data || response) {
+        const userData = response.data || response;
         return {
-          id: response.data.user_id?.toString() || '',
-          name: response.data.full_name || response.data.name || response.data.username || '',
-          username: response.data.username || '',
+          id: userData.user_id?.toString() || '',
+          name: userData.full_name || userData.name || userData.username || '',
+          username: userData.username || '',
           avatar: 'https://images.pexels.com/photos/1138903/pexels-photo-1138903.jpeg'
         };
       }
@@ -639,7 +722,22 @@ export class ReviewService {
    */
   async updateReview(id: string, reviewData: Partial<ReviewFormData>): Promise<Review> {
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.UPDATE(id)}`;
-    const response = await httpClient.put<Review>(url, reviewData);
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const fetchResponse = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      body: JSON.stringify(reviewData),
+      credentials: 'include',
+    });
+
+    if (!fetchResponse.ok) {
+      throw new Error(`Failed to update review: ${fetchResponse.statusText}`);
+    }
+
+    const response = await fetchResponse.json();
     
     if (!response.data) {
       throw new Error('Failed to update review');
@@ -653,7 +751,19 @@ export class ReviewService {
    */
   async deleteReview(id: string): Promise<void> {
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.DELETE(id)}`;
-    await httpClient.delete(url);
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const fetchResponse = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      credentials: 'include',
+    });
+
+    if (!fetchResponse.ok) {
+      throw new Error(`Failed to delete review: ${fetchResponse.statusText}`);
+    }
   }
 
   /**
@@ -661,7 +771,20 @@ export class ReviewService {
    */
   async voteReview(reviewId: string, voteType: 'helpful' | 'not_helpful' | 'spam' | 'inappropriate'): Promise<void> {
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.VOTE(reviewId)}`;
-    await httpClient.post(url, { type: voteType });
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const fetchResponse = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      body: JSON.stringify({ type: voteType }),
+      credentials: 'include',
+    });
+
+    if (!fetchResponse.ok) {
+      throw new Error(`Failed to vote review: ${fetchResponse.statusText}`);
+    }
   }
 
   /**
@@ -669,7 +792,20 @@ export class ReviewService {
    */
   async reportReview(reviewId: string, reason: 'spam' | 'inappropriate' | 'fake' | 'offensive' | 'other', description?: string): Promise<void> {
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.REPORT(reviewId)}`;
-    await httpClient.post(url, { reason, description });
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const fetchResponse = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      body: JSON.stringify({ reason, description }),
+      credentials: 'include',
+    });
+
+    if (!fetchResponse.ok) {
+      throw new Error(`Failed to report review: ${fetchResponse.statusText}`);
+    }
   }
 
   /**
@@ -678,7 +814,21 @@ export class ReviewService {
   async getRecentReviews(limit: number = 10): Promise<Review[]> {
     limit = Math.min(limit, this.MAX_LIMIT);
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.RECENT}?limit=${limit}`;
-    const response = await httpClient.get<Review[]>(url, true);
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const fetchResponse = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      credentials: 'include',
+    });
+
+    if (!fetchResponse.ok) {
+      throw new Error(`Failed to get recent reviews: ${fetchResponse.statusText}`);
+    }
+
+    const response = await fetchResponse.json();
     
     return response.data || [];
   }
@@ -689,7 +839,21 @@ export class ReviewService {
   async getTrendingReviews(limit: number = 10): Promise<Review[]> {
     limit = Math.min(limit, this.MAX_LIMIT);
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.TRENDING}?limit=${limit}`;
-    const response = await httpClient.get<Review[]>(url, true);
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const fetchResponse = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      credentials: 'include',
+    });
+
+    if (!fetchResponse.ok) {
+      throw new Error(`Failed to get trending reviews: ${fetchResponse.statusText}`);
+    }
+
+    const response = await fetchResponse.json();
     
     return response.data || [];
   }
@@ -704,7 +868,21 @@ export class ReviewService {
     if (subcategory) searchParams.append('subcategory', subcategory);
 
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.TEMPLATES}?${searchParams.toString()}`;
-    const response = await httpClient.get<ReviewTemplate[]>(url, true);
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const fetchResponse = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      credentials: 'include',
+    });
+
+    if (!fetchResponse.ok) {
+      throw new Error(`Failed to get review templates: ${fetchResponse.statusText}`);
+    }
+
+    const response = await fetchResponse.json();
     
     return response.data || [];
   }
@@ -714,7 +892,22 @@ export class ReviewService {
    */
   async createReviewTemplate(templateData: Omit<ReviewTemplate, 'id' | 'usageCount'>): Promise<ReviewTemplate> {
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.CREATE_TEMPLATE}`;
-    const response = await httpClient.post<ReviewTemplate>(url, templateData);
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const fetchResponse = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      body: JSON.stringify(templateData),
+      credentials: 'include',
+    });
+
+    if (!fetchResponse.ok) {
+      throw new Error(`Failed to create review template: ${fetchResponse.statusText}`);
+    }
+
+    const response = await fetchResponse.json();
     
     if (!response.data) {
       throw new Error('Failed to create review template');
@@ -784,7 +977,21 @@ export class ReviewService {
     };
   }> {
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.GET_BY_ID(entityId)}/review-stats`;
-    const response = await httpClient.get(url, true);
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const fetchResponse = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      credentials: 'include',
+    });
+
+    if (!fetchResponse.ok) {
+      throw new Error(`Failed to get entity review stats: ${fetchResponse.statusText}`);
+    }
+
+    const response = await fetchResponse.json();
     
     return response.data || {
       totalReviews: 0,
@@ -807,7 +1014,22 @@ export class ReviewService {
     }
     
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.ADD_REACTION(reviewId)}`;
-    const response = await httpClient.post(url, { reaction_type: reactionType });
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const fetchResponse = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      body: JSON.stringify({ reaction_type: reactionType }),
+      credentials: 'include',
+    });
+
+    if (!fetchResponse.ok) {
+      throw new Error(`Failed to add reaction: ${fetchResponse.statusText}`);
+    }
+
+    const response = await fetchResponse.json();
     
     // Update local interaction cache with the reaction
     userInteractionService.updateUserInteraction(reviewId, { 
@@ -831,7 +1053,21 @@ export class ReviewService {
     }
     
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.REMOVE_REACTION(reviewId)}`;
-    const response = await httpClient.delete(url);
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const fetchResponse = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      credentials: 'include',
+    });
+
+    if (!fetchResponse.ok) {
+      throw new Error(`Failed to remove reaction: ${fetchResponse.statusText}`);
+    }
+
+    const response = await fetchResponse.json();
     
     // Update local interaction cache to remove the reaction but keep other interactions
     const existingInteraction = userInteractionService.getUserInteraction(reviewId);
@@ -863,7 +1099,21 @@ export class ReviewService {
     }
     
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.REACTIONS(reviewId)}`;
-    const response = await httpClient.get(url, true);
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const fetchResponse = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      credentials: 'include',
+    });
+
+    if (!fetchResponse.ok) {
+      throw new Error(`Failed to get reaction counts: ${fetchResponse.statusText}`);
+    }
+
+    const response = await fetchResponse.json();
     
     // Enhance response with cached user reaction if available
     const cachedReaction = userInteractionService.getUserReaction(reviewId);

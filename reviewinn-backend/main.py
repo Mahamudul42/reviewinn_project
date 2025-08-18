@@ -234,7 +234,7 @@ class APIApplication(LoggerMixin):
         app.include_router(category_questions_router, prefix="/api/v1/category-questions", tags=["category-questions"])
         app.include_router(ai_categories_router, prefix="/api/v1/ai-categories", tags=["ai-categories"])
         app.include_router(reviewinn_left_panel_router, prefix="/api/v1/reviewinn-left-panel", tags=["reviewinn-left-panel"])
-        app.include_router(reviewinn_right_panel_router, tags=["reviewinn-right-panel"])
+        app.include_router(reviewinn_right_panel_router)
         app.include_router(badges_router, tags=["badges"])
         app.include_router(groups_router, prefix="/api/v1/groups", tags=["groups"])
         

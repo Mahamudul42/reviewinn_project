@@ -27,7 +27,7 @@ const AdaptiveGatedContent: React.FC<AdaptiveGatedContentProps> = ({
   const adaptiveLimit = calculateAdaptiveLimit(totalItems, preferredLimit);
 
   // Debug info - only in development
-  if (process.env.NODE_ENV === 'development') {
+  if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
     console.log('🔄 Adaptive Gating:', {
       totalItems,
       preferredLimit,

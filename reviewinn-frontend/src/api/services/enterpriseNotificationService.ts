@@ -94,7 +94,7 @@ export interface NotificationBulkUpdate {
 }
 
 class EnterpriseNotificationService {
-  private baseUrl = `${API_CONFIG.BASE_URL}/enterprise-notifications`;
+  private baseUrl = `http://localhost:8000/api/v1/enterprise-notifications`;
   private cache = new Map<string, { data: any; timestamp: number }>();
   private readonly cacheTimeout = 30000; // 30 seconds cache for real-time feel
 
@@ -118,9 +118,7 @@ class EnterpriseNotificationService {
       this.setCachedData(cacheKey, data);
       return data;
     } catch (error: any) {
-      console.error('Failed to fetch notification dropdown:', error);
-      
-      // Return empty state on error
+      // Silently return empty data when service is not available
       return {
         notifications: [],
         unread_count: 0,
@@ -142,15 +140,28 @@ class EnterpriseNotificationService {
     }
 
     try {
-      const response = await httpClient.get(`${this.baseUrl}/summary`);
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const fetchResponse = await fetch(`${this.baseUrl}/summary`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        credentials: 'include',
+      });
+
+      if (!fetchResponse.ok) {
+        throw new Error(`Failed to fetch notification summary: ${fetchResponse.statusText}`);
+      }
+
+      const response = await fetchResponse.json();
       
       // Standardized response handling
       const data = response?.data || response;
       this.setCachedData(cacheKey, data);
       return data;
     } catch (error: any) {
-      console.error('Failed to fetch notification summary:', error);
-      
+      // Silently return empty data when service is not available
       return {
         total_unread: 0,
         total_urgent: 0,

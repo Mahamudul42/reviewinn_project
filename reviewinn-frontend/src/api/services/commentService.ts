@@ -1,4 +1,3 @@
-import { httpClient } from '../httpClient';
 import { API_CONFIG, API_ENDPOINTS } from '../config';
 import type { Comment } from '../../types';
 
@@ -70,7 +69,21 @@ export class CommentService {
     }
     
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.COMMENTS(reviewId)}?${queryParams.toString()}`;
-    const response = await httpClient.get<ApiCommentListResponse>(url);
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const fetchResponse = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      credentials: 'include',
+    });
+
+    if (!fetchResponse.ok) {
+      throw new Error(`Failed to get comments: ${fetchResponse.statusText}`);
+    }
+
+    const response = await fetchResponse.json();
     
     if (!response.data) {
       throw new Error('Failed to fetch comments');
@@ -148,8 +161,22 @@ export class CommentService {
    */
   async getCommentCount(reviewId: string): Promise<number> {
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.COMMENT_COUNT(reviewId)}`;
-    const response = await httpClient.get<{ count: number }>(url);
-    return response.data?.count || 0;
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const fetchResponse = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      credentials: 'include',
+    });
+
+    if (!fetchResponse.ok) {
+      throw new Error(`Failed to get comment count: ${fetchResponse.statusText}`);
+    }
+
+    const response = await fetchResponse.json();
+    return response.data?.count || response.count || 0;
   }
 
   /**
@@ -166,9 +193,22 @@ export class CommentService {
     console.log('Auth token available:', !!localStorage.getItem('reviewinn_jwt_token'));
     
     try {
-      const response = await httpClient.post<ApiCommentResponse>(url, {
-        content: commentData.content
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const fetchResponse = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        body: JSON.stringify({ content: commentData.content }),
+        credentials: 'include',
       });
+
+      if (!fetchResponse.ok) {
+        throw new Error(`Failed to create comment: ${fetchResponse.statusText}`);
+      }
+
+      const response = await fetchResponse.json();
       
       if (!response.data) {
         throw new Error('Failed to create comment - no response data');
@@ -202,7 +242,19 @@ export class CommentService {
    */
   async deleteComment(reviewId: string, commentId: string): Promise<void> {
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.COMMENT_DETAIL(reviewId, commentId)}`;
-    await httpClient.delete(url);
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const fetchResponse = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      credentials: 'include',
+    });
+
+    if (!fetchResponse.ok) {
+      throw new Error(`Failed to delete comment: ${fetchResponse.statusText}`);
+    }
   }
 
   /**
@@ -210,8 +262,23 @@ export class CommentService {
    */
   async addOrUpdateReaction(commentId: string, reactionType: string): Promise<any> {
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.COMMENT_REACTIONS(commentId)}`;
-    const response = await httpClient.post(url, { reaction_type: reactionType });
-    return response.data;
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const fetchResponse = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      body: JSON.stringify({ reaction_type: reactionType }),
+      credentials: 'include',
+    });
+
+    if (!fetchResponse.ok) {
+      throw new Error(`Failed to add comment reaction: ${fetchResponse.statusText}`);
+    }
+
+    const response = await fetchResponse.json();
+    return response.data || response;
   }
 
   /**

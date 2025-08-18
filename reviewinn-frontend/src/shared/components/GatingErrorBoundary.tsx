@@ -29,7 +29,7 @@ class GatingErrorBoundary extends Component<Props, State> {
       return this.props.fallback || (
         <div className="w-full">
           {this.props.children}
-          {process.env.NODE_ENV === 'development' && (
+          {typeof process !== 'undefined' && process.env?.NODE_ENV === 'development' && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-4">
               <h4 className="text-red-800 font-medium mb-2">Gating System Error</h4>
               <p className="text-red-600 text-sm">

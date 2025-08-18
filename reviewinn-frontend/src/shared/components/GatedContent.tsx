@@ -49,7 +49,7 @@ const EnhancedGatedContent: React.FC<EnhancedGatedContentProps> = ({
   const progressPercentage = totalItems > 0 ? Math.min((effectiveLimit / Math.max(totalItems, publicItemsLimit)) * 100, 100) : 0;
 
   // Debug info - only in development
-  if (process.env.NODE_ENV === 'development') {
+  if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
     console.log('🔍 Enhanced Gating Debug:', {
       isAuthenticated,
       totalItems,

@@ -4,7 +4,6 @@
  * Provides a single, consistent interface for all entity operations
  */
 
-import { httpClient } from '../httpClient';
 import { API_CONFIG, API_ENDPOINTS } from '../config';
 import type { 
   Entity, 
@@ -133,7 +132,21 @@ class EntityService {
       const url = `${this.baseUrl}/?${searchParams.toString()}`;
       console.log('🏢 EntityService: API call to:', url);
       console.log('🏢 EntityService: Search params:', Object.fromEntries(searchParams.entries()));
-      const response = await httpClient.get<EntityApiResponse>(url);
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const fetchResponse = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        credentials: 'include',
+      });
+
+      if (!fetchResponse.ok) {
+        throw new Error(`Failed to get entities: ${fetchResponse.statusText}`);
+      }
+
+      const response = await fetchResponse.json();
       
       if (!response.success) {
         throw new Error('Failed to fetch entities');
@@ -249,7 +262,22 @@ class EntityService {
         final_category_id: filters.selectedFinalCategory?.id
       };
       
-      const response = await httpClient.post<EntityApiResponse>(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.SEARCH}`, searchParams);
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.SEARCH}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        body: JSON.stringify(searchParams),
+        credentials: 'include',
+      });
+
+      if (!fetchResponse.ok) {
+        throw new Error(`Failed to search entities: ${fetchResponse.statusText}`);
+      }
+
+      const response = await fetchResponse.json();
       
       if (!response.success) {
         throw new Error('Failed to search entities');
@@ -282,9 +310,21 @@ class EntityService {
   async getEntityById(id: string): Promise<Entity | null> {
     try {
       // First try the direct endpoint
-      const response = await httpClient.get<{ success: boolean; data: any }>(
-        `${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.GET_BY_ID(id)}`
-      );
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.GET_BY_ID(id)}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        credentials: 'include',
+      });
+
+      if (!fetchResponse.ok) {
+        throw new Error(`Failed to get entity by ID: ${fetchResponse.statusText}`);
+      }
+
+      const response = await fetchResponse.json();
       
       if (response.success && response.data) {
         const entity = response.data as any;
@@ -388,10 +428,22 @@ class EntityService {
       console.log('🖼️ entityService.createEntity - Final payload for core_entities:', backendPayload);
       console.log('🖼️ entityService.createEntity - Payload avatar field:', backendPayload.avatar);
 
-      const response = await httpClient.post<{ success: boolean; data: Entity }>(
-        `${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.CREATE}`,
-        backendPayload
-      );
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.CREATE}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        body: JSON.stringify(backendPayload),
+        credentials: 'include',
+      });
+
+      if (!fetchResponse.ok) {
+        throw new Error(`Failed to create entity: ${fetchResponse.statusText}`);
+      }
+
+      const response = await fetchResponse.json();
       
       if (!response.success || !response.data) {
         throw new Error('Failed to create entity');
@@ -410,10 +462,22 @@ class EntityService {
    */
   async updateEntity(id: string, entityData: Partial<EntityFormData>): Promise<Entity> {
     try {
-      const response = await httpClient.put<{ success: boolean; data: Entity }>(
-        `${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.UPDATE(id)}`,
-        entityData
-      );
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.UPDATE(id)}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        body: JSON.stringify(entityData),
+        credentials: 'include',
+      });
+
+      if (!fetchResponse.ok) {
+        throw new Error(`Failed to update entity: ${fetchResponse.statusText}`);
+      }
+
+      const response = await fetchResponse.json();
       
       if (!response.success || !response.data) {
         throw new Error('Failed to update entity');
@@ -432,10 +496,22 @@ class EntityService {
    */
   async deleteEntity(id: string, deleteRequest?: { confirmation: string; reason?: string }): Promise<void> {
     try {
-      const response = await httpClient.delete<{ success: boolean }>(
-        `${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.DELETE(id)}`,
-        deleteRequest
-      );
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.DELETE(id)}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        body: deleteRequest ? JSON.stringify(deleteRequest) : undefined,
+        credentials: 'include',
+      });
+
+      if (!fetchResponse.ok) {
+        throw new Error(`Failed to delete entity: ${fetchResponse.statusText}`);
+      }
+
+      const response = await fetchResponse.json();
       
       if (!response.success) {
         throw new Error('Failed to delete entity');
@@ -452,9 +528,21 @@ class EntityService {
    */
   async getTrendingEntities(limit: number = 10): Promise<Entity[]> {
     try {
-      const response = await httpClient.get<{ success: boolean; data: { entities: Entity[] } }>(
-        `${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.TRENDING}?limit=${limit}`
-      );
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.TRENDING}?limit=${limit}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        credentials: 'include',
+      });
+
+      if (!fetchResponse.ok) {
+        throw new Error(`Failed to get trending entities: ${fetchResponse.statusText}`);
+      }
+
+      const response = await fetchResponse.json();
       
       if (!response.success) {
         throw new Error('Failed to fetch trending entities');
@@ -480,9 +568,21 @@ class EntityService {
    */
   async getEntityStats(entityId: string): Promise<EntityStatsResponse['data']> {
     try {
-      const response = await httpClient.get<EntityStatsResponse>(
-        `${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.STATS(entityId)}`
-      );
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.STATS(entityId)}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        credentials: 'include',
+      });
+
+      if (!fetchResponse.ok) {
+        throw new Error(`Failed to get entity stats: ${fetchResponse.statusText}`);
+      }
+
+      const response = await fetchResponse.json();
       
       if (!response.success) {
         throw new Error('Failed to fetch entity statistics');
@@ -501,9 +601,21 @@ class EntityService {
    */
   async getSimilarEntities(entityId: string, limit: number = 5): Promise<Entity[]> {
     try {
-      const response = await httpClient.get<{ success: boolean; data: { entities: Entity[] } }>(
-        `${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.SIMILAR(entityId)}?limit=${limit}`
-      );
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.SIMILAR(entityId)}?limit=${limit}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        credentials: 'include',
+      });
+
+      if (!fetchResponse.ok) {
+        throw new Error(`Failed to get similar entities: ${fetchResponse.statusText}`);
+      }
+
+      const response = await fetchResponse.json();
       
       if (!response.success) {
         return [];
@@ -522,10 +634,22 @@ class EntityService {
    */
   async recordEntityView(entityId: string, userId: string): Promise<boolean> {
     try {
-      const response = await httpClient.post<{ success: boolean }>(
-        `${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.TRACK_VIEW(entityId)}`,
-        { user_id: userId }
-      );
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.TRACK_VIEW(entityId)}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        body: JSON.stringify({ user_id: userId }),
+        credentials: 'include',
+      });
+
+      if (!fetchResponse.ok) {
+        throw new Error(`Failed to track entity view: ${fetchResponse.statusText}`);
+      }
+
+      const response = await fetchResponse.json();
       
       return response.success;
       
@@ -540,9 +664,21 @@ class EntityService {
    */
   async claimEntity(entityId: string): Promise<{ message: string; entity: Entity }> {
     try {
-      const response = await httpClient.post<{ success: boolean; data: { message: string; entity: Entity } }>(
-        `${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.CLAIM(entityId)}`
-      );
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.CLAIM(entityId)}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        credentials: 'include',
+      });
+
+      if (!fetchResponse.ok) {
+        throw new Error(`Failed to claim entity: ${fetchResponse.statusText}`);
+      }
+
+      const response = await fetchResponse.json();
       
       if (!response.success || !response.data) {
         throw new Error('Failed to claim entity');
@@ -561,9 +697,21 @@ class EntityService {
    */
   async unclaimEntity(entityId: string): Promise<{ message: string; entity: Entity }> {
     try {
-      const response = await httpClient.post<{ success: boolean; data: { message: string; entity: Entity } }>(
-        `${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.UNCLAIM(entityId)}`
-      );
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.UNCLAIM(entityId)}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        credentials: 'include',
+      });
+
+      if (!fetchResponse.ok) {
+        throw new Error(`Failed to unclaim entity: ${fetchResponse.statusText}`);
+      }
+
+      const response = await fetchResponse.json();
       
       if (!response.success || !response.data) {
         throw new Error('Failed to unclaim entity');
@@ -639,7 +787,21 @@ class EntityService {
       
       const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.BY_USER(userId)}?${searchParams.toString()}`;
       // Making API call to get user entities
-      const response = await httpClient.get<EntityApiResponse>(url);
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const fetchResponse = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        credentials: 'include',
+      });
+
+      if (!fetchResponse.ok) {
+        throw new Error(`Failed to get user entities: ${fetchResponse.statusText}`);
+      }
+
+      const response = await fetchResponse.json();
       
       if (!response.success) {
         console.error('EntityService.getEntitiesByUser: API returned error:', response);
@@ -703,14 +865,22 @@ class EntityService {
     matrix: Record<string, Record<string, number | string>>; 
   }> {
     try {
-      const response = await httpClient.post<{ 
-        success: boolean; 
-        data: { 
-          entities: Entity[]; 
-          criteria: string[]; 
-          matrix: Record<string, Record<string, number | string>>; 
-        } 
-      }>(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.COMPARE}`, { entityIds });
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.COMPARE}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        body: JSON.stringify({ entityIds }),
+        credentials: 'include',
+      });
+
+      if (!fetchResponse.ok) {
+        throw new Error(`Failed to compare entities: ${fetchResponse.statusText}`);
+      }
+
+      const response = await fetchResponse.json();
       
       if (!response.success || !response.data) {
         throw new Error('Failed to compare entities');
@@ -736,13 +906,22 @@ class EntityService {
     failed: Array<{ id: string; error: string }>; 
   }> {
     try {
-      const response = await httpClient.post<{ 
-        success: boolean; 
-        data: { 
-          success: string[]; 
-          failed: Array<{ id: string; error: string }>; 
-        } 
-      }>(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.BULK_OPERATIONS}`, { operations });
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.BULK_OPERATIONS}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        body: JSON.stringify({ operations }),
+        credentials: 'include',
+      });
+
+      if (!fetchResponse.ok) {
+        throw new Error(`Failed to perform bulk operations: ${fetchResponse.statusText}`);
+      }
+
+      const response = await fetchResponse.json();
       
       if (!response.success || !response.data) {
         throw new Error('Failed to perform bulk operations');

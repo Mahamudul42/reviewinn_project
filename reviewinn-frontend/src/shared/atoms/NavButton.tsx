@@ -9,7 +9,7 @@ interface NavButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 const NavButton: React.FC<NavButtonProps> = ({ active, children, className = '', ...props }) => (
   <button
     className={`flex items-center space-x-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${
-      active ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+      active ? 'bg-purple-600 text-white shadow-sm' : 'text-gray-600 hover:text-purple-600'
     } ${className}`}
     {...props}
   >

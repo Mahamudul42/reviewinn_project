@@ -51,7 +51,7 @@ class CircleErrorBoundary extends Component<Props, State> {
               <span>Refresh Page</span>
             </button>
             
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {typeof process !== 'undefined' && process.env?.NODE_ENV === 'development' && this.state.error && (
               <details className="mt-4 text-left">
                 <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
                   Error Details (Development)

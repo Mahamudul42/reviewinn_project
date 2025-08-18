@@ -313,7 +313,7 @@ export const useIsLoading = (key: string) => {
 };
 
 export const useShowToast = () => {
-  const addToast = useToastActions().addToast;
+  const addToast = useUIStore(state => state.addToast);
   
   return {
     showSuccess: (title: string, message?: string) => addToast({ type: 'success', title, message }),

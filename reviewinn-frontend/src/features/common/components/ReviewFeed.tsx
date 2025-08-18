@@ -6,6 +6,8 @@ import GatingErrorBoundary from '../../../shared/components/GatingErrorBoundary'
 import { useReviewGating } from '../../../shared/hooks/useGatedContent';
 import { GATING_CONFIG, getGateMessage, getPublicLimit } from '../../../config/gating';
 import { useUnifiedAuth } from '../../../hooks/useUnifiedAuth';
+// Use Vite environment variables directly
+const isDevelopment = import.meta.env.DEV;
 import type { Review, Entity } from '../../../types';
 
 interface ReviewFeedProps {
@@ -67,7 +69,7 @@ const ReviewFeed: React.FC<ReviewFeedProps> = ({
   };
 
   // Debug logging - only in development
-  if (process.env.NODE_ENV === 'development') {
+  if (isDevelopment) {
     console.log('🔍 ReviewFeed Debug:', {
       isAuthenticated,
       isLoading,

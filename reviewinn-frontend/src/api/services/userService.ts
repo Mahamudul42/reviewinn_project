@@ -1,5 +1,4 @@
-import { httpClient } from '../httpClient';
-import { API_CONFIG, API_ENDPOINTS } from '../config';
+import { API_ENDPOINTS } from '../config';
 import type { User, UserProfile, UserPreferences, UserStats, Badge, DailyTask, Notification, Review } from '../../types';
 
 export interface UserListParams {
@@ -22,7 +21,7 @@ export interface UserSearchParams {
 }
 
 export class UserService {
-  private baseUrl = `/api/v1/users`;
+  private baseUrl = `http://localhost:8000/api/v1/users`;
 
   /**
    * Get list of users with pagination and filtering
@@ -43,9 +42,22 @@ export class UserService {
     if (params.hasReviews !== undefined) searchParams.append('hasReviews', params.hasReviews.toString());
 
     const url = `${this.baseUrl}?${searchParams.toString()}`;
-    const response = await httpClient.get<{ users: User[]; total: number; hasMore: boolean }>(url, true);
-    
-    return response.data || { users: [], total: 0, hasMore: false };
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get users: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    return result.data || result || { users: [], total: 0, hasMore: false };
   }
 
   /**
@@ -66,14 +78,23 @@ export class UserService {
     if (params.limit) searchParams.append('limit', params.limit.toString());
 
     try {
-      const url = `/api/v1/users/search?${searchParams.toString()}`;
-      const response = await httpClient.get<{
-        users: User[];
-        total: number;
-        hasMore: boolean;
-      }>(url, true);
+      const url = `http://localhost:8000/api/v1/users/search?${searchParams.toString()}`;
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        credentials: 'include',
+      });
 
-      return response.data || { users: [], total: 0, hasMore: false };
+      if (!response.ok) {
+        throw new Error(`Failed to search users: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      return result.data || result || { users: [], total: 0, hasMore: false };
     } catch (error) {
       console.log('User search API failed, using fallback with mock data:', error);
       
@@ -120,10 +141,23 @@ export class UserService {
    */
   async getUser(id: string): Promise<User | null> {
     try {
-      const url = `/api/v1/users/${id}`;
-      const response = await httpClient.get<User>(url, true);
-      
-      return response.data || null;
+      const url = `http://localhost:8000/api/v1/users/${id}`;
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to get user: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      return result.data || result || null;
     } catch (error) {
       console.error('Error getting user:', error);
       return null;
@@ -135,10 +169,23 @@ export class UserService {
    */
   async getCurrentUser(): Promise<User | null> {
     try {
-      const url = `/api/v1/users/me`;
-      const response = await httpClient.get<User>(url, true);
-      
-      return response.data || null;
+      const url = `http://localhost:8000/api/v1/users/me`;
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to get current user: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      return result.data || result || null;
     } catch (error) {
       console.error('Error getting current user:', error);
       return null;
@@ -150,12 +197,26 @@ export class UserService {
    */
   async getUserProfile(id: string): Promise<UserProfile | null> {
     try {
-      const url = `/api/v1/users/${id}/profile`;
-      const response = await httpClient.get<any>(url, true);
+      const url = `http://localhost:8000/api/v1/users/${id}/profile`;
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to get user profile: ${response.statusText}`);
+      }
+
+      const result = await response.json();
       
       // Handle enterprise API response format
-      if (response.data && response.data.status === 'success' && response.data.data) {
-        return response.data.data;
+      if (result && result.status === 'success' && result.data) {
+        return result.data;
       }
       
       return null;
@@ -170,7 +231,7 @@ export class UserService {
    */
   async getUserProfileByIdentifier(identifier: string): Promise<UserProfile | null> {
     try {
-      const url = `/api/v1/users/${identifier}/profile`;
+      const url = `http://localhost:8000/api/v1/users/${identifier}/profile`;
       
       // Use direct fetch for public profile viewing (no auth required)
       const response = await fetch(url);
@@ -192,12 +253,27 @@ export class UserService {
    * Update user profile
    */
   async updateUserProfile(id: string, profileData: Partial<UserProfile>): Promise<UserProfile> {
-    const url = `/api/v1/users/me/profile`;
-    const response = await httpClient.put<any>(url, profileData);
+    const url = `http://localhost:8000/api/v1/users/me/profile`;
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      body: JSON.stringify(profileData),
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update user profile: ${response.statusText}`);
+    }
+
+    const result = await response.json();
     
     // Handle enterprise API response format
-    if (response.data && response.data.status === 'success' && response.data.data) {
-      return response.data.data;
+    if (result && result.status === 'success' && result.data) {
+      return result.data;
     }
     
     throw new Error('Failed to update user profile');
@@ -207,8 +283,20 @@ export class UserService {
    * Delete user account (added for profile deletion)
    */
   async deleteUser(id: string): Promise<void> {
-    const url = `/api/v1/users/${id}`;
-    await httpClient.delete(url);
+    const url = `http://localhost:8000/api/v1/users/${id}`;
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to delete user: ${response.statusText}`);
+    }
   }
 
   /**
@@ -222,36 +310,86 @@ export class UserService {
    * Get user statistics
    */
   async getUserStats(id: string): Promise<UserStats | null> {
-    const url = `/api/v1/users/${id}/stats`;
-    const response = await httpClient.get<UserStats>(url, true);
-    
-    return response.data || null;
+    const url = `http://localhost:8000/api/v1/users/${id}/stats`;
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get user stats: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    return result.data || result || null;
   }
 
   /**
    * Get user badges
    */
   async getUserBadges(id: string): Promise<Badge[]> {
-    const url = `/api/v1/users/${id}/badges`;
-    const response = await httpClient.get<Badge[]>(url, true);
-    
-    return response.data || [];
+    const url = `http://localhost:8000/api/v1/users/${id}/badges`;
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get user badges: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    return result.data || result || [];
   }
 
   /**
    * Follow a user
    */
   async followUser(userId: string): Promise<void> {
-    const url = `/api/v1/users/${userId}/follow`;
-    await httpClient.post(url);
+    const url = `http://localhost:8000/api/v1/users/${userId}/follow`;
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to follow user: ${response.statusText}`);
+    }
   }
 
   /**
    * Unfollow a user
    */
   async unfollowUser(userId: string): Promise<void> {
-    const url = `/api/v1/users/${userId}/follow`;
-    await httpClient.delete(url);
+    const url = `http://localhost:8000/api/v1/users/${userId}/follow`;
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to unfollow user: ${response.statusText}`);
+    }
   }
 
   /**
@@ -262,10 +400,23 @@ export class UserService {
     total: number;
     hasMore: boolean;
   }> {
-    const url = `/api/v1/users/${userId}/followers?page=${page}&limit=${limit}`;
-    const response = await httpClient.get<{ followers: User[]; total: number; hasMore: boolean }>(url, true);
-    
-    return response.data || { followers: [], total: 0, hasMore: false };
+    const url = `http://localhost:8000/api/v1/users/${userId}/followers?page=${page}&limit=${limit}`;
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get user followers: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    return result.data || result || { followers: [], total: 0, hasMore: false };
   }
 
   /**
@@ -276,10 +427,23 @@ export class UserService {
     total: number;
     hasMore: boolean;
   }> {
-    const url = `/api/v1/users/${userId}/following?page=${page}&limit=${limit}`;
-    const response = await httpClient.get<{ following: User[]; total: number; hasMore: boolean }>(url, true);
-    
-    return response.data || { following: [], total: 0, hasMore: false };
+    const url = `http://localhost:8000/api/v1/users/${userId}/following?page=${page}&limit=${limit}`;
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get user following: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    return result.data || result || { following: [], total: 0, hasMore: false };
   }
 
   /**
@@ -287,10 +451,23 @@ export class UserService {
    */
   async getUserPreferences(userId: string): Promise<UserPreferences | null> {
     try {
-      const url = `/api/v1/users/${userId}/preferences`;
-      const response = await httpClient.get<UserPreferences>(url, true);
-      
-      return response.data || null;
+      const url = `http://localhost:8000/api/v1/users/${userId}/preferences`;
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to get user preferences: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      return result.data || result || null;
     } catch (error) {
       console.error('Error getting user preferences:', error);
       return null;
@@ -301,14 +478,28 @@ export class UserService {
    * Update user preferences
    */
   async updateUserPreferences(userId: string, preferences: Partial<UserPreferences>): Promise<UserPreferences> {
-    const url = `/api/v1/users/${userId}/preferences`;
-    const response = await httpClient.put<UserPreferences>(url, preferences);
-    
-    if (!response.data) {
+    const url = `http://localhost:8000/api/v1/users/${userId}/preferences`;
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      body: JSON.stringify(preferences),
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update user preferences: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    if (!result.data && !result) {
       throw new Error('Failed to update user preferences');
     }
     
-    return response.data;
+    return result.data || result;
   }
 
     /**
@@ -316,10 +507,23 @@ export class UserService {
    */
   async getUserDailyTasks(userId: string): Promise<DailyTask[]> {
     try {
-      const url = `/api/v1/users/${userId}/daily-tasks`;
-      const response = await httpClient.get<DailyTask[]>(url, true);
-      
-      return response.data || [];
+      const url = `http://localhost:8000/api/v1/users/${userId}/daily-tasks`;
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to get user daily tasks: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      return result.data || result || [];
     } catch (error) {
       console.error('Error getting user daily tasks:', error);
       return [];
@@ -330,14 +534,27 @@ export class UserService {
    * Complete a daily task
    */
   async completeDailyTask(userId: string, taskId: string): Promise<DailyTask> {
-    const url = `/api/v1/users/${userId}/daily-tasks/${taskId}/complete`;
-    const response = await httpClient.post<DailyTask>(url);
-    
-    if (!response.data) {
+    const url = `http://localhost:8000/api/v1/users/${userId}/daily-tasks/${taskId}/complete`;
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to complete daily task: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    if (!result.data && !result) {
       throw new Error('Failed to complete daily task');
     }
     
-    return response.data;
+    return result.data || result;
   }
 
   /**
@@ -350,15 +567,23 @@ export class UserService {
     unreadCount: number;
   }> {
     try {
-      const url = `/api/v1/users/${userId}/notifications?page=${page}&limit=${limit}`;
-      const response = await httpClient.get<{
-        notifications: Notification[];
-        total: number;
-        hasMore: boolean;
-        unreadCount: number;
-      }>(url, true);
-      
-      return response.data || { notifications: [], total: 0, hasMore: false, unreadCount: 0 };
+      const url = `http://localhost:8000/api/v1/users/${userId}/notifications?page=${page}&limit=${limit}`;
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to get user notifications: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      return result.data || result || { notifications: [], total: 0, hasMore: false, unreadCount: 0 };
     } catch (error) {
       console.error('Error getting user notifications:', error);
       return { notifications: [], total: 0, hasMore: false, unreadCount: 0 };
@@ -369,16 +594,40 @@ export class UserService {
    * Mark notification as read
    */
   async markNotificationAsRead(userId: string, notificationId: string): Promise<void> {
-    const url = `/api/v1/users/${userId}/notifications/${notificationId}/read`;
-    await httpClient.post(url);
+    const url = `http://localhost:8000/api/v1/users/${userId}/notifications/${notificationId}/read`;
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to mark notification as read: ${response.statusText}`);
+    }
   }
 
   /**
    * Mark all notifications as read
    */
   async markAllNotificationsAsRead(userId: string): Promise<void> {
-    const url = `/api/v1/users/${userId}/notifications/read-all`;
-    await httpClient.post(url);
+    const url = `http://localhost:8000/api/v1/users/${userId}/notifications/read-all`;
+    const token = localStorage.getItem('reviewinn_jwt_token');
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to mark all notifications as read: ${response.statusText}`);
+    }
   }
 
   /**
@@ -398,7 +647,7 @@ export class UserService {
     if (params.limit) searchParams.append('size', params.limit.toString()); // Backend uses 'size' parameter
     if (params.includeAnonymous !== undefined) searchParams.append('include_anonymous', params.includeAnonymous.toString());
 
-    const url = `/api/v1/users/${userId}/reviews?${searchParams.toString()}`;
+    const url = `http://localhost:8000/api/v1/users/${userId}/reviews?${searchParams.toString()}`;
     
     // Use direct fetch to get the new optimized API response
     const directResponse = await fetch(url);

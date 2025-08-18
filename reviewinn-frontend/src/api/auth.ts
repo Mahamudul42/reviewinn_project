@@ -130,7 +130,21 @@ class AuthService {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     this.updateAuthState({ isLoading: true, error: null });
     try {
-      const response = await httpClient.post<TokenResponse>(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.AUTH.LOGIN}`, credentials);
+      const url = `http://localhost:8000/api/v1/auth/login`;
+      const fetchResponse = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+        credentials: 'include',
+      });
+
+      if (!fetchResponse.ok) {
+        throw new Error(`Login failed: ${fetchResponse.statusText}`);
+      }
+
+      const response = { data: await fetchResponse.json() };
       if (!response.data || !response.data.access_token) throw new Error('Invalid login response');
       
       // Store tokens

@@ -81,37 +81,39 @@ export interface ReviewInnRightPanelAuthData {
 export type ReviewInnRightPanelData = ReviewInnRightPanelPublicData;
 
 class ReviewInnRightPanelService {
-  private readonly BASE_URL = `${API_CONFIG.BASE_URL}/reviewinn-right-panel`;
+  private baseUrl = `http://localhost:8000/api/v1/reviewinn-right-panel`;
 
   /**
    * Get public right panel data - trending topics, popular entities, activity summary
    */
   async getPublicData(): Promise<ReviewInnRightPanelPublicData> {
     try {
-      const url = `${this.BASE_URL}/`;
-      console.log('🌐 Making request to main endpoint for public data:', url);
+      const url = `${this.baseUrl}/`;
       
-      const response = await httpClient.get<ReviewInnRightPanelPublicData>(url, { requiresAuth: false });
-      console.log('📥 Public response received:', response);
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ReviewInn right panel data: ${response.statusText}`);
+      }
+
+      const result = await response.json();
       
-      if (response.data) {
-        console.log('✅ Returning public response.data:', response.data);
+      if (result.success) {
         return {
           type: 'public',
-          ...response.data
-        };
-      } else if (response.success) {
-        console.log('✅ Returning public response directly:', response);
-        return {
-          type: 'public',
-          ...response
+          ...result
         };
       } else {
-        console.error('❌ Invalid public response structure:', response);
-        throw new Error('Invalid response structure');
+        throw new Error(result.message || 'API returned error');
       }
     } catch (error) {
-      console.error('❌ Error fetching public right panel data:', error);
+      console.error('ReviewInnRightPanelService: Failed to fetch data:', error);
       throw error;
     }
   }
@@ -121,26 +123,31 @@ class ReviewInnRightPanelService {
    */
   async getAuthenticatedData(): Promise<ReviewInnRightPanelAuthData> {
     try {
-      const url = `${this.BASE_URL}/authenticated`;
-      console.log('🌐 Making request to authenticated endpoint:', url);
+      const url = `${this.baseUrl}/authenticated`;
       
-      const response = await httpClient.get<ReviewInnRightPanelAuthData>(url, {
-        requiresAuth: true
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        credentials: 'include',
       });
-      console.log('📥 Authenticated response received:', response);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ReviewInn authenticated right panel data: ${response.statusText}`);
+      }
+
+      const result = await response.json();
       
-      if (response.data) {
-        console.log('✅ Returning authenticated response.data:', response.data);
-        return response.data;
-      } else if (response.success && response.user_progress) {
-        console.log('✅ Returning authenticated response directly:', response);
-        return response as unknown as ReviewInnRightPanelAuthData;
+      if (result.success) {
+        return result;
       } else {
-        console.error('❌ Invalid authenticated response structure:', response);
-        throw new Error('Invalid response structure');
+        throw new Error(result.message || 'API returned error');
       }
     } catch (error) {
-      console.error('❌ Error fetching authenticated right panel data:', error);
+      console.error('ReviewInnRightPanelService: Failed to fetch authenticated data:', error);
       throw error;
     }
   }

@@ -1,10 +1,10 @@
 // Group service for API interactions - using any to avoid import issues
 
-const API_BASE = '/api/v1/groups';
+const API_BASE = 'http://localhost:8000/api/v1/groups';
 
 class GroupService {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const token = localStorage.getItem('auth_token');
+    const token = localStorage.getItem('reviewinn_jwt_token');
     
     const response = await fetch(`${API_BASE}${endpoint}`, {
       ...options,

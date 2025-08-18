@@ -1,4 +1,3 @@
-import { httpClient } from '../httpClient';
 import { API_CONFIG } from '../config';
 import { searchEntities } from '../api';
 import type { 
@@ -61,8 +60,22 @@ export class SearchService {
   async getCategoryCounts(query: string): Promise<CategoryCount> {
     try {
       const url = `${this.baseUrl}/counts?q=${encodeURIComponent(query)}`;
-      const response = await httpClient.get<CategoryCount>(url, true);
-      return response.data || { entities: 0, reviews: 0, users: 0, total: 0 };
+      const token = localStorage.getItem('reviewinn_jwt_token');
+      const fetchResponse = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        credentials: 'include',
+      });
+
+      if (!fetchResponse.ok) {
+        throw new Error(`Failed to get category counts: ${fetchResponse.statusText}`);
+      }
+
+      const response = await fetchResponse.json();
+      return response.data || response || { entities: 0, reviews: 0, users: 0, total: 0 };
     } catch (error) {
       console.error('Category counts error:', error);
       return { entities: 0, reviews: 0, users: 0, total: 0 };
@@ -113,7 +126,21 @@ export class SearchService {
           // Try backend search as last resort
           try {
             const backendUrl = `${API_CONFIG.BASE_URL}/entities/search?q=${encodeURIComponent(params.query)}&limit=${entityLimit}`;
-            const backendResponse = await httpClient.get(backendUrl, true);
+            const token = localStorage.getItem('reviewinn_jwt_token');
+            const fetchResponse = await fetch(backendUrl, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(token && { 'Authorization': `Bearer ${token}` })
+              },
+              credentials: 'include',
+            });
+
+            if (!fetchResponse.ok) {
+              throw new Error(`Failed to search entities: ${fetchResponse.statusText}`);
+            }
+
+            const backendResponse = await fetchResponse.json();
             
             if (backendResponse.data?.entities) {
               result.entities = backendResponse.data.entities.slice(0, entityLimit);

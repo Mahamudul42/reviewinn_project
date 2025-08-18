@@ -284,7 +284,7 @@ export interface SearchResults {
 // ========== SERVICE CLASS ==========
 
 export class ProfessionalMessagingService {
-  private baseURL = API_CONFIG.BASE_URL;
+  private baseURL = 'http://localhost:8000/api/v1';
   private apiPrefix = '/messaging';
   private wsConnection: WebSocket | null = null;
   private eventListeners: Map<string, Function[]> = new Map();
@@ -445,36 +445,37 @@ export class ProfessionalMessagingService {
       
       return response.data;
     } catch (error: any) {
-      console.error('❌ Conversations API failed:', error);
-      
       // In development, try debug endpoint as fallback
       if (import.meta.env.DEV) {
         try {
-          console.log('🔄 Trying debug endpoint as fallback...');
           
           // For development, try the debug endpoint that doesn't require auth
           // Try to get current user ID from localStorage or use fallback
           const authData = localStorage.getItem('reviewinn_user_data');
-          let userId = 23; // fallback
+          let userId = 1; // fallback to user ID 1 (the main test user)
           try {
             if (authData) {
               const userData = JSON.parse(authData);
-              console.log('Parsed user data for conversations:', { id: userData.id, name: userData.name });
-              userId = parseInt(userData.id) || 23;
-              console.log('Converted userId to integer for conversations:', userId);
+              userId = parseInt(userData.id) || 1;
             }
           } catch (e) {
-            console.log('Could not parse user data for conversations, using fallback user_id 23', e);
+            // Could not parse user data, using fallback
           }
           
-          console.log('Using user_id for debug conversations:', userId);
-          
-          const debugResponse = await httpClient.get(
-            `${this.baseURL}${this.apiPrefix}/debug/conversations/${userId}`,
-            false  // No auth required for debug endpoint
-          );
-          
-          console.log('📥 Debug conversations response:', debugResponse);
+          const debugUrl = `${this.baseURL}${this.apiPrefix}/debug/conversations/${userId}`;
+          const debugFetchResponse = await fetch(debugUrl, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+          });
+
+          if (!debugFetchResponse.ok) {
+            throw new Error(`Debug endpoint failed: ${debugFetchResponse.statusText}`);
+          }
+
+          const debugResponse = await debugFetchResponse.json();
           
           if (debugResponse.success && debugResponse.data) {
             return {
@@ -489,12 +490,11 @@ export class ProfessionalMessagingService {
             };
           }
         } catch (debugError) {
-          console.error('❌ Debug endpoint also failed:', debugError);
+          // Debug endpoint also not available
         }
       }
       
       // Handle ALL errors gracefully when messaging service isn't ready
-      console.log('⚠️ Messaging service not available, returning empty conversations. Error:', error.status || error.message);
       return {
         success: true,
         data: {

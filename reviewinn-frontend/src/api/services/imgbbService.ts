@@ -47,18 +47,20 @@ interface ImgBBResponse {
 export enum UploadType {
   ENTITY = 'entity',
   USER = 'user',
-  REVIEW = 'review'
+  REVIEW = 'review',
+  GROUP = 'group'
 }
 
 class ImgBBService {
   private readonly API_KEY_ENTITY = import.meta.env.VITE_IMGBB_API_KEY_ENTITY || import.meta.env.VITE_IMGBB_API_KEY
   private readonly API_KEY_USER = import.meta.env.VITE_IMGBB_API_KEY_USER || import.meta.env.VITE_IMGBB_API_KEY
   private readonly API_KEY_REVIEW = import.meta.env.VITE_IMGBB_API_KEY_REVIEW || import.meta.env.VITE_IMGBB_API_KEY
+  private readonly API_KEY_GROUP = import.meta.env.VITE_IMGBB_API_KEY_GROUP || import.meta.env.VITE_IMGBB_API_KEY
   private readonly API_KEY = import.meta.env.VITE_IMGBB_API_KEY
   private readonly BASE_URL = 'https://api.imgbb.com/1/upload';
 
   constructor() {
-    if (!this.API_KEY && !this.API_KEY_ENTITY && !this.API_KEY_USER && !this.API_KEY_REVIEW) {
+    if (!this.API_KEY && !this.API_KEY_ENTITY && !this.API_KEY_USER && !this.API_KEY_REVIEW && !this.API_KEY_GROUP) {
       console.warn('ImgBB API key not found. Please add VITE_IMGBB_API_KEY or specific keys to your .env file.');
     }
   }
@@ -74,6 +76,8 @@ class ImgBBService {
         return this.API_KEY_USER || this.API_KEY;
       case UploadType.REVIEW:
         return this.API_KEY_REVIEW || this.API_KEY;
+      case UploadType.GROUP:
+        return this.API_KEY_GROUP || this.API_KEY;
       default:
         return this.API_KEY;
     }
@@ -195,7 +199,7 @@ class ImgBBService {
    * @returns boolean
    */
   isAvailable(): boolean {
-    return !!(this.API_KEY || this.API_KEY_ENTITY || this.API_KEY_USER || this.API_KEY_REVIEW);
+    return !!(this.API_KEY || this.API_KEY_ENTITY || this.API_KEY_USER || this.API_KEY_REVIEW || this.API_KEY_GROUP);
   }
 }
 
