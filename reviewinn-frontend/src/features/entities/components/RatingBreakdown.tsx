@@ -75,7 +75,14 @@ export const RatingBreakdown: React.FC<RatingBreakdownProps> = ({
           </div>
           <h3 className="text-xl font-bold text-white drop-shadow-md">Rating Breakdown</h3>
           <div className="ml-auto">
-            <span className="text-xl animate-pulse">⭐</span>
+            <StarRating 
+              rating={5} 
+              size="sm" 
+              showValue={false}
+              maxRating={1}
+              style="golden"
+              className="animate-pulse"
+            />
           </div>
         </div>
       </div>
@@ -122,7 +129,13 @@ export const RatingBreakdown: React.FC<RatingBreakdownProps> = ({
                   <div key={rating} className="flex items-center gap-3">
                     <div className="flex items-center gap-1 min-w-[50px]">
                       <span className="text-sm font-medium text-gray-900 w-2">{rating}</span>
-                      <span className="text-base">⭐</span>
+                      <StarRating 
+                        rating={1} 
+                        size="xs" 
+                        showValue={false}
+                        maxRating={1}
+                        style="golden"
+                      />
                     </div>
                     {/* Progress bar with colored fill and gray background */}
                     <div className="flex-1 h-3 rounded-full bg-gray-200 overflow-hidden">

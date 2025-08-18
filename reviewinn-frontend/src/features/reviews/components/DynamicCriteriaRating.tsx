@@ -1,5 +1,6 @@
 import React from 'react';
 import type { CriteriaConfig } from '../../../types';
+import StarRating from '../../../shared/atoms/StarRating';
 
 interface DynamicCriteriaRatingProps {
   criteria: CriteriaConfig[];
@@ -16,64 +17,16 @@ export const DynamicCriteriaRating: React.FC<DynamicCriteriaRatingProps> = ({
 }) => {
   const renderStars = (criteriaId: string, maxRating: number, currentRating: number) => {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-        {[...Array(maxRating)].map((_, index) => {
-          const ratingValue = index + 1;
-          const isActive = ratingValue <= currentRating;
-          
-          return (
-            <button
-              key={index}
-              type="button"
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: disabled ? 'not-allowed' : 'pointer',
-                padding: '4px',
-                borderRadius: '50%',
-                transition: 'all 0.2s ease',
-                fontSize: '24px',
-                lineHeight: '1',
-                opacity: disabled ? 0.6 : 1,
-                transform: 'scale(1)',
-              }}
-              onClick={() => !disabled && onRatingChange(criteriaId, ratingValue)}
-              disabled={disabled}
-              onMouseEnter={(e) => {
-                if (!disabled) {
-                  e.currentTarget.style.transform = 'scale(1.15)';
-                  e.currentTarget.style.backgroundColor = 'rgba(251, 191, 36, 0.1)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!disabled) {
-                  e.currentTarget.style.transform = 'scale(1)';
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                }
-              }}
-            >
-              <span
-                style={{
-                  filter: isActive 
-                    ? 'drop-shadow(0 0 3px rgba(251, 191, 36, 0.8))' 
-                    : 'grayscale(100%) opacity(0.3)',
-                  transition: 'filter 0.2s ease',
-                  display: 'inline-block'
-                }}
-              >
-                ⭐
-              </span>
-            </button>
-          );
-        })}
-        <span style={{
-          marginLeft: '8px',
-          fontSize: '14px',
-          color: '#6b7280',
-          fontWeight: '500'
-        }}>
-          {currentRating > 0 ? `${currentRating}/${maxRating}` : 'Not rated'}
-        </span>
+      <div className="flex items-center gap-2">
+        <StarRating
+          rating={currentRating}
+          maxRating={maxRating}
+          size="md"
+          showValue={true}
+          style="golden"
+          onRatingChange={(rating) => !disabled && onRatingChange(criteriaId, rating)}
+          disabled={disabled}
+        />
       </div>
     );
   };

@@ -323,14 +323,13 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
           {avgRating > 0 && (
             <div className="flex items-center gap-0.5 flex-shrink-0 min-w-0">
-              {[...Array(5)].map((_, i) => (
-                <span key={i} className={`text-sm flex-shrink-0 ${i < avgRating ? '' : 'opacity-30'}`}>
-                  ⭐
-                </span>
-              ))}
-              <span className="ml-1 text-xs font-semibold text-gray-700 flex-shrink-0 min-w-0 truncate">
-                {avgRating.toFixed(1)}
-              </span>
+              <StarRating 
+                rating={avgRating} 
+                size="xs" 
+                showValue={true}
+                style="golden"
+                className="scale-75"
+              />
             </div>
           )}
         </div>
@@ -345,8 +344,16 @@ const Sidebar: React.FC<SidebarProps> = ({
         {/* Stats */}
         <div className="flex items-center gap-2 flex-wrap w-full max-w-full overflow-hidden">
           {avgRating > 0 && (
-            <span className="text-xs bg-yellow-50 px-2 py-1 rounded-full text-yellow-700 font-medium flex-shrink-0">
-              ⭐ {avgRating.toFixed(1)} avg
+            <span className="text-xs bg-purple-50 px-2 py-1 rounded-full text-purple-700 font-medium flex-shrink-0 flex items-center gap-1">
+              <StarRating 
+                rating={1} 
+                size="xs" 
+                showValue={false}
+                maxRating={1}
+                style="golden"
+                className="scale-50"
+              />
+              {avgRating.toFixed(1)} avg
             </span>
           )}
           {reviewCount > 0 && (
@@ -531,7 +538,13 @@ const Sidebar: React.FC<SidebarProps> = ({
           <div className={`${cardWrapper} hover:shadow-xl transition-all duration-300`}>
             <div className={`${cardBg} rounded-lg p-5`}>
             <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <span className="text-xl">⭐</span>
+              <StarRating 
+                rating={1} 
+                size="sm" 
+                showValue={false}
+                maxRating={1}
+                style="golden"
+              />
               Top Entities
             </h3>
             <div className="space-y-3">

@@ -14,6 +14,7 @@
 import React, { useState, useEffect } from 'react';
 import { Loader2, AlertTriangle } from 'lucide-react';
 import type { Entity } from '../../../types';
+import StarRating from '../../../shared/atoms/StarRating';
 
 interface Question {
   key: string;
@@ -320,63 +321,16 @@ export const CategoryBasedRating: React.FC<CategoryBasedRatingProps> = ({
 
   const renderStars = (questionKey: string, currentRating: number) => {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-        {[1, 2, 3, 4, 5].map((ratingValue) => {
-          const isActive = ratingValue <= currentRating;
-          
-          return (
-            <button
-              key={ratingValue}
-              type="button"
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: disabled ? 'not-allowed' : 'pointer',
-                padding: '4px',
-                borderRadius: '50%',
-                transition: 'all 0.2s ease',
-                fontSize: '24px',
-                lineHeight: '1',
-                opacity: disabled ? 0.6 : 1,
-                transform: 'scale(1)',
-              }}
-              onClick={() => !disabled && onRatingChange(questionKey, ratingValue)}
-              disabled={disabled}
-              onMouseEnter={(e) => {
-                if (!disabled) {
-                  e.currentTarget.style.transform = 'scale(1.15)';
-                  e.currentTarget.style.backgroundColor = 'rgba(251, 191, 36, 0.1)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!disabled) {
-                  e.currentTarget.style.transform = 'scale(1)';
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                }
-              }}
-            >
-              <span
-                style={{
-                  filter: isActive 
-                    ? 'drop-shadow(0 0 3px rgba(251, 191, 36, 0.8))' 
-                    : 'grayscale(100%) opacity(0.3)',
-                  transition: 'filter 0.2s ease',
-                  display: 'inline-block'
-                }}
-              >
-                ⭐
-              </span>
-            </button>
-          );
-        })}
-        <span style={{
-          marginLeft: '8px',
-          fontSize: '14px',
-          color: '#6b7280',
-          fontWeight: '500'
-        }}>
-          {currentRating > 0 ? `${currentRating}/5` : 'Not rated'}
-        </span>
+      <div className="flex items-center gap-2">
+        <StarRating
+          rating={currentRating}
+          maxRating={5}
+          size="md"
+          showValue={true}
+          style="golden"
+          onRatingChange={(rating) => !disabled && onRatingChange(questionKey, rating)}
+          disabled={disabled}
+        />
       </div>
     );
   };

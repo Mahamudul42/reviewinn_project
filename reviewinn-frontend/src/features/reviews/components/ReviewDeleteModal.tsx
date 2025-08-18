@@ -4,6 +4,7 @@ import { Trash2, AlertTriangle, Loader2, AlertCircle, MessageSquare, Star, Eye }
 import type { Review } from '../../../types';
 import { reviewService } from '../../../api/services/reviewService';
 import { useToast } from '../../../shared/components/ToastProvider';
+import StarRating from '../../../shared/atoms/StarRating';
 
 interface ReviewDeleteModalProps {
   review: Review;
@@ -330,7 +331,17 @@ const ReviewDeleteModal: React.FC<ReviewDeleteModalProps> = ({
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ fontWeight: 500, color: '#7f1d1d' }}>Rating:</span>
-                    <span style={{ color: '#991b1b' }}>{review.overallRating}/5.0 ⭐</span>
+                    <div style={{ color: '#991b1b', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <span>{review.overallRating}/5.0</span>
+                      <StarRating 
+                        rating={1} 
+                        size="xs" 
+                        showValue={false}
+                        maxRating={1}
+                        style="golden"
+                        className="scale-75"
+                      />
+                    </div>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ fontWeight: 500, color: '#7f1d1d' }}>Entity:</span>

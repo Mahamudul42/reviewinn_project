@@ -12,7 +12,7 @@ interface SaveReviewModalProps {
 }
 
 const COLLECTION_SUGGESTIONS = [
-  { name: 'Favorites', icon: '⭐', description: 'Your favorite reviews' },
+  { name: 'Favorites', icon: <Star className="w-4 h-4" />, description: 'Your favorite reviews' },
   { name: 'To Read Later', icon: '🔖', description: 'Reviews to revisit' },
   { name: 'Research', icon: '🔍', description: 'For research purposes' },
   { name: 'Recommendations', icon: '👍', description: 'Great recommendations' },

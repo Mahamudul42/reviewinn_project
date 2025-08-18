@@ -14,6 +14,7 @@ import WeeklyChart from '../../molecules/WeeklyChart';
 import { PANEL_STYLES } from '../styles';
 import PanelHeader from '../components/PanelHeader';
 import PanelLoadingState from '../components/PanelLoadingState';
+import StarRating from '../../atoms/StarRating';
 
 interface RightPanelReviewinnProps {
   className?: string;
@@ -255,7 +256,14 @@ const RightPanelReviewinn: React.FC<RightPanelReviewinnProps> = ({
         <div className={`${PANEL_STYLES.cardBg} p-4`}>
           <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
             <Crown className="w-5 h-5 text-yellow-600" />
-            ⭐ Popular Entities
+            <StarRating 
+              rating={1} 
+              size="xs" 
+              showValue={false}
+              maxRating={1}
+              style="golden"
+            />
+            Popular Entities
           </h3>
           <div className="space-y-3">
             {formattedPopularEntities.map((entity) => (
@@ -282,26 +290,14 @@ const RightPanelReviewinn: React.FC<RightPanelReviewinnProps> = ({
                     
                     <div className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-lg p-2 border border-yellow-200">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <div className="flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 rounded-full shadow-sm">
-                          <div className="flex items-center">
-                            {Array.from({ length: 5 }, (_, starIndex) => {
-                              const starValue = starIndex + 1;
-                              const isFilled = starValue <= entity.rating;
-                              
-                              return (
-                                <span
-                                  key={starValue}
-                                  className="text-xs"
-                                  style={{
-                                    filter: isFilled ? 'none' : 'grayscale(100%) opacity(0.3)',
-                                  }}
-                                >
-                                  ⭐
-                                </span>
-                              );
-                            })}
-                          </div>
-                          <span className="text-xs font-bold text-yellow-900 ml-1">{typeof entity.rating === 'number' ? entity.rating.toFixed(1) : parseFloat(entity.rating || 0).toFixed(1)}</span>
+                        <div className="flex items-center gap-1">
+                          <StarRating 
+                            rating={typeof entity.rating === 'number' ? entity.rating : parseFloat(entity.rating || 0)} 
+                            size="xs" 
+                            showValue={true}
+                            style="golden"
+                            className="scale-75"
+                          />
                         </div>
                         
                         <div className="flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-full shadow-sm">

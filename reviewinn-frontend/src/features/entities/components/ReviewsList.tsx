@@ -2,6 +2,7 @@ import React from 'react';
 import { MessageCircle, Zap, Star, TrendingUp } from 'lucide-react';
 import ReviewFeedCard from '../../reviews/components/ReviewFeedCard';
 import type { Review } from '../../../types';
+import StarRating from '../../../shared/atoms/StarRating';
 
 interface ReviewsListProps {
   reviews: Review[];
@@ -102,7 +103,13 @@ const ReviewsList: React.FC<ReviewsListProps> = ({
             <span className="text-white font-bold">
               {reviews.length} {reviews.length === 1 ? 'Review' : 'Reviews'} Loaded
             </span>
-            <span className="text-xl">⭐</span>
+            <StarRating 
+              rating={1} 
+              size="sm" 
+              showValue={false}
+              maxRating={1}
+              style="golden"
+            />
           </div>
         </div>
       </div>

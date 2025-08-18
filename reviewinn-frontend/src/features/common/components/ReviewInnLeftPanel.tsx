@@ -3,6 +3,7 @@ import { useReviewInnLeftPanel } from '../hooks/useReviewInnLeftPanel';
 import ReviewDetailModal from '../../reviews/components/ReviewDetailModal';
 import { viewTrackingService } from '../../../api/viewTracking';
 import type { ReviewInnLeftPanelReview } from '../../../api/services/reviewinnLeftPanelService';
+import StarRating from '../../../shared/atoms/StarRating';
 
 /**
  * ReviewInn Left Panel Component
@@ -183,16 +184,13 @@ const ReviewInnLeftPanel: React.FC = () => {
                           </span>
                         )}
                         <div className="flex items-center gap-1 mt-2">
-                          <div className="flex text-yellow-400">
-                            {[...Array(5)].map((_, i) => (
-                              <span key={i} className={`text-xs ${i < Math.floor(review.entity.average_rating) ? "text-yellow-400" : "text-gray-300"}`}>
-                                ⭐
-                              </span>
-                            ))}
-                          </div>
-                          <span className="text-xs text-gray-600 ml-1">
-                            {review.entity.average_rating.toFixed(1)}
-                          </span>
+                          <StarRating 
+                            rating={review.entity.average_rating} 
+                            size="xs" 
+                            showValue={true}
+                            style="golden"
+                            className="scale-75"
+                          />
                         </div>
                       </div>
                     </div>
@@ -207,17 +205,14 @@ const ReviewInnLeftPanel: React.FC = () => {
                         {review.title}
                       </h5>
                     </div>
-                    <div className="flex items-center gap-1 bg-yellow-50 border border-yellow-200 rounded-lg px-2 py-1 shadow-sm">
-                      <div className="flex text-yellow-400">
-                        {[...Array(5)].map((_, i) => (
-                          <span key={i} className={`text-xs ${i < Math.floor(review.overall_rating) ? "text-yellow-400" : "text-gray-300"}`}>
-                            ⭐
-                          </span>
-                        ))}
-                      </div>
-                      <span className="text-xs text-gray-700 ml-1">
-                        {review.overall_rating.toFixed(1)}
-                      </span>
+                    <div className="bg-purple-50 border border-purple-200 rounded-lg px-2 py-1 shadow-sm">
+                      <StarRating 
+                        rating={review.overall_rating} 
+                        size="xs" 
+                        showValue={true}
+                        style="golden"
+                        className="scale-75"
+                      />
                     </div>
                   </div>
                 )}
@@ -274,15 +269,15 @@ const ReviewInnLeftPanel: React.FC = () => {
                         <span className="font-semibold text-gray-900 text-sm capitalize block">
                           {categoryData.category.name}
                         </span>
-                        <div className="flex items-center gap-2 text-xs text-gray-500">
-                          <div className="flex text-yellow-400">
-                            {[...Array(5)].map((_, i) => (
-                              <span key={i} className={`text-xs ${i < Math.floor(categoryData.avg_rating) ? "text-yellow-400" : "text-gray-300"}`}>
-                                ⭐
-                              </span>
-                            ))}
-                          </div>
-                          <span>{categoryData.avg_rating.toFixed(1)} avg</span>
+                        <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                          <StarRating 
+                            rating={categoryData.avg_rating} 
+                            size="xs" 
+                            showValue={false}
+                            style="golden"
+                            className="scale-75"
+                          />
+                          <span className="text-xs text-gray-600 font-medium">{categoryData.avg_rating.toFixed(1)} avg</span>
                         </div>
                       </div>
                     </div>

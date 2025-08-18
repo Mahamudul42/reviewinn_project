@@ -12,6 +12,7 @@ import DailyMissions from '../molecules/DailyMissions';
 import WhatsNext from '../molecules/WhatsNext';
 import WeeklyChart from '../molecules/WeeklyChart';
 import { EmptyState, EmptyStateIcons } from '../components/EmptyState';
+import StarRating from '../atoms/StarRating';
 
 interface UnifiedRightPanelProps {
   className?: string;
@@ -377,29 +378,14 @@ const UnifiedRightPanel: React.FC<UnifiedRightPanelProps> = ({
                         <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-2 border border-yellow-200 overflow-hidden">
                           <div className="flex items-center gap-2 flex-wrap">
                             <div className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 rounded-full shadow-sm flex-shrink-0">
-                              <div className="flex items-center">
-                                {Array.from({ length: 5 }, (_, starIndex) => {
-                                  const starValue = starIndex + 1;
-                                  const isFilled = starValue <= entity.averageRating!;
-                                  const isHalfFilled = !isFilled && starValue - entity.averageRating! < 1 && starValue - entity.averageRating! > 0;
-                                  
-                                  return (
-                                    <span
-                                      key={starValue}
-                                      className="text-xs"
-                                      style={{
-                                        display: 'inline-block',
-                                        lineHeight: '1',
-                                        filter: isFilled ? 'none' : isHalfFilled ? 'grayscale(50%) opacity(0.7)' : 'grayscale(100%) opacity(0.3)',
-                                        transition: 'all 0.2s ease-in-out'
-                                      }}
-                                    >
-                                      ⭐
-                                    </span>
-                                  );
-                                })}
-                              </div>
-                              <span className="text-xs font-bold text-yellow-900 ml-1 whitespace-nowrap">{entity.averageRating.toFixed(1)}</span>
+                              <StarRating 
+                                rating={entity.averageRating} 
+                                maxRating={5} 
+                                size="xs" 
+                                showValue={true} 
+                                style="golden" 
+                                className="scale-75"
+                              />
                             </div>
                             
                             {/* Review Count */}
@@ -478,7 +464,17 @@ const UnifiedRightPanel: React.FC<UnifiedRightPanelProps> = ({
           </div>
           <div className="flex items-center justify-between">
             <span>Average rating</span>
-            <span className="font-medium text-gray-900">4.2 ⭐</span>
+            <div className="flex items-center">
+              <span className="font-medium text-gray-900 mr-1">4.2</span>
+              <StarRating 
+                rating={1} 
+                maxRating={1} 
+                size="xs" 
+                showValue={false} 
+                style="golden" 
+                className="scale-75"
+              />
+            </div>
           </div>
           <div className="flex items-center justify-between">
             <span>Reviews this week</span>

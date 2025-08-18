@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, X, Mic, Camera, Filter } from 'lucide-react';
 import type { SearchType } from '../types/searchTypes';
+import StarRating from '../../../shared/atoms/StarRating';
 
 interface YouTubeSearchHeaderProps {
   query: string;
@@ -202,7 +203,7 @@ const YouTubeSearchHeader: React.FC<YouTubeSearchHeaderProps> = ({
           {[
             { key: 'all', label: 'All', icon: '🔍' },
             { key: 'entities', label: 'Entities', icon: '🏢' },
-            { key: 'reviews', label: 'Reviews', icon: '⭐' },
+            { key: 'reviews', label: 'Reviews', icon: <StarRating rating={1} maxRating={1} size="xs" showValue={false} style="golden" className="scale-75" /> },
             { key: 'users', label: 'Users', icon: '👤' }
           ].map((type) => (
             <button

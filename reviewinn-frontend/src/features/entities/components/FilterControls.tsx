@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChevronDown, Clock, Filter, Zap, Target } from 'lucide-react';
 import type { Review } from '../../../types';
+import StarRating from '../../../shared/atoms/StarRating';
 
 interface FilterControlsProps {
   allReviews: Review[];
@@ -58,7 +59,14 @@ const FilterControls: React.FC<FilterControlsProps> = ({
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <div className="p-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded">
-                  <span className="text-white text-xs">⭐</span>
+                  <StarRating 
+                    rating={1} 
+                    maxRating={1} 
+                    size="xs" 
+                    showValue={false} 
+                    style="golden" 
+                    className="scale-75"
+                  />
                 </div>
                 <h4 className="text-sm font-bold text-gray-900">Filter by Rating</h4>
               </div>
@@ -98,7 +106,14 @@ const FilterControls: React.FC<FilterControlsProps> = ({
                       >
                         <div className="flex items-center gap-1">
                           <span className="text-sm font-medium">{rating}</span>
-                          <span className="text-sm">⭐</span>
+                          <StarRating 
+                            rating={1} 
+                            maxRating={1} 
+                            size="xs" 
+                            showValue={false} 
+                            style="golden" 
+                            className="scale-75"
+                          />
                         </div>
                         <div className="flex items-center gap-1">
                           <span className="text-xs font-semibold">{count}</span>
