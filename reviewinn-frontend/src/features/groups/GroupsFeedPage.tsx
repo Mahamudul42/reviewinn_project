@@ -575,8 +575,8 @@ const GroupsFeedPage: React.FC = () => {
       centerPanelClassName="space-y-6"
     >
       {/* Tab Navigation */}
-      <div className="border-b border-gray-200">
-        <nav className="flex space-x-8">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6 overflow-hidden">
+        <nav className="flex space-x-2 p-2 bg-gradient-to-r from-gray-50 via-white to-gray-50">
           {[
             { id: 'reviews', label: 'Reviews', icon: MessageSquare },
             { id: 'your-groups', label: 'Your Groups', icon: Users },
@@ -586,14 +586,23 @@ const GroupsFeedPage: React.FC = () => {
             <button
               key={id}
               onClick={() => setActiveTab(id as TabType)}
-              className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              className={`relative flex items-center space-x-3 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-300 transform hover:scale-105 flex-1 justify-center group ${
                 activeTab === id
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
+                  : 'text-gray-600 hover:text-gray-800 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 border border-gray-100 hover:border-gray-200 hover:shadow-md'
               }`}
+              style={activeTab === id ? { 
+                boxShadow: '0 10px 25px rgba(147, 51, 234, 0.3), 0 4px 12px rgba(99, 102, 241, 0.2)' 
+              } : {}}
             >
-              <Icon className="w-4 h-4" />
-              <span>{label}</span>
+              <Icon className={`w-5 h-5 transition-all duration-300 ${activeTab === id ? 'text-white transform rotate-12' : 'group-hover:scale-110'}`} />
+              <span className="font-semibold tracking-wide">{label}</span>
+              {activeTab === id && (
+                <>
+                  <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-white/20 to-transparent pointer-events-none" />
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-white/30 rounded-full animate-ping" />
+                </>
+              )}
             </button>
           ))}
         </nav>

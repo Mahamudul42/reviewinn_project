@@ -114,50 +114,6 @@ const GroupNameBadge: React.FC<{ groupName: string }> = ({ groupName }) => (
   </div>
 );
 
-// Group Search Bar Component
-const GroupSearchBar: React.FC<{ groupName?: string, onSearch?: (query: string) => void }> = ({ 
-  groupName = 'this group', 
-  onSearch 
-}) => {
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSearch?.(searchQuery);
-  };
-
-  return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">Search in {groupName}</h3>
-          <p className="text-gray-600 text-sm">Find reviews, discussions, and content from group members</p>
-        </div>
-        <MessageSquare className="w-6 h-6 text-blue-500" />
-      </div>
-      
-      <form onSubmit={handleSearch} className="relative">
-        <div className="relative">
-          <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search reviews, entities, or topics..."
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-          />
-        </div>
-        <Button 
-          type="submit" 
-          className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1.5"
-          size="sm"
-        >
-          Search
-        </Button>
-      </form>
-    </div>
-  );
-};
 
 // Empty State Component for Groups
 const GroupEmptyState: React.FC<{ groupName?: string, isNewGroup?: boolean }> = ({ 
@@ -246,7 +202,6 @@ const GroupFeed: React.FC<GroupFeedProps> = ({ groupId, className = '', groupNam
   const [error, setError] = useState<string | null>(null);
   const [hasMoreReviews, setHasMoreReviews] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchGroupFeed = async () => {
@@ -367,11 +322,6 @@ const GroupFeed: React.FC<GroupFeedProps> = ({ groupId, className = '', groupNam
     console.log('View count update:', reviewId, newCount);
   };
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    // In a real implementation, you would filter reviews or make an API call with the search query
-    console.log('Search query:', query);
-  };
 
   if (loading) {
     return (
@@ -399,12 +349,6 @@ const GroupFeed: React.FC<GroupFeedProps> = ({ groupId, className = '', groupNam
 
   return (
     <div className={`space-y-6 ${className}`}>
-      {/* Search Bar - Always show */}
-      <GroupSearchBar 
-        groupName={groupName || 'this group'} 
-        onSearch={handleSearch}
-      />
-      
       {/* Reviews or Empty State */}
       {reviews.length > 0 ? (
         <>
