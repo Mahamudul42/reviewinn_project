@@ -285,7 +285,7 @@ async def refresh_access_token(
 )
 async def logout_user(
     request: Request,
-    current_user: RequiredUser,
+    current_user: RequiredUser = None,
     _audit = Depends(AuditAction("user_logout"))
 ):
     """Logout user with session cleanup"""
@@ -516,7 +516,7 @@ async def change_user_password(
     request: Request,
     current_password: str = Body(...),
     new_password: str = Body(...),
-    current_user: VerifiedUser,
+    current_user: VerifiedUser = None,
     db: Session = Depends(get_db),
     _rate_limit = Depends(StandardRateLimit),
     _audit = Depends(AuditAction("password_change"))
@@ -593,7 +593,7 @@ async def change_user_password(
 )
 async def get_current_user_info(
     request: Request,
-    current_user: RequiredUser
+    current_user: RequiredUser = None
 ):
     """Get current authenticated user information"""
     
@@ -684,7 +684,7 @@ async def list_all_users(
     request: Request,
     skip: int = 0,
     limit: int = 50,
-    admin_user: AdminUser,
+    admin_user: AdminUser = None,
     db: Session = Depends(get_db),
     _rate_limit = Depends(AdminRateLimit),
     _audit = Depends(AuditAction("admin_list_users"))
@@ -725,7 +725,7 @@ async def list_all_users(
 async def toggle_user_account_status(
     user_id: int,
     request: Request,
-    admin_user: AdminUser,
+    admin_user: AdminUser = None,
     db: Session = Depends(get_db),
     _rate_limit = Depends(AdminRateLimit),
     _audit = Depends(AuditAction("admin_toggle_user_status"))

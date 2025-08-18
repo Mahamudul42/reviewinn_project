@@ -317,7 +317,7 @@ async def get_entity(
 async def create_entity(
     entity_data: EntityCreateRequest,
     db: Session = Depends(get_db),
-    current_user: Optional[User] = CurrentUser
+    current_user: CurrentUser
 ):
     """
     Create a new entity with validation.
