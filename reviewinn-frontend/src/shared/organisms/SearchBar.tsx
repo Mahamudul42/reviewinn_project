@@ -164,8 +164,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 size="sm"
                 onClick={() => {
                   setShowSuggestions(false);
-                  // Navigate to add entity page with pre-filled search term
-                  window.location.href = `/add-entity?name=${encodeURIComponent(query)}`;
+                  // Navigate to entities page add-entity tab with pre-filled search term
+                  window.location.href = `/entities?tab=add-entity&name=${encodeURIComponent(query)}`;
                 }}
                 className="inline-flex items-center gap-2 transform hover:scale-105 transition-all duration-200"
               >

@@ -31,7 +31,7 @@ const QuickActionsPanel: React.FC = () => {
       description: 'Create a new entity to review',
       icon: <Plus size={20} />,
       action: () => {
-        navigate('/add-entity');
+        navigate('/entities?tab=add-entity');
         setIsOpen(false);
       },
       shortcut: 'Ctrl+N',
@@ -147,7 +147,7 @@ const QuickActionsPanel: React.FC = () => {
             break;
           case 'n':
             event.preventDefault();
-            navigate('/add-entity');
+            navigate('/entities?tab=add-entity');
             break;
           case 'd':
             event.preventDefault();

@@ -579,14 +579,6 @@ const Layout: React.FC = () => {
               
               {/* Always show these nav items, but require auth for non-authenticated users */}
               <Link 
-                to="/add-entity" 
-                className="nav-link"
-                onClick={(e) => handleAuthRequiredNavigation('/add-entity', e)}
-              >
-                <Plus size={16} />
-                Add Entity
-              </Link>
-              <Link 
                 to="/circle" 
                 className="nav-link"
                 onClick={(e) => handleAuthRequiredNavigation('/circle', e)}

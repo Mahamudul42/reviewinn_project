@@ -21,8 +21,8 @@ const NavigationLeftPanel: React.FC<NavigationLeftPanelProps> = ({
   const navigationItems = [
     { id: 'home', label: 'Home', icon: Home, path: '/', active: location.pathname === '/', count: null },
     { id: 'search', label: 'Advanced Search', icon: Search, path: '/search', active: location.pathname === '/search', count: null },
+    { id: 'entities', label: 'Browse Entities', icon: Building2, path: '/entities', active: location.pathname.startsWith('/entities'), count: null },
     { id: 'groups', label: 'Groups', icon: Users, path: '/groups', active: location.pathname.startsWith('/groups'), count: null },
-    { id: 'add-entity', label: 'Add Entity', icon: Building2, path: '/add-entity', active: location.pathname === '/add-entity', count: null },
     { id: 'profile', label: 'My Profile', icon: User, path: '/profile', active: location.pathname.startsWith('/profile'), count: null },
     { id: 'bookmarks', label: 'Saved Reviews', icon: Bookmark, path: '/bookmarks', active: location.pathname === '/bookmarks', count: 12 }
   ];
