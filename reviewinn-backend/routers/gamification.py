@@ -157,7 +157,7 @@ async def get_gamification_dashboard(
 
 @router.get("/user-progress")
 async def get_user_progress(
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Get user progress data"""
@@ -186,7 +186,7 @@ async def get_user_progress(
 
 @router.get("/badges")
 async def get_user_badges(
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Get user's earned badges"""
@@ -199,7 +199,7 @@ async def get_user_badges(
 
 @router.get("/daily-tasks")
 async def get_daily_tasks(
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Get daily tasks for the current user"""
@@ -223,7 +223,7 @@ async def get_daily_tasks(
 async def update_daily_task(
     task_id: int,
     complete: bool,
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Update a daily task completion status"""
@@ -243,7 +243,7 @@ async def update_daily_task(
 
 @router.get("/weekly-engagement")
 async def get_weekly_engagement(
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Get weekly engagement data for charts"""

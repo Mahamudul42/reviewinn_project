@@ -34,7 +34,7 @@ async def get_entities(
     minRating: Optional[float] = Query(None, description="Minimum average rating filter"),
     verified: Optional[bool] = Query(None, description="Filter by verified status"),
     db: Session = Depends(get_db),
-    current_user: CurrentUser = None
+    current_user = CurrentUser
 ):
     """
     OPTIMIZED: Get entities with comprehensive engagement data in single API call.
@@ -232,7 +232,7 @@ async def search_entities(
 async def create_entity(
     entity_data: EntityCreate,
     db: Session = Depends(get_db),
-    current_user: CurrentUser = None
+    current_user = CurrentUser
 ):
     """Create a new entity"""
     try:
@@ -306,7 +306,7 @@ async def create_entity(
 async def get_entity(
     entity_id: int,
     db: Session = Depends(get_db),
-    current_user: CurrentUser = None
+    current_user = CurrentUser
 ):
     """Get entity by ID"""
     try:

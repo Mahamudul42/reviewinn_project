@@ -69,7 +69,7 @@ async def get_all_badges(
 async def get_user_badges(
     user_id: int,
     db: Session = Depends(get_db),
-    current_user: RequiredUser
+    current_user = RequiredUser
 ):
     """Get all badges earned by a specific user"""
     badge_service = BadgeService(db)
@@ -78,7 +78,7 @@ async def get_user_badges(
 
 @router.get("/me")
 async def get_my_badges(
-    current_user: RequiredUser,
+    current_user = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Get badges for the current authenticated user"""
@@ -88,7 +88,7 @@ async def get_my_badges(
 
 @router.get("/available")
 async def get_available_badges(
-    current_user: RequiredUser,
+    current_user = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Get badges that the current user hasn't earned yet"""
@@ -98,7 +98,7 @@ async def get_available_badges(
 
 @router.post("/evaluate")
 async def evaluate_badges(
-    current_user: RequiredUser,
+    current_user = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Manually trigger badge evaluation for current user"""
@@ -122,7 +122,7 @@ async def get_badge_tiers():
 
 @router.get("/stats")
 async def get_badge_stats(
-    current_user: RequiredUser,
+    current_user = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Get badge statistics for the current user"""
@@ -151,7 +151,7 @@ async def get_badge_stats(
 async def manually_award_badge(
     user_id: int,
     badge_definition_id: int,
-    current_user: RequiredUser,
+    current_user = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Manually award a badge (admin only)"""
@@ -180,7 +180,7 @@ async def manually_award_badge(
 
 @router.post("/admin/evaluate-all")
 async def evaluate_all_users(
-    current_user: RequiredUser,
+    current_user = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Evaluate badges for all users (admin only)"""
@@ -210,7 +210,7 @@ async def evaluate_all_users(
 async def get_user_badge_progress(
     user_id: int,
     db: Session = Depends(get_db),
-    current_user: RequiredUser
+    current_user = RequiredUser
 ):
     """Get user's badge progress (frontend compatible)"""
     # For now, return empty array as progress tracking needs to be implemented
@@ -220,7 +220,7 @@ async def get_user_badge_progress(
 async def get_user_badge_stats_frontend(
     user_id: int,
     db: Session = Depends(get_db),
-    current_user: RequiredUser
+    current_user = RequiredUser
 ):
     """Get user badge statistics (frontend compatible)"""
     badge_service = BadgeService(db)
@@ -246,7 +246,7 @@ async def check_user_badges(
     user_id: int,
     request_data: Dict[str, Any] = {},
     db: Session = Depends(get_db),
-    current_user: RequiredUser
+    current_user = RequiredUser
 ):
     """Check for new badges for user (frontend compatible)"""
     badge_service = BadgeService(db)
@@ -258,7 +258,7 @@ async def check_user_badges(
 async def unlock_registration_badge(
     user_id: int,
     db: Session = Depends(get_db),
-    current_user: RequiredUser
+    current_user = RequiredUser
 ):
     """Unlock registration badge for new user (frontend compatible)"""
     print(f"[BADGE DEBUG] User {current_user.user_id} requesting registration badge for user {user_id}")
@@ -330,7 +330,7 @@ async def update_badge_display_preference(
     user_id: int,
     request_data: Dict[str, Any],
     db: Session = Depends(get_db),
-    current_user: RequiredUser
+    current_user = RequiredUser
 ):
     """Update badge display preference (frontend compatible)"""
     # For now, just return success as display preferences need to be implemented

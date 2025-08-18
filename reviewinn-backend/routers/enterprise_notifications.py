@@ -93,7 +93,7 @@ async def get_notifications(
     limit: int = Query(20, ge=1, le=100, description="Items per page"),
     unread_only: bool = Query(False, description="Show only unread notifications"),
     priority_filter: Optional[str] = Query(None, description="Filter by priority"),
-    current_user: RequiredUser,
+    current_user = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Get paginated notifications with enterprise filtering."""
@@ -117,7 +117,7 @@ async def get_notifications(
 @router.post("/", response_model=NotificationRead)
 async def create_notification(
     notification_data: NotificationCreate,
-    current_user: RequiredUser,
+    current_user = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Create a new notification (admin/system use)."""
@@ -137,7 +137,7 @@ async def create_notification(
 async def update_notification(
     notification_id: int,
     update_data: NotificationUpdate,
-    current_user: RequiredUser,
+    current_user = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Update a specific notification (supports is_read and other fields)."""
@@ -180,7 +180,7 @@ async def update_notification(
 @router.patch("/{notification_id}/read")
 async def mark_notification_as_read(
     notification_id: int,
-    current_user: RequiredUser,
+    current_user = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Mark a specific notification as read."""
@@ -207,7 +207,7 @@ async def mark_notification_as_read(
 
 @router.patch("/mark-all-read")
 async def mark_all_notifications_as_read(
-    current_user: RequiredUser,
+    current_user = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Mark all notifications as read for the current user."""
@@ -231,7 +231,7 @@ async def mark_all_notifications_as_read(
 @router.patch("/bulk-update")
 async def bulk_update_notifications(
     bulk_data: NotificationBulkUpdate,
-    current_user: RequiredUser,
+    current_user = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Enterprise bulk update for multiple notifications."""
@@ -255,7 +255,7 @@ async def bulk_update_notifications(
 @router.delete("/{notification_id}")
 async def delete_notification(
     notification_id: int,
-    current_user: RequiredUser,
+    current_user = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Delete a specific notification."""
@@ -282,7 +282,7 @@ async def delete_notification(
 
 @router.get("/stats", response_model=NotificationStats)
 async def get_notification_stats(
-    current_user: RequiredUser,
+    current_user = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Get comprehensive notification statistics for the user."""
@@ -305,7 +305,7 @@ async def create_system_notification(
     priority: str = "normal",
     target_users: Optional[List[int]] = None,
     background_tasks: BackgroundTasks = BackgroundTasks(),
-    current_user: RequiredUser,
+    current_user = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Create system-wide notifications (admin only)."""
@@ -346,7 +346,7 @@ async def create_system_notification(
 @router.post("/cleanup")
 async def cleanup_expired_notifications(
     background_tasks: BackgroundTasks = BackgroundTasks(),
-    current_user: RequiredUser,
+    current_user = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Enterprise cleanup job for expired notifications (admin only)."""

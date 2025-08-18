@@ -29,7 +29,7 @@ def get_group_service(db: Session = Depends(get_db)) -> GroupService:
 @router.post("/", response_model=GroupResponse, status_code=status.HTTP_201_CREATED)
 async def create_group(
     group_data: GroupCreateRequest,
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     group_service: GroupService = Depends(get_group_service)
 ):
     """
@@ -163,7 +163,7 @@ async def get_group(
 async def update_group(
     group_data: GroupUpdateRequest,
     group_id: int = Path(..., description="Group ID"),
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     group_service: GroupService = Depends(get_group_service)
 ):
     """
@@ -179,7 +179,7 @@ async def update_group(
 async def join_group(
     group_id: int = Path(..., description="Group ID"),
     membership_data: Optional[GroupMembershipRequest] = None,
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     group_service: GroupService = Depends(get_group_service)
 ):
     """
@@ -194,7 +194,7 @@ async def join_group(
 @router.post("/{group_id}/leave")
 async def leave_group(
     group_id: int = Path(..., description="Group ID"),
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     group_service: GroupService = Depends(get_group_service)
 ):
     """
@@ -259,7 +259,7 @@ async def get_group_members(
 async def invite_to_group(
     invitation_data: GroupInvitationRequest,
     group_id: int = Path(..., description="Group ID"),
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     group_service: GroupService = Depends(get_group_service)
 ):
     """
@@ -276,7 +276,7 @@ async def invite_to_group(
 async def get_received_invitations(
     page: int = Query(1, ge=1),
     size: int = Query(20, ge=1, le=100),
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     group_service: GroupService = Depends(get_group_service)
 ):
     """
@@ -289,7 +289,7 @@ async def get_received_invitations(
 async def respond_to_invitation(
     response_data: GroupInvitationResponseRequest,
     invitation_id: int = Path(..., description="Invitation ID"),
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     group_service: GroupService = Depends(get_group_service)
 ):
     """
@@ -337,7 +337,7 @@ async def get_group_reviews(
 async def update_review_scope(
     scope_data: ReviewScopeRequest,
     review_id: int = Path(..., description="Review ID"),
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     group_service: GroupService = Depends(get_group_service)
 ):
     """
@@ -404,7 +404,7 @@ async def search_groups(
 @router.get("/{group_id}/analytics")
 async def get_group_analytics(
     group_id: int = Path(..., description="Group ID"),
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     group_service: GroupService = Depends(get_group_service)
 ):
     """
@@ -430,7 +430,7 @@ async def get_my_groups(
     page: int = Query(1, ge=1),
     size: int = Query(20, ge=1, le=100),
     role: Optional[str] = Query(None, description="Filter by my role"),
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     group_service: GroupService = Depends(get_group_service)
 ):
     """

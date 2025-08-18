@@ -36,7 +36,7 @@ async def track_review_view(
     review_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: CurrentUser
+    current_user = CurrentUser
 ):
     """
     Track a review view with industry-standard rate limiting.
@@ -93,7 +93,7 @@ async def track_entity_view(
     entity_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: CurrentUser
+    current_user = CurrentUser
 ):
     """
     Track an entity view with the same rate limiting as reviews.
@@ -143,7 +143,7 @@ async def track_entity_view(
 async def get_review_analytics(
     review_id: int,
     db: Session = Depends(get_db),
-    current_user: RequiredUser
+    current_user = RequiredUser
 ):
     """
     Get view analytics for a review.

@@ -317,7 +317,7 @@ async def get_entity(
 async def create_entity(
     entity_data: EntityCreateRequest,
     db: Session = Depends(get_db),
-    current_user: CurrentUser
+    current_user = CurrentUser
 ):
     """
     Create a new entity with validation.
@@ -387,7 +387,7 @@ async def create_entity(
 async def update_entity(
     entity_id: int = Path(..., description="Entity ID"),
     entity_data: EntityUpdateRequest = Body(...),
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """
@@ -460,7 +460,7 @@ async def update_entity(
 async def delete_entity(
     entity_id: int = Path(..., description="Entity ID"),
     delete_request: EntityDeleteRequest = Body(...),
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """

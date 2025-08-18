@@ -33,7 +33,7 @@ def get_circle_service(db: Session = Depends(get_db)) -> CircleService:
 @router.post("/", response_model=CircleResponse, status_code=status.HTTP_201_CREATED)
 async def create_circle(
     circle_data: CircleCreateRequest,
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     circle_service: CircleService = Depends(get_circle_service)
 ):
     """
@@ -79,7 +79,7 @@ async def get_circles(
 @router.post("/send-request", status_code=status.HTTP_201_CREATED)
 async def send_circle_request(
     request_data: dict,
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     circle_service: CircleService = Depends(get_circle_service)
 ):
     """
@@ -97,7 +97,7 @@ async def send_circle_request(
 
 @router.get("/pending-requests")
 async def get_pending_requests(
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     circle_service: CircleService = Depends(get_circle_service)
 ):
     """
@@ -112,7 +112,7 @@ async def get_pending_requests(
 
 @router.get("/sent-requests")
 async def get_sent_requests(
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     circle_service: CircleService = Depends(get_circle_service)
 ):
     """
@@ -129,7 +129,7 @@ async def get_sent_requests(
 @router.post("/respond-request", status_code=status.HTTP_200_OK)
 async def respond_to_request(
     response_data: dict,
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     circle_service: CircleService = Depends(get_circle_service)
 ):
     """
@@ -150,7 +150,7 @@ async def respond_to_request(
 @router.delete("/cancel-request/{request_id}")
 async def cancel_circle_request(
     request_id: int = Path(..., description="ID of the request to cancel"),
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     circle_service: CircleService = Depends(get_circle_service)
 ):
     """
@@ -168,7 +168,7 @@ async def get_my_circle_members(
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(20, ge=1, le=100, description="Items per page"),
     trust_level: Optional[TrustLevel] = Query(None, description="Filter by trust level"),
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     circle_service: CircleService = Depends(get_circle_service)
 ):
     """
@@ -192,7 +192,7 @@ async def get_my_circle_members(
 @router.delete("/member/{connection_id}")
 async def remove_from_circle(
     connection_id: int = Path(..., description="Connection ID"),
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     circle_service: CircleService = Depends(get_circle_service)
 ):
     """
@@ -213,7 +213,7 @@ async def remove_from_circle(
 async def get_circle_suggestions(
     limit: int = Query(10, ge=1, le=50, description="Number of suggestions"),
     min_taste_match: float = Query(0.0, ge=0.0, le=100.0, description="Minimum taste match score"),
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     circle_service: CircleService = Depends(get_circle_service)
 ):
     """
@@ -238,7 +238,7 @@ async def get_circle_suggestions(
 async def search_users(
     query: str = Query(..., min_length=2, description="Search query"),
     limit: int = Query(10, ge=1, le=50, description="Number of results"),
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     circle_service: CircleService = Depends(get_circle_service)
 ):
     """
@@ -256,7 +256,7 @@ async def search_users(
 @router.post("/block-user", status_code=status.HTTP_201_CREATED)
 async def block_user(
     block_data: dict,
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     circle_service: CircleService = Depends(get_circle_service)
 ):
     """
@@ -275,7 +275,7 @@ async def block_user(
 @router.delete("/unblock-user/{user_id}")
 async def unblock_user(
     user_id: int = Path(..., description="User ID to unblock"),
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     circle_service: CircleService = Depends(get_circle_service)
 ):
     """
@@ -290,7 +290,7 @@ async def unblock_user(
 
 @router.get("/blocked-users")
 async def get_blocked_users(
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     circle_service: CircleService = Depends(get_circle_service)
 ):
     """
@@ -303,7 +303,7 @@ async def get_blocked_users(
 
 @router.get("/followers")
 async def get_followers(
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     circle_service: CircleService = Depends(get_circle_service)
 ):
     """
@@ -318,7 +318,7 @@ async def get_followers(
 
 @router.get("/following")
 async def get_following(
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     circle_service: CircleService = Depends(get_circle_service)
 ):
     """
@@ -334,7 +334,7 @@ async def get_following(
 @router.post("/demote-to-follower", status_code=status.HTTP_200_OK)
 async def demote_circle_mate_to_follower(
     request_data: dict,
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     circle_service: CircleService = Depends(get_circle_service)
 ):
     """
@@ -353,7 +353,7 @@ async def demote_circle_mate_to_follower(
 @router.post("/promote-to-circle-mate", status_code=status.HTTP_201_CREATED)
 async def promote_follower_to_circle_mate(
     request_data: dict,
-    current_user: User = RequiredUser,
+    current_user = RequiredUser,
     circle_service: CircleService = Depends(get_circle_service)
 ):
     """

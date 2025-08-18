@@ -315,7 +315,7 @@ class ProductionAuthDependencies:
     
     # ==================== AUDIT DEPENDENCIES ====================
     
-    async def audit_action(self, action: str) -> Callable:
+    def audit_action(self, action: str) -> Callable:
         """
         Create audit logging dependency for specific actions
         """

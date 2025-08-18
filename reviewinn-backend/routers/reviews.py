@@ -164,7 +164,7 @@ def get_comment_reaction_summary_response(comment_id: int, db: Session, current_
 async def test_review_endpoint(
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = RequiredUser
+    current_user = RequiredUser
 ):
     """Test endpoint to verify authentication and database connection."""
     try:
@@ -193,7 +193,7 @@ async def test_review_endpoint(
 async def create_review(
     review_data: ReviewCreateRequest,
     db: Session = Depends(get_db),
-    current_user: User = RequiredUser
+    current_user = RequiredUser
 ):
     """Create a new review for an entity."""
     try:
@@ -366,7 +366,7 @@ async def create_review(
 def get_recent_reviews(
     limit: int = Query(5, ge=1, le=100, description="Number of recent reviews to fetch"),
     db: Session = Depends(get_db),
-    current_user: CurrentUser
+    current_user: CurrentUser = None
 ):
     """Get the most recent reviews."""
     try:
@@ -488,7 +488,7 @@ def get_reviews(
     sort_order: Optional[str] = Query("desc", description="Sort order"),
     verified: Optional[bool] = Query(None, description="Filter by verification status"),
     db: Session = Depends(get_db),
-    current_user: CurrentUser
+    current_user: CurrentUser = None
 ):
     """Get a list of reviews with pagination and filtering."""
     try:
@@ -675,7 +675,7 @@ def get_review_comments(
     limit: int = Query(8, ge=1, le=100, description="Items per page"),
     sort_by: str = Query("most_relevant", description="Sort by: most_relevant, newest, oldest, most_liked"),
     db: Session = Depends(get_db),
-    current_user: CurrentUser
+    current_user: CurrentUser = None
 ):
     """Get paginated comments for a review."""
     try:
@@ -740,7 +740,7 @@ async def create_comment(
     review_id: int,
     comment_request: CommentRequest,
     db: Session = Depends(get_db),
-    current_user: User = RequiredUser
+    current_user = RequiredUser
 ):
     """Create a new comment on a review."""
     try:
@@ -811,7 +811,7 @@ async def create_comment(
 async def track_view(
     review_id: int, 
     db: Session = Depends(get_db),
-    current_user: CurrentUser
+    current_user: CurrentUser = None
 ):
     """Track a view for a review."""
     try:
@@ -859,7 +859,7 @@ def search_reviews(
     start_date: Optional[str] = Query(None, description="Start date for filtering"),
     end_date: Optional[str] = Query(None, description="End date for filtering"),
     db: Session = Depends(get_db),
-    current_user: CurrentUser
+    current_user: CurrentUser = None
 ):
     """Search reviews with text query and filters."""
     try:
@@ -968,7 +968,7 @@ async def add_comment_reaction(
     comment_id: int,
     reaction_request: ReactionRequest,
     db: Session = Depends(get_db),
-    current_user: User = RequiredUser
+    current_user = RequiredUser
 ):
     """Add or update a reaction to a comment."""
     try:
@@ -1035,7 +1035,7 @@ async def add_comment_reaction(
 async def remove_comment_reaction(
     comment_id: int,
     db: Session = Depends(get_db),
-    current_user: User = RequiredUser
+    current_user = RequiredUser
 ):
     """Remove a reaction from a comment."""
     try:
@@ -1073,7 +1073,7 @@ async def remove_comment_reaction(
 async def get_comment_reactions(
     comment_id: int,
     db: Session = Depends(get_db),
-    current_user: CurrentUser
+    current_user: CurrentUser = None
 ):
     """Get reaction summary for a comment."""
     try:
@@ -1103,7 +1103,7 @@ async def add_or_update_reaction(
     review_id: int,
     reaction_request: ReactionRequest,
     db: Session = Depends(get_db),
-    current_user: User = RequiredUser
+    current_user = RequiredUser
 ):
     """Add or update a reaction for a review by the current user."""
     try:
@@ -1256,7 +1256,7 @@ async def add_or_update_reaction(
 async def remove_reaction(
     review_id: int,
     db: Session = Depends(get_db),
-    current_user: User = RequiredUser
+    current_user = RequiredUser
 ):
     """Remove the current user's reaction from a review."""
     try:
@@ -1363,7 +1363,7 @@ async def remove_reaction(
 async def get_reaction_counts(
     review_id: int,
     db: Session = Depends(get_db),
-    current_user: CurrentUser
+    current_user: CurrentUser = None
 ):
     """Get counts of each reaction type for a review."""
     try:
@@ -1442,7 +1442,7 @@ def get_reaction_summary_response(review_id: int, db: Session, user_id: Optional
 async def get_review_by_id(
     review_id: int,
     db: Session = Depends(get_db),
-    current_user: CurrentUser
+    current_user: CurrentUser = None
 ):
     """Get a single review by ID with full context for sharing."""
     try:        

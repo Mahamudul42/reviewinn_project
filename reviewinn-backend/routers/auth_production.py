@@ -66,8 +66,8 @@ async def register_user(
     registration_data: RegisterRequest,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
-    _rate_limit = Depends(AuthRateLimit),
-    _audit = Depends(AuditAction("user_registration"))
+    _rate_limit = AuthRateLimit,
+    _audit = AuditAction("user_registration")
 ):
     """Register new user with production-grade validation"""
     
@@ -153,8 +153,8 @@ async def authenticate_user(
     request: Request,
     login_data: LoginRequest,
     db: Session = Depends(get_db),
-    _rate_limit = Depends(AuthRateLimit),
-    _audit = Depends(AuditAction("user_login"))
+    _rate_limit = AuthRateLimit,
+    _audit = AuditAction("user_login")
 ):
     """Authenticate user with production security"""
     
@@ -242,8 +242,8 @@ async def refresh_access_token(
     request: Request,
     refresh_data: RefreshTokenRequest,
     db: Session = Depends(get_db),
-    _rate_limit = Depends(StandardRateLimit),
-    _audit = Depends(AuditAction("token_refresh"))
+    _rate_limit = StandardRateLimit,
+    _audit = AuditAction("token_refresh")
 ):
     """Refresh access token with production security"""
     
@@ -285,8 +285,8 @@ async def refresh_access_token(
 )
 async def logout_user(
     request: Request,
-    current_user: RequiredUser = None,
-    _audit = Depends(AuditAction("user_logout"))
+    current_user = RequiredUser,
+    _audit = AuditAction("user_logout")
 ):
     """Logout user with session cleanup"""
     
@@ -335,8 +335,8 @@ async def verify_user_email(
     email: str = Body(...),
     verification_code: str = Body(...),
     db: Session = Depends(get_db),
-    _rate_limit = Depends(AuthRateLimit),
-    _audit = Depends(AuditAction("email_verification"))
+    _rate_limit = AuthRateLimit,
+    _audit = AuditAction("email_verification")
 ):
     """Verify email with 6-digit code"""
     
@@ -378,8 +378,8 @@ async def resend_verification_code(
     request: Request,
     email: str = Body(...),
     db: Session = Depends(get_db),
-    _rate_limit = Depends(AuthRateLimit),
-    _audit = Depends(AuditAction("resend_verification"))
+    _rate_limit = AuthRateLimit,
+    _audit = AuditAction("resend_verification")
 ):
     """Resend verification code"""
     
@@ -422,8 +422,8 @@ async def request_password_reset(
     request: Request,
     email: str = Body(...),
     db: Session = Depends(get_db),
-    _rate_limit = Depends(AuthRateLimit),
-    _audit = Depends(AuditAction("password_reset_request"))
+    _rate_limit = AuthRateLimit,
+    _audit = AuditAction("password_reset_request")
 ):
     """Request password reset code"""
     
@@ -470,8 +470,8 @@ async def reset_user_password(
     reset_code: str = Body(...),
     new_password: str = Body(...),
     db: Session = Depends(get_db),
-    _rate_limit = Depends(AuthRateLimit),
-    _audit = Depends(AuditAction("password_reset"))
+    _rate_limit = AuthRateLimit,
+    _audit = AuditAction("password_reset")
 ):
     """Reset password using verification code"""
     
@@ -518,8 +518,8 @@ async def change_user_password(
     new_password: str = Body(...),
     current_user: VerifiedUser = None,
     db: Session = Depends(get_db),
-    _rate_limit = Depends(StandardRateLimit),
-    _audit = Depends(AuditAction("password_change"))
+    _rate_limit = StandardRateLimit,
+    _audit = AuditAction("password_change")
 ):
     """Change password for authenticated user"""
     
@@ -593,7 +593,7 @@ async def change_user_password(
 )
 async def get_current_user_info(
     request: Request,
-    current_user: RequiredUser = None
+    current_user = RequiredUser
 ):
     """Get current authenticated user information"""
     
@@ -686,8 +686,8 @@ async def list_all_users(
     limit: int = 50,
     admin_user: AdminUser = None,
     db: Session = Depends(get_db),
-    _rate_limit = Depends(AdminRateLimit),
-    _audit = Depends(AuditAction("admin_list_users"))
+    _rate_limit = AdminRateLimit,
+    _audit = AuditAction("admin_list_users")
 ):
     """List users (admin only)"""
     
@@ -727,8 +727,8 @@ async def toggle_user_account_status(
     request: Request,
     admin_user: AdminUser = None,
     db: Session = Depends(get_db),
-    _rate_limit = Depends(AdminRateLimit),
-    _audit = Depends(AuditAction("admin_toggle_user_status"))
+    _rate_limit = AdminRateLimit,
+    _audit = AuditAction("admin_toggle_user_status")
 ):
     """Toggle user active status (admin only)"""
     

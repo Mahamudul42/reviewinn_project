@@ -8,6 +8,7 @@ from database import get_db
 from models.entity import Entity
 from models.review import Review
 from core.responses import api_response
+from auth.production_dependencies import AdminUser
 import logging
 
 logger = logging.getLogger(__name__)
@@ -16,7 +17,8 @@ router = APIRouter(prefix="/admin", tags=["Admin"])
 @router.post("/update-entity-ratings")
 async def update_entity_ratings(
     all_entities: bool = False,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin_user: AdminUser = None
 ):
     """Update entity average ratings and review counts."""
     try:
