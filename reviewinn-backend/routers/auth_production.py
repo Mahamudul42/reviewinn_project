@@ -296,14 +296,15 @@ async def logout_user(
         if auth_header.startswith("Bearer "):
             token = auth_header[7:]
             
-            # In production, implement token blacklisting
-            # await auth_system.blacklist_token(token)
+            # Blacklist the token
+            blacklisted = await auth_system.blacklist_token(token)
             
             # Log logout event
             await auth_system._log_security_event(SecurityEventType.LOGOUT, {
                 "user_id": current_user.user_id,
                 "client_ip": auth_system._extract_client_ip(request),
-                "logout_method": "manual"
+                "logout_method": "manual",
+                "token_blacklisted": blacklisted
             })
         
         return None

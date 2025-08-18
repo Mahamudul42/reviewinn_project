@@ -8,7 +8,7 @@ This module provides type-safe, production-ready authentication dependencies
 for FastAPI routes with comprehensive security features.
 """
 
-from typing import Optional, List, Dict, Any, Annotated, Callable
+from typing import Optional, List, Dict, Any, Annotated, Callable, Awaitable
 from fastapi import Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 
@@ -162,7 +162,7 @@ class ProductionAuthDependencies:
     
     # ==================== PERMISSION-BASED DEPENDENCIES ====================
     
-    def require_permissions(self, required_permissions: List[str]) -> Callable:
+    def require_permissions(self, required_permissions: List[str]) -> Callable[[Request], Awaitable[User]]:
         """
         Create dependency that requires specific permissions
         """
@@ -193,7 +193,7 @@ class ProductionAuthDependencies:
     
     # ==================== RESOURCE-BASED DEPENDENCIES ====================
     
-    def require_resource_owner_or_admin(self, resource_user_id_func: Callable[[Request], int]) -> Callable:
+    def require_resource_owner_or_admin(self, resource_user_id_func: Callable[[Request], int]) -> Callable[[Request], Awaitable[User]]:
         """
         Create dependency that requires resource ownership or admin role
         """
@@ -291,7 +291,7 @@ class ProductionAuthDependencies:
     
     # ==================== RATE LIMITING DEPENDENCIES ====================
     
-    def rate_limit(self, max_requests: int = 60, window_minutes: int = 1) -> Callable:
+    def rate_limit(self, max_requests: int = 60, window_minutes: int = 1) -> Callable[[Request], Awaitable[None]]:
         """
         Create rate limiting dependency
         """
@@ -315,7 +315,7 @@ class ProductionAuthDependencies:
     
     # ==================== AUDIT DEPENDENCIES ====================
     
-    def audit_action(self, action: str) -> Callable:
+    def audit_action(self, action: str) -> Callable[[Request], Awaitable[None]]:
         """
         Create audit logging dependency for specific actions
         """
@@ -364,7 +364,7 @@ class ProductionAuthDependencies:
         """Log security events"""
         await self.auth_system._log_security_event(event_type, data)
     
-    async def _check_rate_limit(self, identifier: str, action: str, max_attempts: int, window_minutes: int):
+    async def _check_rate_limit(self, identifier: str, action: str, max_attempts: int, window_minutes: int) -> None:
         """Check rate limiting"""
         key = f"reviewinn_auth:rate_limit:{action}:{identifier}"
         

@@ -3,7 +3,6 @@ Shared utility functions for the review platform.
 Provides common functionality used across multiple domains.
 """
 
-import hashlib
 import secrets
 import re
 import uuid
@@ -11,7 +10,6 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 from email_validator import validate_email, EmailNotValidError
 from sqlalchemy.orm import Query
-from sqlalchemy import func
 
 
 def generate_id() -> str:

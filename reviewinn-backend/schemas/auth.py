@@ -1,8 +1,8 @@
 """
 Authentication-related schemas.
 """
-from typing import Optional
-from pydantic import BaseModel, Field, EmailStr, validator
+from typing import Optional, List
+from pydantic import BaseModel, Field, EmailStr, validator, ConfigDict
 from datetime import datetime
 from .common import BaseResponseSchema
 
@@ -22,11 +22,13 @@ class RegisterRequest(BaseModel):
     username: Optional[str] = Field(None, min_length=3, max_length=100, description="Username")
 
     @validator('password')
-    def validate_password(cls, v):
+    def validate_password(cls, v: str) -> str:
         if not any(c.isdigit() for c in v):
             raise ValueError('Password must contain at least one digit')
         if not any(c.isalpha() for c in v):
             raise ValueError('Password must contain at least one letter')
+        if len(v) < 8:
+            raise ValueError('Password must be at least 8 characters long')
         return v
 
 
@@ -55,11 +57,13 @@ class ResetPasswordRequest(BaseModel):
     new_password: str = Field(..., min_length=8, description="New password")
     
     @validator('new_password')
-    def validate_password(cls, v):
+    def validate_password(cls, v: str) -> str:
         if not any(c.isdigit() for c in v):
             raise ValueError('Password must contain at least one digit')
         if not any(c.isalpha() for c in v):
             raise ValueError('Password must contain at least one letter')
+        if len(v) < 8:
+            raise ValueError('Password must be at least 8 characters long')
         return v
 
 
@@ -69,11 +73,13 @@ class ChangePasswordRequest(BaseModel):
     new_password: str = Field(..., min_length=8, description="New password")
     
     @validator('new_password')
-    def validate_password(cls, v):
+    def validate_password(cls, v: str) -> str:
         if not any(c.isdigit() for c in v):
             raise ValueError('Password must contain at least one digit')
         if not any(c.isalpha() for c in v):
             raise ValueError('Password must contain at least one letter')
+        if len(v) < 8:
+            raise ValueError('Password must be at least 8 characters long')
         return v
 
 
@@ -84,6 +90,8 @@ class LogoutRequest(BaseModel):
 
 class AuthUserResponse(BaseResponseSchema):
     """Schema for authenticated user response."""
+    model_config = ConfigDict(from_attributes=True)
+    
     user_id: int = Field(..., description="User ID")
     email: EmailStr = Field(..., description="User email")
     full_name: str = Field(..., description="User full name")
@@ -92,8 +100,9 @@ class AuthUserResponse(BaseResponseSchema):
     is_verified: bool = Field(False, description="Whether user is verified")
     is_active: bool = Field(True, description="Whether user is active")
     role: str = Field("user", description="User role")
-    permissions: list = Field(default_factory=list, description="User permissions")
+    permissions: List[str] = Field(default_factory=list, description="User permissions")
     last_login: Optional[datetime] = Field(None, description="Last login timestamp")
+    created_at: Optional[datetime] = Field(None, description="Account creation timestamp")
 
 
 class PasswordResetTokenResponse(BaseModel):

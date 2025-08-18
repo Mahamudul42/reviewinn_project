@@ -14,11 +14,9 @@ import re
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, List, Any, Tuple
 from enum import Enum
-import asyncio
 from dataclasses import dataclass
 
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_, desc
 from passlib.context import CryptContext
 import jwt
 from email_validator import validate_email, EmailNotValidError
@@ -26,7 +24,6 @@ from fastapi import HTTPException, status, Request
 import logging
 import redis.asyncio as redis
 from pydantic import BaseModel, EmailStr
-import bcrypt
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +49,13 @@ class ProductionAuthConfig:
     PASSWORD_MIN_LENGTH: int = 12  # Higher for production
     PASSWORD_MAX_LENGTH: int = 128
     
+    # Enterprise Security Features
+    ENABLE_SUSPICIOUS_LOGIN_DETECTION: bool = True
+    ENABLE_GEOLOCATION_TRACKING: bool = True
+    ENABLE_DEVICE_FINGERPRINTING: bool = True
+    REQUIRE_MFA_FOR_ADMIN: bool = True
+    SESSION_ABSOLUTE_TIMEOUT_HOURS: int = 24
+    
     # Rate Limiting (Production Values)
     LOGIN_MAX_ATTEMPTS: int = 3
     LOGIN_WINDOW_MINUTES: int = 15
@@ -73,6 +77,13 @@ class ProductionAuthConfig:
     # Audit and Compliance
     AUDIT_LOG_RETENTION_DAYS: int = 365
     SECURITY_EVENT_REAL_TIME_ALERTS: bool = True
+    
+    # Enterprise Compliance
+    GDPR_COMPLIANCE: bool = True
+    SOC2_COMPLIANCE: bool = True
+    PCI_DSS_COMPLIANCE: bool = True
+    SECURITY_HEADERS_ENABLED: bool = True
+    DATA_ENCRYPTION_AT_REST: bool = True
 
 class SecurityEventType(str, Enum):
     """Security event types for audit logging"""
@@ -131,13 +142,18 @@ class ProductionAuthSystem:
             bcrypt__rounds=config.BCRYPT_ROUNDS
         )
         
-        # Initialize Redis connection
+        # Initialize Redis connection pool with production settings
         self.redis = redis.from_url(
             config.REDIS_URL,
             encoding="utf-8",
             decode_responses=True,
             retry_on_timeout=True,
-            health_check_interval=30
+            health_check_interval=30,
+            max_connections=20,  # Connection pool size for production
+            socket_timeout=5.0,  # Timeout for socket operations
+            socket_connect_timeout=5.0,  # Connection timeout
+            socket_keepalive=True,  # Keep connections alive
+            socket_keepalive_options={}
         )
         
         # Security monitoring
@@ -461,7 +477,7 @@ class ProductionAuthSystem:
                     detail=f"Rate limit exceeded. Try again in {window_minutes} minutes."
                 )
     
-    async def _handle_failed_authentication(self, identifier: str, client_ip: str, reason: str):
+    async def _handle_failed_authentication(self, identifier: str, client_ip: str, reason: str) -> None:
         """Handle failed authentication attempts"""
         # Increment rate limit counters
         for key_suffix in [f"user:{identifier}", f"ip:{client_ip}"]:
@@ -484,7 +500,7 @@ class ProductionAuthSystem:
         key = f"{self.config.REDIS_KEY_PREFIX}account_lock:{user_id}"
         return await self.redis.exists(key)
     
-    async def _create_user_session(self, user, token: str, device_info: Dict, client_ip: str):
+    async def _create_user_session(self, user: Any, token: str, device_info: Dict[str, Any], client_ip: str) -> None:
         """Create user session with device tracking"""
         session_data = {
             "user_id": user.user_id,
@@ -693,7 +709,7 @@ class ProductionAuthSystem:
         
         return password.lower() in compromised_passwords
     
-    async def _find_user(self, identifier: str, db: Session):
+    async def _find_user(self, identifier: str, db: Session) -> Optional[Any]:
         """Find user by email or username"""
         from models.user import User
         from sqlalchemy import or_
@@ -702,7 +718,7 @@ class ProductionAuthSystem:
             or_(User.email == identifier.lower(), User.username == identifier.lower())
         ).first()
     
-    async def _send_email_verification(self, email: str, db: Session):
+    async def _send_email_verification(self, email: str, db: Session) -> None:
         """Send email verification via verification service"""
         try:
             from services.verification_service import verification_service
@@ -713,7 +729,7 @@ class ProductionAuthSystem:
             pass
     
     async def _create_secure_user(self, email: str, password: str, first_name: str,
-                                last_name: str, username: str, db: Session):
+                                last_name: str, username: str, db: Session) -> Any:
         """Create user with secure defaults"""
         from models.user import User, UserRole
         from datetime import datetime, timezone
@@ -756,7 +772,7 @@ class ProductionAuthSystem:
             
         return username
     
-    async def _update_user_login_data(self, user, db: Session, client_ip: str, device_info: Dict[str, Any]):
+    async def _update_user_login_data(self, user: Any, db: Session, client_ip: str, device_info: Dict[str, Any]) -> None:
         """Update user login information"""
         from datetime import datetime, timezone
         
@@ -766,7 +782,7 @@ class ProductionAuthSystem:
         
         db.commit()
     
-    async def _clear_rate_limits(self, identifier: str, action: str):
+    async def _clear_rate_limits(self, identifier: str, action: str) -> None:
         """Clear rate limits after successful operation"""
         for key_suffix in [f"user:{identifier}", f"ip:{self._extract_client_ip(None)}"]:
             key = f"{self.config.REDIS_KEY_PREFIX}rate_limit:{action}:{key_suffix}"
@@ -775,7 +791,7 @@ class ProductionAuthSystem:
             except Exception:
                 pass  # Don't fail if Redis is unavailable
     
-    async def _handle_failed_registration(self, email: str, client_ip: str, errors: List[str]):
+    async def _handle_failed_registration(self, email: str, client_ip: str, errors: List[str]) -> None:
         """Handle failed registration attempts"""
         await self._log_security_event(SecurityEventType.REGISTRATION_FAILED, {
             "email": email,
@@ -783,7 +799,7 @@ class ProductionAuthSystem:
             "validation_errors": errors
         })
     
-    async def _store_token_metadata(self, jti: str, payload: Dict[str, Any]):
+    async def _store_token_metadata(self, jti: str, payload: Dict[str, Any]) -> None:
         """Store token metadata in Redis"""
         try:
             key = f"{self.config.REDIS_KEY_PREFIX}token_metadata:{jti}"
@@ -800,6 +816,27 @@ class ProductionAuthSystem:
         except Exception:
             return True  # Don't block if Redis is unavailable
     
+    async def blacklist_token(self, token: str) -> bool:
+        """Add token to blacklist"""
+        try:
+            # Decode token to get JTI and expiration
+            payload = jwt.decode(token, options={"verify_signature": False})
+            jti = payload.get("jti")
+            exp = payload.get("exp")
+            
+            if jti and exp:
+                # Calculate TTL from expiration
+                from datetime import datetime, timezone
+                current_time = datetime.now(timezone.utc).timestamp()
+                ttl = max(int(exp - current_time), 1)  # At least 1 second
+                
+                key = f"{self.config.REDIS_KEY_PREFIX}blacklisted_token:{jti}"
+                await self.redis.setex(key, ttl, "blacklisted")
+                return True
+        except Exception as e:
+            logger.error(f"Token blacklisting failed: {e}")
+        return False
+    
     async def _is_token_blacklisted(self, jti: str) -> bool:
         """Check if token is blacklisted"""
         try:
@@ -807,6 +844,70 @@ class ProductionAuthSystem:
             return await self.redis.exists(key)
         except Exception:
             return False  # Don't block if Redis is unavailable
+    
+    async def _check_account_lockout(self, identifier: str, client_ip: str) -> None:
+        """Check if account should be locked due to failed attempts"""
+        key = f"{self.config.REDIS_KEY_PREFIX}rate_limit:login:user:{identifier}"
+        try:
+            attempts = await self.redis.get(key)
+            if attempts and int(attempts) >= self.config.ACCOUNT_LOCKOUT_ATTEMPTS:
+                # Log potential lockout attempt
+                await self._log_security_event(SecurityEventType.SUSPICIOUS_ACTIVITY, {
+                    "identifier": identifier,
+                    "reason": "account_lockout_threshold_reached", 
+                    "client_ip": client_ip,
+                    "attempts": attempts
+                })
+        except Exception as e:
+            logger.error(f"Account lockout check failed: {e}")
+    
+    async def _manage_concurrent_sessions(self, user_id: int) -> None:
+        """Manage concurrent sessions for user"""
+        try:
+            # Get all sessions for user
+            pattern = f"{self.config.REDIS_KEY_PREFIX}session:{user_id}:*"
+            sessions = await self.redis.keys(pattern)
+            
+            if len(sessions) > self.config.MAX_CONCURRENT_SESSIONS:
+                # Sort by creation time and remove oldest
+                sessions_sorted = []
+                for session_key in sessions:
+                    session_data = await self.redis.get(session_key)
+                    if session_data:
+                        try:
+                            import ast
+                            data = ast.literal_eval(session_data)
+                            sessions_sorted.append((session_key, data.get('created_at', '')))
+                        except Exception:
+                            pass
+                
+                # Remove oldest sessions
+                sessions_sorted.sort(key=lambda x: x[1])
+                excess_sessions = sessions_sorted[:-self.config.MAX_CONCURRENT_SESSIONS]
+                
+                for session_key, _ in excess_sessions:
+                    await self.redis.delete(session_key)
+                    
+        except Exception as e:
+            logger.error(f"Concurrent session management failed: {e}")
+    
+    def _validate_name(self, name: str) -> bool:
+        """Validate name format"""
+        if not name or len(name.strip()) < 1 or len(name) > 100:
+            return False
+        
+        # Allow letters, spaces, hyphens, apostrophes, and common unicode characters
+        pattern = r"^[a-zA-Z\u00C0-\u017F\s'\-\.]+$"
+        return bool(re.match(pattern, name.strip()))
+    
+    def _validate_username(self, username: str) -> bool:
+        """Validate username format"""
+        if not username or len(username) < 3 or len(username) > 30:
+            return False
+        
+        # Only allow alphanumeric characters, underscores, and hyphens
+        pattern = r'^[a-zA-Z0-9_-]+$'
+        return bool(re.match(pattern, username))
 
 # ==================== PRODUCTION INSTANCE ====================
 
