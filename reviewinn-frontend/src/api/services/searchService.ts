@@ -1,5 +1,6 @@
 import { API_CONFIG } from '../config';
 import { searchEntities } from '../api';
+import { getAuthHeaders, createAuthenticatedRequestInit } from '../../shared/utils/auth';
 import type { 
   SearchParams, 
   UnifiedSearchResult, 
@@ -60,15 +61,10 @@ export class SearchService {
   async getCategoryCounts(query: string): Promise<CategoryCount> {
     try {
       const url = `${this.baseUrl}/counts?q=${encodeURIComponent(query)}`;
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const fetchResponse = await fetch(url, {
+      const fetchResponse = await fetch(url, createAuthenticatedRequestInit({
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
-      });
+      }));
 
       if (!fetchResponse.ok) {
         throw new Error(`Failed to get category counts: ${fetchResponse.statusText}`);
@@ -126,15 +122,10 @@ export class SearchService {
           // Try backend search as last resort
           try {
             const backendUrl = `${API_CONFIG.BASE_URL}/entities/search?q=${encodeURIComponent(params.query)}&limit=${entityLimit}`;
-            const token = localStorage.getItem('reviewinn_jwt_token');
-            const fetchResponse = await fetch(backendUrl, {
+            const fetchResponse = await fetch(backendUrl, createAuthenticatedRequestInit({
               method: 'GET',
-              headers: {
-                'Content-Type': 'application/json',
-                ...(token && { 'Authorization': `Bearer ${token}` })
-              },
               credentials: 'include',
-            });
+            }));
 
             if (!fetchResponse.ok) {
               throw new Error(`Failed to search entities: ${fetchResponse.statusText}`);

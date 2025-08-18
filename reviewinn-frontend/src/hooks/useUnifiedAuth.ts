@@ -7,7 +7,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { getAuthManager } from '../services/authInterface';
+import { authManager } from '../services/authInit';
 import type { AuthState, AuthCredentials, RegisterData } from '../services/authInterface';
 import type { User } from '../types';
 
@@ -48,21 +48,29 @@ export const useUnifiedAuth = (): UseUnifiedAuthReturn => {
     isInitialized: false
   });
 
-  const authManager = useRef(getAuthManager());
+  const authManagerRef = useRef(authManager);
 
   // Subscribe to auth state changes
   useEffect(() => {
     console.log('useUnifiedAuth: Setting up subscription to auth manager');
     
-    const unsubscribe = authManager.current.subscribe((newState) => {
+    const unsubscribe = authManagerRef.current.subscribe((newState) => {
       console.log('useUnifiedAuth: Auth state changed from manager:', newState);
       setAuthState(newState);
     });
 
     // Get initial state
-    const initialState = authManager.current.getAuthState();
+    const initialState = authManagerRef.current.getAuthState();
     console.log('useUnifiedAuth: Setting initial state:', initialState);
     setAuthState(initialState);
+
+    // Initialize the auth system if not already done
+    if (!initialState.isInitialized) {
+      console.log('useUnifiedAuth: Initializing auth manager...');
+      authManagerRef.current.initialize().catch(error => {
+        console.error('useUnifiedAuth: Initialization failed:', error);
+      });
+    }
 
     return unsubscribe;
   }, []);
@@ -72,7 +80,7 @@ export const useUnifiedAuth = (): UseUnifiedAuthReturn => {
     console.log('useUnifiedAuth: Starting login process for:', credentials.email);
     setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
     
-    const result = await authManager.current.login(credentials);
+    const result = await authManagerRef.current.login(credentials);
     console.log('useUnifiedAuth: Login result:', result);
     
     if (!result.success) {
@@ -82,7 +90,7 @@ export const useUnifiedAuth = (): UseUnifiedAuthReturn => {
     }
     
     // Get the updated state after successful login
-    const postLoginState = authManager.current.getAuthState();
+    const postLoginState = authManagerRef.current.getAuthState();
     console.log('useUnifiedAuth: Post-login state from manager:', postLoginState);
     setAuthState(postLoginState);
     
@@ -95,7 +103,7 @@ export const useUnifiedAuth = (): UseUnifiedAuthReturn => {
   const register = useCallback(async (data: RegisterData) => {
     setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
     
-    const result = await authManager.current.register(data);
+    const result = await authManagerRef.current.register(data);
     
     if (!result.success) {
       setAuthState(prev => ({ ...prev, isLoading: false, error: result.error || 'Registration failed' }));
@@ -103,7 +111,7 @@ export const useUnifiedAuth = (): UseUnifiedAuthReturn => {
     }
     
     // Get the updated state after successful registration
-    const postRegisterState = authManager.current.getAuthState();
+    const postRegisterState = authManagerRef.current.getAuthState();
     console.log('useUnifiedAuth: Post-registration state from manager:', postRegisterState);
     setAuthState(postRegisterState);
     
@@ -122,7 +130,7 @@ export const useUnifiedAuth = (): UseUnifiedAuthReturn => {
       localStorage.setItem('last_logout_time', logoutTime);
       
       // Call the auth manager logout
-      const result = await authManager.current.logout();
+      const result = await authManagerRef.current.logout();
       
       if (!result.success) {
         console.error('Logout failed:', result.error);
@@ -148,8 +156,6 @@ export const useUnifiedAuth = (): UseUnifiedAuthReturn => {
       
       // Additional comprehensive cleanup - clear any cached auth data
       const authKeysToRemove = [
-        'auth_token',
-        'refresh_token',
         'user_data',
         'reviewsite_last_activity',
         'reviewinn_jwt_token',
@@ -179,8 +185,6 @@ export const useUnifiedAuth = (): UseUnifiedAuthReturn => {
       
       // Clear local storage anyway - emergency cleanup
       const emergencyCleanupKeys = [
-        'auth_token',
-        'refresh_token',
         'user_data',
         'reviewsite_last_activity',
         'reviewinn_jwt_token',
@@ -204,42 +208,46 @@ export const useUnifiedAuth = (): UseUnifiedAuthReturn => {
   }, []);
 
   const refreshToken = useCallback(async () => {
-    const result = await authManager.current.refreshToken();
+    const result = await authManagerRef.current.refreshToken();
     
     if (!result.success) {
       console.error('Token refresh failed:', result.error);
       throw new Error(result.error || 'Token refresh failed');
     }
+    
+    // Update local state after successful token refresh
+    const updatedState = authManagerRef.current.getAuthState();
+    setAuthState(updatedState);
   }, []);
 
   const clearError = useCallback(() => {
-    authManager.current.clearError();
+    authManagerRef.current.clearError();
     setAuthState(prev => ({ ...prev, error: null }));
   }, []);
 
   // Utility methods
   const getToken = useCallback(() => {
-    return authManager.current.getToken();
+    return authManagerRef.current.getToken();
   }, []);
 
   const checkAuth = useCallback(() => {
-    return authManager.current.checkAuth();
+    return authManagerRef.current.checkAuth();
   }, []);
 
   const requireAuth = useCallback((callback?: () => void) => {
-    return authManager.current.requireAuth(callback);
+    return authManagerRef.current.requireAuth(callback);
   }, []);
 
   const withAuth = useCallback(async <T>(operation: () => Promise<T>): Promise<T> => {
-    return authManager.current.withAuth(operation);
+    return authManagerRef.current.withAuth(operation);
   }, []);
 
   const ensureAuthenticated = useCallback(async () => {
-    return authManager.current.ensureAuthenticated();
+    return authManagerRef.current.ensureAuthenticated();
   }, []);
 
   const healthCheck = useCallback(async () => {
-    return authManager.current.healthCheck();
+    return authManagerRef.current.healthCheck();
   }, []);
 
   return {

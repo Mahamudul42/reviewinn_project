@@ -1,11 +1,11 @@
 /**
  * Unified Authentication Context
  * Single source of truth for authentication state across the entire application
+ * Now uses the unified auth system (useUnifiedAuth) as the primary interface
  */
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
-import { useAuthStore } from '../stores/authStore';
-import { httpClient } from '../api/httpClient';
+import { useUnifiedAuth } from '../hooks/useUnifiedAuth';
 import type { User } from '../types';
 
 export interface AuthContextType {
@@ -37,57 +37,36 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [isInitialized, setIsInitialized] = useState(false);
   const [mountComplete, setMountComplete] = useState(false);
-  const initializationRef = useRef(false);
 
-  // Get auth state from Zustand store
+  // Use the unified auth system as the primary interface
   const {
     user,
     token,
     isAuthenticated,
     isLoading,
     error,
-    login: zustandLogin,
-    logout: zustandLogout,
-    clearError: zustandClearError,
-    initialize,
-    refreshToken: zustandRefreshToken
-  } = useAuthStore();
+    isInitialized,
+    login: unifiedLogin,
+    register: unifiedRegister,
+    logout: unifiedLogout,
+    refreshToken: unifiedRefreshToken,
+    clearError: unifiedClearError,
+    getToken,
+    checkAuth,
+    requireAuth
+  } = useUnifiedAuth();
 
   // Initialize authentication on mount
   useEffect(() => {
     let isMounted = true;
 
     const initializeAuth = async () => {
-      // Prevent multiple initialization calls
-      if (initializationRef.current) return;
-      initializationRef.current = true;
-
       try {
         console.log('AuthProvider: Starting initialization...');
         
-        // Check if a logout just occurred (within last 5 seconds)
-        const lastLogoutTime = localStorage.getItem('last_logout_time');
-        if (lastLogoutTime) {
-          const timeSinceLogout = Date.now() - parseInt(lastLogoutTime);
-          if (timeSinceLogout < 5000) { // 5 seconds
-            console.log(`AuthProvider: Recent logout detected (${timeSinceLogout}ms ago), skipping initialization`);
-            if (isMounted) {
-              setIsInitialized(true);
-            }
-            return;
-          } else {
-            // Clear old logout timestamp
-            localStorage.removeItem('last_logout_time');
-          }
-        }
-        
-        await initialize();
-        
         // Load user interactions if user is already authenticated after initialization
-        const authState = useAuthStore.getState();
-        if (authState.isAuthenticated && authState.token) {
+        if (isAuthenticated && token) {
           try {
             const { userInteractionService } = await import('../api/services/userInteractionService');
             await userInteractionService.loadUserInteractions();
@@ -98,14 +77,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
         
         if (isMounted) {
-          setIsInitialized(true);
           console.log('AuthProvider: Initialization complete');
         }
       } catch (error) {
         console.error('AuthProvider: Initialization failed:', error);
-        if (isMounted) {
-          setIsInitialized(true); // Still mark as initialized to prevent infinite loading
-        }
       }
     };
 
@@ -119,34 +94,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       isMounted = false;
       clearTimeout(timer);
     };
-  }, [initialize]);
+  }, [isAuthenticated, token]);
 
-  // Sync httpClient tokens whenever auth state changes
-  useEffect(() => {
-    if (!isInitialized) return;
-
-    const currentToken = token || localStorage.getItem('reviewinn_jwt_token');
-    const currentRefreshToken = localStorage.getItem('reviewinn_refresh_token');
-
-    if (currentToken && isAuthenticated) {
-      console.log('AuthProvider: Syncing tokens to httpClient');
-      httpClient.setAuthTokens(currentToken, currentRefreshToken || undefined);
-    } else {
-      console.log('AuthProvider: Clearing tokens from httpClient');
-      httpClient.clearAuthTokens();
-    }
-  }, [token, isAuthenticated, isInitialized]);
+  // Token sync is now handled by the unified auth system
+  // No need for manual httpClient sync here
 
   // Enhanced login function
   const login = useCallback(async (credentials: { email: string; password: string }) => {
     try {
       console.log('AuthProvider: Starting login process...');
-      await zustandLogin(credentials);
-      console.log('AuthProvider: Login successful, current state:', {
-        isAuthenticated,
-        hasUser: !!user,
-        hasToken: !!token
-      });
+      await unifiedLogin(credentials);
+      console.log('AuthProvider: Login successful');
       
       // Load user interactions after successful login
       try {
@@ -160,18 +118,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.error('AuthProvider: Login failed:', error);
       throw error;
     }
-  }, [zustandLogin, isAuthenticated, user, token]);
+  }, [unifiedLogin]);
 
   // Enhanced register function
   const register = useCallback(async (data: { firstName: string; lastName: string; email: string; password: string; confirmPassword: string }) => {
     try {
       console.log('AuthProvider: Starting registration process...');
-      
-      // Use the auth service for registration which will handle Zustand sync
-      const { authService } = await import('../api/auth');
-      const response = await authService.register(data);
-      
-      // The authService.register already handles Zustand state updates
+      await unifiedRegister(data);
       console.log('AuthProvider: Registration successful');
       
       // Load user interactions after successful registration
@@ -186,12 +139,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.error('AuthProvider: Registration failed:', error);
       throw error;
     }
-  }, []);
+  }, [unifiedRegister]);
 
   // Enhanced logout function
   const logout = useCallback(async () => {
     try {
-      await zustandLogout();
+      await unifiedLogout();
       console.log('AuthProvider: Logout successful');
       
       // Clear user interactions on logout
@@ -208,40 +161,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error) {
       console.error('AuthProvider: Logout failed:', error);
     }
-  }, [zustandLogout]);
+  }, [unifiedLogout]);
 
-  // Get token utility
-  const getToken = useCallback(() => {
-    return token || localStorage.getItem('reviewinn_jwt_token');
-  }, [token]);
-
-  // Check authentication status
-  const checkAuth = useCallback(() => {
-    const currentToken = getToken();
-    const hasValidToken = !!currentToken && currentToken !== 'undefined' && currentToken !== 'null';
-    const hasValidUser = !!user && user.id && user.id !== 'undefined';
-    
-    return isAuthenticated && hasValidToken && hasValidUser;
-  }, [isAuthenticated, getToken, user]);
-
-  // Require authentication utility
-  const requireAuth = useCallback((callback?: () => void) => {
-    if (checkAuth()) {
-      return true;
-    }
-
-    // Show auth modal or redirect to login
-    console.log('AuthProvider: Authentication required');
-    
-    if (callback) {
-      callback();
-    } else {
-      // Default: emit event to show auth modal
-      window.dispatchEvent(new CustomEvent('openAuthModal'));
-    }
-    
-    return false;
-  }, [checkAuth]);
+  // Utility functions are now provided by useUnifiedAuth
 
   // Context value
   const contextValue: AuthContextType = {
@@ -257,8 +179,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     register,
     logout,
-    refreshToken: zustandRefreshToken,
-    clearError: zustandClearError,
+    refreshToken: unifiedRefreshToken,
+    clearError: unifiedClearError,
 
     // Utilities
     getToken,
@@ -266,8 +188,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     requireAuth
   };
 
-  // Don't render children until auth is initialized
-  if (!mountComplete || !isInitialized) {
+  // Don't render children until auth is initialized and component is mounted
+  if (!mountComplete || (!isInitialized && isLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">

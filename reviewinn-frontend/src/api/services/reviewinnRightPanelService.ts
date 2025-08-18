@@ -1,5 +1,6 @@
 import { httpClient } from '../httpClient';
 import { API_CONFIG } from '../config';
+import { createAuthenticatedRequestInit } from '../../shared/utils/auth';
 
 // Types for right panel data
 export interface NewEntity {
@@ -125,14 +126,11 @@ class ReviewInnRightPanelService {
     try {
       const url = `${this.baseUrl}/authenticated`;
       
-      const token = localStorage.getItem('reviewinn_jwt_token');
       const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
-        credentials: 'include',
+        ...createAuthenticatedRequestInit({
+          method: 'GET',
+          credentials: 'include',
+        })
       });
 
       if (!response.ok) {

@@ -1,4 +1,5 @@
 import { API_CONFIG, API_ENDPOINTS } from '../config';
+import { getAuthHeaders, createAuthenticatedRequestInit } from '../../shared/utils/auth';
 import type { Review, Entity } from '../../types';
 import { enhanceEntityWithVerification } from '../../shared/utils/verificationUtils';
 import { enhanceEntityWithHierarchicalCategories } from '../../shared/utils/entityCategoryEnhancer';
@@ -236,15 +237,10 @@ export class HomepageService {
         ? `${this.baseUrl}?${searchParams.toString()}`
         : this.baseUrl;
 
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const fetchResponse = await fetch(url, {
+      const fetchResponse = await fetch(url, createAuthenticatedRequestInit({
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
-      });
+      }));
 
       if (!fetchResponse.ok) {
         throw new Error(`Failed to get homepage reviews: ${fetchResponse.statusText}`);
@@ -302,15 +298,10 @@ export class HomepageService {
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.HOMEPAGE.REVIEWS}?${searchParams.toString()}`;
     
     try {
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const fetchResponse = await fetch(url, {
+      const fetchResponse = await fetch(url, createAuthenticatedRequestInit({
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
-      });
+      }));
 
       if (!fetchResponse.ok) {
         throw new Error(`Failed to get homepage reviews: ${fetchResponse.statusText}`);
@@ -357,15 +348,10 @@ export class HomepageService {
     searchParams.append('limit', limit.toString());
 
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.HOMEPAGE.ENTITIES}?${searchParams.toString()}`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
-    const fetchResponse = await fetch(url, {
+    const fetchResponse = await fetch(url, createAuthenticatedRequestInit({
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
-    });
+    }));
 
     if (!fetchResponse.ok) {
       throw new Error(`Failed to get homepage entities: ${fetchResponse.statusText}`);
@@ -381,15 +367,10 @@ export class HomepageService {
    */
   async getPlatformStats(): Promise<PlatformStats> {
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.HOMEPAGE.STATS}`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
-    const fetchResponse = await fetch(url, {
+    const fetchResponse = await fetch(url, createAuthenticatedRequestInit({
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
-    });
+    }));
 
     if (!fetchResponse.ok) {
       throw new Error(`Failed to get platform stats: ${fetchResponse.statusText}`);
@@ -408,15 +389,10 @@ export class HomepageService {
       const searchParams = new URLSearchParams();
       searchParams.append('reviews_limit', Math.min(reviews_limit, this.MAX_LIMIT).toString());
       const url = `${this.leftPanelUrl}?${searchParams.toString()}`;
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const fetchResponse = await fetch(url, {
+      const fetchResponse = await fetch(url, createAuthenticatedRequestInit({
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
-      });
+      }));
 
       if (!fetchResponse.ok) {
         throw new Error(`Failed to get homepage reviews: ${fetchResponse.statusText}`);
@@ -462,15 +438,10 @@ export class HomepageService {
         ? `${this.baseUrl}?${searchParams.toString()}`
         : this.baseUrl;
         
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const fetchResponse = await fetch(url, {
+      const fetchResponse = await fetch(url, createAuthenticatedRequestInit({
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
-      });
+      }));
 
       if (!fetchResponse.ok) {
         throw new Error(`Failed to get homepage reviews: ${fetchResponse.statusText}`);

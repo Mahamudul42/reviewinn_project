@@ -1,4 +1,5 @@
 import { API_ENDPOINTS } from '../config';
+import { getAuthHeaders, createAuthenticatedRequestInit } from '../../shared/utils/auth';
 import type {
   ReviewCircle,
   CircleMember,
@@ -53,16 +54,11 @@ export class CircleService {
    * Create a new review circle
    */
   async createCircle(circleData: CircleCreateRequest): Promise<ReviewCircle> {
-    const token = localStorage.getItem('reviewinn_jwt_token');
-    const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.CIRCLES.CREATE}`, {
+    const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.CIRCLES.CREATE}`, createAuthenticatedRequestInit({
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       body: JSON.stringify(circleData),
       credentials: 'include',
-    });
+    }));
 
     if (!response.ok) {
       throw new Error(`Failed to create circle: ${response.statusText}`);
@@ -84,15 +80,10 @@ export class CircleService {
     if (params.search) searchParams.append('search', params.search);
 
     const url = `${this.baseUrl}${API_ENDPOINTS.CIRCLES.LIST}?${searchParams.toString()}`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
-    const response = await fetch(url, {
+    const response = await fetch(url, createAuthenticatedRequestInit({
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
-    });
+    }));
 
     if (!response.ok) {
       throw new Error(`Failed to get circles: ${response.statusText}`);
@@ -115,15 +106,10 @@ export class CircleService {
       if (params.trust_level) searchParams.append('trust_level', params.trust_level);
 
       const url = `${this.baseUrl}${API_ENDPOINTS.CIRCLES.MY_MEMBERS}?${searchParams.toString()}`;
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const response = await fetch(url, {
+      const response = await fetch(url, createAuthenticatedRequestInit({
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
-      });
+      }));
 
       if (!response.ok) {
         throw new Error(`Failed to get circle members: ${response.statusText}`);
@@ -141,15 +127,10 @@ export class CircleService {
    * Remove a member from circle
    */
   async removeFromCircle(connectionId: number): Promise<CircleActionResponse> {
-    const token = localStorage.getItem('reviewinn_jwt_token');
-    const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.CIRCLES.REMOVE_MEMBER(connectionId.toString())}`, {
+    const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.CIRCLES.REMOVE_MEMBER(connectionId.toString())}`, createAuthenticatedRequestInit({
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
-    });
+    }));
 
     if (!response.ok) {
       throw new Error(`Failed to remove from circle: ${response.statusText}`);
@@ -170,15 +151,10 @@ export class CircleService {
       if (params.min_taste_match) searchParams.append('min_taste_match', params.min_taste_match.toString());
 
       const url = `${this.baseUrl}${API_ENDPOINTS.CIRCLES.SUGGESTIONS}?${searchParams.toString()}`;
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const response = await fetch(url, {
+      const response = await fetch(url, createAuthenticatedRequestInit({
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
-      });
+      }));
 
       if (!response.ok) {
         throw new Error(`Failed to get suggestions: ${response.statusText}`);
@@ -206,15 +182,10 @@ export class CircleService {
     
     try {
       console.log('📤 Search API Request URL:', url);
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const response = await fetch(url, {
+      const response = await fetch(url, createAuthenticatedRequestInit({
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
-      });
+      }));
 
       if (!response.ok) {
         throw new Error(`Failed to search users: ${response.statusText}`);
@@ -245,16 +216,11 @@ export class CircleService {
       const requestData = { user_id: parseInt(userId), message: data.message };
       console.log('📤 API Request:', `${this.baseUrl}${API_ENDPOINTS.CIRCLES.SEND_REQUEST}`, requestData);
       
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.CIRCLES.SEND_REQUEST}`, {
+      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.CIRCLES.SEND_REQUEST}`, createAuthenticatedRequestInit({
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         body: JSON.stringify(requestData),
         credentials: 'include',
-      });
+      }));
 
       if (!response.ok) {
         throw new Error(`Failed to send circle request: ${response.statusText}`);
@@ -279,15 +245,10 @@ export class CircleService {
    */
   async getPendingRequests(): Promise<{ requests: CircleRequest[] }> {
     try {
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.CIRCLES.PENDING_REQUESTS}`, {
+      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.CIRCLES.PENDING_REQUESTS}`, createAuthenticatedRequestInit({
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
-      });
+      }));
 
       if (!response.ok) {
         throw new Error(`Failed to get pending requests: ${response.statusText}`);
@@ -310,20 +271,10 @@ export class CircleService {
       const url = `${this.baseUrl}${API_ENDPOINTS.CIRCLES.SENT_REQUESTS}`;
       console.log('📤 API Request GET:', url);
       
-      // Log authentication status
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      console.log('🔐 Authentication status:', {
-        hasToken: !!token,
-        tokenLength: token?.length || 0
-      });
-      const response = await fetch(url, {
+      const response = await fetch(url, createAuthenticatedRequestInit({
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
-      });
+      }));
 
       if (!response.ok) {
         throw new Error(`Failed to get sent requests: ${response.statusText}`);
@@ -351,16 +302,11 @@ export class CircleService {
    */
   async respondToCircleRequest(requestId: number, action: 'accept' | 'decline', finalRelationship?: 'circle_member' | 'follower'): Promise<{ message: string }> {
     try {
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.CIRCLES.RESPOND_REQUEST}`, {
+      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.CIRCLES.RESPOND_REQUEST}`, createAuthenticatedRequestInit({
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         body: JSON.stringify({ request_id: requestId, action, final_relationship: finalRelationship }),
         credentials: 'include',
-      });
+      }));
 
       if (!response.ok) {
         throw new Error(`Failed to respond to circle request: ${response.statusText}`);
@@ -383,15 +329,10 @@ export class CircleService {
       const url = `${this.baseUrl}${API_ENDPOINTS.CIRCLES.CANCEL_REQUEST(requestId.toString())}`;
       console.log('📤 API Request DELETE:', url);
       
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const response = await fetch(url, {
+      const response = await fetch(url, createAuthenticatedRequestInit({
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
-      });
+      }));
 
       if (!response.ok) {
         throw new Error(`Failed to cancel circle request: ${response.statusText}`);
@@ -416,16 +357,11 @@ export class CircleService {
    */
   async blockUser(userId: string, reason?: string): Promise<BlockUserResponse> {
     try {
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.CIRCLES.BLOCK_USER}`, {
+      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.CIRCLES.BLOCK_USER}`, createAuthenticatedRequestInit({
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         body: JSON.stringify({ user_id: parseInt(userId), reason }),
         credentials: 'include',
-      });
+      }));
 
       if (!response.ok) {
         throw new Error(`Failed to block user: ${response.statusText}`);
@@ -444,15 +380,10 @@ export class CircleService {
    */
   async unblockUser(userId: string): Promise<CircleActionResponse> {
     try {
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.CIRCLES.UNBLOCK_USER(userId)}`, {
+      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.CIRCLES.UNBLOCK_USER(userId)}`, createAuthenticatedRequestInit({
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
-      });
+      }));
 
       if (!response.ok) {
         throw new Error(`Failed to unblock user: ${response.statusText}`);
@@ -471,15 +402,10 @@ export class CircleService {
    */
   async getBlockedUsers(): Promise<BlockedUsersResponse> {
     try {
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.CIRCLES.BLOCKED_USERS}`, {
+      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.CIRCLES.BLOCKED_USERS}`, createAuthenticatedRequestInit({
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
-      });
+      }));
 
       if (!response.ok) {
         throw new Error(`Failed to get blocked users: ${response.statusText}`);
@@ -498,15 +424,10 @@ export class CircleService {
    */
   async getFollowers(): Promise<{ followers: User[] }> {
     try {
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.CIRCLES.FOLLOWERS}`, {
+      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.CIRCLES.FOLLOWERS}`, createAuthenticatedRequestInit({
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
-      });
+      }));
 
       if (!response.ok) {
         throw new Error(`Failed to get followers: ${response.statusText}`);
@@ -525,15 +446,10 @@ export class CircleService {
    */
   async getFollowing(): Promise<{ following: User[] }> {
     try {
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.CIRCLES.FOLLOWING}`, {
+      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.CIRCLES.FOLLOWING}`, createAuthenticatedRequestInit({
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
-      });
+      }));
 
       if (!response.ok) {
         throw new Error(`Failed to get following: ${response.statusText}`);
@@ -552,16 +468,11 @@ export class CircleService {
    */
   async demoteToFollower(userId: string): Promise<{ message: string }> {
     try {
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.CIRCLES.DEMOTE_TO_FOLLOWER}`, {
+      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.CIRCLES.DEMOTE_TO_FOLLOWER}`, createAuthenticatedRequestInit({
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         body: JSON.stringify({ user_id: parseInt(userId) }),
         credentials: 'include',
-      });
+      }));
 
       if (!response.ok) {
         throw new Error(`Failed to demote to follower: ${response.statusText}`);
@@ -580,16 +491,11 @@ export class CircleService {
    */
   async promoteToCircleMate(userId: string, message?: string): Promise<{ message: string; request_id: number }> {
     try {
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.CIRCLES.PROMOTE_TO_CIRCLE_MATE}`, {
+      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.CIRCLES.PROMOTE_TO_CIRCLE_MATE}`, createAuthenticatedRequestInit({
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         body: JSON.stringify({ user_id: parseInt(userId), message }),
         credentials: 'include',
-      });
+      }));
 
       if (!response.ok) {
         throw new Error(`Failed to promote to circle mate: ${response.statusText}`);

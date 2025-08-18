@@ -1,20 +1,15 @@
 // Custom hooks for group management
 import { useState, useEffect, useCallback } from 'react';
+import { createAuthenticatedRequestInit } from '../../../shared/utils/auth';
 
 // Helper function for API requests
 const API_BASE_URL = 'http://localhost:8000/api/v1';
 const makeApiRequest = async (endpoint: string, options: RequestInit = {}) => {
-  const token = localStorage.getItem('reviewinn_jwt_token');
   const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
   
-  return fetch(url, {
+  return fetch(url, createAuthenticatedRequestInit({
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
-      ...options.headers,
-    },
-  });
+  }));
 };
 
 // Inline types to avoid import issues

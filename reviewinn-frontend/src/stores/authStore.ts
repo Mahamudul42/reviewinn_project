@@ -66,6 +66,9 @@ export const useAuthStore = create<AuthStore>()(
       
       // Login action
       login: (user: User, token: string) => {
+        // Get refresh token from localStorage if available
+        const refreshToken = localStorage.getItem('reviewinn_refresh_token');
+        
         set(() => ({
           user,
           token,
@@ -74,9 +77,13 @@ export const useAuthStore = create<AuthStore>()(
           error: null,
         }));
         
+        // Store tokens in localStorage for persistence
+        localStorage.setItem('reviewinn_jwt_token', token);
+        localStorage.setItem('reviewinn_user_data', JSON.stringify(user));
+        
         // Sync with httpClient immediately
         import('../api/httpClient').then(({ httpClient }) => {
-          httpClient.setAuthTokens(token);
+          httpClient.setAuthTokens(token, refreshToken || undefined);
         });
         
         // Clear any previous logout timestamp since we're now authenticated
@@ -117,7 +124,6 @@ export const useAuthStore = create<AuthStore>()(
         // Clear localStorage items that might persist auth data
         try {
           const itemsToRemove = [
-            'auth_token',
             'refresh_token', 
             'user_data',
             'reviewsite_last_activity',
@@ -204,9 +210,12 @@ export const useAuthStore = create<AuthStore>()(
           if (state.isAuthenticated && state.user && state.token) {
             console.log('AuthStore: Found valid persisted auth state');
             
+            // Get refresh token from localStorage for token sync
+            const refreshToken = localStorage.getItem('reviewinn_refresh_token');
+            
             // Sync with httpClient
             const { httpClient } = await import('../api/httpClient');
-            httpClient.setAuthTokens(state.token);
+            httpClient.setAuthTokens(state.token, refreshToken || undefined);
             
             // Emit auth state change event
             window.dispatchEvent(new CustomEvent('authStateChanged', { 
@@ -220,8 +229,12 @@ export const useAuthStore = create<AuthStore>()(
               get().checkTokenValidity().catch(error => {
                 console.warn('Background token validation failed:', error);
                 if (error.response?.status === 401) {
-                  console.log('AuthStore: Token expired, logging out');
-                  get().logout();
+                  console.log('AuthStore: Token expired, attempting refresh');
+                  // Try to refresh token before logging out
+                  get().refreshToken().catch(() => {
+                    console.log('AuthStore: Token refresh failed, logging out');
+                    get().logout();
+                  });
                 }
               });
             }, 1000); // Delay validation to not block initialization
@@ -229,40 +242,46 @@ export const useAuthStore = create<AuthStore>()(
             return;
           }
           
-          // If no persisted auth state, check localStorage as fallback
+          // Fallback: Check localStorage for individual tokens
           const storedToken = localStorage.getItem('reviewinn_jwt_token');
           const storedUser = localStorage.getItem('reviewinn_user_data');
           
-          console.log('AuthStore: Checking localStorage fallback:', {
-            hasToken: !!storedToken,
-            hasUser: !!storedUser
-          });
-          
           if (storedToken && storedUser) {
             try {
-              const parsedUser = JSON.parse(storedUser);
-              console.log('AuthStore: Restoring from localStorage');
+              const user = JSON.parse(storedUser);
+              console.log('AuthStore: Found auth data in localStorage, restoring state');
               
+              const refreshToken = localStorage.getItem('reviewinn_refresh_token');
+              
+              // Restore auth state
               set({ 
-                user: parsedUser, 
-                token: storedToken,
+                user, 
+                token: storedToken, 
                 isAuthenticated: true, 
                 isLoading: false 
               });
               
               // Sync with httpClient
               const { httpClient } = await import('../api/httpClient');
-              httpClient.setAuthTokens(storedToken);
+              httpClient.setAuthTokens(storedToken, refreshToken || undefined);
               
               // Emit auth state change event
               window.dispatchEvent(new CustomEvent('authStateChanged', { 
-                detail: { isAuthenticated: true, user: parsedUser } 
+                detail: { isAuthenticated: true, user } 
               }));
               
+              // Validate token in background
+              setTimeout(() => {
+                get().checkTokenValidity().catch(error => {
+                  if (error.response?.status === 401) {
+                    get().refreshToken().catch(() => get().logout());
+                  }
+                });
+              }, 1000);
+              
               return;
-            } catch (parseError) {
-              console.error('AuthStore: Failed to parse stored user data:', parseError);
-              // Clear corrupted data
+            } catch (error) {
+              console.warn('AuthStore: Failed to parse stored user data:', error);
               localStorage.removeItem('reviewinn_user_data');
             }
           }
@@ -400,6 +419,16 @@ export const useAuthStore = create<AuthStore>()(
             localStorage.removeItem('reviewinn_user_data');
           }
           
+          // Update httpClient tokens when state changes
+          import('../api/httpClient').then(({ httpClient }) => {
+            if (value.token) {
+              const refreshToken = localStorage.getItem('reviewinn_refresh_token');
+              httpClient.setAuthTokens(value.token, refreshToken || undefined);
+            } else {
+              httpClient.clearAuthTokens();
+            }
+          });
+          
           // Emit storage event for cross-tab synchronization
           window.dispatchEvent(new StorageEvent('storage', {
             key: 'reviewinn-auth-change',
@@ -424,7 +453,6 @@ export const useAuthStore = create<AuthStore>()(
             'reviewinn_refresh_token',
             'reviewinn_user_data',
             'reviewinn_remember_me',
-            'auth_token',
             'refresh_token',
             'user_data',
             'auth-storage'

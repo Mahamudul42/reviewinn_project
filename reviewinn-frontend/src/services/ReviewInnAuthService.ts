@@ -215,8 +215,6 @@ export class ReviewInnAuthService implements IAuthService {
       const additionalKeys = [
         'last_logout_time', // Don't clear this one as it prevents immediate re-auth
         'reviewsite_last_activity',
-        'auth_token',
-        'refresh_token',
         'user_data',
         'reviewinn_remember_me'
       ];
@@ -247,9 +245,7 @@ export class ReviewInnAuthService implements IAuthService {
           'reviewinn_user_data',
           'reviewinn_remember_me',
           'auth-storage',
-          'auth_token',
-          'refresh_token',
-          'user_data',
+              'user_data',
           'reviewsite_last_activity'
         ];
         

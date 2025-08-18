@@ -53,30 +53,31 @@ export const API_ENDPOINTS = {
 } as const;
 
 // Helper function to get auth headers
+// DEPRECATED: Use getAuthHeaders from shared/utils/auth instead
 export const getAuthHeaders = () => {
-  // Use only the standard reviewinn JWT token
-  const token = localStorage.getItem('reviewinn_jwt_token');
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  // Import the unified auth utility dynamically to avoid circular imports
+  const { getAuthHeaders: unifiedGetAuthHeaders } = require('../shared/utils/auth');
+  return unifiedGetAuthHeaders();
 };
 
 // Helper function to make API requests
+// DEPRECATED: Use createAuthenticatedRequestInit from shared/utils/auth instead
 export const apiRequest = async (url: string, options: RequestInit = {}) => {
   const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
   
-  const authHeaders = getAuthHeaders();
-  const finalHeaders = {
-    'Content-Type': 'application/json',
-    ...authHeaders,
-    ...options.headers
-  };
+  // Use unified auth utilities
+  const { createAuthenticatedRequestInit } = require('../shared/utils/auth');
+  const requestInit = createAuthenticatedRequestInit({
+    ...options,
+    headers: {
+      ...options.headers
+    }
+  });
   
   console.log('Debug - API Request:', fullUrl);
-  console.log('Debug - Headers being sent:', finalHeaders);
+  console.log('Debug - Headers being sent:', requestInit.headers);
   
-  const response = await fetch(fullUrl, {
-    ...options,
-    headers: finalHeaders
-  });
+  const response = await fetch(fullUrl, requestInit);
   
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));

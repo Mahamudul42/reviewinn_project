@@ -1,6 +1,6 @@
 import { httpClient } from '../httpClient';
 import { API_CONFIG, API_ENDPOINTS } from '../config';
-import { useAuthStore } from '../../stores/authStore';
+import { isAuthenticated, getCurrentUser } from '../../shared/utils/auth';
 
 export interface UserInteraction {
   reviewId: string;

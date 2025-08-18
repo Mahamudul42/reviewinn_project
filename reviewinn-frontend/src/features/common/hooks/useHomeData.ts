@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { createAuthenticatedRequestInit } from '../../../shared/utils/auth';
 import type { Review } from '../../../types';
 
 interface HomepageData {
@@ -122,22 +123,11 @@ const transformApiReview = (apiReview: ApiReview): Review => {
 
 // Optimized API fetch function using the proper reviews endpoint
 const fetchHomepageData = async (page: number = 1, limit: number = 15): Promise<HomepageData> => {
-  // Include user reactions in the request
-  const token = localStorage.getItem('reviewinn_jwt_token');
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-  
-  // Add authorization header if user is logged in
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-  
-  const response = await fetch(`http://localhost:8000/api/v1/homepage/reviews?page=${page}&limit=${limit}`, {
+  // Use unified auth for authenticated requests
+  const response = await fetch(`http://localhost:8000/api/v1/homepage/reviews?page=${page}&limit=${limit}`, createAuthenticatedRequestInit({
     method: 'GET',
-    headers,
     credentials: 'include',
-  });
+  }));
 
   if (!response.ok) {
     throw new Error(`Failed to fetch homepage data: ${response.statusText}`);

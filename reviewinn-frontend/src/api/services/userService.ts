@@ -1,4 +1,5 @@
 import { API_ENDPOINTS } from '../config';
+import { getAuthHeaders, createAuthenticatedRequestInit } from '../../shared/utils/auth';
 import type { User, UserProfile, UserPreferences, UserStats, Badge, DailyTask, Notification, Review } from '../../types';
 
 export interface UserListParams {
@@ -42,15 +43,10 @@ export class UserService {
     if (params.hasReviews !== undefined) searchParams.append('hasReviews', params.hasReviews.toString());
 
     const url = `${this.baseUrl}?${searchParams.toString()}`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
-    const response = await fetch(url, {
+    const response = await fetch(url, createAuthenticatedRequestInit({
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
-    });
+    }));
 
     if (!response.ok) {
       throw new Error(`Failed to get users: ${response.statusText}`);
@@ -79,15 +75,10 @@ export class UserService {
 
     try {
       const url = `http://localhost:8000/api/v1/users/search?${searchParams.toString()}`;
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const response = await fetch(url, {
+      const response = await fetch(url, createAuthenticatedRequestInit({
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
-      });
+      }));
 
       if (!response.ok) {
         throw new Error(`Failed to search users: ${response.statusText}`);
@@ -142,15 +133,10 @@ export class UserService {
   async getUser(id: string): Promise<User | null> {
     try {
       const url = `http://localhost:8000/api/v1/users/${id}`;
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const response = await fetch(url, {
+      const response = await fetch(url, createAuthenticatedRequestInit({
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
-      });
+      }));
 
       if (!response.ok) {
         throw new Error(`Failed to get user: ${response.statusText}`);
@@ -170,15 +156,10 @@ export class UserService {
   async getCurrentUser(): Promise<User | null> {
     try {
       const url = `http://localhost:8000/api/v1/users/me`;
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const response = await fetch(url, {
+      const response = await fetch(url, createAuthenticatedRequestInit({
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
-      });
+      }));
 
       if (!response.ok) {
         throw new Error(`Failed to get current user: ${response.statusText}`);
@@ -198,15 +179,10 @@ export class UserService {
   async getUserProfile(id: string): Promise<UserProfile | null> {
     try {
       const url = `http://localhost:8000/api/v1/users/${id}/profile`;
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const response = await fetch(url, {
+      const response = await fetch(url, createAuthenticatedRequestInit({
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
-      });
+      }));
 
       if (!response.ok) {
         throw new Error(`Failed to get user profile: ${response.statusText}`);
@@ -254,16 +230,11 @@ export class UserService {
    */
   async updateUserProfile(id: string, profileData: Partial<UserProfile>): Promise<UserProfile> {
     const url = `http://localhost:8000/api/v1/users/me/profile`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
-    const response = await fetch(url, {
+    const response = await fetch(url, createAuthenticatedRequestInit({
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       body: JSON.stringify(profileData),
       credentials: 'include',
-    });
+    }));
 
     if (!response.ok) {
       throw new Error(`Failed to update user profile: ${response.statusText}`);
@@ -284,15 +255,10 @@ export class UserService {
    */
   async deleteUser(id: string): Promise<void> {
     const url = `http://localhost:8000/api/v1/users/${id}`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
-    const response = await fetch(url, {
+    const response = await fetch(url, createAuthenticatedRequestInit({
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
-    });
+    }));
 
     if (!response.ok) {
       throw new Error(`Failed to delete user: ${response.statusText}`);
@@ -311,15 +277,10 @@ export class UserService {
    */
   async getUserStats(id: string): Promise<UserStats | null> {
     const url = `http://localhost:8000/api/v1/users/${id}/stats`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
-    const response = await fetch(url, {
+    const response = await fetch(url, createAuthenticatedRequestInit({
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
-    });
+    }));
 
     if (!response.ok) {
       throw new Error(`Failed to get user stats: ${response.statusText}`);
@@ -334,15 +295,10 @@ export class UserService {
    */
   async getUserBadges(id: string): Promise<Badge[]> {
     const url = `http://localhost:8000/api/v1/users/${id}/badges`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
-    const response = await fetch(url, {
+    const response = await fetch(url, createAuthenticatedRequestInit({
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
-    });
+    }));
 
     if (!response.ok) {
       throw new Error(`Failed to get user badges: ${response.statusText}`);
@@ -357,15 +313,10 @@ export class UserService {
    */
   async followUser(userId: string): Promise<void> {
     const url = `http://localhost:8000/api/v1/users/${userId}/follow`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
-    const response = await fetch(url, {
+    const response = await fetch(url, createAuthenticatedRequestInit({
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
-    });
+    }));
 
     if (!response.ok) {
       throw new Error(`Failed to follow user: ${response.statusText}`);
@@ -377,15 +328,10 @@ export class UserService {
    */
   async unfollowUser(userId: string): Promise<void> {
     const url = `http://localhost:8000/api/v1/users/${userId}/follow`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
-    const response = await fetch(url, {
+    const response = await fetch(url, createAuthenticatedRequestInit({
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
-    });
+    }));
 
     if (!response.ok) {
       throw new Error(`Failed to unfollow user: ${response.statusText}`);
@@ -401,15 +347,10 @@ export class UserService {
     hasMore: boolean;
   }> {
     const url = `http://localhost:8000/api/v1/users/${userId}/followers?page=${page}&limit=${limit}`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
-    const response = await fetch(url, {
+    const response = await fetch(url, createAuthenticatedRequestInit({
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
-    });
+    }));
 
     if (!response.ok) {
       throw new Error(`Failed to get user followers: ${response.statusText}`);
@@ -428,15 +369,10 @@ export class UserService {
     hasMore: boolean;
   }> {
     const url = `http://localhost:8000/api/v1/users/${userId}/following?page=${page}&limit=${limit}`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
-    const response = await fetch(url, {
+    const response = await fetch(url, createAuthenticatedRequestInit({
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
-    });
+    }));
 
     if (!response.ok) {
       throw new Error(`Failed to get user following: ${response.statusText}`);
@@ -452,15 +388,10 @@ export class UserService {
   async getUserPreferences(userId: string): Promise<UserPreferences | null> {
     try {
       const url = `http://localhost:8000/api/v1/users/${userId}/preferences`;
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const response = await fetch(url, {
+      const response = await fetch(url, createAuthenticatedRequestInit({
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
-      });
+      }));
 
       if (!response.ok) {
         throw new Error(`Failed to get user preferences: ${response.statusText}`);
@@ -479,16 +410,11 @@ export class UserService {
    */
   async updateUserPreferences(userId: string, preferences: Partial<UserPreferences>): Promise<UserPreferences> {
     const url = `http://localhost:8000/api/v1/users/${userId}/preferences`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
-    const response = await fetch(url, {
+    const response = await fetch(url, createAuthenticatedRequestInit({
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       body: JSON.stringify(preferences),
       credentials: 'include',
-    });
+    }));
 
     if (!response.ok) {
       throw new Error(`Failed to update user preferences: ${response.statusText}`);
@@ -508,15 +434,10 @@ export class UserService {
   async getUserDailyTasks(userId: string): Promise<DailyTask[]> {
     try {
       const url = `http://localhost:8000/api/v1/users/${userId}/daily-tasks`;
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const response = await fetch(url, {
+      const response = await fetch(url, createAuthenticatedRequestInit({
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
-      });
+      }));
 
       if (!response.ok) {
         throw new Error(`Failed to get user daily tasks: ${response.statusText}`);
@@ -535,15 +456,10 @@ export class UserService {
    */
   async completeDailyTask(userId: string, taskId: string): Promise<DailyTask> {
     const url = `http://localhost:8000/api/v1/users/${userId}/daily-tasks/${taskId}/complete`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
-    const response = await fetch(url, {
+    const response = await fetch(url, createAuthenticatedRequestInit({
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
-    });
+    }));
 
     if (!response.ok) {
       throw new Error(`Failed to complete daily task: ${response.statusText}`);
@@ -568,15 +484,10 @@ export class UserService {
   }> {
     try {
       const url = `http://localhost:8000/api/v1/users/${userId}/notifications?page=${page}&limit=${limit}`;
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const response = await fetch(url, {
+      const response = await fetch(url, createAuthenticatedRequestInit({
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
-      });
+      }));
 
       if (!response.ok) {
         throw new Error(`Failed to get user notifications: ${response.statusText}`);
@@ -595,15 +506,10 @@ export class UserService {
    */
   async markNotificationAsRead(userId: string, notificationId: string): Promise<void> {
     const url = `http://localhost:8000/api/v1/users/${userId}/notifications/${notificationId}/read`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
-    const response = await fetch(url, {
+    const response = await fetch(url, createAuthenticatedRequestInit({
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
-    });
+    }));
 
     if (!response.ok) {
       throw new Error(`Failed to mark notification as read: ${response.statusText}`);
@@ -615,15 +521,10 @@ export class UserService {
    */
   async markAllNotificationsAsRead(userId: string): Promise<void> {
     const url = `http://localhost:8000/api/v1/users/${userId}/notifications/read-all`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
-    const response = await fetch(url, {
+    const response = await fetch(url, createAuthenticatedRequestInit({
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
-    });
+    }));
 
     if (!response.ok) {
       throw new Error(`Failed to mark all notifications as read: ${response.statusText}`);

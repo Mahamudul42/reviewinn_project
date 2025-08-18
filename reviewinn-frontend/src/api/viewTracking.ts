@@ -3,7 +3,7 @@
  * Handles view tracking with industry-standard rate limiting and best practices
  */
 import { httpClient } from './httpClient';
-import { useAuthStore } from '../stores/authStore';
+import { isAuthenticated } from '../shared/utils/auth';
 import { API_CONFIG, API_ENDPOINTS } from './config';
 
 export interface ViewTrackingResponse {
@@ -42,14 +42,14 @@ class ViewTrackingService {
    */
   async trackReviewView(reviewId: number): Promise<ViewTrackingResponse> {
     try {
-      // Get authentication state from store
-      const authState = useAuthStore.getState();
+      // Get authentication state from unified auth utilities
+      const userIsAuthenticated = isAuthenticated();
       
       // Determine rate limiting based on authentication status
       let rateLimitMs: number;
       let viewKey: string;
       
-      if (authState.isAuthenticated) {
+      if (userIsAuthenticated) {
         // Authenticated users: 24 hour rate limit
         rateLimitMs = 24 * 60 * 60 * 1000;
         viewKey = `review_${reviewId}_user`;
@@ -149,14 +149,14 @@ class ViewTrackingService {
    */
   async trackEntityView(entityId: number): Promise<ViewTrackingResponse> {
     try {
-      // Get authentication state
-      const authState = useAuthStore.getState();
+      // Get authentication state from unified auth utilities
+      const userIsAuthenticated = isAuthenticated();
       
       // Determine rate limiting based on authentication status
       let rateLimitMs: number;
       let viewKey: string;
       
-      if (authState.isAuthenticated) {
+      if (userIsAuthenticated) {
         // Authenticated users: 24 hour rate limit
         rateLimitMs = 24 * 60 * 60 * 1000;
         viewKey = `entity_${entityId}_user`;
@@ -311,13 +311,13 @@ class ViewTrackingService {
    * @returns Whether the review can be viewed
    */
   canViewReview(reviewId: number): boolean {
-    const authState = useAuthStore.getState();
+    const userIsAuthenticated = isAuthenticated();
     
     // Determine rate limiting based on authentication status
     let rateLimitMs: number;
     let viewKey: string;
     
-    if (authState.isAuthenticated) {
+    if (userIsAuthenticated) {
       rateLimitMs = 24 * 60 * 60 * 1000; // 24 hours for authenticated users
       viewKey = `review_${reviewId}_user`;
     } else {
@@ -339,13 +339,13 @@ class ViewTrackingService {
    * @returns Whether the entity can be viewed
    */
   canViewEntity(entityId: number): boolean {
-    const authState = useAuthStore.getState();
+    const userIsAuthenticated = isAuthenticated();
     
     // Determine rate limiting based on authentication status
     let rateLimitMs: number;
     let viewKey: string;
     
-    if (authState.isAuthenticated) {
+    if (userIsAuthenticated) {
       rateLimitMs = 24 * 60 * 60 * 1000; // 24 hours for authenticated users
       viewKey = `entity_${entityId}_user`;
     } else {

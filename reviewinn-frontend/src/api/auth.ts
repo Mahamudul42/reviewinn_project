@@ -141,15 +141,16 @@ class AuthService {
       });
 
       if (!fetchResponse.ok) {
-        throw new Error(`Login failed: ${fetchResponse.statusText}`);
+        const errorData = await fetchResponse.json().catch(() => ({}));
+        throw new Error(errorData.detail || `Login failed: ${fetchResponse.statusText}`);
       }
 
       const response = { data: await fetchResponse.json() };
       if (!response.data || !response.data.access_token) throw new Error('Invalid login response');
       
-      // Store tokens
+      // Store tokens in localStorage first
       this.setToken(response.data.access_token);
-      this.setRefreshToken(response.data.refresh_token);
+      this.setRefreshToken(response.data.refresh_token || '');
       
       // Update httpClient with the new token
       httpClient.setAuthTokens(response.data.access_token, response.data.refresh_token);
@@ -223,7 +224,10 @@ class AuthService {
       this.isAuthenticated = true;
       this.setUser(user); // Store user data in localStorage
       
-      // Update Zustand store with the user data - ensure sync
+      // Import and update Zustand store with the user data dynamically to avoid circular imports
+      const { useAuthStore } = await import('../stores/authStore');
+      const authStore = useAuthStore.getState();
+      authStore.login(user, response.data.access_token);
       console.log('AuthService: Updated Zustand store after login');
       
       // Setup token refresh
@@ -245,13 +249,13 @@ class AuthService {
       let errorMessage = 'Login failed. Please try again.';
       
       // Handle specific error types
-      if (error.response?.data?.detail) {
-        errorMessage = error.response.data.detail;
-      } else if (error.response?.status === 401) {
+      if (error.message?.includes('detail')) {
+        errorMessage = error.message.replace('Login failed: ', '');
+      } else if (error.message?.includes('401')) {
         errorMessage = 'Incorrect email or password. Please check your credentials and try again.';
-      } else if (error.response?.status === 429) {
+      } else if (error.message?.includes('429')) {
         errorMessage = 'Too many login attempts. Please wait a moment before trying again.';
-      } else if (error.response?.status >= 500) {
+      } else if (error.message?.includes('5')) {
         errorMessage = 'Server error. Please try again later.';
       } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
         errorMessage = 'Network error. Please check your internet connection.';
@@ -390,14 +394,14 @@ class AuthService {
     try {
       // Call logout endpoint to blacklist token only if we have a valid token
       const token = this.getToken();
-      if (token) {
+      if (token && token !== 'null' && token !== 'undefined') {
         console.log('AuthService: Calling logout API endpoint...');
         await httpClient.post(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.AUTH.LOGOUT}`);
         console.log('AuthService: Logout API call successful');
       }
     } catch (error: any) {
       // Handle 401 errors gracefully (token already invalid)
-      if (error.response?.status === 401) {
+      if (error.status === 401 || error.message?.includes('401')) {
         console.log('AuthService: Token already invalid, proceeding with local cleanup');
       } else {
         console.warn('AuthService: Logout API call failed:', error);
@@ -413,6 +417,16 @@ class AuthService {
     this.removeRefreshToken();
     this.removeUser();
     
+    // Update Zustand store as well
+    try {
+      const { useAuthStore } = await import('../stores/authStore');
+      const authStore = useAuthStore.getState();
+      authStore.logout();
+      console.log('AuthService: Cleared Zustand store');
+    } catch (storeError) {
+      console.warn('AuthService: Failed to clear Zustand store:', storeError);
+    }
+    
     // Clear additional localStorage items that might persist auth data
     const itemsToClear = [
       'reviewsite_last_activity',
@@ -420,7 +434,6 @@ class AuthService {
       'reviewinn_refresh_token', 
       'reviewinn_user_data',
       'reviewinn_remember_me',
-      'auth_token',
       'refresh_token',
       'user_data',
       'auth-storage' // Zustand persist key
@@ -593,7 +606,11 @@ class AuthService {
     const token = this.getToken();
     const user = this.getUser();
     
-    if (token && user) {
+    if (token && token !== 'null' && token !== 'undefined' && user) {
+      // Sync with httpClient
+      const refreshToken = this.getRefreshToken();
+      httpClient.setAuthTokens(token, refreshToken || undefined);
+      
       // Check if user data has a proper name (not just username)
       if (!user.name || user.name === user.username) {
         // Set loading state while fetching fresh data
@@ -610,6 +627,12 @@ class AuthService {
             this.currentUser = freshUser;
             this.isAuthenticated = true;
             this.setUser(freshUser); // Update localStorage
+            
+            // Sync with Zustand store
+            const { useAuthStore } = await import('../stores/authStore');
+            const authStore = useAuthStore.getState();
+            authStore.login(freshUser, token);
+            
             this.updateAuthState({ 
               user: freshUser, 
               isAuthenticated: true,
@@ -617,14 +640,24 @@ class AuthService {
               error: null 
             });
           } else {
-            this.logout();
+            await this.logout();
           }
         } catch (error) {
-          this.logout();
+          await this.logout();
         }
       } else {
         this.currentUser = user;
         this.isAuthenticated = true;
+        
+        // Sync with Zustand store
+        try {
+          const { useAuthStore } = await import('../stores/authStore');
+          const authStore = useAuthStore.getState();
+          authStore.login(user, token);
+        } catch (storeError) {
+          console.warn('AuthService: Failed to sync with Zustand store:', storeError);
+        }
+        
         this.updateAuthState({ 
           user: user, 
           isAuthenticated: true,
@@ -632,8 +665,10 @@ class AuthService {
           error: null 
         });
       }
-    } else if (token) {
+    } else if (token && token !== 'null' && token !== 'undefined') {
       // Token exists but no user data - fetch from backend
+      httpClient.setAuthTokens(token, this.getRefreshToken() || undefined);
+      
       this.updateAuthState({ 
         isLoading: true,
         isAuthenticated: false,
@@ -647,6 +682,12 @@ class AuthService {
           this.currentUser = freshUser;
           this.isAuthenticated = true;
           this.setUser(freshUser);
+          
+          // Sync with Zustand store
+          const { useAuthStore } = await import('../stores/authStore');
+          const authStore = useAuthStore.getState();
+          authStore.login(freshUser, token);
+          
           this.updateAuthState({ 
             user: freshUser, 
             isAuthenticated: true,
@@ -654,10 +695,10 @@ class AuthService {
             error: null 
           });
         } else {
-          this.logout();
+          await this.logout();
         }
       } catch (error) {
-        this.logout();
+        await this.logout();
       }
     } else {
       this.updateAuthState({ 

@@ -14,6 +14,7 @@ import type {
   EntityAnalytics 
 } from '../../types';
 import { enhanceEntityWithHierarchicalCategories } from '../../shared/utils/entityCategoryEnhancer';
+import { getAuthHeaders, createAuthenticatedRequestInit } from '../../shared/utils/auth';
 
 export interface EntityListParams {
   page?: number;
@@ -132,13 +133,9 @@ class EntityService {
       const url = `${this.baseUrl}/?${searchParams.toString()}`;
       console.log('🏢 EntityService: API call to:', url);
       console.log('🏢 EntityService: Search params:', Object.fromEntries(searchParams.entries()));
-      const token = localStorage.getItem('reviewinn_jwt_token');
       const fetchResponse = await fetch(url, {
+        ...createAuthenticatedRequestInit(),
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
       });
 
@@ -262,13 +259,9 @@ class EntityService {
         final_category_id: filters.selectedFinalCategory?.id
       };
       
-      const token = localStorage.getItem('reviewinn_jwt_token');
       const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.SEARCH}`, {
+        ...createAuthenticatedRequestInit(),
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         body: JSON.stringify(searchParams),
         credentials: 'include',
       });
@@ -310,13 +303,9 @@ class EntityService {
   async getEntityById(id: string): Promise<Entity | null> {
     try {
       // First try the direct endpoint
-      const token = localStorage.getItem('reviewinn_jwt_token');
       const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.GET_BY_ID(id)}`, {
+        ...createAuthenticatedRequestInit(),
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
       });
 
@@ -428,13 +417,9 @@ class EntityService {
       console.log('🖼️ entityService.createEntity - Final payload for core_entities:', backendPayload);
       console.log('🖼️ entityService.createEntity - Payload avatar field:', backendPayload.avatar);
 
-      const token = localStorage.getItem('reviewinn_jwt_token');
       const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.CREATE}`, {
+        ...createAuthenticatedRequestInit(),
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         body: JSON.stringify(backendPayload),
         credentials: 'include',
       });
@@ -462,13 +447,9 @@ class EntityService {
    */
   async updateEntity(id: string, entityData: Partial<EntityFormData>): Promise<Entity> {
     try {
-      const token = localStorage.getItem('reviewinn_jwt_token');
       const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.UPDATE(id)}`, {
+        ...createAuthenticatedRequestInit(),
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         body: JSON.stringify(entityData),
         credentials: 'include',
       });
@@ -496,13 +477,9 @@ class EntityService {
    */
   async deleteEntity(id: string, deleteRequest?: { confirmation: string; reason?: string }): Promise<void> {
     try {
-      const token = localStorage.getItem('reviewinn_jwt_token');
       const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.DELETE(id)}`, {
+        ...createAuthenticatedRequestInit(),
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         body: deleteRequest ? JSON.stringify(deleteRequest) : undefined,
         credentials: 'include',
       });
@@ -528,13 +505,9 @@ class EntityService {
    */
   async getTrendingEntities(limit: number = 10): Promise<Entity[]> {
     try {
-      const token = localStorage.getItem('reviewinn_jwt_token');
       const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.TRENDING}?limit=${limit}`, {
+        ...createAuthenticatedRequestInit(),
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
       });
 
@@ -568,13 +541,9 @@ class EntityService {
    */
   async getEntityStats(entityId: string): Promise<EntityStatsResponse['data']> {
     try {
-      const token = localStorage.getItem('reviewinn_jwt_token');
       const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.STATS(entityId)}`, {
+        ...createAuthenticatedRequestInit(),
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
       });
 
@@ -601,13 +570,9 @@ class EntityService {
    */
   async getSimilarEntities(entityId: string, limit: number = 5): Promise<Entity[]> {
     try {
-      const token = localStorage.getItem('reviewinn_jwt_token');
       const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.SIMILAR(entityId)}?limit=${limit}`, {
+        ...createAuthenticatedRequestInit(),
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
       });
 
@@ -634,13 +599,9 @@ class EntityService {
    */
   async recordEntityView(entityId: string, userId: string): Promise<boolean> {
     try {
-      const token = localStorage.getItem('reviewinn_jwt_token');
       const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.TRACK_VIEW(entityId)}`, {
+        ...createAuthenticatedRequestInit(),
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         body: JSON.stringify({ user_id: userId }),
         credentials: 'include',
       });
@@ -664,13 +625,9 @@ class EntityService {
    */
   async claimEntity(entityId: string): Promise<{ message: string; entity: Entity }> {
     try {
-      const token = localStorage.getItem('reviewinn_jwt_token');
       const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.CLAIM(entityId)}`, {
+        ...createAuthenticatedRequestInit(),
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
       });
 
@@ -697,13 +654,9 @@ class EntityService {
    */
   async unclaimEntity(entityId: string): Promise<{ message: string; entity: Entity }> {
     try {
-      const token = localStorage.getItem('reviewinn_jwt_token');
       const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.UNCLAIM(entityId)}`, {
+        ...createAuthenticatedRequestInit(),
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
       });
 
@@ -787,13 +740,9 @@ class EntityService {
       
       const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.BY_USER(userId)}?${searchParams.toString()}`;
       // Making API call to get user entities
-      const token = localStorage.getItem('reviewinn_jwt_token');
       const fetchResponse = await fetch(url, {
+        ...createAuthenticatedRequestInit(),
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
       });
 
@@ -865,13 +814,9 @@ class EntityService {
     matrix: Record<string, Record<string, number | string>>; 
   }> {
     try {
-      const token = localStorage.getItem('reviewinn_jwt_token');
       const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.COMPARE}`, {
+        ...createAuthenticatedRequestInit(),
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         body: JSON.stringify({ entityIds }),
         credentials: 'include',
       });
@@ -906,13 +851,9 @@ class EntityService {
     failed: Array<{ id: string; error: string }>; 
   }> {
     try {
-      const token = localStorage.getItem('reviewinn_jwt_token');
       const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.BULK_OPERATIONS}`, {
+        ...createAuthenticatedRequestInit(),
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         body: JSON.stringify({ operations }),
         credentials: 'include',
       });

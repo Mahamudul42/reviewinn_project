@@ -1,5 +1,6 @@
 import { API_CONFIG, DEFAULT_HEADERS, HTTP_STATUS, API_ERROR_TYPES, type ApiResponse } from './config';
 import { authEvents, emitAuthEvent } from '../utils/authEvents';
+import { getAuthToken } from '../shared/utils/auth';
 import { useAuthStore } from '../stores/authStore';
 
 // Simple in-memory cache implementation
@@ -133,15 +134,19 @@ export class HttpClient {
       ...customHeaders
     };
 
-    // Get the latest token from multiple sources in order of preference
+    // Get the latest token using unified auth utilities
     let token = this.authToken; // First try instance token
     
     if (!token) {
-      // Use only localStorage for consistency
-      token = localStorage.getItem('reviewinn_jwt_token');
+      // Use unified auth utility for consistent token retrieval
+      token = getAuthToken();
+      if (token) {
+        // Sync instance token
+        this.authToken = token;
+      }
     }
     
-    if (token) {
+    if (token && token !== 'null' && token !== 'undefined') {
       headers['Authorization'] = `Bearer ${token}`;
       // Debug: Log token info when sending requests to protected endpoints
       if (url && (url.includes('/users/me') || url.includes('/circles/') || url.includes('/messaging/') || url.includes('/enterprise-notifications/'))) {
@@ -159,8 +164,7 @@ export class HttpClient {
         console.log('⚠️ HttpClient: Sending protected request WITHOUT token:', {
           url: url,
           instanceToken: !!this.authToken,
-          storeToken: !!useAuthStore.getState().token,
-          localStorageToken: !!localStorage.getItem('reviewinn_jwt_token')
+          unifiedToken: !!getAuthToken()
         });
       }
     }
@@ -179,14 +183,16 @@ export class HttpClient {
     this.isRefreshing = true;
 
     try {
-      const refreshToken = localStorage.getItem('reviewinn_refresh_token');
+      const refreshToken = this.refreshToken || localStorage.getItem('reviewinn_refresh_token');
       if (!refreshToken) {
         throw new ApiClientError(API_ERROR_TYPES.AUTHENTICATION_ERROR, 'No refresh token available');
       }
 
-      const response = await fetch(`${API_CONFIG.BASE_URL}/auth/refresh`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/v1/auth/refresh`, {
         method: 'POST',
-        headers: this.getHeaders({}, `${API_CONFIG.BASE_URL}/auth/refresh`),
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ refresh_token: refreshToken })
       });
 
@@ -205,6 +211,9 @@ export class HttpClient {
           this.authToken = newToken;
           this.refreshToken = data.refresh_token || refreshToken;
           
+          // Update auth state through unified system
+          // The auth system will handle state updates automatically
+          
           // Notify subscribers
           this.refreshSubscribers.forEach(resolve => resolve(newToken));
           this.refreshSubscribers = [];
@@ -212,17 +221,24 @@ export class HttpClient {
           // Emit token refresh event
           emitAuthEvent.tokenRefresh(newToken);
           
+          console.log('HttpClient: Token refresh successful');
           return newToken;
         } else {
           throw new ApiClientError(API_ERROR_TYPES.AUTHENTICATION_ERROR, 'Invalid token response');
         }
       } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('HttpClient: Token refresh failed:', response.status, errorData);
         throw new ApiClientError(API_ERROR_TYPES.AUTHENTICATION_ERROR, 'Token refresh failed');
       }
     } catch (error) {
+      console.error('HttpClient: Token refresh error:', error);
       this.clearAuthTokens();
       localStorage.removeItem('reviewinn_jwt_token');
       localStorage.removeItem('reviewinn_refresh_token');
+      
+      // The unified auth system will handle logout automatically
+      
       throw error;
     } finally {
       this.isRefreshing = false;
@@ -355,11 +371,9 @@ export class HttpClient {
     
     // If it's a protected endpoint and we have no token, don't make the request
     if (isProtectedEndpoint) {
-      const token = this.authToken || 
-                    useAuthStore.getState().token || 
-                    localStorage.getItem('reviewinn_jwt_token');
+      const token = this.authToken || getAuthToken();
       
-      if (!token) {
+      if (!token || token === 'null' || token === 'undefined') {
         console.log('HttpClient: Skipping protected endpoint call - no auth token available');
         throw new ApiClientError(
           API_ERROR_TYPES.AUTHENTICATION_ERROR,
@@ -446,7 +460,8 @@ export class HttpClient {
                 console.log('HttpClient: Forcing logout due to refresh failure');
               }
               // Refresh failed, clear auth and continue with original error
-              useAuthStore.getState().logout();
+              const authStore = useAuthStore.getState();
+              authStore.logout();
             }
           } else {
             // Only force logout if this was a protected endpoint
@@ -454,7 +469,8 @@ export class HttpClient {
               if (import.meta.env.DEV) {
                 console.log('HttpClient: No refresh token available, forcing logout');
               }
-              useAuthStore.getState().logout();
+              const authStore = useAuthStore.getState();
+              authStore.logout();
             }
           }
         }

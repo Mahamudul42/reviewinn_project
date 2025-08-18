@@ -5,6 +5,7 @@ import LoadingSpinner from '../../../shared/atoms/LoadingSpinner';
 import { Button } from '../../../shared/design-system/components/Button';
 import { GroupType, ReviewScope } from '../types';
 import type { Review, Entity } from '../../../types';
+import { createAuthenticatedRequestInit } from '../../../shared/utils/auth';
 
 // Group-specific review mappings
 const getGroupSpecificReviews = (groupId: string, apiReviews: any[]) => {
@@ -227,19 +228,11 @@ const GroupFeed: React.FC<GroupFeedProps> = ({ groupId, className = '', groupNam
         }
         
         // For now, fetch from homepage reviews as we don't have a specific group feed endpoint yet
-        const token = localStorage.getItem('reviewinn_jwt_token');
-        const headers: Record<string, string> = {
-          'Content-Type': 'application/json',
-        };
-        
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
-        }
-        
         const response = await fetch('http://localhost:8000/api/v1/homepage/reviews?page=1&limit=20', {
-          method: 'GET',
-          headers,
-          credentials: 'include',
+          ...createAuthenticatedRequestInit({
+            method: 'GET',
+            credentials: 'include',
+          })
         });
 
         if (!response.ok) {

@@ -2,6 +2,7 @@ import { API_CONFIG, API_ENDPOINTS } from '../config';
 import type { Review, ReviewFormData, ReviewTemplate } from '../../types';
 import { EntityCategory } from '../../types';
 import { userInteractionService } from './userInteractionService';
+import { getAuthHeaders, createAuthenticatedRequestInit } from '../../shared/utils/auth';
 
 export interface ReviewListParams {
   page?: number;
@@ -232,13 +233,9 @@ export class ReviewService {
     searchParams.append('include_engagement_stats', 'true');
 
     const url = `${this.baseUrl}?${searchParams.toString()}`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
     const fetchResponse = await fetch(url, {
+      ...createAuthenticatedRequestInit(),
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
     });
 
@@ -265,13 +262,9 @@ export class ReviewService {
    */
   async getReviewById(id: string): Promise<Review | null> {
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.GET_BY_ID(id)}`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
     const fetchResponse = await fetch(url, {
+      ...createAuthenticatedRequestInit(),
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
     });
 
@@ -301,13 +294,9 @@ export class ReviewService {
     };
   } | null> {
     const url = `${API_CONFIG.BASE_URL}/reviews/${id}`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
     const fetchResponse = await fetch(url, {
+      ...createAuthenticatedRequestInit(),
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
     });
 
@@ -357,13 +346,9 @@ export class ReviewService {
     email_share: string;
   } | null> {
     const url = `${API_CONFIG.BASE_URL}/reviews/${id}/share-metadata`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
     const fetchResponse = await fetch(url, {
+      ...createAuthenticatedRequestInit(),
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
     });
 
@@ -442,13 +427,9 @@ export class ReviewService {
     try {
       // Use the same optimized endpoint as homepage for consistent data structure
       const url = `${API_CONFIG.BASE_URL}/homepage/search_reviews?${searchParams.toString()}`;
-      const token = localStorage.getItem('reviewinn_jwt_token');
       const fetchResponse = await fetch(url, {
+        ...createAuthenticatedRequestInit(),
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
       });
 
@@ -593,13 +574,9 @@ export class ReviewService {
     
     let response;
     try {
-      const token = localStorage.getItem('reviewinn_jwt_token');
       const fetchResponse = await fetch(url, {
+        ...createAuthenticatedRequestInit(),
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         body: JSON.stringify(backendData),
         credentials: 'include',
       });
@@ -674,20 +651,16 @@ export class ReviewService {
    */
   private async getCurrentUserInfo(): Promise<any> {
     // Check if we have an auth token before making the request
-    const token = localStorage.getItem('reviewinn_jwt_token');
-    if (!token) {
+    const authHeaders = getAuthHeaders();
+    if (!authHeaders.Authorization) {
       console.log('ReviewService: No auth token found, skipping user info fetch');
       return null;
     }
 
     try {
-      const token = localStorage.getItem('reviewinn_jwt_token');
       const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.USERS.ME}`, {
+        ...createAuthenticatedRequestInit(),
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         credentials: 'include',
       });
 
@@ -722,13 +695,9 @@ export class ReviewService {
    */
   async updateReview(id: string, reviewData: Partial<ReviewFormData>): Promise<Review> {
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.UPDATE(id)}`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
     const fetchResponse = await fetch(url, {
+      ...createAuthenticatedRequestInit(),
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       body: JSON.stringify(reviewData),
       credentials: 'include',
     });
@@ -751,13 +720,9 @@ export class ReviewService {
    */
   async deleteReview(id: string): Promise<void> {
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.DELETE(id)}`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
     const fetchResponse = await fetch(url, {
+      ...createAuthenticatedRequestInit(),
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
     });
 
@@ -771,13 +736,9 @@ export class ReviewService {
    */
   async voteReview(reviewId: string, voteType: 'helpful' | 'not_helpful' | 'spam' | 'inappropriate'): Promise<void> {
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.VOTE(reviewId)}`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
     const fetchResponse = await fetch(url, {
+      ...createAuthenticatedRequestInit(),
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       body: JSON.stringify({ type: voteType }),
       credentials: 'include',
     });
@@ -792,13 +753,9 @@ export class ReviewService {
    */
   async reportReview(reviewId: string, reason: 'spam' | 'inappropriate' | 'fake' | 'offensive' | 'other', description?: string): Promise<void> {
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.REPORT(reviewId)}`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
     const fetchResponse = await fetch(url, {
+      ...createAuthenticatedRequestInit(),
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       body: JSON.stringify({ reason, description }),
       credentials: 'include',
     });
@@ -814,13 +771,9 @@ export class ReviewService {
   async getRecentReviews(limit: number = 10): Promise<Review[]> {
     limit = Math.min(limit, this.MAX_LIMIT);
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.RECENT}?limit=${limit}`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
     const fetchResponse = await fetch(url, {
+      ...createAuthenticatedRequestInit(),
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
     });
 
@@ -839,13 +792,9 @@ export class ReviewService {
   async getTrendingReviews(limit: number = 10): Promise<Review[]> {
     limit = Math.min(limit, this.MAX_LIMIT);
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.TRENDING}?limit=${limit}`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
     const fetchResponse = await fetch(url, {
+      ...createAuthenticatedRequestInit(),
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
     });
 
@@ -868,13 +817,9 @@ export class ReviewService {
     if (subcategory) searchParams.append('subcategory', subcategory);
 
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.TEMPLATES}?${searchParams.toString()}`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
     const fetchResponse = await fetch(url, {
+      ...createAuthenticatedRequestInit(),
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
     });
 
@@ -892,13 +837,9 @@ export class ReviewService {
    */
   async createReviewTemplate(templateData: Omit<ReviewTemplate, 'id' | 'usageCount'>): Promise<ReviewTemplate> {
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.CREATE_TEMPLATE}`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
     const fetchResponse = await fetch(url, {
+      ...createAuthenticatedRequestInit(),
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       body: JSON.stringify(templateData),
       credentials: 'include',
     });
@@ -977,13 +918,9 @@ export class ReviewService {
     };
   }> {
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.ENTITIES.GET_BY_ID(entityId)}/review-stats`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
     const fetchResponse = await fetch(url, {
+      ...createAuthenticatedRequestInit(),
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
     });
 
@@ -1014,13 +951,9 @@ export class ReviewService {
     }
     
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.ADD_REACTION(reviewId)}`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
     const fetchResponse = await fetch(url, {
+      ...createAuthenticatedRequestInit(),
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       body: JSON.stringify({ reaction_type: reactionType }),
       credentials: 'include',
     });
@@ -1053,13 +986,9 @@ export class ReviewService {
     }
     
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.REMOVE_REACTION(reviewId)}`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
     const fetchResponse = await fetch(url, {
+      ...createAuthenticatedRequestInit(),
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
     });
 
@@ -1099,13 +1028,9 @@ export class ReviewService {
     }
     
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.REACTIONS(reviewId)}`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
     const fetchResponse = await fetch(url, {
+      ...createAuthenticatedRequestInit(),
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
     });
 

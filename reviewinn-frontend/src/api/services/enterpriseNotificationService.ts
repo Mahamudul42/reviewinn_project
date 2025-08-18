@@ -5,6 +5,7 @@
 
 import { httpClient } from '../httpClient';
 import { API_CONFIG } from '../config';
+import { createAuthenticatedRequestInit } from '../../shared/utils/auth';
 
 // Enterprise notification interfaces
 export interface EnterpriseNotificationData {
@@ -140,14 +141,11 @@ class EnterpriseNotificationService {
     }
 
     try {
-      const token = localStorage.getItem('reviewinn_jwt_token');
       const fetchResponse = await fetch(`${this.baseUrl}/summary`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
-        credentials: 'include',
+        ...createAuthenticatedRequestInit({
+          method: 'GET',
+          credentials: 'include',
+        })
       });
 
       if (!fetchResponse.ok) {

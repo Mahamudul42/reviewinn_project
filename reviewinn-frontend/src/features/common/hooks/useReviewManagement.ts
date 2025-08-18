@@ -2,12 +2,12 @@ import { useState, useRef } from 'react';
 import { reviewService, commentService } from '../../../api/services';
 import { reviewStatsService } from '../../../services/reviewStatsService';
 import { ApiClientError, API_ERROR_TYPES } from '../../../api';
-import { useAuthStore } from '../../../stores/authStore';
 import { useUnifiedAuth } from '../../../hooks/useUnifiedAuth';
+import { createAuthenticatedRequestInit } from '../../../shared/utils/auth';
 import type { Review, Entity, ReviewFormData } from '../../../types';
 
 export const useReviewManagement = () => {
-  const { isAuthenticated } = useUnifiedAuth();
+  const { isAuthenticated, user, token, checkAuth } = useUnifiedAuth();
   const [localReviews, setLocalReviews] = useState<Review[]>([]);
   const [hasMoreReviews, setHasMoreReviews] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -77,12 +77,7 @@ export const useReviewManagement = () => {
     try {
       console.log('🚀 Starting review submission...');
       
-      // Enhanced authentication check using Zustand store
-      const authState = useAuthStore.getState();
-      const token = authState.token || localStorage.getItem('reviewinn_jwt_token');
-      const user = authState.user;
-      const isAuthenticated = authState.isAuthenticated;
-      
+      // Enhanced authentication check using unified auth system
       console.log('🔑 Enhanced auth check:', {
         hasToken: !!token,
         hasUser: !!user,
@@ -91,8 +86,8 @@ export const useReviewManagement = () => {
         tokenPreview: token?.substring(0, 10) + '...'
       });
       
-      // Comprehensive authentication validation
-      if (!isAuthenticated || !token || !user || !user.id) {
+      // Comprehensive authentication validation using unified auth
+      if (!checkAuth() || !token || !user || !user.id) {
         console.log('❌ Authentication failed - missing requirements:', {
           isAuthenticated,
           hasToken: !!token,
@@ -132,7 +127,8 @@ export const useReviewManagement = () => {
         }
       } catch (e) {
         console.error('❌ Could not decode token:', e);
-        useAuthStore.getState().logout();
+        // Force re-authentication through unified auth system
+        window.dispatchEvent(new CustomEvent('openAuthModal'));
         return { 
           success: false, 
           error: 'Invalid authentication token. Please sign in again.',
@@ -158,13 +154,9 @@ export const useReviewManagement = () => {
       // Test auth before submitting review
       console.log('🧪 Testing authentication...');
       try {
-        const authTestResponse = await fetch('http://localhost:8000/api/v1/reviews/test', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
-        });
+        const authTestResponse = await fetch('http://localhost:8000/api/v1/reviews/test', createAuthenticatedRequestInit({
+          method: 'POST'
+        }));
         
         console.log('🧪 Auth test response status:', authTestResponse.status);
         

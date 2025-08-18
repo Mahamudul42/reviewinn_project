@@ -1,4 +1,5 @@
 import { API_CONFIG, API_ENDPOINTS } from '../config';
+import { getAuthHeaders, createAuthenticatedRequestInit } from '../../shared/utils/auth';
 import type { Comment } from '../../types';
 
 export interface CommentCreateData {
@@ -69,15 +70,10 @@ export class CommentService {
     }
     
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.COMMENTS(reviewId)}?${queryParams.toString()}`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
-    const fetchResponse = await fetch(url, {
+    const fetchResponse = await fetch(url, createAuthenticatedRequestInit({
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
-    });
+    }));
 
     if (!fetchResponse.ok) {
       throw new Error(`Failed to get comments: ${fetchResponse.statusText}`);
@@ -161,15 +157,10 @@ export class CommentService {
    */
   async getCommentCount(reviewId: string): Promise<number> {
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.COMMENT_COUNT(reviewId)}`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
-    const fetchResponse = await fetch(url, {
+    const fetchResponse = await fetch(url, createAuthenticatedRequestInit({
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
-    });
+    }));
 
     if (!fetchResponse.ok) {
       throw new Error(`Failed to get comment count: ${fetchResponse.statusText}`);
@@ -190,19 +181,13 @@ export class CommentService {
     
     console.log('Creating comment with URL:', url);
     console.log('Comment data:', commentData);
-    console.log('Auth token available:', !!localStorage.getItem('reviewinn_jwt_token'));
     
     try {
-      const token = localStorage.getItem('reviewinn_jwt_token');
-      const fetchResponse = await fetch(url, {
+      const fetchResponse = await fetch(url, createAuthenticatedRequestInit({
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
         body: JSON.stringify({ content: commentData.content }),
         credentials: 'include',
-      });
+      }));
 
       if (!fetchResponse.ok) {
         throw new Error(`Failed to create comment: ${fetchResponse.statusText}`);
@@ -242,15 +227,10 @@ export class CommentService {
    */
   async deleteComment(reviewId: string, commentId: string): Promise<void> {
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.COMMENT_DETAIL(reviewId, commentId)}`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
-    const fetchResponse = await fetch(url, {
+    const fetchResponse = await fetch(url, createAuthenticatedRequestInit({
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       credentials: 'include',
-    });
+    }));
 
     if (!fetchResponse.ok) {
       throw new Error(`Failed to delete comment: ${fetchResponse.statusText}`);
@@ -262,16 +242,11 @@ export class CommentService {
    */
   async addOrUpdateReaction(commentId: string, reactionType: string): Promise<any> {
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.COMMENT_REACTIONS(commentId)}`;
-    const token = localStorage.getItem('reviewinn_jwt_token');
-    const fetchResponse = await fetch(url, {
+    const fetchResponse = await fetch(url, createAuthenticatedRequestInit({
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
       body: JSON.stringify({ reaction_type: reactionType }),
       credentials: 'include',
-    });
+    }));
 
     if (!fetchResponse.ok) {
       throw new Error(`Failed to add comment reaction: ${fetchResponse.statusText}`);
@@ -286,8 +261,17 @@ export class CommentService {
    */
   async removeReaction(commentId: string): Promise<any> {
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.COMMENT_REACTIONS(commentId)}`;
-    const response = await httpClient.delete(url);
-    return response.data;
+    const fetchResponse = await fetch(url, createAuthenticatedRequestInit({
+      method: 'DELETE',
+      credentials: 'include',
+    }));
+    
+    if (!fetchResponse.ok) {
+      throw new Error(`Failed to remove comment reaction: ${fetchResponse.statusText}`);
+    }
+    
+    const response = await fetchResponse.json();
+    return response.data || response;
   }
 
   /**
@@ -295,7 +279,16 @@ export class CommentService {
    */
   async getReactionCounts(commentId: string): Promise<any> {
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.COMMENT_REACTIONS(commentId)}`;
-    const response = await httpClient.get(url, true);
-    return response.data;
+    const fetchResponse = await fetch(url, createAuthenticatedRequestInit({
+      method: 'GET',
+      credentials: 'include',
+    }));
+    
+    if (!fetchResponse.ok) {
+      throw new Error(`Failed to get comment reaction counts: ${fetchResponse.statusText}`);
+    }
+    
+    const response = await fetchResponse.json();
+    return response.data || response;
   }
 } 

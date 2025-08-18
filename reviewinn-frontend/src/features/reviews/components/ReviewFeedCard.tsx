@@ -5,6 +5,7 @@ import { formatTimeAgo } from '../../../shared/utils/reviewUtils';
 import { userInteractionService } from '../../../api/services';
 import { API_CONFIG, API_ENDPOINTS } from '../../../api/config';
 import { useUnifiedAuth } from '../../../hooks/useUnifiedAuth';
+import { createAuthenticatedRequestInit } from '../../../shared/utils/auth';
 import ReviewCardUserInfo from './ReviewCardUserInfo';
 import ReviewCardEntityInfo from './ReviewCardEntityInfo';
 import ReviewCardUnifiedContent from './ReviewCardUnifiedContent';
@@ -218,14 +219,10 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
   // Report review (called by ReportReviewModal)
   const handleReportReview = async (reason: string, description: string) => {
     try {
-      const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.REPORT(review.id)}`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.REPORT(review.id)}`, createAuthenticatedRequestInit({
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${getToken()}`
-        },
         body: JSON.stringify({ reason, description })
-      });
+      }));
       
       if (!response.ok) {
         throw new Error('Failed to submit report');
@@ -314,14 +311,10 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
   // Block user (called by BlockUserModal)
   const handleBlockUser = async () => {
     try {
-      const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.CIRCLES.BLOCK_USER}`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.CIRCLES.BLOCK_USER}`, createAuthenticatedRequestInit({
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${getToken()}`
-        },
         body: JSON.stringify({ userId: review.reviewerId })
-      });
+      }));
       
       if (!response.ok) {
         throw new Error('Failed to block user');

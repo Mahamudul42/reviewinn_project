@@ -1,18 +1,12 @@
 // Group service for API interactions - using any to avoid import issues
+import { getAuthHeaders, createAuthenticatedRequestInit } from '../../../shared/utils/auth';
 
 const API_BASE = 'http://localhost:8000/api/v1/groups';
 
 class GroupService {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const token = localStorage.getItem('reviewinn_jwt_token');
-    
     const response = await fetch(`${API_BASE}${endpoint}`, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
-        ...options.headers,
-      },
+      ...createAuthenticatedRequestInit(options),
     });
 
     if (!response.ok) {
