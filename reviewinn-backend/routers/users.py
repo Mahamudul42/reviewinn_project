@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 # Enhanced imports with service layer
 from core.dependencies import get_user_service_dependency
-from core.auth_dependencies import AuthDependencies
+from auth.production_dependencies import CurrentUser, RequiredUser
 from services.user_service import UserService
 from schemas.user import (
     UserResponse, 
@@ -158,7 +158,7 @@ def search_users(
 
 @router.get("/me", response_model=UserProfileResponse)
 async def get_current_user_profile(
-    current_user: User = Depends(AuthDependencies.get_current_user),
+    current_user: User = RequiredUser,
     user_service: UserService = Depends(get_user_service_dependency)
 ):
     """
@@ -175,7 +175,7 @@ async def get_current_user_profile(
 @router.put("/me", response_model=UserResponse)
 async def update_current_user(
     update_data: UserUpdateRequest,
-    current_user: User = Depends(AuthDependencies.get_current_user),
+    current_user: User = RequiredUser,
     user_service: UserService = Depends(get_user_service_dependency)
 ):
     """
@@ -288,7 +288,7 @@ async def get_user_reviews_by_identifier(
     sort_by: str = Query("created_at"),
     order: str = Query("desc", pattern="^(asc|desc)$"),
     user_service: UserService = Depends(get_user_service_dependency),
-    current_user: User = Depends(AuthDependencies.get_current_user_optional)
+    current_user: User = CurrentUser
 ):
     """
     Get paginated list of user's reviews by ID or username.
@@ -326,7 +326,7 @@ async def get_user_reviews(
     sort_by: str = Query("created_at"),
     order: str = Query("desc", pattern="^(asc|desc)$"),
     user_service: UserService = Depends(get_user_service_dependency),
-    current_user: User = Depends(AuthDependencies.get_current_user_optional)
+    current_user: User = CurrentUser
 ):
     """
     Get paginated list of user's reviews.
@@ -349,7 +349,7 @@ async def get_user_reviews(
 @router.post("/{user_id}/follow", response_model=dict)
 async def follow_user(
     user_id: int,
-    current_user: User = Depends(AuthDependencies.get_current_user),
+    current_user: User = RequiredUser,
     user_service: UserService = Depends(get_user_service_dependency)
 ):
     """
@@ -366,7 +366,7 @@ async def follow_user(
 @router.delete("/{user_id}/follow", response_model=dict)
 async def unfollow_user(
     user_id: int,
-    current_user: User = Depends(AuthDependencies.get_current_user),
+    current_user: User = RequiredUser,
     user_service: UserService = Depends(get_user_service_dependency)
 ):
     """
@@ -428,7 +428,7 @@ async def get_user_following(
 @router.patch("/{user_id}/verify", response_model=UserResponse)
 async def verify_user(
     user_id: int,
-    current_user: User = Depends(AuthDependencies.get_current_user),
+    current_user: User = RequiredUser,
     user_service: UserService = Depends(get_user_service_dependency)
 ):
     """

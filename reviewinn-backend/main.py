@@ -18,12 +18,13 @@ from core import (
 )
 from core.middleware import ErrorHandlerMiddleware
 from core.middleware.cors_setup import setup_cors, add_cors_health_check
-from core.auth_middleware import JWTAuthMiddleware, SecurityMiddleware
+# PRODUCTION AUTH MIDDLEWARE - Final implementation
+from auth.production_middleware import ProductionAuthMiddleware
 
 # Import API versioning
 from routers.api_v1 import v1_router
-from routers.auth_modern import router as auth_modern_router
-from routers.auth_enhanced import router as auth_enhanced_router
+# PRODUCTION AUTH SYSTEM - Final implementation
+from routers.auth_production import router as auth_production_router
 from routers.msg_api import router as msg_api_router
 from routers.professional_messaging_api import router as professional_messaging_router
 from routers.websocket import router as websocket_router
@@ -142,11 +143,8 @@ class APIApplication(LoggerMixin):
     def _add_middleware(self, app: FastAPI):
         """Add middleware to the application."""
         
-        # JWT Authentication middleware first
-        app.add_middleware(JWTAuthMiddleware)
-        
-        # Security middleware after auth (for input validation and rate limiting)
-        app.add_middleware(SecurityMiddleware)
+        # PRODUCTION Authentication middleware - Enterprise grade security
+        app.add_middleware(ProductionAuthMiddleware)
         
         # Error handling middleware for global error catching
         app.add_middleware(ErrorHandlerMiddleware)
@@ -201,11 +199,13 @@ class APIApplication(LoggerMixin):
     def _include_routers(self, app: FastAPI):
         """Include API routers with versioning."""
         
-        # Modern authentication router (primary auth system)
-        app.include_router(auth_modern_router, prefix="/api/v1")
+        # PRODUCTION AUTHENTICATION SYSTEM - Enterprise implementation
+        app.include_router(auth_production_router, prefix="/api/v1")
         
-        # Enhanced authentication router with 6-digit codes
-        app.include_router(auth_enhanced_router, prefix="/api/v1")
+        # ALL LEGACY AUTH SYSTEMS REMOVED - replaced by production system
+        # app.include_router(auth_modern_router, prefix="/api/v1")    # REMOVED
+        # app.include_router(auth_enhanced_router, prefix="/api/v1")  # REMOVED
+        # app.include_router(auth_unified_router, prefix="/api/v1")   # REMOVED
         
         # Messaging system routers
         app.include_router(websocket_router)

@@ -9,7 +9,7 @@ import logging
 
 from database import get_db
 from services.category_question_service import CategoryQuestionService
-from core.auth_dependencies import AuthDependencies
+from auth.production_dependencies import CurrentUser, RequiredUser
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -118,7 +118,7 @@ async def create_category_questions(
     category_name: str,
     questions: List[Dict[str, str]],
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ) -> Dict[str, Any]:
     """
     Create new questions for a category (admin only)

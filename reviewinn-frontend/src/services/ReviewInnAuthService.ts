@@ -8,6 +8,7 @@
 import type { IAuthService, AuthState, AuthCredentials, RegisterData, AuthResponse } from './authInterface';
 import type { User } from '../types';
 import { authService } from '../api/auth';
+import { API_BASE_URL } from '../config/api';
 import { useAuthStore } from '../stores/authStore';
 
 export class ReviewInnAuthService implements IAuthService {

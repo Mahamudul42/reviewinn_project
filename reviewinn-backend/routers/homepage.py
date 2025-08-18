@@ -11,7 +11,7 @@ import logging
 
 from database import get_db
 from modules.homepage_data import HomepageDataService, ReviewData, EntityData
-from core.auth_dependencies import AuthDependencies
+from auth.production_dependencies import CurrentUser, RequiredUser
 from models.entity import Entity
 from models.review import Review
 from services.homepage_cache_service import HomepageCacheService
@@ -171,7 +171,7 @@ def convert_entity_data_to_response(entity_data: EntityData) -> EntityResponse:
 async def get_left_panel_data(
     reviews_limit: int = Query(2, ge=1, le=10, description="Number of top reviews for left panel"),
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user_optional)
+    current_user = CurrentUser
 ):
     """
     Get data for the left panel (sidebar) only: top reviews and their entities.
@@ -246,7 +246,7 @@ async def get_home_middle_panel_data(
     reviews_limit: int = Query(15, ge=1, le=100, description="Number of recent reviews to fetch"),
     entities_limit: int = Query(20, ge=1, le=100, description="Number of trending entities to fetch"),
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user_optional)
+    current_user = CurrentUser
 ):
     """
     Get complete homepage middle panel data including recent reviews, trending entities, and platform statistics.
@@ -297,7 +297,7 @@ def get_homepage_reviews(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(15, ge=1, le=100, description="Number of reviews to fetch"),
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user_optional)
+    current_user = CurrentUser
 ):
     """
     OPTIMIZED: Get recent reviews for homepage with comprehensive data (like user profile).
@@ -422,7 +422,7 @@ def get_homepage_reviews(
 async def get_homepage_entities(
     limit: int = Query(20, ge=1, le=100, description="Number of entities to fetch"),
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user_optional)
+    current_user = CurrentUser
 ):
     """
     Get trending entities for the homepage.
@@ -558,7 +558,7 @@ async def search_reviews_with_entities(
     q: str = Query(..., description="Search query"),
     limit: int = Query(20, ge=1, le=100, description="Number of reviews to fetch"),
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user_optional)
+    current_user = CurrentUser
 ):
     """
     Search reviews using the same review_main table structure as homepage.
@@ -663,7 +663,7 @@ async def search_reviews_with_entities(
 @router.get("/stats", response_model=PlatformStatsResponse)
 async def get_platform_stats(
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user_optional)
+    current_user = CurrentUser
 ):
     """
     Get platform statistics for the homepage.

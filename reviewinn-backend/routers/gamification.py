@@ -4,7 +4,7 @@ from sqlalchemy import func, desc
 from datetime import date, datetime, timedelta
 from typing import List, Dict, Any
 from database import get_db
-from core.auth_dependencies import AuthDependencies
+from auth.production_dependencies import CurrentUser, RequiredUser
 from models.user import User
 from models.user_progress import UserProgress
 from models.badge_award import BadgeAward
@@ -18,7 +18,7 @@ router = APIRouter()
 @router.get("/dashboard")
 async def get_gamification_dashboard(
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user_optional)
+    current_user = CurrentUser
 ):
     """Get gamification dashboard data for the right panel (public or personalized)"""
     try:
@@ -157,7 +157,7 @@ async def get_gamification_dashboard(
 
 @router.get("/user-progress")
 async def get_user_progress(
-    current_user: User = Depends(AuthDependencies.get_current_user),
+    current_user: User = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Get user progress data"""
@@ -186,7 +186,7 @@ async def get_user_progress(
 
 @router.get("/badges")
 async def get_user_badges(
-    current_user: User = Depends(AuthDependencies.get_current_user),
+    current_user: User = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Get user's earned badges"""
@@ -199,7 +199,7 @@ async def get_user_badges(
 
 @router.get("/daily-tasks")
 async def get_daily_tasks(
-    current_user: User = Depends(AuthDependencies.get_current_user),
+    current_user: User = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Get daily tasks for the current user"""
@@ -223,7 +223,7 @@ async def get_daily_tasks(
 async def update_daily_task(
     task_id: int,
     complete: bool,
-    current_user: User = Depends(AuthDependencies.get_current_user),
+    current_user: User = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Update a daily task completion status"""
@@ -243,7 +243,7 @@ async def update_daily_task(
 
 @router.get("/weekly-engagement")
 async def get_weekly_engagement(
-    current_user: User = Depends(AuthDependencies.get_current_user),
+    current_user: User = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Get weekly engagement data for charts"""

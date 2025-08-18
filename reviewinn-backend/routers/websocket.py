@@ -7,7 +7,7 @@ from datetime import datetime
 from database import get_db
 from services.websocket_service import connection_manager
 from services.professional_messaging_service import ProfessionalMessagingService
-from core.auth_dependencies import get_current_user_optional
+from auth.production_dependencies import CurrentUser, RequiredUser
 from models.user import User
 
 router = APIRouter()
@@ -448,11 +448,11 @@ async def notifications_websocket_endpoint(websocket: WebSocket, token: str, db:
 async def get_user_from_websocket_token(token: str, db: Session) -> User:
     """Get user from WebSocket token"""
     try:
-        from services.auth_service_simple import AuthService
-        auth_service = AuthService()
+        from auth.production_auth_system import get_auth_system
+        auth_system = get_auth_system()
         
         # Verify token and get payload
-        payload = auth_service.verify_token(token, "access")
+        payload = await auth_system.verify_token(token, "access")
         user_id = payload.get("sub")
         
         if not user_id:

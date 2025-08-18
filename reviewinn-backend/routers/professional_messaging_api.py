@@ -19,7 +19,7 @@ import asyncio
 from datetime import datetime
 
 from database import get_db
-from core.auth_dependencies import AuthDependencies
+from auth.production_dependencies import CurrentUser, RequiredUser
 from services.professional_messaging_service import ProfessionalMessagingService
 from services.websocket_service import ConnectionManager as WebSocketManager
 
@@ -71,7 +71,7 @@ class ParticipantUpdateRequest(BaseModel):
 async def create_conversation(
     request: ConversationCreateRequest,
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """
     Create a new conversation with professional features.
@@ -94,7 +94,7 @@ async def get_conversations(
     search: Optional[str] = Query(None, description="Search in conversation titles/descriptions"),
     conversation_type: Optional[str] = Query(None, description="Filter by conversation type"),
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """
     Get user's conversations with advanced filtering and search.
@@ -112,7 +112,7 @@ async def get_conversations(
 async def get_conversation_details(
     conversation_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """
     Get detailed conversation information.
@@ -125,7 +125,7 @@ async def update_conversation(
     conversation_id: int,
     request: ConversationUpdateRequest,
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """
     Update conversation details (admin/owner only).
@@ -142,7 +142,7 @@ async def add_participants(
     conversation_id: int,
     participant_ids: List[int] = Body(..., description="List of user IDs to add"),
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """
     Add participants to conversation.
@@ -155,7 +155,7 @@ async def remove_participant(
     conversation_id: int,
     user_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """
     Remove participant from conversation.
@@ -169,7 +169,7 @@ async def update_participant(
     user_id: int,
     request: ParticipantUpdateRequest,
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """
     Update participant role and permissions.
@@ -189,7 +189,7 @@ async def send_message(
     conversation_id: int,
     request: MessageSendRequest,
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """
     Send a message with threading support.
@@ -215,7 +215,7 @@ async def get_messages(
     search: Optional[str] = Query(None, description="Search in message content"),
     message_type: Optional[str] = Query(None, description="Filter by message type"),
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """
     Get messages with advanced pagination, search, and filtering.
@@ -236,7 +236,7 @@ async def edit_message(
     message_id: int,
     request: MessageEditRequest,
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """
     Edit a message (sender only, within time limit).
@@ -252,7 +252,7 @@ async def edit_message(
 async def delete_message(
     message_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """
     Delete a message (sender or admin).
@@ -265,7 +265,7 @@ async def add_reaction(
     message_id: int,
     request: ReactionRequest,
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """
     Add reaction to a message.
@@ -282,7 +282,7 @@ async def remove_reaction(
     message_id: int,
     reaction_type: str = Query(..., description="Reaction type to remove"),
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """
     Remove reaction from a message.
@@ -299,7 +299,7 @@ async def pin_message(
     message_id: int,
     reason: Optional[str] = Body(None, description="Reason for pinning"),
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """
     Pin a message in conversation.
@@ -315,7 +315,7 @@ async def pin_message(
 async def unpin_message(
     message_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """
     Unpin a message.
@@ -330,7 +330,7 @@ async def update_typing_status(
     conversation_id: int,
     request: TypingRequest,
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """
     Update typing indicator status.
@@ -345,7 +345,7 @@ async def update_typing_status(
 async def update_presence(
     request: PresenceUpdateRequest,
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """
     Update user presence status.
@@ -361,7 +361,7 @@ async def update_presence(
 async def get_user_presence(
     user_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """
     Get user presence information.
@@ -374,7 +374,7 @@ async def mark_conversation_read(
     conversation_id: int,
     message_id: Optional[int] = Body(None, description="Mark read up to this message ID"),
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """
     Mark conversation as read up to a specific message.
@@ -399,7 +399,7 @@ async def search_messages(
     limit: int = Query(20, ge=1, le=100, description="Number of results"),
     offset: int = Query(0, ge=0, description="Results offset"),
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """
     Advanced message search across conversations.
@@ -423,7 +423,7 @@ async def get_conversation_threads(
     limit: int = Query(20, ge=1, le=100, description="Number of threads to return"),
     offset: int = Query(0, ge=0, description="Threads offset"),
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """
     Get active threads in a conversation.
@@ -440,7 +440,7 @@ async def get_conversation_threads(
 async def get_pinned_messages(
     conversation_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """
     Get pinned messages in a conversation.
@@ -456,7 +456,7 @@ async def get_conversation_analytics(
     date_from: Optional[datetime] = Query(None, description="Start date"),
     date_to: Optional[datetime] = Query(None, description="End date"),
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """
     Get conversation analytics and insights.

@@ -10,7 +10,7 @@ import logging
 
 from database import get_db
 from services.gemini_service import GeminiService
-from core.auth_dependencies import AuthDependencies
+from auth.production_dependencies import CurrentUser, RequiredUser
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -73,7 +73,7 @@ async def autocomplete_category(
 async def create_new_category(
     request: CreateCategoryRequest,
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ) -> Dict[str, Any]:
     """
     Create a new category with AI-powered processing
@@ -244,7 +244,7 @@ async def generate_category_questions(
     category_path: Optional[str] = None,
     parent_category: Optional[str] = None,
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ) -> Dict[str, Any]:
     """
     Generate rating questions for a category using AI

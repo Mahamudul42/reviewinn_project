@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, Request
-from core.auth_dependencies import AuthDependencies
+from auth.production_dependencies import CurrentUser, RequiredUser
 from sqlalchemy.orm import Session
 from sqlalchemy import text, func, desc
 from database import get_db
@@ -94,7 +94,7 @@ class ReviewInnRightPanelAuthResponse(BaseModel):
 async def get_reviewinn_right_panel_data(
     request: Request,
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user_optional)
+    current_user = CurrentUser
 ):
     """
     Get ReviewInn right panel data - returns authenticated or public data based on user status

@@ -8,7 +8,7 @@ from sqlalchemy import and_
 from typing import List, Dict, Any
 from database import get_db
 from services.badge_service import BadgeService
-from core.auth_dependencies import get_current_user
+from auth.production_dependencies import CurrentUser, RequiredUser
 from models.user import User
 from models.badge_definition import BadgeDefinition
 from models.badge_award import BadgeAward

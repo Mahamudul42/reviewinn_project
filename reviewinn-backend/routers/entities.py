@@ -8,9 +8,8 @@ from models.user import User
 from models.review import Review
 from models.user_entity_view import UserEntityView
 from schemas.entity import EntityCreate, EntityResponse
-from core.auth_dependencies import AuthDependencies
+from auth.production_dependencies import CurrentUser, RequiredUser
 from services.entity_service import EntityService, EntityListParams, EntitySortBy, EntitySortOrder
-from services.auth_service_simple import AuthService
 from sqlalchemy.sql import func
 from core.responses import api_response, error_response, pagination_response
 import traceback
@@ -36,7 +35,7 @@ async def get_entities(
     minRating: Optional[float] = Query(None, description="Minimum average rating filter"),
     verified: Optional[bool] = Query(None, description="Filter by verified status"),
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(AuthDependencies.get_current_user_optional)
+    current_user: Optional[User] = CurrentUser
 ):
     """
     OPTIMIZED: Get entities with comprehensive engagement data in single API call.
@@ -234,7 +233,7 @@ async def search_entities(
 async def create_entity(
     entity_data: EntityCreate,
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(AuthDependencies.get_current_user_optional)
+    current_user: Optional[User] = CurrentUser
 ):
     """Create a new entity"""
     try:
@@ -308,7 +307,7 @@ async def create_entity(
 async def get_entity(
     entity_id: int,
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(AuthDependencies.get_current_user_optional)
+    current_user: Optional[User] = CurrentUser
 ):
     """Get entity by ID"""
     try:

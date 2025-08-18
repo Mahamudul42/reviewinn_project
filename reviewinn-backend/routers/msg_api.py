@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile
 from sqlalchemy.orm import Session
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel
-from core.auth_dependencies import AuthDependencies
+from auth.production_dependencies import CurrentUser, RequiredUser
 from services.msg_service import MsgService
 from database import get_db
 import logging
@@ -49,7 +49,7 @@ class MessagesResponse(BaseModel):
 async def create_conversation(
     conversation_data: ConversationCreate,
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """Create a new conversation."""
     try:
@@ -79,7 +79,7 @@ async def get_conversations(
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """Get user's conversations."""
     try:
@@ -112,7 +112,7 @@ async def get_conversations(
 async def send_message(
     message_data: MessageCreate,
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """Send a message to a conversation."""
     try:
@@ -149,7 +149,7 @@ async def get_messages(
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """Get messages from a conversation."""
     try:
@@ -183,7 +183,7 @@ async def get_messages(
 async def mark_conversation_read(
     conversation_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """Mark conversation as read."""
     try:
@@ -216,7 +216,7 @@ async def add_reaction(
     message_id: int,
     reaction_data: ReactionCreate,
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """Add or update reaction to a message."""
     try:
@@ -244,7 +244,7 @@ async def add_reaction(
 async def remove_reaction(
     message_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user)
+    current_user = RequiredUser
 ):
     """Remove user's reaction from a message."""
     try:

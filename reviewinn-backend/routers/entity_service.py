@@ -20,7 +20,7 @@ from services.entity_service import (
 from models.entity import EntityCategory
 from database import get_db
 from core import ValidationError, BusinessLogicError, NotFoundError
-from core.auth_dependencies import AuthDependencies
+from auth.production_dependencies import CurrentUser, RequiredUser
 from models.user import User
 
 logger = logging.getLogger(__name__)
@@ -317,7 +317,7 @@ async def get_entity(
 async def create_entity(
     entity_data: EntityCreateRequest,
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(AuthDependencies.get_current_user_optional)
+    current_user: Optional[User] = CurrentUser
 ):
     """
     Create a new entity with validation.
@@ -387,7 +387,7 @@ async def create_entity(
 async def update_entity(
     entity_id: int = Path(..., description="Entity ID"),
     entity_data: EntityUpdateRequest = Body(...),
-    current_user: User = Depends(AuthDependencies.get_current_user),
+    current_user: User = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """
@@ -460,7 +460,7 @@ async def update_entity(
 async def delete_entity(
     entity_id: int = Path(..., description="Entity ID"),
     delete_request: EntityDeleteRequest = Body(...),
-    current_user: User = Depends(AuthDependencies.get_current_user),
+    current_user: User = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """

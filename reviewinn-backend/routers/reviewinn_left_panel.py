@@ -9,14 +9,14 @@ from fastapi.responses import JSONResponse
 import logging
 
 from database import get_db
-from core.auth_dependencies import AuthDependencies
+from auth.production_dependencies import CurrentUser, RequiredUser
 
 router = APIRouter()
 
 @router.get("/data", response_model=None)
 async def get_reviewinn_left_panel_data(
     db: Session = Depends(get_db),
-    current_user = Depends(AuthDependencies.get_current_user_optional)
+    current_user = CurrentUser
 ):
     """
     ReviewInn-specific endpoint for left panel data:

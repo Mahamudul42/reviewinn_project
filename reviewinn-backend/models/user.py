@@ -57,6 +57,30 @@ class User(Base):
     gamification_sync_status = Column(String(50))
     last_active_at = Column(DateTime(timezone=True))
     last_login_at = Column(DateTime(timezone=True))
+    # Backward compatibility - use last_login_at as primary field
+    # last_login = Column(DateTime(timezone=True))  # REMOVED - use last_login_at only
+    
+    # Enhanced security fields for unified auth system
+    role = Column(Enum(UserRole), default=UserRole.USER)
+    permissions = Column(JSON, default=list)  # User-specific permissions
+    failed_login_attempts = Column(Integer, default=0)
+    account_locked_until = Column(DateTime(timezone=True))
+    password_changed_at = Column(DateTime(timezone=True))
+    email_verification_token = Column(String(255))
+    email_verification_expires = Column(DateTime(timezone=True))
+    email_verified_at = Column(DateTime(timezone=True))  # Track when email was verified
+    password_reset_token = Column(String(255))
+    password_reset_expires = Column(DateTime(timezone=True))
+    
+    # Device and session tracking
+    active_sessions = Column(JSON, default=list)  # Track active sessions
+    trusted_devices = Column(JSON, default=list)  # Device fingerprints
+    security_events = Column(JSON, default=list)  # Recent security events
+    
+    # Two-factor authentication support
+    two_factor_enabled = Column(Boolean, default=False)
+    two_factor_secret = Column(String(255))  # TOTP secret
+    recovery_codes = Column(JSON, default=list)  # Backup codes
     # JSONB fields from actual database schema
     profile_data = Column(JSON, default={})
     preferences = Column(JSON, default={})

@@ -6,7 +6,7 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 
 from database import get_db
-from core.auth_dependencies import AuthDependencies
+from auth.production_dependencies import CurrentUser, RequiredUser
 from services.group_service import GroupService
 from schemas.group import (
     GroupCreateRequest, GroupUpdateRequest, GroupResponse,
@@ -29,7 +29,7 @@ def get_group_service(db: Session = Depends(get_db)) -> GroupService:
 @router.post("/", response_model=GroupResponse, status_code=status.HTTP_201_CREATED)
 async def create_group(
     group_data: GroupCreateRequest,
-    current_user: User = Depends(AuthDependencies.get_current_user),
+    current_user: User = RequiredUser,
     group_service: GroupService = Depends(get_group_service)
 ):
     """
@@ -53,7 +53,7 @@ async def get_groups(
     category_id: Optional[int] = Query(None, description="Filter by category"),
     search: Optional[str] = Query(None, max_length=100, description="Search term"),
     user_groups_only: bool = Query(False, description="Show only user's groups"),
-    current_user: Optional[User] = Depends(AuthDependencies.get_current_user_optional),
+    current_user: Optional[User] = CurrentUser,
     group_service: GroupService = Depends(get_group_service)
 ):
     """
@@ -148,7 +148,7 @@ async def get_popular_groups(
 @router.get("/{group_id}", response_model=GroupResponse)
 async def get_group(
     group_id: int = Path(..., description="Group ID"),
-    current_user: Optional[User] = Depends(AuthDependencies.get_current_user_optional),
+    current_user: Optional[User] = CurrentUser,
     group_service: GroupService = Depends(get_group_service)
 ):
     """
@@ -163,7 +163,7 @@ async def get_group(
 async def update_group(
     group_data: GroupUpdateRequest,
     group_id: int = Path(..., description="Group ID"),
-    current_user: User = Depends(AuthDependencies.get_current_user),
+    current_user: User = RequiredUser,
     group_service: GroupService = Depends(get_group_service)
 ):
     """
@@ -179,7 +179,7 @@ async def update_group(
 async def join_group(
     group_id: int = Path(..., description="Group ID"),
     membership_data: Optional[GroupMembershipRequest] = None,
-    current_user: User = Depends(AuthDependencies.get_current_user),
+    current_user: User = RequiredUser,
     group_service: GroupService = Depends(get_group_service)
 ):
     """
@@ -194,7 +194,7 @@ async def join_group(
 @router.post("/{group_id}/leave")
 async def leave_group(
     group_id: int = Path(..., description="Group ID"),
-    current_user: User = Depends(AuthDependencies.get_current_user),
+    current_user: User = RequiredUser,
     group_service: GroupService = Depends(get_group_service)
 ):
     """
@@ -212,7 +212,7 @@ async def get_group_members(
     role: Optional[str] = Query(None, description="Filter by role"),
     status: Optional[str] = Query("active", description="Filter by status"),
     search: Optional[str] = Query(None, max_length=100, description="Search members"),
-    current_user: Optional[User] = Depends(AuthDependencies.get_current_user_optional),
+    current_user: Optional[User] = CurrentUser,
     group_service: GroupService = Depends(get_group_service)
 ):
     """
@@ -259,7 +259,7 @@ async def get_group_members(
 async def invite_to_group(
     invitation_data: GroupInvitationRequest,
     group_id: int = Path(..., description="Group ID"),
-    current_user: User = Depends(AuthDependencies.get_current_user),
+    current_user: User = RequiredUser,
     group_service: GroupService = Depends(get_group_service)
 ):
     """
@@ -276,7 +276,7 @@ async def invite_to_group(
 async def get_received_invitations(
     page: int = Query(1, ge=1),
     size: int = Query(20, ge=1, le=100),
-    current_user: User = Depends(AuthDependencies.get_current_user),
+    current_user: User = RequiredUser,
     group_service: GroupService = Depends(get_group_service)
 ):
     """
@@ -289,7 +289,7 @@ async def get_received_invitations(
 async def respond_to_invitation(
     response_data: GroupInvitationResponseRequest,
     invitation_id: int = Path(..., description="Invitation ID"),
-    current_user: User = Depends(AuthDependencies.get_current_user),
+    current_user: User = RequiredUser,
     group_service: GroupService = Depends(get_group_service)
 ):
     """
@@ -313,7 +313,7 @@ async def get_group_reviews(
     group_id: int = Path(..., description="Group ID"),
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(20, ge=1, le=100, description="Items per page"),
-    current_user: Optional[User] = Depends(AuthDependencies.get_current_user_optional),
+    current_user: Optional[User] = CurrentUser,
     group_service: GroupService = Depends(get_group_service)
 ):
     """
@@ -337,7 +337,7 @@ async def get_group_reviews(
 async def update_review_scope(
     scope_data: ReviewScopeRequest,
     review_id: int = Path(..., description="Review ID"),
-    current_user: User = Depends(AuthDependencies.get_current_user),
+    current_user: User = RequiredUser,
     group_service: GroupService = Depends(get_group_service)
 ):
     """
@@ -359,7 +359,7 @@ async def search_groups(
     size: int = Query(20, ge=1, le=100),
     group_type: Optional[str] = Query(None),
     category_id: Optional[int] = Query(None),
-    current_user: Optional[User] = Depends(AuthDependencies.get_current_user_optional),
+    current_user: Optional[User] = CurrentUser,
     group_service: GroupService = Depends(get_group_service)
 ):
     """
@@ -404,7 +404,7 @@ async def search_groups(
 @router.get("/{group_id}/analytics")
 async def get_group_analytics(
     group_id: int = Path(..., description="Group ID"),
-    current_user: User = Depends(AuthDependencies.get_current_user),
+    current_user: User = RequiredUser,
     group_service: GroupService = Depends(get_group_service)
 ):
     """
@@ -430,7 +430,7 @@ async def get_my_groups(
     page: int = Query(1, ge=1),
     size: int = Query(20, ge=1, le=100),
     role: Optional[str] = Query(None, description="Filter by my role"),
-    current_user: User = Depends(AuthDependencies.get_current_user),
+    current_user: User = RequiredUser,
     group_service: GroupService = Depends(get_group_service)
 ):
     """
