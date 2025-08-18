@@ -13,19 +13,17 @@ This middleware provides:
 """
 
 import time
-import json
 import asyncio
-from typing import Optional, List, Dict, Any, Callable, Awaitable
+from typing import Optional, Dict, Any, Callable, Awaitable
 from datetime import datetime, timezone
 
 from fastapi import Request, Response, HTTPException, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-from sqlalchemy.orm import Session
 
 from database import get_db
 from auth.production_auth_system import get_auth_system, SecurityEventType
-from models.user import User, UserRole
+from models.user import User
 import logging
 
 logger = logging.getLogger(__name__)
@@ -146,9 +144,12 @@ class ProductionAuthMiddleware(BaseHTTPMiddleware):
             # Verify token
             payload = await self.auth_system.verify_token(token, "access")
             
-            # Get user from database
+            # Get user from database with proper session management
             db = next(get_db())
-            user = db.query(User).filter(User.user_id == int(payload["sub"])).first()
+            try:
+                user = db.query(User).filter(User.user_id == int(payload["sub"])).first()
+            finally:
+                db.close()
             
             if not user:
                 await self._log_security_event(SecurityEventType.SUSPICIOUS_ACTIVITY, {

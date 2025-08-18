@@ -11,6 +11,7 @@ Built with enterprise security standards and designed for scale.
 import secrets
 import hashlib
 import re
+import json
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, List, Any, Tuple
 from enum import Enum
@@ -20,7 +21,7 @@ from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 import jwt
 from email_validator import validate_email, EmailNotValidError
-from fastapi import HTTPException, status, Request
+from fastapi import HTTPException, Request
 import logging
 import redis.asyncio as redis
 from pydantic import BaseModel, EmailStr
@@ -239,7 +240,7 @@ class ProductionAuthSystem:
             await self._update_user_login_data(user, db, client_ip, device_info)
             
             # Clear failed attempts
-            await self._clear_rate_limits(identifier, "login")
+            await self._clear_rate_limits(identifier, "login", client_ip)
             
             # Log successful authentication
             await self._log_security_event(SecurityEventType.LOGIN_SUCCESS, {
@@ -351,14 +352,14 @@ class ProductionAuthSystem:
         """Generate secure JWT token pair"""
         now = datetime.now(timezone.utc)
         
-        # Access token payload
+        # Access token payload with Unix timestamps
         access_payload = {
             "sub": str(user.user_id),
             "email": user.email,
             "username": user.username,
-            "role": getattr(user, 'role', 'user'),
-            "iat": now,
-            "exp": now + timedelta(minutes=self.config.JWT_ACCESS_TOKEN_EXPIRE_MINUTES),
+            "role": getattr(user, 'role', 'user').value if hasattr(getattr(user, 'role', 'user'), 'value') else str(getattr(user, 'role', 'user')),
+            "iat": int(now.timestamp()),
+            "exp": int((now + timedelta(minutes=self.config.JWT_ACCESS_TOKEN_EXPIRE_MINUTES)).timestamp()),
             "iss": "reviewinn-production",
             "aud": "reviewinn-app",
             "type": "access",
@@ -367,11 +368,11 @@ class ProductionAuthSystem:
             "session_id": secrets.token_urlsafe(16)
         }
         
-        # Refresh token payload  
+        # Refresh token payload with Unix timestamps
         refresh_payload = {
             "sub": str(user.user_id),
-            "iat": now,
-            "exp": now + timedelta(days=self.config.JWT_REFRESH_TOKEN_EXPIRE_DAYS),
+            "iat": int(now.timestamp()),
+            "exp": int((now + timedelta(days=self.config.JWT_REFRESH_TOKEN_EXPIRE_DAYS)).timestamp()),
             "iss": "reviewinn-production",
             "aud": "reviewinn-app",
             "type": "refresh",
@@ -511,12 +512,12 @@ class ProductionAuthSystem:
             "last_activity": datetime.now(timezone.utc).isoformat()
         }
         
-        # Store session in Redis
+        # Store session in Redis as JSON
         session_key = f"{self.config.REDIS_KEY_PREFIX}session:{user.user_id}:{session_data['token_jti']}"
         await self.redis.setex(
             session_key,
             self.config.SESSION_TIMEOUT_MINUTES * 60,
-            str(session_data)
+            json.dumps(session_data)
         )
         
         # Manage concurrent sessions
@@ -668,13 +669,13 @@ class ProductionAuthSystem:
     def _contains_common_patterns(self, password: str) -> bool:
         """Check for common password patterns"""
         common_patterns = [
-            # Sequential patterns
-            "123", "234", "345", "456", "567", "678", "789", "890",
-            "abc", "bcd", "cde", "def", "efg", "fgh", "ghi", "hij",
-            "qwe", "wer", "ert", "rty", "tyu", "yui", "uio", "iop",
-            "asd", "sdf", "dfg", "fgh", "ghj", "hjk", "jkl",
-            # Repeated patterns
-            "aaa", "111", "000", "zzz", "999"
+            # Sequential patterns (4+ chars to avoid false positives)
+            "1234", "2345", "3456", "4567", "5678", "6789", "7890",
+            "abcd", "bcde", "cdef", "defg", "efgh", "fghi", "ghij",
+            "qwer", "wert", "erty", "rtyu", "tyui", "yuio", "uiop",
+            "asdf", "sdfg", "dfgh", "fghj", "ghjk", "hjkl",
+            # Repeated patterns (4+ chars)
+            "aaaa", "1111", "0000", "zzzz", "9999"
         ]
         
         password_lower = password.lower()
@@ -782,9 +783,13 @@ class ProductionAuthSystem:
         
         db.commit()
     
-    async def _clear_rate_limits(self, identifier: str, action: str) -> None:
+    async def _clear_rate_limits(self, identifier: str, action: str, client_ip: str = None) -> None:
         """Clear rate limits after successful operation"""
-        for key_suffix in [f"user:{identifier}", f"ip:{self._extract_client_ip(None)}"]:
+        suffixes = [f"user:{identifier}"]
+        if client_ip:
+            suffixes.append(f"ip:{client_ip}")
+        
+        for key_suffix in suffixes:
             key = f"{self.config.REDIS_KEY_PREFIX}rate_limit:{action}:{key_suffix}"
             try:
                 await self.redis.delete(key)
@@ -803,7 +808,7 @@ class ProductionAuthSystem:
         """Store token metadata in Redis"""
         try:
             key = f"{self.config.REDIS_KEY_PREFIX}token_metadata:{jti}"
-            await self.redis.setex(key, self.config.REDIS_DEFAULT_TTL, str(payload))
+            await self.redis.setex(key, self.config.REDIS_DEFAULT_TTL, json.dumps(payload))
         except Exception as e:
             logger.error(f"Failed to store token metadata: {e}")
     
@@ -875,8 +880,7 @@ class ProductionAuthSystem:
                     session_data = await self.redis.get(session_key)
                     if session_data:
                         try:
-                            import ast
-                            data = ast.literal_eval(session_data)
+                            data = json.loads(session_data)
                             sessions_sorted.append((session_key, data.get('created_at', '')))
                         except Exception:
                             pass
