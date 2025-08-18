@@ -54,7 +54,7 @@ export const API_ENDPOINTS = {
 
 // Helper function to get auth headers
 // DEPRECATED: Use getAuthHeaders from shared/utils/auth instead
-export const getAuthHeaders = () => {
+export const getAuthHeaders = (): Record<string, string> => {
   console.warn('getAuthHeaders is deprecated. Use getAuthHeaders from shared/utils/auth instead');
   // Basic fallback implementation
   const token = localStorage.getItem('authToken');
