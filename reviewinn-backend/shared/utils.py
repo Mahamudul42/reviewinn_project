@@ -7,15 +7,12 @@ import hashlib
 import secrets
 import re
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 from email_validator import validate_email, EmailNotValidError
 import bcrypt
-import jwt
 from sqlalchemy.orm import Query
 from sqlalchemy import func
-
-from core.config.settings import get_settings
 
 
 def generate_id() -> str:
@@ -41,38 +38,6 @@ def verify_password(password: str, hashed: str) -> bool:
     except Exception:
         return False
 
-
-def generate_token(data: Dict[str, Any], expires_in: int = 3600) -> str:
-    """Generate a JWT token."""
-    settings = get_settings()
-    
-    payload = {
-        **data,
-        'exp': datetime.now(timezone.utc).timestamp() + expires_in,
-        'iat': datetime.now(timezone.utc).timestamp()
-    }
-    
-    return jwt.encode(
-        payload,
-        settings.jwt_secret_key,
-        algorithm=settings.jwt_algorithm
-    )
-
-
-def decode_token(token: str) -> Optional[Dict[str, Any]]:
-    """Decode and validate a JWT token."""
-    try:
-        settings = get_settings()
-        payload = jwt.decode(
-            token,
-            settings.jwt_secret_key,
-            algorithms=[settings.jwt_algorithm]
-        )
-        return payload
-    except jwt.ExpiredSignatureError:
-        return None
-    except jwt.InvalidTokenError:
-        return None
 
 
 def validate_email_address(email: str) -> bool:

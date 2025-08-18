@@ -3,13 +3,13 @@ export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env
 
 // API endpoints
 export const API_ENDPOINTS = {
-  // Auth
+  // Auth - Production Auth System Endpoints
   auth: {
-    login: '/auth/login',
-    register: '/auth/register',
-    logout: '/auth/logout',
-    refresh: '/auth/refresh',
-    me: '/auth/me'
+    login: '/auth-production/login',
+    register: '/auth-production/register',
+    logout: '/auth-production/logout',
+    refresh: '/auth-production/refresh',
+    me: '/auth-production/profile'
   },
   
   // Groups
@@ -55,9 +55,10 @@ export const API_ENDPOINTS = {
 // Helper function to get auth headers
 // DEPRECATED: Use getAuthHeaders from shared/utils/auth instead
 export const getAuthHeaders = () => {
-  // Import the unified auth utility dynamically to avoid circular imports
-  const { getAuthHeaders: unifiedGetAuthHeaders } = require('../shared/utils/auth');
-  return unifiedGetAuthHeaders();
+  console.warn('getAuthHeaders is deprecated. Use getAuthHeaders from shared/utils/auth instead');
+  // Basic fallback implementation
+  const token = localStorage.getItem('authToken');
+  return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
 // Helper function to make API requests
@@ -65,14 +66,19 @@ export const getAuthHeaders = () => {
 export const apiRequest = async (url: string, options: RequestInit = {}) => {
   const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
   
-  // Use unified auth utilities
-  const { createAuthenticatedRequestInit } = require('../shared/utils/auth');
-  const requestInit = createAuthenticatedRequestInit({
+  // Use unified auth utilities - basic fallback implementation
+  console.warn('apiRequest is deprecated. Use createAuthenticatedRequestInit from shared/utils/auth instead');
+  const authHeaders = getAuthHeaders();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...authHeaders,
+    ...(options.headers as Record<string, string> || {})
+  };
+  
+  const requestInit: RequestInit = {
     ...options,
-    headers: {
-      ...options.headers
-    }
-  });
+    headers
+  };
   
   console.log('Debug - API Request:', fullUrl);
   console.log('Debug - Headers being sent:', requestInit.headers);

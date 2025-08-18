@@ -73,18 +73,18 @@ export const API_CONFIG = {
 
 // API Endpoints
 export const API_ENDPOINTS = {
-  // Authentication
+  // Authentication - Production Auth System Endpoints
   AUTH: {
-    LOGIN: '/auth/login',
-    REGISTER: '/auth/register',
-    LOGOUT: '/auth/logout',
-    REFRESH: '/auth/refresh',
-    VERIFY: '/auth/verify',
-    FORGOT_PASSWORD: '/auth/forgot-password',
-    RESET_PASSWORD: '/auth/reset-password',
-    CHANGE_PASSWORD: '/auth/change-password',
-    PROFILE: '/auth/profile',
-    UPDATE_PROFILE: '/auth/profile/update'
+    LOGIN: '/auth-production/login',
+    REGISTER: '/auth-production/register',
+    LOGOUT: '/auth-production/logout',
+    REFRESH: '/auth-production/refresh',
+    VERIFY: '/auth-production/verify',
+    FORGOT_PASSWORD: '/auth-production/forgot-password',
+    RESET_PASSWORD: '/auth-production/reset-password',
+    CHANGE_PASSWORD: '/auth-production/change-password',
+    PROFILE: '/auth-production/profile',
+    UPDATE_PROFILE: '/auth-production/profile/update'
   },
   
   // Entities - Unified endpoints using the consolidated entity service

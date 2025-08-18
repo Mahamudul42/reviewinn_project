@@ -188,7 +188,7 @@ export class HttpClient {
         throw new ApiClientError(API_ERROR_TYPES.AUTHENTICATION_ERROR, 'No refresh token available');
       }
 
-      const response = await fetch(`${API_CONFIG.BASE_URL}/api/v1/auth/refresh`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/v1/auth-production/refresh`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -362,7 +362,7 @@ export class HttpClient {
     cacheKey?: string
   ): Promise<ApiResponse<T>> {
     // Check if this is a protected endpoint that requires authentication
-    const isProtectedEndpoint = (url.includes('/users/me') || url.includes('/auth/profile') || 
+    const isProtectedEndpoint = (url.includes('/users/me') || url.includes('/auth-production/profile') || 
                                 url.includes('/reviews/create') || url.includes('/entities/create') ||
                                 url.includes('/circles/') || url.includes('/notifications/') ||
                                 url.includes('/enterprise-notifications/') ||
@@ -416,7 +416,7 @@ export class HttpClient {
         // Handle token refresh for 401 errors
         if (response.status === HTTP_STATUS.UNAUTHORIZED) {
           // Only log unauthorized errors in development or for protected endpoints
-          const isProtectedEndpoint = (url.includes('/users/me') || url.includes('/auth/') || 
+          const isProtectedEndpoint = (url.includes('/users/me') || url.includes('/auth-production/') || 
                                       url.includes('/reviews/create') || url.includes('/circles/') ||
                                       url.includes('/notifications/') || url.includes('/enterprise-notifications/') ||
                                       url.includes('/messenger/')) &&

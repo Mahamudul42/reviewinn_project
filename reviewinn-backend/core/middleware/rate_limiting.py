@@ -38,10 +38,10 @@ class RateLimitingMiddleware(BaseHTTPMiddleware):
             "/health", "/metrics", "/docs", "/redoc", "/openapi.json"
         ]
         
-        # Custom limits for specific endpoints
+        # Custom limits for specific endpoints - Production Auth System
         self.custom_limits = custom_limits or {
-            "/auth/login": {"requests_per_minute": 10, "burst_size": 20},
-            "/auth/register": {"requests_per_minute": 5, "burst_size": 10},
+            "/auth-production/login": {"requests_per_minute": 10, "burst_size": 20},
+            "/auth-production/register": {"requests_per_minute": 5, "burst_size": 10},
             "/reviews": {"requests_per_minute": 30, "burst_size": 50},
             "/entities": {"requests_per_minute": 100, "burst_size": 200}
         }
