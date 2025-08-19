@@ -91,27 +91,21 @@ class ReviewInnRightPanelService {
     try {
       const url = `${this.baseUrl}/`;
       
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch ReviewInn right panel data: ${response.statusText}`);
-      }
-
-      const result = await response.json();
+      const response = await httpClient.get<ReviewInnRightPanelPublicData>(url);
       
-      if (result.success) {
+      if (response.success) {
+        // Backend returns data directly in response, not in response.data
+        const data = response.data || response;
         return {
           type: 'public',
-          ...result
+          new_entities: data.new_entities || [],
+          popular_entities: data.popular_entities || [],
+          activity_summary: data.activity_summary || {},
+          success: true,
+          message: data.message || 'Public right panel data loaded successfully'
         };
       } else {
-        throw new Error(result.message || 'API returned error');
+        throw new Error(response.message || 'API returned error');
       }
     } catch (error) {
       console.error('ReviewInnRightPanelService: Failed to fetch data:', error);
@@ -126,23 +120,14 @@ class ReviewInnRightPanelService {
     try {
       const url = `${this.baseUrl}/authenticated`;
       
-      const response = await fetch(url, {
-        ...createAuthenticatedRequestInit({
-          method: 'GET',
-          credentials: 'include',
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch ReviewInn authenticated right panel data: ${response.statusText}`);
-      }
-
-      const result = await response.json();
+      const response = await httpClient.get<ReviewInnRightPanelAuthData>(url);
       
-      if (result.success) {
-        return result;
+      if (response.success) {
+        // Backend returns data directly in response, not in response.data
+        const data = response.data || response;
+        return data;
       } else {
-        throw new Error(result.message || 'API returned error');
+        throw new Error(response.message || 'API returned error');
       }
     } catch (error) {
       console.error('ReviewInnRightPanelService: Failed to fetch authenticated data:', error);
@@ -197,7 +182,7 @@ class ReviewInnRightPanelService {
    */
   async healthCheck(): Promise<{ status: string; service: string }> {
     try {
-      const response = await httpClient.get(`${this.BASE_URL}/health`);
+      const response = await httpClient.get(`${this.baseUrl}/health`);
       return response.data;
     } catch (error) {
       console.error('Error checking right panel service health:', error);

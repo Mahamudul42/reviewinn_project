@@ -93,24 +93,12 @@ export class ReviewInnLeftPanelService {
     try {
       const url = `${this.baseUrl}/data`;
       
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch ReviewInn left panel data: ${response.statusText}`);
-      }
-
-      const result: ReviewInnLeftPanelResponse = await response.json();
+      const response = await httpClient.get<ReviewInnLeftPanelData>(url);
       
-      if (result.success && result.data) {
-        return result.data;
+      if (response.success && response.data) {
+        return response.data;
       } else {
-        throw new Error(result.message || 'API returned error');
+        throw new Error(response.message || 'API returned error');
       }
     } catch (error) {
       console.error('ReviewInnLeftPanelService: Failed to fetch data:', error);

@@ -93,8 +93,8 @@ class ReviewInnRightPanelAuthResponse(BaseModel):
 @router.get("/", response_model=dict)
 async def get_reviewinn_right_panel_data(
     request: Request,
-    db: Session = Depends(get_db),
-    current_user = CurrentUser
+    current_user: CurrentUser,
+    db: Session = Depends(get_db)
 ):
     """
     Get ReviewInn right panel data - returns authenticated or public data based on user status

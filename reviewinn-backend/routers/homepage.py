@@ -294,10 +294,10 @@ async def get_home_middle_panel_data(
 
 @router.get("/reviews", response_model=None)
 def get_homepage_reviews(
+    current_user: CurrentUser,
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(15, ge=1, le=100, description="Number of reviews to fetch"),
-    db: Session = Depends(get_db),
-    current_user = CurrentUser
+    db: Session = Depends(get_db)
 ):
     """
     OPTIMIZED: Get recent reviews for homepage with comprehensive data (like user profile).
@@ -555,10 +555,10 @@ async def migrate_to_single_table(db: Session = Depends(get_db)):
 
 @router.get("/search_reviews", response_model=None)
 async def search_reviews_with_entities(
+    current_user: CurrentUser,
     q: str = Query(..., description="Search query"),
     limit: int = Query(20, ge=1, le=100, description="Number of reviews to fetch"),
-    db: Session = Depends(get_db),
-    current_user = CurrentUser
+    db: Session = Depends(get_db)
 ):
     """
     Search reviews using the same review_main table structure as homepage.

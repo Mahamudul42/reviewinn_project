@@ -15,8 +15,8 @@ router = APIRouter()
 
 @router.get("/data", response_model=None)
 async def get_reviewinn_left_panel_data(
-    db: Session = Depends(get_db),
-    current_user = CurrentUser
+    current_user: CurrentUser,
+    db: Session = Depends(get_db)
 ):
     """
     ReviewInn-specific endpoint for left panel data:
