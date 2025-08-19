@@ -4,6 +4,7 @@ import { useUnifiedAuth } from '../../../hooks/useUnifiedAuth';
 import type { LoginCredentials, RegisterData } from '../../../api/auth';
 import LoginForm from '../../../shared/molecules/LoginForm';
 import SignupForm from '../../../shared/molecules/SignupForm';
+import EmailVerificationModal from './EmailVerificationModal';
 import { useToast } from '../../../shared/design-system/components/Toast';
 
 interface AuthModalProps {
@@ -28,6 +29,8 @@ const AuthModal: React.FC<AuthModalProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastErrorStatus, setLastErrorStatus] = useState<number | null>(null);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState<string>('');
 
   // Manage body scroll when modal is open
   useEffect(() => {
@@ -200,8 +203,37 @@ const AuthModal: React.FC<AuthModalProps> = ({
       }, 100);
     } catch (err) {
       console.error('Login error:', err);
-      const errorMessage = getDetailedErrorMessage(err);
-      const errorStatus = (err as any)?.response?.status;
+      
+      // Better error message handling for login
+      let errorMessage = 'Login failed. Please try again.';
+      let errorStatus = null;
+      
+      // Handle different types of error objects
+      if (err && typeof err === 'object') {
+        // Log the full error structure for debugging
+        console.log('Full error object:', JSON.stringify(err, null, 2));
+        
+        // Try different ways to extract the error
+        if (err.response?.data?.detail) {
+          if (typeof err.response.data.detail === 'string') {
+            errorMessage = err.response.data.detail;
+          } else if (err.response.data.detail.message) {
+            errorMessage = err.response.data.detail.message;
+          } else {
+            errorMessage = 'Invalid credentials. Please check your email and password.';
+          }
+          errorStatus = err.response.status;
+        } else if (err.message && typeof err.message === 'string') {
+          errorMessage = err.message;
+        } else if (typeof err === 'string') {
+          errorMessage = err;
+        } else {
+          // Fallback for unstructured errors
+          errorMessage = 'Login failed. Please check your credentials and try again.';
+        }
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
       
       setError(errorMessage);
       setLastErrorStatus(errorStatus);
@@ -313,29 +345,56 @@ const AuthModal: React.FC<AuthModalProps> = ({
         password: registerForm.password
       };
 
-      await register(sanitizedData);
-      toast.success('Account created successfully! Welcome to ReviewInn!');
+      // Use direct fetch instead of register method to avoid auto-login
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1'}/auth-production/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          first_name: sanitizedData.firstName,
+          last_name: sanitizedData.lastName,
+          email: sanitizedData.email,
+          password: sanitizedData.password
+        }),
+      });
+
+      const data = await response.json();
       
-      // Emit auth success events for reactive state management
-      window.dispatchEvent(new CustomEvent('loginSuccess'));
-      window.dispatchEvent(new CustomEvent('authStateChanged', { 
-        detail: { isAuthenticated: true } 
-      }));
-      window.dispatchEvent(new CustomEvent('userRegistered', { 
-        detail: { userId: sanitizedData.email, isNewUser: true } 
-      }));
-      
-      console.log('AuthModal: Registration successful, calling callbacks');
-      onRegisterSuccess?.();
-      onSuccess?.();
-      
-      // Small delay to ensure auth state is fully propagated before closing modal
-      setTimeout(() => {
-        onClose();
-      }, 100);
+      console.log('Registration response:', { status: response.status, ok: response.ok, data });
+
+      if (response.ok) {
+        // Registration successful - show verification modal
+        toast.success('Account created successfully! Please verify your email to continue.');
+        setRegisteredEmail(sanitizedData.email);
+        setShowVerificationModal(true);
+        
+        // Emit registration event (but not login success since user isn't logged in yet)
+        window.dispatchEvent(new CustomEvent('userRegistered', { 
+          detail: { userId: sanitizedData.email, isNewUser: true, requiresVerification: true } 
+        }));
+        
+        console.log('AuthModal: Registration successful, showing verification modal');
+      } else {
+        // Handle registration error
+        console.error('Registration failed with status:', response.status, 'Data:', data);
+        const errorDetail = typeof data.detail === 'string' ? data.detail : 
+                           Array.isArray(data.detail) ? data.detail.map(d => d.msg || d).join(', ') :
+                           data.message || 'Registration failed';
+        throw new Error(errorDetail);
+      }
     } catch (err) {
       console.error('Registration error:', err);
-      const errorMessage = getDetailedErrorMessage(err);
+      
+      // Better error message handling
+      let errorMessage = 'Registration failed. Please try again.';
+      
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === 'object' && err !== null) {
+        errorMessage = JSON.stringify(err);
+      }
+      
       const errorStatus = (err as any)?.response?.status;
       
       setError(errorMessage);
@@ -359,7 +418,31 @@ const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
-  if (!isOpen) return null;
+  const handleVerificationSuccess = () => {
+    setShowVerificationModal(false);
+    toast.success('Email verified successfully! You can now log in.');
+    
+    // Switch to login mode after successful verification
+    setIsLogin(true);
+    setRegisteredEmail('');
+    
+    // Emit verification success event
+    window.dispatchEvent(new CustomEvent('emailVerified', { 
+      detail: { email: registeredEmail } 
+    }));
+  };
+
+  const handleVerificationClose = () => {
+    setShowVerificationModal(false);
+    // Don't clear the registered email in case user wants to try again
+  };
+
+  const handleVerificationResend = () => {
+    // This is handled by the EmailVerificationModal internally
+    // We could add additional logic here if needed
+  };
+
+  if (!isOpen && !showVerificationModal) return null;
 
   // Calculate the current viewport center dynamically
   const viewportHeight = window.innerHeight;
@@ -530,6 +613,17 @@ const AuthModal: React.FC<AuthModalProps> = ({
           </div>
         </div>
       </div>
+      
+      {/* Email Verification Modal */}
+      {showVerificationModal && (
+        <EmailVerificationModal
+          isOpen={showVerificationModal}
+          onClose={handleVerificationClose}
+          email={registeredEmail}
+          onVerificationSuccess={handleVerificationSuccess}
+          onResendSuccess={handleVerificationResend}
+        />
+      )}
     </div>
   );
 };

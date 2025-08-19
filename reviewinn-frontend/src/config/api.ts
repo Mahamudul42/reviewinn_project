@@ -9,7 +9,9 @@ export const API_ENDPOINTS = {
     register: '/auth-production/register',
     logout: '/auth-production/logout',
     refresh: '/auth-production/refresh',
-    me: '/auth-production/profile'
+    me: '/auth-production/profile',
+    verifyEmail: '/auth-production/verify-email',
+    resendVerification: '/auth-production/resend-verification'
   },
   
   // Groups

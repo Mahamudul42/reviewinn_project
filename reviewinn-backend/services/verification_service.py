@@ -6,6 +6,7 @@ Industry-standard security features including rate limiting, attempt tracking, a
 import random
 import hashlib
 import hmac
+import os
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any
 from sqlalchemy.orm import Session
@@ -56,6 +57,10 @@ class EnhancedVerificationService:
         self.MAX_REQUESTS_PER_WINDOW = 3
         self.RESEND_COOLDOWN_MINUTES = 2
         
+        # Development mode settings
+        self.development_mode = os.environ.get('VERIFICATION_DEV_MODE', 'false').lower() == 'true'
+        self.dev_code = "123456"  # Fixed code for development
+        
         # Email settings (configure these in production)
         self.smtp_server = "smtp.gmail.com"
         self.smtp_port = 587
@@ -65,6 +70,8 @@ class EnhancedVerificationService:
 
     def generate_6_digit_code(self) -> str:
         """Generate a secure 6-digit code"""
+        if self.development_mode:
+            return self.dev_code
         return f"{random.randint(100000, 999999):06d}"
 
     def get_code_key(self, email: str, code_type: str) -> str:

@@ -28,7 +28,7 @@ from schemas.auth import (
 )
 from services.verification_service import verification_service
 
-router = APIRouter(prefix="/auth", tags=["Production Authentication"])
+router = APIRouter(prefix="/auth-production", tags=["Production Authentication"])
 logger = logging.getLogger(__name__)
 
 # Get production auth system

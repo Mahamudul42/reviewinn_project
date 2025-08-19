@@ -37,6 +37,7 @@ from .entity_comparison import EntityComparison
 from .view_tracking import ReviewView, EntityView
 from .review_circle import SocialCircleMember, SocialCircleRequest, SocialCircleBlock, CircleConnection, TrustLevelEnum, CircleInviteStatusEnum
 from .category_question import CategoryQuestion
+from .group import Group, GroupMembership, GroupInvitation, GroupCategory, GroupCategoryMapping
 
 __all__ = [
     "User", "Review", "Entity", "EntityCategory", "Comment", "Badge", "ReviewReaction", "Notification", 
@@ -46,5 +47,6 @@ __all__ = [
     "ReviewVersion", "UserEvent", "UserSearchHistory", "UserEntityView", "UserProgress", "BadgeDefinition", "BadgeAward", 
     "WeeklyEngagement", "DailyTask", "WhatsNextGoal", "SearchAnalytics", "EntityAnalytics", "ReviewTemplate", 
     "EntityComparison", "ReviewView", "EntityView", "SocialCircleMember", "SocialCircleRequest", "SocialCircleBlock", 
-    "CircleConnection", "TrustLevelEnum", "CircleInviteStatusEnum", "CategoryQuestion"
+    "CircleConnection", "TrustLevelEnum", "CircleInviteStatusEnum", "CategoryQuestion", "Group", "GroupMembership", 
+    "GroupInvitation", "GroupCategory", "GroupCategoryMapping"
 ] 

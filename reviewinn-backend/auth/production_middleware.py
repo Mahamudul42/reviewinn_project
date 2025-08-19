@@ -64,17 +64,21 @@ class ProductionAuthMiddleware(BaseHTTPMiddleware):
         self.public_endpoints = {
             "/docs", "/redoc", "/openapi.json", "/favicon.ico",
             "/health", "/metrics", "/status",
-            "/api/v1/auth/register", "/api/v1/auth/login",
-            "/api/v1/auth/refresh", "/api/v1/auth/forgot-password",
-            "/api/v1/auth/reset-password", "/api/v1/auth/verify-email",
-            "/api/v1/auth/resend-verification", "/api/v1/auth/health",
+            "/auth-production/register", "/auth-production/login",
+            "/auth-production/refresh", "/auth-production/forgot-password",
+            "/auth-production/reset-password", "/auth-production/verify-email",
+            "/auth-production/resend-verification", "/auth-production/health",
+            "/api/v1/auth-production/register", "/api/v1/auth-production/login",
+            "/api/v1/auth-production/refresh", "/api/v1/auth-production/forgot-password",
+            "/api/v1/auth-production/reset-password", "/api/v1/auth-production/verify-email",
+            "/api/v1/auth-production/resend-verification", "/api/v1/auth-production/health",
             "/api/v1/reviewinn-left-panel", "/api/v1/reviewinn-right-panel",
             "/api/v1/homepage"
         }
         
         # High-risk endpoints requiring additional security
         self.high_risk_endpoints = {
-            "/api/v1/auth/change-password",
+            "/api/v1/auth-production/change-password",
             "/api/v1/admin/",
             "/api/v1/users/delete",
             "/api/v1/entities/delete"

@@ -838,6 +838,92 @@ class AuthService {
 
 
   /**
+   * Register user without auto-login (for verification flow)
+   */
+  async registerWithoutLogin(data: RegisterData): Promise<{ user_id: number; email: string; message: string; requires_verification: boolean }> {
+    this.updateAuthState({ isLoading: true, error: null });
+
+    try {
+      const response = await httpClient.post(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.auth.register}`, {
+        first_name: data.firstName,
+        last_name: data.lastName,
+        email: data.email,
+        password: data.password
+      });
+
+      this.updateAuthState({ isLoading: false, error: null });
+
+      return {
+        user_id: response.data.user_id,
+        email: data.email,
+        message: response.data.message || 'Registration successful',
+        requires_verification: response.data.requires_verification !== false // Default to true
+      };
+    } catch (error: any) {
+      console.error('Registration failed:', error);
+      
+      let errorMessage = 'Registration failed. Please try again.';
+      
+      // Handle specific error types
+      if (error.message?.includes('422')) {
+        errorMessage = 'Please check all required fields and try again.';
+      } else if (error.message?.includes('409')) {
+        errorMessage = 'Email already exists. Please use a different email or sign in.';
+      } else if (error.message?.includes('400')) {
+        errorMessage = 'Invalid registration data. Please check your information.';
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      this.updateAuthState({
+        isLoading: false,
+        error: errorMessage
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Verify email with 6-digit code
+   */
+  async verifyEmail(email: string, verificationCode: string): Promise<{ success: boolean; message?: string }> {
+    try {
+      const response = await httpClient.post(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.auth.verifyEmail}`, {
+        email,
+        verification_code: verificationCode
+      });
+
+      return {
+        success: true,
+        message: response.data?.message || 'Email verified successfully'
+      };
+    } catch (error: any) {
+      console.error('Email verification failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Resend verification code
+   */
+  async resendVerificationCode(email: string): Promise<{ success: boolean; message?: string; resend_available_in?: number }> {
+    try {
+      const response = await httpClient.post(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.auth.resendVerification}`, {
+        email
+      });
+
+      return {
+        success: true,
+        message: response.data?.message || 'Verification code sent',
+        resend_available_in: response.data?.resend_available_in
+      };
+    } catch (error: any) {
+      console.error('Resend verification failed:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Clean up timers when service is destroyed
    */
   destroy(): void {

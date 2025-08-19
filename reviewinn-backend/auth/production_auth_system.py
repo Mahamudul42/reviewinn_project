@@ -687,10 +687,10 @@ class ProductionAuthSystem:
             return False
         
         personal_info = [
-            user_data.get("email", "").split("@")[0].lower(),
-            user_data.get("first_name", "").lower(),
-            user_data.get("last_name", "").lower(),
-            user_data.get("username", "").lower()
+            (user_data.get("email") or "").split("@")[0].lower(),
+            (user_data.get("first_name") or "").lower(),
+            (user_data.get("last_name") or "").lower(),
+            (user_data.get("username") or "").lower()
         ]
         
         password_lower = password.lower()
