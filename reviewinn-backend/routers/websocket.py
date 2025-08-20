@@ -5,7 +5,30 @@ from typing import Dict, Any
 from datetime import datetime
 
 from database import get_db
-from services.websocket_service import connection_manager
+# Simple WebSocket implementation without complex connection manager
+class SimpleConnectionManager:
+    def __init__(self):
+        self.active_connections = {}  # Dictionary of user_id -> list of websockets
+        self.websocket_users = {}     # Dictionary of websocket -> user_id
+    
+    async def connect(self, websocket, user_id: int):
+        await websocket.accept()
+        if user_id not in self.active_connections:
+            self.active_connections[user_id] = []
+        self.active_connections[user_id].append(websocket)
+        self.websocket_users[websocket] = user_id
+        return True
+        
+    def disconnect(self, websocket):
+        if websocket in self.websocket_users:
+            user_id = self.websocket_users[websocket]
+            if user_id in self.active_connections:
+                self.active_connections[user_id] = [ws for ws in self.active_connections[user_id] if ws != websocket]
+                if not self.active_connections[user_id]:
+                    del self.active_connections[user_id]
+            del self.websocket_users[websocket]
+
+connection_manager = SimpleConnectionManager()
 from services.professional_messaging_service import ProfessionalMessagingService
 from auth.production_dependencies import CurrentUser, RequiredUser
 from models.user import User

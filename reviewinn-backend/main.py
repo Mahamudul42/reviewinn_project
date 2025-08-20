@@ -26,7 +26,7 @@ from routers.api_v1 import v1_router
 # PRODUCTION AUTH SYSTEM - Final implementation
 from routers.auth_production import router as auth_production_router
 from routers.msg_api import router as msg_api_router
-from routers.professional_messaging_api import router as professional_messaging_router
+from routers.messaging_emergency import router as messaging_emergency_router
 from routers.websocket import router as websocket_router
 from routers.enterprise_notifications import router as enterprise_notifications_router
 from routers.user_profile import router as user_profile_router
@@ -208,9 +208,9 @@ class APIApplication(LoggerMixin):
         # app.include_router(auth_unified_router, prefix="/api/v1")   # REMOVED
         
         # Messaging system routers
-        app.include_router(websocket_router)
-        # Professional messaging system - Industry standard
-        app.include_router(professional_messaging_router)
+        # app.include_router(websocket_router)  # Disabled - causing uvloop issues
+        # Emergency messaging system - Zero dependencies
+        app.include_router(messaging_emergency_router)
         # Legacy messaging API (basic features)
         app.include_router(msg_api_router)
         # Enterprise notifications using core_notifications table (only notification system)

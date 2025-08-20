@@ -52,7 +52,7 @@ async def get_notification_dropdown(
 
 @router.get("/summary", response_model=NotificationSummary)
 async def get_notification_summary(
-    current_user: CurrentUser,
+    current_user = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Get notification summary for header display with enterprise metrics."""
@@ -66,6 +66,7 @@ async def get_notification_summary(
                 has_more=False
             )
         
+        logger.info(f"Getting notification summary for user {current_user.user_id}")
         service = EnterpriseNotificationService(db)
         dropdown_data = await service.get_notification_dropdown(current_user.user_id)
         
@@ -78,7 +79,9 @@ async def get_notification_summary(
         )
         
     except Exception as e:
-        logger.error(f"Failed to get notification summary: {str(e)}")
+        logger.error(f"Failed to get notification summary for user {getattr(current_user, 'user_id', 'unknown')}: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return NotificationSummary(
             total_unread=0,
             total_urgent=0,

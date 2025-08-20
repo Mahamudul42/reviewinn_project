@@ -227,7 +227,7 @@ async def get_user_badge_stats_frontend(
     
     # Get user badges
     user_badges = badge_service.get_user_badges(user_id)
-    total_possible = db.query(BadgeDefinition).filter(BadgeDefinition.is_active == True).count()
+    total_possible = db.query(BadgeDefinition).count()
     
     unlocked_count = len(user_badges)
     completion_percentage = (unlocked_count / total_possible * 100) if total_possible > 0 else 0

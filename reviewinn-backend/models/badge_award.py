@@ -13,4 +13,20 @@ class BadgeAward(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     user = relationship('User')
-    badge_definition = relationship('BadgeDefinition', back_populates='awards') 
+    badge_definition = relationship('BadgeDefinition', back_populates='awards')
+    
+    def to_dict(self):
+        """Convert to dictionary for API responses"""
+        return {
+            "award_id": self.award_id,
+            "user_id": self.user_id,
+            "badge_definition_id": self.badge_definition_id,
+            "awarded_at": self.awarded_at.isoformat() if self.awarded_at else None,
+            "badge": {
+                "badge_definition_id": self.badge_definition.badge_definition_id,
+                "name": self.badge_definition.name,
+                "description": self.badge_definition.description,
+                "image_url": self.badge_definition.image_url,
+                "criteria": self.badge_definition.criteria
+            } if self.badge_definition else None
+        } 
