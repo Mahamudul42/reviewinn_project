@@ -160,8 +160,8 @@ create_env_example() {
 # Database Configuration
 POSTGRES_USER=reviewinn_user
 POSTGRES_PASSWORD=your_secure_password_here
-POSTGRES_DB=reviewinn_db
-DATABASE_URL=postgresql://reviewinn_user:your_secure_password_here@db:5432/reviewinn_db
+POSTGRES_DB=reviewinn_database
+DATABASE_URL=postgresql://reviewinn_user:your_secure_password_here@db:5432/reviewinn_database
 
 # Redis Configuration
 REDIS_URL=redis://redis:6379/0

@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/enterprise-notifications", tags=["Enterprise Notifications"])
 
 @router.get("/dropdown", response_model=NotificationDropdownResponse)
-async def get_notification_dropdown(
+def get_notification_dropdown(
     current_user: CurrentUser,
     db: Session = Depends(get_db)
 ):
@@ -39,7 +39,7 @@ async def get_notification_dropdown(
             )
         
         service = EnterpriseNotificationService(db)
-        return await service.get_notification_dropdown(current_user.user_id)
+        return service.get_notification_dropdown(current_user.user_id)
         
     except Exception as e:
         logger.error(f"Failed to get notification dropdown: {str(e)}")
@@ -51,7 +51,7 @@ async def get_notification_dropdown(
         )
 
 @router.get("/summary", response_model=NotificationSummary)
-async def get_notification_summary(
+def get_notification_summary(
     current_user = RequiredUser,
     db: Session = Depends(get_db)
 ):
@@ -68,7 +68,7 @@ async def get_notification_summary(
         
         logger.info(f"Getting notification summary for user {current_user.user_id}")
         service = EnterpriseNotificationService(db)
-        dropdown_data = await service.get_notification_dropdown(current_user.user_id)
+        dropdown_data = service.get_notification_dropdown(current_user.user_id)
         
         return NotificationSummary(
             total_unread=dropdown_data.unread_count,
@@ -91,7 +91,7 @@ async def get_notification_summary(
         )
 
 @router.get("/", response_model=NotificationListResponse)
-async def get_notifications(
+def get_notifications(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(20, ge=1, le=100, description="Items per page"),
     unread_only: bool = Query(False, description="Show only unread notifications"),
@@ -102,7 +102,7 @@ async def get_notifications(
     """Get paginated notifications with enterprise filtering."""
     try:
         service = EnterpriseNotificationService(db)
-        return await service.get_user_notifications(
+        return service.get_user_notifications(
             user_id=current_user.user_id,
             page=page,
             limit=limit,
@@ -118,7 +118,7 @@ async def get_notifications(
         )
 
 @router.post("/", response_model=NotificationRead)
-async def create_notification(
+def create_notification(
     notification_data: NotificationCreate,
     current_user = RequiredUser,
     db: Session = Depends(get_db)
@@ -126,7 +126,7 @@ async def create_notification(
     """Create a new notification (admin/system use)."""
     try:
         service = EnterpriseNotificationService(db)
-        notification = await service.create_notification(notification_data)
+        notification = service.create_notification(notification_data)
         return notification.to_dict()
         
     except Exception as e:
@@ -137,7 +137,7 @@ async def create_notification(
         )
 
 @router.patch("/{notification_id}")
-async def update_notification(
+def update_notification(
     notification_id: int,
     update_data: NotificationUpdate,
     current_user = RequiredUser,
@@ -162,7 +162,7 @@ async def update_notification(
         
         # Update fields
         if update_data.is_read is not None:
-            success = await service.mark_as_read(notification_id, current_user.user_id)
+            success = service.mark_as_read(notification_id, current_user.user_id)
             if not success:
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -181,7 +181,7 @@ async def update_notification(
         )
 
 @router.patch("/{notification_id}/read")
-async def mark_notification_as_read(
+def mark_notification_as_read(
     notification_id: int,
     current_user = RequiredUser,
     db: Session = Depends(get_db)
@@ -189,7 +189,7 @@ async def mark_notification_as_read(
     """Mark a specific notification as read."""
     try:
         service = EnterpriseNotificationService(db)
-        success = await service.mark_as_read(notification_id, current_user.user_id)
+        success = service.mark_as_read(notification_id, current_user.user_id)
         
         if not success:
             raise HTTPException(
@@ -209,14 +209,14 @@ async def mark_notification_as_read(
         )
 
 @router.patch("/mark-all-read")
-async def mark_all_notifications_as_read(
+def mark_all_notifications_as_read(
     current_user = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Mark all notifications as read for the current user."""
     try:
         service = EnterpriseNotificationService(db)
-        count = await service.mark_all_as_read(current_user.user_id)
+        count = service.mark_all_as_read(current_user.user_id)
         
         return {
             "success": True, 
@@ -232,7 +232,7 @@ async def mark_all_notifications_as_read(
         )
 
 @router.patch("/bulk-update")
-async def bulk_update_notifications(
+def bulk_update_notifications(
     bulk_data: NotificationBulkUpdate,
     current_user = RequiredUser,
     db: Session = Depends(get_db)
@@ -240,7 +240,7 @@ async def bulk_update_notifications(
     """Enterprise bulk update for multiple notifications."""
     try:
         service = EnterpriseNotificationService(db)
-        count = await service.bulk_update_notifications(current_user.user_id, bulk_data)
+        count = service.bulk_update_notifications(current_user.user_id, bulk_data)
         
         return {
             "success": True,
@@ -256,7 +256,7 @@ async def bulk_update_notifications(
         )
 
 @router.delete("/{notification_id}")
-async def delete_notification(
+def delete_notification(
     notification_id: int,
     current_user = RequiredUser,
     db: Session = Depends(get_db)
@@ -264,7 +264,7 @@ async def delete_notification(
     """Delete a specific notification."""
     try:
         service = EnterpriseNotificationService(db)
-        success = await service.delete_notification(notification_id, current_user.user_id)
+        success = service.delete_notification(notification_id, current_user.user_id)
         
         if not success:
             raise HTTPException(
@@ -284,14 +284,14 @@ async def delete_notification(
         )
 
 @router.get("/stats", response_model=NotificationStats)
-async def get_notification_stats(
+def get_notification_stats(
     current_user = RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Get comprehensive notification statistics for the user."""
     try:
         service = EnterpriseNotificationService(db)
-        return await service.get_notification_stats(current_user.user_id)
+        return service.get_notification_stats(current_user.user_id)
         
     except Exception as e:
         logger.error(f"Failed to get notification stats: {str(e)}")
@@ -301,7 +301,7 @@ async def get_notification_stats(
         )
 
 @router.post("/system")
-async def create_system_notification(
+def create_system_notification(
     title: str,
     content: str,
     notification_type: str,
@@ -330,7 +330,7 @@ async def create_system_notification(
                 "message": "System notification is being processed in background"
             }
         else:
-            notifications = await service.create_system_notification(
+            notifications = service.create_system_notification(
                 title, content, notification_type, priority, target_users
             )
             return {
@@ -347,7 +347,7 @@ async def create_system_notification(
         )
 
 @router.post("/cleanup")
-async def cleanup_expired_notifications(
+def cleanup_expired_notifications(
     background_tasks: BackgroundTasks = BackgroundTasks(),
     current_user = RequiredUser,
     db: Session = Depends(get_db)

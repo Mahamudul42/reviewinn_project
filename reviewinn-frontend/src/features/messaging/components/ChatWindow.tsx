@@ -94,14 +94,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   }, [messageText]);
 
   const handleSendMessage = () => {
-    console.log('ChatWindow handleSendMessage called');
     if (!messageText.trim()) {
-      console.log('Empty message, returning');
       return;
     }
 
     try {
-      console.log('Calling onSendMessage with:', messageText.trim());
       onSendMessage(messageText.trim(), replyToMessage?.message_id);
       setMessageText('');
       setReplyToMessage(null);
@@ -111,9 +108,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
       }
-      console.log('Message sent successfully, UI updated');
     } catch (error) {
-      console.error('Error in handleSendMessage:', error);
     }
   };
 

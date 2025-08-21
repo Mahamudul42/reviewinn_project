@@ -296,13 +296,10 @@ export class ProfessionalMessagingService {
    * Following the same pattern as MessengerPage.handleCreateDirectConversation
    */
   async createOrGetDirectConversation(participantId: number | string): Promise<ProfessionalConversation> {
-    console.log('=== professionalMessagingService.createOrGetDirectConversation ===');
-    console.log('participantId:', participantId);
     
     try {
       // First, check for existing conversations (same as MessengerPage)
       const conversationsResponse = await this.getConversations();
-      console.log('Conversations response:', conversationsResponse);
       
       let conversations = [];
       if (conversationsResponse && conversationsResponse.data && conversationsResponse.data.conversations) {
@@ -318,17 +315,14 @@ export class ProfessionalMessagingService {
       );
       
       if (existingConversation) {
-        console.log('Found existing conversation:', existingConversation.conversation_id);
         return existingConversation;
       }
       
       // Create new conversation using exact same method as MessengerPage
-      console.log('Creating new conversation...');
       const response = await this.createConversation({
         participant_ids: [parseInt(participantId.toString())],
         conversation_type: 'direct'
       });
-      console.log('Conversation response:', response);
 
       // Handle response same way as MessengerPage
       let conversationId;
@@ -342,7 +336,6 @@ export class ProfessionalMessagingService {
       
       throw new Error('Failed to create conversation');
     } catch (error: any) {
-      console.error('Error in createOrGetDirectConversation:', error);
       throw new Error(`Failed to create or get direct conversation: ${error.message || error}`);
     }
   }
@@ -351,19 +344,13 @@ export class ProfessionalMessagingService {
    * Create a new conversation
    */
   async createConversation(data: ConversationCreateRequest): Promise<ProfessionalMessagingResponse<ProfessionalConversation>> {
-    console.log('=== professionalMessagingService.createConversation ===');
-    console.log('URL:', `${this.baseURL}${this.apiPrefix}/conversations`);
-    console.log('Data:', data);
     
     try {
-      console.log('Making HTTP request...');
       const response = await httpClient.post(
         `${this.baseURL}${this.apiPrefix}/conversations`,
         data,
         true
       );
-      console.log('HTTP response received:', response);
-      console.log('Returning response.data:', response.data);
       
       // Ensure response format consistency
       if (response.data && response.data.success && response.data.data) {
@@ -404,7 +391,6 @@ export class ProfessionalMessagingService {
       return response.data;
     } catch (error: any) {
       // Return error instead of fallback since we don't want legacy tables
-      console.log('ERROR in createConversation. Error details:', error);
       throw new Error(`Failed to create conversation: ${error.message || error}`);
     }
   }
@@ -427,13 +413,10 @@ export class ProfessionalMessagingService {
       if (search) params.append('search', search);
       if (conversationType) params.append('conversation_type', conversationType);
 
-      console.log('🔄 Getting conversations with auth...');
       const response = await httpClient.get(
         `${this.baseURL}${this.apiPrefix}/conversations?${params}`,
         true
       );
-      
-      console.log('📥 Conversations response:', response);
       
       // Ensure response format consistency
       if (response.data && response.data.success && response.data.data) {
@@ -445,56 +428,7 @@ export class ProfessionalMessagingService {
       
       return response.data;
     } catch (error: any) {
-      // In development, try debug endpoint as fallback
-      if (import.meta.env.DEV) {
-        try {
-          
-          // For development, try the debug endpoint that doesn't require auth
-          // Try to get current user ID from localStorage or use fallback
-          const authData = localStorage.getItem('reviewinn_user_data');
-          let userId = 1; // fallback to user ID 1 (the main test user)
-          try {
-            if (authData) {
-              const userData = JSON.parse(authData);
-              userId = parseInt(userData.id) || 1;
-            }
-          } catch (e) {
-            // Could not parse user data, using fallback
-          }
-          
-          const debugUrl = `${this.baseURL}${this.apiPrefix}/debug/conversations/${userId}`;
-          const debugFetchResponse = await fetch(debugUrl, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-          });
-
-          if (!debugFetchResponse.ok) {
-            throw new Error(`Debug endpoint failed: ${debugFetchResponse.statusText}`);
-          }
-
-          const debugResponse = await debugFetchResponse.json();
-          
-          if (debugResponse.success && debugResponse.data) {
-            return {
-              success: true,
-              data: {
-                conversations: debugResponse.data.conversations,
-                total: debugResponse.data.conversations?.length || 0,
-                limit: limit,
-                offset: offset,
-                has_more: false
-              }
-            };
-          }
-        } catch (debugError) {
-          // Debug endpoint also not available
-        }
-      }
-      
-      // Handle ALL errors gracefully when messaging service isn't ready
+      // For production, return empty conversations on error to avoid UI crashes
       return {
         success: true,
         data: {
@@ -724,99 +658,17 @@ export class ProfessionalMessagingService {
       if (options.search) params.append('search', options.search);
       if (options.messageType) params.append('message_type', options.messageType);
 
-      console.log('🔄 Getting messages with auth...', {
-        conversationId,
-        url: `${this.baseURL}${this.apiPrefix}/conversations/${conversationId}/messages?${params}`,
-        options
-      });
       const response = await httpClient.get(
         `${this.baseURL}${this.apiPrefix}/conversations/${conversationId}/messages?${params}`,
         true
       );
       
-      console.log('📥 Messages response:', response);
-      console.log('📥 Messages response structure:', {
-        hasResponse: !!response,
-        hasData: !!(response?.data),
-        hasMessages: !!(response?.data?.messages),
-        messagesCount: response?.data?.messages?.length || 0
-      });
       return response;
     } catch (error: any) {
-      console.error('❌ Messages API failed:', error);
-      console.error('Error details:', {
-        message: error?.message,
-        status: error?.status,
-        type: error?.type,
-        name: error?.name
-      });
       
-      // In development, try debug endpoint as fallback
-      if (import.meta.env.DEV) {
-        try {
-          console.log('🔄 Trying debug messages endpoint as fallback...');
-          
-          // For development, try the debug endpoint that doesn't require auth
-          // Try to get current user ID from localStorage or use fallback
-          const authData = localStorage.getItem('reviewinn_user_data');
-          let userId = 23; // fallback
-          try {
-            if (authData) {
-              const userData = JSON.parse(authData);
-              console.log('Parsed user data:', { id: userData.id, name: userData.name });
-              userId = parseInt(userData.id) || 23;
-              console.log('Converted userId to integer:', userId);
-            }
-          } catch (e) {
-            console.log('Could not parse user data, using fallback user_id 23', e);
-          }
-          
-          console.log('Using user_id for debug messages:', userId);
-          
-          const debugParams = new URLSearchParams({
-            limit: (options.limit || 50).toString(),
-          });
-          
-          const debugUrl = `${this.baseURL}${this.apiPrefix}/debug/conversations/${conversationId}/messages/${userId}?${debugParams}`;
-          console.log('Debug URL will be:', debugUrl);
-          
-          const debugResponse = await httpClient.get(
-            `${this.baseURL}${this.apiPrefix}/debug/conversations/${conversationId}/messages/${userId}?${debugParams}`,
-            false  // No auth required for debug endpoint
-          );
-          
-          console.log('📥 Debug messages response:', debugResponse);
-          console.log('📥 Debug response structure:', {
-            hasResponse: !!debugResponse,
-            hasSuccess: !!(debugResponse?.success),
-            hasData: !!(debugResponse?.data),
-            hasMessages: !!(debugResponse?.data?.messages),
-            messagesCount: debugResponse?.data?.messages?.length || 0
-          });
-          
-          if (debugResponse.success && debugResponse.data) {
-            console.log('✅ Debug fallback successful, returning messages');
-            return {
-              success: true,
-              data: {
-                messages: debugResponse.data.messages || [],
-                count: debugResponse.data.messages?.length || 0,
-                has_more: debugResponse.data.has_more || false
-              }
-            };
-          } else {
-            console.log('❌ Debug fallback returned unsuccessful response:', debugResponse);
-          }
-        } catch (debugError) {
-          console.error('❌ Debug messages endpoint also failed:', debugError);
-        }
-      }
-      
-      // If we get here, both regular API and debug fallback failed
-      console.error('Both regular API and debug fallback failed for messages');
+      // For production, return empty messages on error to avoid UI crashes
       return {
-        success: false,
-        error: `Failed to get messages: ${error.message || error}`,
+        success: true,
         data: {
           messages: [],
           count: 0,
@@ -1085,7 +937,6 @@ export class ProfessionalMessagingService {
     this.wsConnection = new WebSocket(wsUrl);
 
     this.wsConnection.onopen = () => {
-      console.log('Professional messaging WebSocket connected');
       this.emit('connected', {});
     };
 
@@ -1095,17 +946,14 @@ export class ProfessionalMessagingService {
         this.emit(data.type, data);
         if (onMessage) onMessage(event);
       } catch (error) {
-        console.error('Failed to parse WebSocket message:', error);
       }
     };
 
     this.wsConnection.onclose = () => {
-      console.log('Professional messaging WebSocket disconnected');
       this.emit('disconnected', {});
     };
 
     this.wsConnection.onerror = (error) => {
-      console.error('Professional messaging WebSocket error:', error);
       this.emit('error', { error });
     };
   }
@@ -1169,7 +1017,6 @@ export class ProfessionalMessagingService {
    * Handle API errors
    */
   private handleError(message: string, error: any): Error {
-    console.error(message, error);
     return new Error(`${message}: ${error.message || error}`);
   }
 }

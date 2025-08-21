@@ -148,25 +148,7 @@ export class HttpClient {
     
     if (token && token !== 'null' && token !== 'undefined') {
       headers['Authorization'] = `Bearer ${token}`;
-      // Debug: Log token info when sending requests to protected endpoints
-      if (url && (url.includes('/users/me') || url.includes('/circles/') || url.includes('/messaging/') || url.includes('/enterprise-notifications/'))) {
-        console.log('🔐 HttpClient: Sending protected request with token:', {
-          url: url,
-          tokenLength: token.length,
-          tokenPrefix: token.substring(0, 20) + '...',
-          hasToken: !!token,
-          authHeader: headers['Authorization']?.substring(0, 30) + '...'
-        });
-      }
     } else {
-      // Debug: Log when no token is available
-      if (url && (url.includes('/users/me') || url.includes('/circles/') || url.includes('/messaging/') || url.includes('/enterprise-notifications/'))) {
-        console.log('⚠️ HttpClient: Sending protected request WITHOUT token:', {
-          url: url,
-          instanceToken: !!this.authToken,
-          unifiedToken: !!getAuthToken()
-        });
-      }
     }
     
     return headers;
@@ -221,7 +203,6 @@ export class HttpClient {
           // Emit token refresh event
           emitAuthEvent.tokenRefresh(newToken);
           
-          console.log('HttpClient: Token refresh successful');
           return newToken;
         } else {
           throw new ApiClientError(API_ERROR_TYPES.AUTHENTICATION_ERROR, 'Invalid token response');
@@ -374,7 +355,6 @@ export class HttpClient {
       const token = this.authToken || getAuthToken();
       
       if (!token || token === 'null' || token === 'undefined') {
-        console.log('HttpClient: Skipping protected endpoint call - no auth token available');
         throw new ApiClientError(
           API_ERROR_TYPES.AUTHENTICATION_ERROR,
           'Authentication required',
@@ -415,23 +395,16 @@ export class HttpClient {
 
         // Handle token refresh for 401 errors
         if (response.status === HTTP_STATUS.UNAUTHORIZED) {
-          // Only log unauthorized errors in development or for protected endpoints
           const isProtectedEndpoint = (url.includes('/users/me') || url.includes('/auth-production/') || 
                                       url.includes('/reviews/create') || url.includes('/circles/') ||
                                       url.includes('/notifications/') || url.includes('/enterprise-notifications/') ||
                                       url.includes('/messenger/')) &&
-                                      !url.includes('/messaging/debug/'); // Exclude debug endpoints from auth requirement
-          if (import.meta.env.DEV || isProtectedEndpoint) {
-            console.log('HttpClient: Received 401 Unauthorized, attempting token refresh...');
-          }
+                                      !url.includes('/messaging/debug/');
           
           const refreshToken = localStorage.getItem('reviewinn_refresh_token');
           if (refreshToken) {
             try {
               const newToken = await this.handleTokenRefresh();
-              if (import.meta.env.DEV || isProtectedEndpoint) {
-                console.log('HttpClient: Token refresh successful, retrying original request');
-              }
               
               // Retry the original request with new token
               const retryResponse = await fetch(url, {
@@ -445,20 +418,10 @@ export class HttpClient {
                 if (useCache && cacheKey) {
                   this.cache.set(cacheKey, data);
                 }
-                if (import.meta.env.DEV || isProtectedEndpoint) {
-                  console.log('HttpClient: Retry request successful after token refresh');
-                }
                 return data;
               } else {
-                if (import.meta.env.DEV || isProtectedEndpoint) {
-                  console.log('HttpClient: Retry request failed after token refresh');
-                }
               }
             } catch (refreshError) {
-              if (import.meta.env.DEV || isProtectedEndpoint) {
-                console.error('HttpClient: Token refresh failed:', refreshError);
-                console.log('HttpClient: Forcing logout due to refresh failure');
-              }
               // Refresh failed, clear auth and continue with original error
               const authStore = useAuthStore.getState();
               authStore.logout();
@@ -466,9 +429,6 @@ export class HttpClient {
           } else {
             // Only force logout if this was a protected endpoint
             if (isProtectedEndpoint) {
-              if (import.meta.env.DEV) {
-                console.log('HttpClient: No refresh token available, forcing logout');
-              }
               const authStore = useAuthStore.getState();
               authStore.logout();
             }

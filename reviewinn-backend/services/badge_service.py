@@ -18,7 +18,7 @@ class BadgeService:
     def __init__(self, db: Session):
         self.db = db
     
-    async def evaluate_user_badges(self, user_id: int) -> List[BadgeAward]:
+    def evaluate_user_badges(self, user_id: int) -> List[BadgeAward]:
         """Evaluate all potential badges for a user and award new ones"""
         user = self.db.query(User).filter(User.user_id == user_id).first()
         if not user:
@@ -41,7 +41,7 @@ class BadgeService:
                 continue
             
             # Evaluate criteria
-            if await self._evaluate_criteria(user, badge_def.criteria):
+            if self._evaluate_criteria(user, badge_def.criteria):
                 # Award the badge
                 award = self._award_badge(user_id, badge_def.badge_definition_id)
                 if award:
@@ -49,7 +49,7 @@ class BadgeService:
         
         return newly_awarded
     
-    async def _evaluate_criteria(self, user: User, criteria: Dict[str, Any]) -> bool:
+    def _evaluate_criteria(self, user: User, criteria: Dict[str, Any]) -> bool:
         """Evaluate if user meets badge criteria"""
         try:
             criteria_type = criteria.get('type', 'simple')
@@ -57,9 +57,9 @@ class BadgeService:
             if criteria_type == 'simple':
                 return self._evaluate_simple_criteria(user, criteria)
             elif criteria_type == 'complex':
-                return await self._evaluate_complex_criteria(user, criteria)
+                return self._evaluate_complex_criteria(user, criteria)
             elif criteria_type == 'composite':
-                return await self._evaluate_composite_criteria(user, criteria)
+                return self._evaluate_composite_criteria(user, criteria)
             
             return False
         except Exception as e:
@@ -93,7 +93,7 @@ class BadgeService:
         
         return True
     
-    async def _evaluate_complex_criteria(self, user: User, criteria: Dict[str, Any]) -> bool:
+    def _evaluate_complex_criteria(self, user: User, criteria: Dict[str, Any]) -> bool:
         """Evaluate complex criteria with time periods, aggregations, etc."""
         conditions = criteria.get('conditions', [])
         operator = criteria.get('operator', 'AND')  # AND/OR
@@ -128,7 +128,7 @@ class BadgeService:
         else:  # Default to AND
             return all(results)
     
-    async def _evaluate_composite_criteria(self, user: User, criteria: Dict[str, Any]) -> bool:
+    def _evaluate_composite_criteria(self, user: User, criteria: Dict[str, Any]) -> bool:
         """Evaluate composite criteria (combination of multiple badge requirements)"""
         required_badges = criteria.get('required_badges', [])
         

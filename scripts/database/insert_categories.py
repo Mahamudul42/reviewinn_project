@@ -79,7 +79,7 @@ def insert_categories():
     conn = psycopg2.connect(
         host="localhost",
         port="5432",
-        database="reviewinn_db",
+        database="reviewinn_database",
         user="reviewinn_user",
         password="jtQ8UGVg9YAT7!eTwbVAGKuZ29YHV%Ax"
     )

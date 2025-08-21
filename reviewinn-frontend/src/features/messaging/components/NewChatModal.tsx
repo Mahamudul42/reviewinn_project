@@ -65,8 +65,6 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
         const response = await userService.searchUsers(trimmedQuery, { limit: 10 });
         setSearchResults(response.users || []);
       } catch (error) {
-        console.error('Failed to search users:', error);
-        console.error('Search query was:', `"${searchQuery}"`, 'trimmed:', `"${searchQuery.trim()}"`);
         setSearchResults([]);
       } finally {
         setLoading(false);

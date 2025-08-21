@@ -23,7 +23,7 @@ from models.unified_category import UnifiedCategory
 from database import get_db
 
 # Database connection
-DATABASE_URL = "postgresql://reviewinn_user:jtQ8UGVg9YAT7!eTwbVAGKuZ29YHV%Ax@localhost:5432/reviewinn_db"
+DATABASE_URL = "postgresql://reviewinn_user:jtQ8UGVg9YAT7!eTwbVAGKuZ29YHV%Ax@localhost:5432/reviewinn_database"
 engine = create_engine(DATABASE_URL)
 
 # Password hashing

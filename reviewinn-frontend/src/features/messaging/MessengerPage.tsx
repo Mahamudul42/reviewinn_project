@@ -72,7 +72,6 @@ const MessengerPage: React.FC = () => {
         setConversations(uniqueConversations);
       }
     } catch (error) {
-      console.error('Failed to load conversations:', error);
       showError('Failed to load conversations');
     } finally {
       setLoading(false);
@@ -103,7 +102,6 @@ const MessengerPage: React.FC = () => {
         setHasMoreMessages(response.data.has_more || false);
       }
     } catch (error) {
-      console.error('Failed to load messages:', error);
       showError('Failed to load messages');
     } finally {
       setMessagesLoading(false);
@@ -124,7 +122,6 @@ const MessengerPage: React.FC = () => {
         )
       );
     } catch (error) {
-      console.error('Failed to mark messages as read:', error);
     }
   }, [activeConversation]);
 
@@ -191,7 +188,6 @@ const MessengerPage: React.FC = () => {
 
   const handleReactionUpdateFromWS = useCallback((message: any) => {
     if (activeConversation && message.conversation_id === activeConversation.conversation_id) {
-      console.log('🎭 Handling reaction update:', message);
       
       setMessages(prev => 
         prev.map(msg => {
@@ -214,7 +210,6 @@ const MessengerPage: React.FC = () => {
 
   // Main WebSocket message handler
   const handleWebSocketMessage = useCallback((message: any) => {
-    console.log('🟢 WebSocket message received:', message);
     
     switch (message.type) {
       case 'new_message':
@@ -232,16 +227,12 @@ const MessengerPage: React.FC = () => {
         handleReactionUpdateFromWS(message);
         break;
       case 'user_online':
-        console.log('User came online:', message.user_id);
         break;
       case 'user_offline':
-        console.log('User went offline:', message.user_id);
         break;
       case 'connection':
-        console.log('✅ WebSocket connection confirmed:', message.status);
         break;
       default:
-        console.log('❓ Unknown WebSocket message type:', message.type);
     }
   }, [handleNewMessageFromWS, handleTypingUpdateFromWS, handleMessageStatusUpdateFromWS, handleReactionUpdateFromWS]);
 
@@ -250,13 +241,10 @@ const MessengerPage: React.FC = () => {
     enabled: true, // Enable WebSocket for real-time messaging
     onMessage: handleWebSocketMessage,
     onConnect: () => {
-      console.log('✅ Connected to messenger WebSocket');
     },
     onDisconnect: () => {
-      console.log('🔌 Disconnected from messenger WebSocket');
     },
     onError: (error) => {
-      console.log('⚠️ WebSocket connection failed:', error);
       // Don't show error to user as messenger still works without WebSocket
     }
   });
@@ -266,7 +254,6 @@ const MessengerPage: React.FC = () => {
     if (!activeConversation) return;
 
     try {
-      console.log('🟢 Marking conversation as read (WebSocket + UI only):', {
         conversationId: activeConversation.conversation_id,
         messageId: messageId
       });
@@ -281,7 +268,6 @@ const MessengerPage: React.FC = () => {
           conversation_id: activeConversation.conversation_id,
           message_id: messageId
         });
-        console.log('📡 Sent mark_read message via WebSocket');
       }
 
       // Update UI optimistically
@@ -292,34 +278,28 @@ const MessengerPage: React.FC = () => {
             : conv
         )
       );
-      console.log('🎨 Updated conversation UI optimistically');
       
     } catch (error) {
-      console.error('❌ Failed to mark messages as read:', error);
       // Don't throw error - let the UI continue working
     }
   }, [activeConversation, sendMessage, isConnected]);
 
   const handleConversationSelect = useCallback((conversation: ProfessionalConversation) => {
-    console.log('=== handleConversationSelect called ===', {
       conversationId: conversation.conversation_id,
       title: conversation.title,
       activeConversationId: activeConversation?.conversation_id
     });
     
     if (activeConversation?.conversation_id === conversation.conversation_id) {
-      console.log('Same conversation already selected, skipping');
       return;
     }
     
-    console.log('Switching to new conversation:', conversation.conversation_id);
     setActiveConversation(conversation);
     setMessages([]);
     setTypingUsers([]);
     setIsInitialLoad(true);
     setProcessedMessages(new Set());
     
-    console.log('About to call loadMessages for conversation:', conversation.conversation_id);
     loadMessages(conversation.conversation_id);
     
     const currentConversationId = searchParams.get('conversation');
@@ -387,25 +367,19 @@ const MessengerPage: React.FC = () => {
           temp_id: tempId
         });
       } else {
-        console.log('📤 Message sent via API (WebSocket not connected)');
       }
 
       // Refresh conversation list to update last message and timestamps
       setTimeout(async () => {
         try {
-          console.log('🔄 MessengerPage: Refreshing conversations after message send');
           await loadConversations();
-          console.log('✅ MessengerPage: Conversations refreshed successfully');
           
           // Force the Layout counter to update too
           window.dispatchEvent(new CustomEvent('conversationUpdated'));
-          console.log('📤 MessengerPage: Dispatched conversationUpdated event for Layout');
         } catch (error) {
-          console.error('❌ MessengerPage: Failed to refresh conversations after sending message:', error);
         }
       }, 200);
     } catch (error) {
-      console.error('Failed to send message:', error);
       showError('Failed to send message');
       setMessages(prev => prev.filter(msg => msg.message_id !== tempId));
     }
@@ -423,7 +397,6 @@ const MessengerPage: React.FC = () => {
       loadConversations();
       showSuccess('File sent successfully');
     } catch (error) {
-      console.error('Failed to send file:', error);
       showError('Failed to send file');
     }
   }, [activeConversation, loadMessages, loadConversations, showSuccess, showError]);
@@ -452,7 +425,6 @@ const MessengerPage: React.FC = () => {
         emoji
       });
     } catch (error) {
-      console.error('Failed to add reaction:', error);
       showError('Failed to add reaction');
       
       // Revert optimistic update
@@ -492,7 +464,6 @@ const MessengerPage: React.FC = () => {
         user_id: currentUser.user_id
       });
     } catch (error) {
-      console.error('Failed to remove reaction:', error);
       showError('Failed to remove reaction');
       
       // Revert optimistic update
@@ -516,17 +487,12 @@ const MessengerPage: React.FC = () => {
   }, [activeConversation, messagesLoading, loadMessages, messages.length]);
 
   const handleCreateDirectConversation = useCallback(async (user: ProfessionalUser, initialMessage: string) => {
-    console.log('=== STARTING handleCreateDirectConversation ===');
-    console.log('User:', user);
-    console.log('Initial message:', initialMessage);
     
     try {
-      console.log('Step 1: Creating conversation...');
       const response = await professionalMessagingService.createConversation({
         participant_ids: [user.user_id],
         conversation_type: 'direct'
       });
-      console.log('Conversation response:', response);
 
       let conversationId;
       if (response && response.data && response.data.conversation_id) {
@@ -536,16 +502,12 @@ const MessengerPage: React.FC = () => {
       }
 
       if (conversationId) {
-        console.log('Step 2: Sending initial message...');
         const messageResponse = await professionalMessagingService.sendMessage(conversationId, {
           content: initialMessage
         });
-        console.log('Message response:', messageResponse);
         
-        console.log('Step 3: Closing modal first...');
         setShowNewChatModal(false);
         
-        console.log('Step 4: Refreshing conversations immediately...');
         // Refresh conversations to get the new conversation with latest message
         const freshResponse = await professionalMessagingService.getConversations();
         let freshConversations = [];
@@ -556,22 +518,17 @@ const MessengerPage: React.FC = () => {
           freshConversations = freshResponse.conversations;
         }
         
-        console.log('Step 5: Updating conversation list with fresh data...');
         // Remove duplicates based on conversation_id and update state immediately
         const uniqueConversations = freshConversations.filter((conversation, index, self) => 
           index === self.findIndex(c => c.conversation_id === conversation.conversation_id)
         );
         setConversations(uniqueConversations);
         
-        console.log('Step 6: Finding and selecting new conversation...');
         const newConversation = uniqueConversations.find(c => c.conversation_id === conversationId);
         if (newConversation) {
-          console.log('✅ Found new conversation, selecting it:', newConversation);
           handleConversationSelect(newConversation);
           showSuccess('Conversation started successfully');
         } else {
-          console.log('❌ New conversation not found immediately, will retry with delay...');
-          console.log('Available conversations:', uniqueConversations.map(c => c.conversation_id));
           
           // Fallback: Try again after a short delay
           setTimeout(async () => {
@@ -592,29 +549,23 @@ const MessengerPage: React.FC = () => {
               
               const retryConversation = uniqueRetryConversations.find(c => c.conversation_id === conversationId);
               if (retryConversation) {
-                console.log('✅ Found conversation on retry, selecting it:', retryConversation);
                 handleConversationSelect(retryConversation);
                 showSuccess('Conversation started successfully');
               } else {
-                console.log('❌ Still not found after retry. Available:', uniqueRetryConversations.map(c => c.conversation_id));
                 showError('Conversation created but not visible. Please refresh the page.');
               }
             } catch (error) {
-              console.error('Error in retry conversation selection:', error);
               showError('Conversation created but failed to load. Please refresh the page.');
             }
           }, 1000);
         }
       } else {
-        console.error('Conversation creation failed:', response);
         showError('Failed to create conversation');
       }
     } catch (error) {
-      console.error('Exception in handleCreateDirectConversation:', error);
       showError('Failed to create conversation');
     }
     
-    console.log('=== FINISHED handleCreateDirectConversation ===');
   }, [handleConversationSelect, showSuccess, showError]);
 
   const handleCreateGroupConversation = useCallback(async (participants: ProfessionalUser[], groupName: string, groupDescription?: string) => {
@@ -634,7 +585,6 @@ const MessengerPage: React.FC = () => {
       }
 
       if (conversationId) {
-        console.log('Group created, closing modal and refreshing conversations...');
         setShowNewGroupModal(false);
         
         // Refresh conversations to get the new group conversation
@@ -647,20 +597,16 @@ const MessengerPage: React.FC = () => {
           freshConversations = freshResponse.conversations;
         }
         
-        console.log('Updating conversation list with fresh group data...');
         const uniqueConversations = freshConversations.filter((conversation, index, self) => 
           index === self.findIndex(c => c.conversation_id === conversation.conversation_id)
         );
         setConversations(uniqueConversations);
         
-        console.log('Finding and selecting new group conversation...');
         const newConversation = uniqueConversations.find(c => c.conversation_id === conversationId);
         if (newConversation) {
-          console.log('✅ Found new group conversation, selecting it:', newConversation);
           handleConversationSelect(newConversation);
           showSuccess('Group created successfully');
         } else {
-          console.log('❌ New group conversation not found immediately, will retry with delay...');
           
           // Fallback: Try again after a short delay
           setTimeout(async () => {
@@ -681,25 +627,20 @@ const MessengerPage: React.FC = () => {
               
               const retryConversation = uniqueRetryConversations.find(c => c.conversation_id === conversationId);
               if (retryConversation) {
-                console.log('✅ Found group conversation on retry, selecting it:', retryConversation);
                 handleConversationSelect(retryConversation);
                 showSuccess('Group created successfully');
               } else {
-                console.log('❌ Group still not found after retry.');
                 showError('Group created but not visible. Please refresh the page.');
               }
             } catch (error) {
-              console.error('Error in retry group conversation selection:', error);
               showError('Group created but failed to load. Please refresh the page.');
             }
           }, 1000);
         }
       } else {
-        console.error('Group creation failed:', response);
         showError('Failed to create group');
       }
     } catch (error) {
-      console.error('Failed to create group:', error);
       showError('Failed to create group');
     }
   }, [handleConversationSelect, showSuccess, showError]);
@@ -711,7 +652,6 @@ const MessengerPage: React.FC = () => {
     if (authLoading) return;
     
     if (!currentUser) {
-      console.warn('User not authenticated, messenger access denied');
       navigate('/login', { state: { from: '/messages' } });
     }
   }, [currentUser, authLoading, navigate]);
@@ -726,7 +666,6 @@ const MessengerPage: React.FC = () => {
   // Auto-join conversation rooms when connected
   useEffect(() => {
     if (isConnected && conversations.length > 0) {
-      console.log('Auto-joining conversation rooms');
       setTimeout(() => {
         conversations.forEach(conversation => {
           sendMessage({
@@ -741,7 +680,6 @@ const MessengerPage: React.FC = () => {
   // Handle conversation ID from URL params
   useEffect(() => {
     const conversationId = searchParams.get('conversation');
-    console.log('🔗 URL params useEffect triggered', {
       conversationId,
       conversationsLength: conversations.length,
       activeConversationId: activeConversation?.conversation_id
@@ -749,17 +687,14 @@ const MessengerPage: React.FC = () => {
     
     if (conversationId && conversations.length > 0) {
       const targetId = parseInt(conversationId);
-      console.log('🔗 Looking for conversation ID from URL:', targetId);
       
       if (!activeConversation || activeConversation.conversation_id !== targetId) {
         const conversation = conversations.find(c => c.conversation_id === targetId);
-        console.log('🔗 Found conversation from URL:', conversation ? {
           id: conversation.conversation_id,
           title: conversation.title
         } : 'Not found');
         
         if (conversation) {
-          console.log('🔗 Setting conversation from URL params and loading messages');
           setActiveConversation(conversation);
           setMessages([]);
           setTypingUsers([]);
@@ -767,10 +702,8 @@ const MessengerPage: React.FC = () => {
           loadMessages(conversation.conversation_id);
         }
       } else {
-        console.log('🔗 Conversation already active, no change needed');
       }
     } else {
-      console.log('🔗 No conversation ID in URL or no conversations loaded yet');
     }
   }, [searchParams, conversations.length, activeConversation, loadMessages]);
 

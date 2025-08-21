@@ -14,14 +14,6 @@ import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
 const Layout: React.FC = () => {
   const { user, isAuthenticated, isLoading, logout, getToken } = useUnifiedAuth();
   
-  // Debug authentication state on every render
-  console.log('Layout render - useAuth state:', {
-    isAuthenticated,
-    hasUser: !!user,
-    userId: user?.id,
-    isLoading,
-    timestamp: new Date().toISOString()
-  });
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [recentActivityShown, setRecentActivityShown] = useState(false);
@@ -39,91 +31,55 @@ const Layout: React.FC = () => {
   const { isConnected } = useWebSocket({
     enabled: isAuthenticated && !!user,
     onMessage: (message) => {
-      // Update last message indicator for visual debugging
-      
-      console.log('🔔 Layout: WebSocket message received:', {
-        type: message.type,
-        fullMessage: message,
-        currentUserId: user?.id,
-        senderIdFromMessage: message.sender_id,
-        conversationId: message.conversation_id,
-        currentUnreadCount: unreadConversationsCount,
-        timestamp: message.timestamp
-      });
-      
       if (message.type === 'new_message') {
-        console.log('📨 Layout: Processing new message for counter update');
-        console.log('📨 Message details:', {
-          senderId: message.sender_id,
-          currentUserId: user?.id,
-          senderIdType: typeof message.sender_id,
-          currentUserIdType: typeof user?.id,
-          senderIdEquals: message.sender_id === user?.id,
-          senderIdEqualsNumber: message.sender_id === Number(user?.id),
-          numberSenderIdEquals: Number(message.sender_id) === Number(user?.id)
-        });
         
         // Check if this message is from another user (not from current user)
         const isFromOtherUser = message.sender_id && user?.id && 
           Number(message.sender_id) !== Number(user?.id);
         
-        console.log('📨 Is from other user?', isFromOtherUser);
         
         if (message.conversation_id && isFromOtherUser) {
-          console.log('🔄 Layout: Updating counter optimistically for message from other user');
           // Optimistically update counter for better UX
           setUnreadConversationsCount(prev => {
             const newCount = prev + 1;
-            console.log(`📈 Layout: Counter updated optimistically: ${prev} → ${newCount}`);
             return newCount;
           });
           
           // Verify with backend after short delay
           setTimeout(() => {
-            console.log('🔄 Layout: Verifying counter with backend after new message');
             loadUnreadConversationsCount();
           }, 1000);
-        } else {
-          console.log('⏭️ Layout: Skipping counter update - message from current user or missing data');
         }
       } else if (message.type === 'conversation_read') {
-        console.log('👁️ Layout: Conversation marked as read, updating counter');
         if (message.conversation_id) {
           // Optimistically decrease counter
           setUnreadConversationsCount(prev => {
             const newCount = Math.max(0, prev - 1);
-            console.log(`📉 Layout: Counter decreased: ${prev} → ${newCount}`);
             return newCount;
           });
         }
         
         // Verify with backend
         setTimeout(() => {
-          console.log('🔄 Layout: Verifying counter after conversation read');
           loadUnreadConversationsCount();
         }, 500);
       } else if (message.type === 'conversation_updated' || message.type === 'message_status') {
         // Handle other conversation updates
-        console.log('🔄 Layout: Conversation updated, refreshing count');
         setTimeout(() => {
           loadUnreadConversationsCount();
         }, 300);
       } else {
-        console.log('❓ Layout: Unknown message type, triggering general refresh');
         setTimeout(() => {
           loadUnreadConversationsCount();
         }, 500);
       }
     },
     onConnect: () => {
-      console.log('Layout: WebSocket connected, loading unread conversations count');
       loadUnreadConversationsCount();
     },
     onDisconnect: () => {
-      console.log('Layout: WebSocket disconnected');
     },
     onError: (error) => {
-      console.log('Layout: WebSocket connection error:', error);
     }
   });
 
@@ -135,7 +91,6 @@ const Layout: React.FC = () => {
 
     // Listen for login events to load unread count
     const handleLoginSuccess = () => {
-      console.log('Login success event received, loading unread count');
       // Small delay to ensure token persistence is complete
       setTimeout(() => {
         loadUnreadConversationsCount();
@@ -144,14 +99,12 @@ const Layout: React.FC = () => {
 
     // Force re-render on auth state changes
     const handleAuthStateChange = () => {
-      console.log('Layout: Auth state change detected, forcing re-render');
       // Force component re-render by updating state
       setShowUserMenu(prev => prev);
     };
 
     // Handle logout events from auth system
     const handleAuthLogout = () => {
-      console.log('Layout: Auth logout event detected');
       // Close any open menus
       setShowUserMenu(false);
       setShowRecentActivityDropdown(false);
@@ -162,7 +115,6 @@ const Layout: React.FC = () => {
 
     // Handle conversation updates from MessagesDropdown
     const handleConversationUpdate = () => {
-      console.log('Layout: Conversation update event received');
       if (isAuthenticated && !isLoading && user) {
         setTimeout(() => {
           loadUnreadConversationsCount();
@@ -206,43 +158,32 @@ const Layout: React.FC = () => {
     const token = getToken();
     
     if (!token) {
-      console.warn('No auth token found, retrying once...');
-      console.log('Debug - user state:', { isAuthenticated, isLoading, userId: user.id });
       
       // Retry once after a short delay in case token persistence is in progress
       setTimeout(() => {
         const retryToken = getToken();
         if (retryToken) {
-          console.log('Token found on retry, proceeding with unread conversations count load');
           loadUnreadConversationsCount();
         } else {
-          console.warn('No token found after retry, giving up on loading unread conversations count');
           setUnreadConversationsCount(0);
         }
       }, 500);
       return;
     }
     
-    console.log('Loading unread conversations count for user:', user.id);
     
     try {
-      console.log('🔄 Layout: Starting conversation API call...');
       const response = await professionalMessagingService.getConversations();
       
-      console.log('✅ Layout: API call successful, processing response');
-      console.log('Layout: Raw API response for unread count:', response);
       
       // Handle multiple possible response structures
       let conversations = null;
       if (response?.data?.conversations && Array.isArray(response.data.conversations)) {
         conversations = response.data.conversations;
-        console.log('Layout: Using response.data.conversations for unread count');
       } else if (response?.conversations && Array.isArray(response.conversations)) {
         conversations = response.conversations;
-        console.log('Layout: Using response.conversations for unread count');
       } else if (Array.isArray(response)) {
         conversations = response;
-        console.log('Layout: Response is direct array for unread count');
       }
       
       if (conversations && Array.isArray(conversations)) {
@@ -256,60 +197,25 @@ const Layout: React.FC = () => {
         const unreadConversationsCount = unreadConversations.length;
         setUnreadConversationsCount(unreadConversationsCount);
         
-        console.log(`🔢 Layout: Found ${unreadConversationsCount} unread conversations out of ${conversations.length} total conversations`);
-        console.log('🔢 Layout: Unread conversations debug:');
-        conversations.forEach((conv, index) => {
-          console.log(`Conversation ${index + 1}:`, conv);
-        });
-        console.log('🔢 Layout: Unread conversations summary:', conversations.map(conv => ({
-          id: conv.conversation_id,
-          title: conv.title,
-          userUnreadCount: conv.user_unread_count,
-          isUnread: conv.user_unread_count > 0,
-          lastMessage: conv.latest_message?.content?.substring(0, 30) || conv.last_message?.content?.substring(0, 30),
-          // Debug all unread-related fields
-          allUnreadFields: {
-            user_unread_count: conv.user_unread_count,
-            unread_count: conv.unread_count,
-            unread_messages: conv.unread_messages,
-            has_unread: conv.has_unread,
-            is_unread: conv.is_unread
-          },
-          // Show all properties to find the right field
-          allProperties: Object.keys(conv)
-        })));
-        console.log('🔢 Layout: Setting unread badge count to:', unreadConversationsCount);
         
         // Also emit event for MessagesDropdown to update
         window.dispatchEvent(new CustomEvent('conversationCountUpdated', { 
           detail: { count: unreadConversationsCount } 
         }));
       } else {
-        console.warn('Layout: Unexpected response structure from professional messaging service:', response);
         setUnreadConversationsCount(0);
       }
     } catch (error: any) {
-      console.error('❌ Layout: Failed to load unread conversations count:', error);
-      console.error('❌ Layout: Error details:', {
-        status: error.response?.status,
-        message: error.message,
-        code: error.code,
-        type: error.constructor.name
-      });
       
       // Handle specific error cases
       if (error.message?.includes('timeout') || error.code === 'TIMEOUT') {
-        console.warn('⏰ Layout: API timeout - messaging service may be slow');
         setUnreadConversationsCount(0);
         // Don't retry timeout errors immediately
       } else if (error.response?.status === 401) {
-        console.warn('🔐 Layout: Unauthorized access to messenger API - user may need to re-authenticate');
         setUnreadConversationsCount(0);
       } else if (error.response?.status >= 500) {
-        console.error('🛠️ Layout: Server error when loading unread conversations count');
         setUnreadConversationsCount(0);
       } else {
-        console.warn('❓ Layout: Unknown error, setting count to 0');
         setUnreadConversationsCount(0);
       }
     }
@@ -318,7 +224,6 @@ const Layout: React.FC = () => {
   // Effect to load unread conversations count when user becomes available (for page refresh/initial load)
   useEffect(() => {
     if (isAuthenticated && !isLoading && user && unreadConversationsCount === 0) {
-      console.log('User became available, loading unread conversations count');
       setTimeout(() => {
         loadUnreadConversationsCount();
       }, 300);
@@ -329,21 +234,17 @@ const Layout: React.FC = () => {
   useEffect(() => {
     if (!isAuthenticated || !user) return;
     
-    console.log('📡 Layout: Setting up periodic counter refresh (fallback mechanism)');
     const periodicRefresh = setInterval(() => {
-      console.log('📡 Layout: Periodic counter refresh triggered');
       loadUnreadConversationsCount();
     }, 10000); // Refresh every 10 seconds for testing (normally 30)
     
     return () => {
-      console.log('📡 Layout: Clearing periodic counter refresh');
       clearInterval(periodicRefresh);
     };
   }, [isAuthenticated, user, loadUnreadConversationsCount]);
 
   const handleLogout = async () => {
     try {
-      console.log('Layout: Starting logout process...');
       setShowUserMenu(false);
       
       // Show success message immediately
@@ -351,23 +252,19 @@ const Layout: React.FC = () => {
       
       // Wait for logout to complete
       await logout();
-      console.log('Layout: Logout completed, clearing auth state...');
       
       // Small delay to ensure all cleanup is done
       setTimeout(() => {
-        console.log('Layout: Forcing page reload after logout');
         // Force a hard reload to ensure we get the public version of the homepage
         // This ensures all cached state is cleared and the page starts fresh
         window.location.reload();
       }, 300);
       
     } catch (error) {
-      console.error('Layout: Logout failed:', error);
       showError('Logout Failed', 'There was an error signing you out. Please try again.');
       
       // Even if logout failed, force a reload to ensure clean state after a delay
       setTimeout(() => {
-        console.log('Layout: Forcing page reload after logout failure');
         window.location.reload();
       }, 1500);
     }
@@ -453,15 +350,6 @@ const Layout: React.FC = () => {
   };
 
   const renderUserMenu = () => {
-    // Enhanced auth state debugging
-    console.log('Layout renderUserMenu - Auth State:', {
-      isAuthenticated,
-      hasUser: !!user,
-      userId: user?.id,
-      userName: user?.name,
-      isLoading,
-      userObject: user
-    });
     
     // Wait for auth to finish loading before showing sign in button
     if (isLoading) {
@@ -474,11 +362,9 @@ const Layout: React.FC = () => {
     }
     
     if (!isAuthenticated || !user) {
-      console.log('Layout: Showing Sign In button - not authenticated or no user');
       return (
         <button
           onClick={() => {
-            console.log('🔥 Sign In clicked!');
             setShowAuthModal(true);
           }}
           className="sign-in-button"
@@ -677,7 +563,6 @@ const Layout: React.FC = () => {
           
           // Force a re-render by updating state after a small delay
           setTimeout(() => {
-            console.log('Layout: Forcing re-render after login success');
             setShowUserMenu(prev => prev); // This forces a re-render
           }, 100);
           

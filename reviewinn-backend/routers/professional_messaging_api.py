@@ -66,7 +66,7 @@ class ParticipantUpdateRequest(BaseModel):
 # ========== CONVERSATION ENDPOINTS ==========
 
 @router.post("/conversations")
-async def create_conversation(
+def create_conversation(
     request: ConversationCreateRequest,
     db: Session = Depends(get_db),
     current_user = RequiredUser
@@ -76,7 +76,7 @@ async def create_conversation(
     Supports direct messages, group chats, channels, and broadcasts.
     """
     service = ProfessionalMessagingService(db)
-    return await service.create_conversation(
+    return service.create_conversation(
         creator_id=current_user.user_id,
         participant_ids=request.participant_ids,
         conversation_type=request.conversation_type,
@@ -86,7 +86,7 @@ async def create_conversation(
     )
 
 @router.get("/conversations")
-async def get_conversations(
+def get_conversations(
     limit: int = Query(20, ge=1, le=100, description="Number of conversations to return"),
     offset: int = Query(0, ge=0, description="Number of conversations to skip"),
     search: Optional[str] = Query(None, description="Search in conversation titles/descriptions"),
@@ -98,7 +98,6 @@ async def get_conversations(
     Get user's conversations with advanced filtering and search.
     """
     try:
-        print(f"[MESSAGING] Getting conversations for user {current_user.user_id} with params: limit={limit}, offset={offset}")
         service = ProfessionalMessagingService(db)
         result = service.get_conversations(
             user_id=current_user.user_id,
@@ -107,12 +106,8 @@ async def get_conversations(
             search=search,
             conversation_type=conversation_type
         )
-        print(f"[MESSAGING] Service returned: {type(result)} with {len(result.get('conversations', []))} conversations")
         return result
     except Exception as e:
-        print(f"[MESSAGING ERROR] Exception in get_conversations: {e}")
-        import traceback
-        traceback.print_exc()
         return {
             "success": False,
             "error": str(e),
@@ -123,7 +118,7 @@ async def get_conversations(
         }
 
 @router.get("/conversations/{conversation_id}")
-async def get_conversation_details(
+def get_conversation_details(
     conversation_id: int,
     db: Session = Depends(get_db),
     current_user = RequiredUser
@@ -135,7 +130,7 @@ async def get_conversation_details(
     return service.get_conversation_details(conversation_id, current_user.user_id)
 
 @router.put("/conversations/{conversation_id}")
-async def update_conversation(
+def update_conversation(
     conversation_id: int,
     request: ConversationUpdateRequest,
     db: Session = Depends(get_db),
@@ -145,14 +140,14 @@ async def update_conversation(
     Update conversation details (admin/owner only).
     """
     service = ProfessionalMessagingService(db)
-    return await service.update_conversation_details(
+    return service.update_conversation_details(
         conversation_id=conversation_id,
         user_id=current_user.user_id,
         updates=request.dict(exclude_none=True)
     )
 
 @router.post("/conversations/{conversation_id}/participants")
-async def add_participants(
+def add_participants(
     conversation_id: int,
     participant_ids: List[int] = Body(..., description="List of user IDs to add"),
     db: Session = Depends(get_db),
@@ -162,10 +157,10 @@ async def add_participants(
     Add participants to conversation.
     """
     service = ProfessionalMessagingService(db)
-    return await service.add_participants(conversation_id, current_user.user_id, participant_ids)
+    return service.add_participants(conversation_id, current_user.user_id, participant_ids)
 
 @router.delete("/conversations/{conversation_id}/participants/{user_id}")
-async def remove_participant(
+def remove_participant(
     conversation_id: int,
     user_id: int,
     db: Session = Depends(get_db),
@@ -175,10 +170,10 @@ async def remove_participant(
     Remove participant from conversation.
     """
     service = ProfessionalMessagingService(db)
-    return await service.remove_participant(conversation_id, current_user.user_id, user_id)
+    return service.remove_participant(conversation_id, current_user.user_id, user_id)
 
 @router.put("/conversations/{conversation_id}/participants/{user_id}")
-async def update_participant(
+def update_participant(
     conversation_id: int,
     user_id: int,
     request: ParticipantUpdateRequest,
@@ -189,7 +184,7 @@ async def update_participant(
     Update participant role and permissions.
     """
     service = ProfessionalMessagingService(db)
-    return await service.update_participant(
+    return service.update_participant(
         conversation_id=conversation_id,
         admin_user_id=current_user.user_id,
         target_user_id=user_id,
@@ -199,7 +194,7 @@ async def update_participant(
 # ========== MESSAGE ENDPOINTS ==========
 
 @router.post("/conversations/{conversation_id}/messages")
-async def send_message(
+def send_message(
     conversation_id: int,
     request: MessageSendRequest,
     db: Session = Depends(get_db),
@@ -209,7 +204,7 @@ async def send_message(
     Send a message with threading support.
     """
     service = ProfessionalMessagingService(db)
-    return await service.send_message(
+    return service.send_message(
         sender_id=current_user.user_id,
         conversation_id=conversation_id,
         content=request.content,
@@ -221,7 +216,7 @@ async def send_message(
     )
 
 @router.get("/conversations/{conversation_id}/messages")
-async def get_messages(
+def get_messages(
     conversation_id: int,
     limit: int = Query(50, ge=1, le=100, description="Number of messages to return"),
     before_message_id: Optional[int] = Query(None, description="Get messages before this ID"),
@@ -235,7 +230,7 @@ async def get_messages(
     Get messages with advanced pagination, search, and filtering.
     """
     service = ProfessionalMessagingService(db)
-    return await service.get_messages(
+    return service.get_messages(
         conversation_id=conversation_id,
         user_id=current_user.user_id,
         limit=limit,
@@ -246,7 +241,7 @@ async def get_messages(
     )
 
 @router.put("/messages/{message_id}")
-async def edit_message(
+def edit_message(
     message_id: int,
     request: MessageEditRequest,
     db: Session = Depends(get_db),
@@ -256,14 +251,14 @@ async def edit_message(
     Edit a message (sender only, within time limit).
     """
     service = ProfessionalMessagingService(db)
-    return await service.edit_message(
+    return service.edit_message(
         message_id=message_id,
         user_id=current_user.user_id,
         new_content=request.content
     )
 
 @router.delete("/messages/{message_id}")
-async def delete_message(
+def delete_message(
     message_id: int,
     db: Session = Depends(get_db),
     current_user = RequiredUser
@@ -272,10 +267,10 @@ async def delete_message(
     Delete a message (sender or admin).
     """
     service = ProfessionalMessagingService(db)
-    return await service.delete_message(message_id, current_user.user_id)
+    return service.delete_message(message_id, current_user.user_id)
 
 @router.post("/messages/{message_id}/reactions")
-async def add_reaction(
+def add_reaction(
     message_id: int,
     request: ReactionRequest,
     db: Session = Depends(get_db),
@@ -285,14 +280,14 @@ async def add_reaction(
     Add reaction to a message.
     """
     service = ProfessionalMessagingService(db)
-    return await service.add_reaction(
+    return service.add_reaction(
         message_id=message_id,
         user_id=current_user.user_id,
         reaction_type=request.reaction_type
     )
 
 @router.delete("/messages/{message_id}/reactions")
-async def remove_reaction(
+def remove_reaction(
     message_id: int,
     reaction_type: str = Query(..., description="Reaction type to remove"),
     db: Session = Depends(get_db),
@@ -302,14 +297,14 @@ async def remove_reaction(
     Remove reaction from a message.
     """
     service = ProfessionalMessagingService(db)
-    return await service.remove_reaction(
+    return service.remove_reaction(
         message_id=message_id,
         user_id=current_user.user_id,
         reaction_type=reaction_type
     )
 
 @router.post("/messages/{message_id}/pin")
-async def pin_message(
+def pin_message(
     message_id: int,
     reason: Optional[str] = Body(None, description="Reason for pinning"),
     db: Session = Depends(get_db),
@@ -319,14 +314,14 @@ async def pin_message(
     Pin a message in conversation.
     """
     service = ProfessionalMessagingService(db)
-    return await service.pin_message(
+    return service.pin_message(
         message_id=message_id,
         user_id=current_user.user_id,
         reason=reason
     )
 
 @router.delete("/messages/{message_id}/pin")
-async def unpin_message(
+def unpin_message(
     message_id: int,
     db: Session = Depends(get_db),
     current_user = RequiredUser
@@ -335,12 +330,12 @@ async def unpin_message(
     Unpin a message.
     """
     service = ProfessionalMessagingService(db)
-    return await service.unpin_message(message_id, current_user.user_id)
+    return service.unpin_message(message_id, current_user.user_id)
 
 # ========== REAL-TIME FEATURES ==========
 
 @router.post("/conversations/{conversation_id}/typing")
-async def update_typing_status(
+def update_typing_status(
     conversation_id: int,
     request: TypingRequest,
     db: Session = Depends(get_db),
@@ -351,12 +346,12 @@ async def update_typing_status(
     """
     service = ProfessionalMessagingService(db)
     if request.is_typing:
-        return await service.start_typing(conversation_id, current_user.user_id)
+        return service.start_typing(conversation_id, current_user.user_id)
     else:
-        return await service.stop_typing(conversation_id, current_user.user_id)
+        return service.stop_typing(conversation_id, current_user.user_id)
 
 @router.post("/presence")
-async def update_presence(
+def update_presence(
     request: PresenceUpdateRequest,
     db: Session = Depends(get_db),
     current_user = RequiredUser
@@ -365,14 +360,14 @@ async def update_presence(
     Update user presence status.
     """
     service = ProfessionalMessagingService(db)
-    return await service.update_presence(
+    return service.update_presence(
         user_id=current_user.user_id,
         status=request.status,
         device_info=request.device_info
     )
 
 @router.get("/presence/{user_id}")
-async def get_user_presence(
+def get_user_presence(
     user_id: int,
     db: Session = Depends(get_db),
     current_user = RequiredUser
@@ -381,10 +376,10 @@ async def get_user_presence(
     Get user presence information.
     """
     service = ProfessionalMessagingService(db)
-    return await service.get_user_presence(user_id)
+    return service.get_user_presence(user_id)
 
 @router.post("/conversations/{conversation_id}/read")
-async def mark_conversation_read(
+def mark_conversation_read(
     conversation_id: int,
     message_id: Optional[int] = Body(None, description="Mark read up to this message ID"),
     db: Session = Depends(get_db),
@@ -394,7 +389,7 @@ async def mark_conversation_read(
     Mark conversation as read up to a specific message.
     """
     service = ProfessionalMessagingService(db)
-    return await service.mark_conversation_read(
+    return service.mark_conversation_read(
         conversation_id=conversation_id,
         user_id=current_user.user_id,
         up_to_message_id=message_id
@@ -403,7 +398,7 @@ async def mark_conversation_read(
 # ========== SEARCH AND DISCOVERY ==========
 
 @router.get("/search")
-async def search_messages(
+def search_messages(
     query: str = Query(..., min_length=1, description="Search query"),
     conversation_id: Optional[int] = Query(None, description="Limit search to specific conversation"),
     message_type: Optional[str] = Query(None, description="Filter by message type"),
@@ -419,7 +414,7 @@ async def search_messages(
     Advanced message search across conversations.
     """
     service = ProfessionalMessagingService(db)
-    return await service.search_messages(
+    return service.search_messages(
         user_id=current_user.user_id,
         query=query,
         conversation_id=conversation_id,
@@ -432,7 +427,7 @@ async def search_messages(
     )
 
 @router.get("/conversations/{conversation_id}/threads")
-async def get_conversation_threads(
+def get_conversation_threads(
     conversation_id: int,
     limit: int = Query(20, ge=1, le=100, description="Number of threads to return"),
     offset: int = Query(0, ge=0, description="Threads offset"),
@@ -443,7 +438,7 @@ async def get_conversation_threads(
     Get active threads in a conversation.
     """
     service = ProfessionalMessagingService(db)
-    return await service.get_conversation_threads(
+    return service.get_conversation_threads(
         conversation_id=conversation_id,
         user_id=current_user.user_id,
         limit=limit,
@@ -451,7 +446,7 @@ async def get_conversation_threads(
     )
 
 @router.get("/conversations/{conversation_id}/pins")
-async def get_pinned_messages(
+def get_pinned_messages(
     conversation_id: int,
     db: Session = Depends(get_db),
     current_user = RequiredUser
@@ -460,12 +455,12 @@ async def get_pinned_messages(
     Get pinned messages in a conversation.
     """
     service = ProfessionalMessagingService(db)
-    return await service.get_pinned_messages(conversation_id, current_user.user_id)
+    return service.get_pinned_messages(conversation_id, current_user.user_id)
 
 # ========== ANALYTICS AND INSIGHTS ==========
 
 @router.get("/analytics/conversations")
-async def get_conversation_analytics(
+def get_conversation_analytics(
     conversation_id: Optional[int] = Query(None, description="Specific conversation ID"),
     date_from: Optional[datetime] = Query(None, description="Start date"),
     date_to: Optional[datetime] = Query(None, description="End date"),
@@ -476,116 +471,17 @@ async def get_conversation_analytics(
     Get conversation analytics and insights.
     """
     service = ProfessionalMessagingService(db)
-    return await service.get_conversation_analytics(
+    return service.get_conversation_analytics(
         user_id=current_user.user_id,
         conversation_id=conversation_id,
         date_from=date_from,
         date_to=date_to
     )
 
-# ========== DEBUG ENDPOINTS ==========
-
-@router.post("/test-conversation")
-async def test_create_conversation(db: Session = Depends(get_db)):
-    """
-    Test conversation creation without authentication
-    """
-    try:
-        service = ProfessionalMessagingService(db)
-        result = await service.create_conversation(
-            creator_id=1,
-            participant_ids=[2],
-            conversation_type="direct",
-            title="Test Conversation"
-        )
-        return result
-    except Exception as e:
-        return {
-            "success": False,
-            "error": str(e),
-            "data": None
-        }
-
-@router.post("/test-message")
-async def test_send_message(db: Session = Depends(get_db)):
-    """
-    Test message sending without authentication
-    """
-    try:
-        service = ProfessionalMessagingService(db)
-        result = await service.send_message(
-            sender_id=1,
-            conversation_id=2,  # Use the conversation we created
-            content="Test message",
-            message_type="text"
-        )
-        return result
-    except Exception as e:
-        return {
-            "success": False,
-            "error": str(e),
-            "data": None
-        }
-
 # ========== HEALTH CHECK ==========
 
-@router.get("/debug/conversations/{user_id}")
-async def debug_get_conversations(
-    user_id: int,
-    db: Session = Depends(get_db)
-):
-    """
-    Debug endpoint to get conversations for any user without authentication.
-    """
-    try:
-        # Simplified debug response to avoid serialization issues
-        print(f"Debug: Getting conversations for user {user_id} (simplified mode)")
-        return {
-            "success": True,
-            "conversations": [],
-            "total_count": 0,
-            "has_more": False,
-            "pagination": {
-                "current_page": 1,
-                "total_pages": 0,
-                "limit": 20,
-                "offset": 0
-            },
-            "debug_note": "Simplified response to prevent serialization errors"
-        }
-    except Exception as e:
-        return {
-            "success": False,
-            "error": str(e),
-            "data": None
-        }
-
-@router.get("/debug/conversations/{conversation_id}/messages/{user_id}")
-async def debug_get_messages(
-    conversation_id: int,
-    user_id: int,
-    limit: int = Query(50, ge=1, le=100),
-    db: Session = Depends(get_db)
-):
-    """
-    Debug endpoint to get messages for any conversation without authentication.
-    """
-    try:
-        service = ProfessionalMessagingService(db)
-        return await service.get_messages(
-            conversation_id=conversation_id,
-            user_id=user_id,
-            limit=limit
-        )
-    except Exception as e:
-        return {
-            "success": False,
-            "error": str(e),
-            "data": None
-        }
-
 @router.get("/health")
-async def messaging_health_check(db: Session = Depends(get_db)):
+def messaging_health_check(db: Session = Depends(get_db)):
     """
     Professional messaging system health check.
     """
