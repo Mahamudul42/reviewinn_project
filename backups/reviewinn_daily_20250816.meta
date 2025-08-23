@@ -1,0 +1,9 @@
+Backup Type: daily
+Database: reviewinn_database
+User: reviewinn_user
+Host: localhost:5432
+Created: 2025-08-16 01:56:49
+Size: 424K
+Git Commit: a266acf
+Git Branch: main
+Docker Status: reviewinn_frontend   Up 10 seconds reviewinn_backend    Up 11 seconds (healthy) reviewinn_admin      Up 11 seconds (healthy) 

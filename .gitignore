@@ -122,12 +122,6 @@ reviewinn-admin/.env                 # Admin secrets
 !reviewinn-frontend/.env.example     # Frontend template
 !reviewinn-admin/.env.example        # Admin template
 
-# Backup files
-*.backup
-*.bak
-backups/
-*.sql.backup
-
 # Docker
 .dockerignore
 
@@ -142,23 +136,32 @@ dev-server.log
 *.tsbuildinfo
 .eslintcache
 
-# Prevent root directory clutter
-/*.sql
+# Keep database files (SAFE TO COMMIT)
+!database/
+!database/**/*.sql
+!*.sql
+!reviewinn_enterprise_schema_backup.sql
+
+# Keep backup files (SAFE TO COMMIT)  
+!backups/
+!backups/*.backup
+!backups/*.meta
+
+# Prevent most root directory clutter but allow essential files
 /*.py
 /*.js
 /*.html
-/*.json
 !package.json
 !tsconfig.json
 !docker-compose.yml
 !.gitignore
+!run.sh
 
 # Keep important root files
 !README.md
 !CONTRIBUTING.md
 !LICENSE
 !Dockerfile
-!*.md
 
 # Temporary and debug files
 debug-*.js
