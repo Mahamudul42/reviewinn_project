@@ -128,7 +128,7 @@ export class HttpClient {
   }
 
   // Get headers with authentication
-  private getHeaders(customHeaders?: Record<string, string>, url?: string): HeadersInit {
+  private getHeaders(customHeaders?: Record<string, string>): HeadersInit {
     const headers: HeadersInit = {
       ...DEFAULT_HEADERS,
       ...customHeaders
@@ -148,7 +148,6 @@ export class HttpClient {
     
     if (token && token !== 'null' && token !== 'undefined') {
       headers['Authorization'] = `Bearer ${token}`;
-    } else {
     }
     
     return headers;
@@ -387,7 +386,7 @@ export class HttpClient {
       try {
         const response = await fetch(url, {
           ...options,
-          headers: this.getHeaders(options.headers as Record<string, string>, url),
+          headers: this.getHeaders(options.headers as Record<string, string>),
           signal: controller.signal
         });
 
@@ -404,12 +403,12 @@ export class HttpClient {
           const refreshToken = localStorage.getItem('reviewinn_refresh_token');
           if (refreshToken) {
             try {
-              const newToken = await this.handleTokenRefresh();
+              await this.handleTokenRefresh();
               
               // Retry the original request with new token
               const retryResponse = await fetch(url, {
                 ...options,
-                headers: this.getHeaders(options.headers as Record<string, string>, url),
+                headers: this.getHeaders(options.headers as Record<string, string>),
                 signal: controller.signal
               });
               

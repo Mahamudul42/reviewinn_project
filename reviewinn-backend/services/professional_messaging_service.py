@@ -24,93 +24,141 @@ class ProfessionalMessagingService:
         search: str = None,
         conversation_type: str = None
     ) -> Dict[str, Any]:
-        """Get user's conversations using simplified SQL queries"""
+        """Get user's conversations using production-grade SQL queries with robust error handling"""
         try:
-            # Simple direct SQL query to avoid any ORM issues
+            # First, verify the user exists in core_users table for production data integrity
+            user_exists_query = "SELECT COUNT(*) FROM core_users WHERE user_id = :user_id AND is_active = true"
+            user_exists = self.db.execute(text(user_exists_query), {"user_id": user_id}).scalar()
+            
+            if not user_exists:
+                logger.warning(f"User {user_id} not found in core_users table")
+                return {
+                    "success": True,  # Not an error - user just has no conversations
+                    "conversations": [],
+                    "total_count": 0,
+                    "has_more": False,
+                    "pagination": {
+                        "current_page": 1,
+                        "total_pages": 0,
+                        "limit": limit,
+                        "offset": offset
+                    },
+                    "message": "User has no conversations yet"
+                }
+            
+            # Production-grade query with proper validation and error handling
             query = """
             SELECT DISTINCT 
                 c.conversation_id,
                 c.conversation_type,
-                c.title,
-                c.is_private,
+                COALESCE(c.title, 'Conversation ' || c.conversation_id::text) as title,
+                COALESCE(c.is_private, false) as is_private,
                 c.created_at,
                 (SELECT COUNT(*) FROM msg_conversation_participants cp2 
-                 WHERE cp2.conversation_id = c.conversation_id AND cp2.left_at IS NULL) as participant_count
+                 WHERE cp2.conversation_id = c.conversation_id 
+                 AND cp2.left_at IS NULL) as participant_count
             FROM msg_conversations c
             INNER JOIN msg_conversation_participants cp ON c.conversation_id = cp.conversation_id
-            WHERE cp.user_id = :user_id AND cp.left_at IS NULL
+            WHERE cp.user_id = :user_id 
+            AND cp.left_at IS NULL
+            AND c.conversation_id IS NOT NULL
             """
             
             params = {"user_id": user_id}
             
-            if search:
-                query += " AND c.title ILIKE :search"
-                params["search"] = f"%{search}%"
+            # Add optional filters with proper validation
+            if search and len(search.strip()) > 0:
+                query += " AND COALESCE(c.title, '') ILIKE :search"
+                params["search"] = f"%{search.strip()}%"
                 
-            if conversation_type:
+            if conversation_type and conversation_type.strip():
                 query += " AND c.conversation_type = :conversation_type"
-                params["conversation_type"] = conversation_type
+                params["conversation_type"] = conversation_type.strip()
             
             query += " ORDER BY c.created_at DESC LIMIT :limit OFFSET :offset"
-            params["limit"] = limit
-            params["offset"] = offset
+            params["limit"] = max(1, min(limit, 100))  # Enforce reasonable limits
+            params["offset"] = max(0, offset)
             
-            # Execute query
+            # Execute main query with error handling
             result = self.db.execute(text(query), params)
             rows = result.fetchall()
-            # Get count
+            
+            # Get total count for pagination
             count_query = """
             SELECT COUNT(DISTINCT c.conversation_id)
             FROM msg_conversations c
             INNER JOIN msg_conversation_participants cp ON c.conversation_id = cp.conversation_id
-            WHERE cp.user_id = :user_id AND cp.left_at IS NULL
+            WHERE cp.user_id = :user_id 
+            AND cp.left_at IS NULL
+            AND c.conversation_id IS NOT NULL
             """
+            
             count_params = {"user_id": user_id}
-            if search:
-                count_query += " AND c.title ILIKE :search"
-                count_params["search"] = f"%{search}%"
-            if conversation_type:
+            if search and len(search.strip()) > 0:
+                count_query += " AND COALESCE(c.title, '') ILIKE :search"
+                count_params["search"] = f"%{search.strip()}%"
+            if conversation_type and conversation_type.strip():
                 count_query += " AND c.conversation_type = :conversation_type"
-                count_params["conversation_type"] = conversation_type
+                count_params["conversation_type"] = conversation_type.strip()
                 
             total = self.db.execute(text(count_query), count_params).scalar() or 0
             
-            # Convert to simple dictionaries
+            # Process results with proper data validation
             conversations = []
             for row in rows:
-                conversations.append({
-                    "conversation_id": row.conversation_id,
-                    "conversation_type": row.conversation_type,
-                    "title": row.title or f"Conversation {row.conversation_id}",
-                    "is_private": row.is_private,
-                    "participant_count": row.participant_count,
-                    "created_at": row.created_at.isoformat() if row.created_at else None,
-                    "unread_count": 0,  # Simplified
-                    "last_message": None,  # Simplified
-                    "participants": []  # Simplified
-                })
+                try:
+                    conversation_data = {
+                        "conversation_id": int(row.conversation_id),
+                        "conversation_type": str(row.conversation_type or "direct"),
+                        "title": str(row.title or f"Conversation {row.conversation_id}"),
+                        "is_private": bool(row.is_private if row.is_private is not None else False),
+                        "participant_count": int(row.participant_count or 0),
+                        "created_at": row.created_at.isoformat() if row.created_at else None,
+                        "unread_count": 0,  # TODO: Implement proper unread count logic
+                        "last_message": None,  # TODO: Implement last message retrieval
+                        "participants": []  # TODO: Implement participant list retrieval
+                    }
+                    conversations.append(conversation_data)
+                except Exception as row_error:
+                    logger.warning(f"Failed to process conversation row: {row_error}")
+                    continue
+            
+            # Calculate pagination metadata
+            total_pages = ((total - 1) // params["limit"]) + 1 if total > 0 else 0
+            current_page = (params["offset"] // params["limit"]) + 1
+            has_more = total > (params["offset"] + params["limit"])
             
             return {
                 "success": True,
                 "conversations": conversations,
                 "total_count": total,
-                "has_more": total > (offset + limit),
+                "has_more": has_more,
                 "pagination": {
-                    "current_page": (offset // limit) + 1,
-                    "total_pages": ((total - 1) // limit) + 1 if total > 0 else 0,
-                    "limit": limit,
-                    "offset": offset
+                    "current_page": current_page,
+                    "total_pages": total_pages,
+                    "limit": params["limit"],
+                    "offset": params["offset"]
                 }
             }
             
         except Exception as e:
-            logger.error(f"Error getting conversations for user {user_id}: {e}")
-            import traceback
-            traceback.print_exc()
+            # Production-grade error handling and logging
+            error_context = {
+                "user_id": user_id,
+                "limit": limit,
+                "offset": offset,
+                "search": search,
+                "conversation_type": conversation_type,
+                "error": str(e),
+                "error_type": type(e).__name__
+            }
             
+            logger.error("Failed to get conversations", extra=error_context, exc_info=True)
+            
+            # Return user-friendly error response
             return {
                 "success": False,
-                "error": str(e),
+                "error": "Unable to retrieve conversations. Please try again later.",
                 "conversations": [],
                 "total_count": 0,
                 "has_more": False,
@@ -119,7 +167,8 @@ class ProfessionalMessagingService:
                     "total_pages": 0,
                     "limit": limit,
                     "offset": offset
-                }
+                },
+                "error_code": "CONVERSATION_RETRIEVAL_FAILED"
             }
     
     def get_conversation_details(self, conversation_id: int, user_id: int) -> Dict[str, Any]:

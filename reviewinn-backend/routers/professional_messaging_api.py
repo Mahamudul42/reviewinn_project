@@ -10,12 +10,13 @@ Features:
 - Rate limiting
 - Comprehensive error handling
 """
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query, Body
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query, Body, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field
 import asyncio
+import logging
 from datetime import datetime
 
 from database import get_db
@@ -23,6 +24,7 @@ from auth.production_dependencies import CurrentUser, RequiredUser
 from services.professional_messaging_service import ProfessionalMessagingService
 
 router = APIRouter(prefix="/api/v1/messaging", tags=["Professional Messaging"])
+logger = logging.getLogger(__name__)
 
 # ========== REQUEST/RESPONSE MODELS ==========
 
@@ -96,6 +98,7 @@ def get_conversations(
 ):
     """
     Get user's conversations with advanced filtering and search.
+    Production-ready endpoint with proper error handling and status codes.
     """
     try:
         service = ProfessionalMessagingService(db)
@@ -106,16 +109,22 @@ def get_conversations(
             search=search,
             conversation_type=conversation_type
         )
+        
+        # The service handles all errors internally and returns structured responses
         return result
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions (like auth errors) to preserve status codes
+        raise
     except Exception as e:
-        return {
-            "success": False,
-            "error": str(e),
-            "conversations": [],
-            "total_count": 0,
-            "has_more": False,
-            "pagination": {"current_page": 1, "total_pages": 0, "limit": limit, "offset": offset}
-        }
+        # Log the error for debugging but don't expose internal details to client
+        logger.error(f"Unexpected error in get_conversations for user {current_user.user_id}: {e}", exc_info=True)
+        
+        # Return user-friendly error response
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to retrieve conversations. Please try again later."
+        )
 
 @router.get("/conversations/{conversation_id}")
 def get_conversation_details(

@@ -71,8 +71,7 @@ export class BadgeService {
     try {
       const response = await httpClient.post<UserBadge[]>(
         `${this.baseUrl}/user/${userId}/check`,
-        { actionType },
-        true
+        { actionType }
       );
       return response.data || [];
     } catch (error) {
@@ -109,8 +108,7 @@ export class BadgeService {
     try {
       await httpClient.put(
         `${this.baseUrl}/user/${userId}/display`,
-        { badgeId, isDisplayed },
-        true
+        { badgeId, isDisplayed }
       );
       return true;
     } catch (error) {

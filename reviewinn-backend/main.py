@@ -209,7 +209,7 @@ class APIApplication(LoggerMixin):
         # app.include_router(auth_unified_router, prefix="/api/v1")   # REMOVED
         
         # Messaging system routers
-        # app.include_router(websocket_router)  # Disabled - causing uvloop issues
+        app.include_router(websocket_router)  # Re-enabled WebSocket support
         # Professional messaging API (production ready)
         app.include_router(professional_messaging_router)
         # Emergency messaging system - Zero dependencies

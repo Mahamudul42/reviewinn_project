@@ -341,7 +341,8 @@ class ProductionAuthMiddleware(BaseHTTPMiddleware):
             
             # Add user context (non-sensitive info only)
             response.headers["X-User-ID"] = str(auth_result.user.user_id)
-            response.headers["X-User-Role"] = getattr(auth_result.user, 'role', 'user')
+            user_role = getattr(auth_result.user, 'role', 'user')
+            response.headers["X-User-Role"] = str(user_role.value if hasattr(user_role, 'value') else user_role)
         
         return response
     

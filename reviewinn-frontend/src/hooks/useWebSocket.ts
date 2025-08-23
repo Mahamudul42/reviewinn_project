@@ -44,8 +44,8 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
   const getWebSocketUrl = useCallback(() => {
     const token = getToken();
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    // WebSocket connects to backend port (8003) not frontend port (5173)
-    const backendHost = window.location.hostname + ':8003';
+    // WebSocket connects to backend port (8000) not frontend port (5173)
+    const backendHost = window.location.hostname + ':8000';
     const url = `${protocol}//${backendHost}/ws/${endpoint}/${token}`;
     console.log('WebSocket URL:', url);
     console.log('Token preview:', token ? token.substring(0, 50) + '...' : 'NO TOKEN');
