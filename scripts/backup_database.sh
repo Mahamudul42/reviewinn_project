@@ -35,7 +35,7 @@ fi
 # Default values if not set in .env (using current working credentials)
 POSTGRES_USER=${POSTGRES_USER:-reviewinn_user}
 POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-"Munna1992"}
-POSTGRES_DB=${POSTGRES_DB:-reviewinn_db}
+POSTGRES_DB=${POSTGRES_DB:-reviewinn_database}
 POSTGRES_HOST=${POSTGRES_HOST:-localhost}
 POSTGRES_PORT=${POSTGRES_PORT:-5432}
 
