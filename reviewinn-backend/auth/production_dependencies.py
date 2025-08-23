@@ -392,19 +392,53 @@ auth_deps = ProductionAuthDependencies()
 
 # ==================== TYPE-SAFE DEPENDENCIES ====================
 
-# Basic authentication dependencies
-CurrentUser = Annotated[Optional[User], Depends(auth_deps.get_current_user_optional)]
-RequiredUser = Annotated[User, Depends(auth_deps.get_current_user_required)]
-VerifiedUser = Annotated[User, Depends(auth_deps.get_verified_user)]
-PremiumUser = Annotated[User, Depends(auth_deps.get_premium_user)]
+# Production-ready dependency factories to avoid deepcopy issues
+def get_current_user_optional():
+    """Factory to create current user optional dependency"""
+    return Depends(auth_deps.get_current_user_optional)
+
+def get_current_user_required():
+    """Factory to create current user required dependency"""
+    return Depends(auth_deps.get_current_user_required)
+
+def get_verified_user():
+    """Factory to create verified user dependency"""
+    return Depends(auth_deps.get_verified_user)
+
+def get_premium_user():
+    """Factory to create premium user dependency"""
+    return Depends(auth_deps.get_premium_user)
+
+# Type annotations for the dependencies
+CurrentUser = Annotated[Optional[User], get_current_user_optional()]
+RequiredUser = Annotated[User, get_current_user_required()]
+VerifiedUser = Annotated[User, get_verified_user()]
+PremiumUser = Annotated[User, get_premium_user()]
+
+# Role-based dependency factories
+def get_admin_user():
+    """Factory to create admin user dependency"""
+    return Depends(auth_deps.get_admin_user)
+
+def get_moderator_or_admin():
+    """Factory to create moderator or admin dependency"""
+    return Depends(auth_deps.get_moderator_or_admin)
+
+def get_recent_auth():
+    """Factory to create recent auth dependency"""
+    return Depends(auth_deps.require_recent_auth)
+
+def get_device_validated():
+    """Factory to create device validated dependency"""
+    return Depends(auth_deps.validate_device_consistency)
 
 # Role-based dependencies
-AdminUser = Annotated[User, Depends(auth_deps.get_admin_user)]
-ModeratorOrAdmin = Annotated[User, Depends(auth_deps.get_moderator_or_admin)]
+AdminUser = Annotated[User, get_admin_user()]
+ModeratorOrAdmin = Annotated[User, get_moderator_or_admin()]
 
 # Security dependencies
-RecentAuth = Annotated[User, Depends(auth_deps.require_recent_auth)]
-DeviceValidated = Annotated[User, Depends(auth_deps.validate_device_consistency)]
+RecentAuth = Annotated[User, get_recent_auth()]
+DeviceValidated = Annotated[User, get_device_validated()]
 
 # ==================== PERMISSION FACTORIES ====================
 

@@ -47,7 +47,7 @@ class ProductionAuthConfig:
     
     # Security Configuration
     BCRYPT_ROUNDS: int = 14  # Higher for production
-    PASSWORD_MIN_LENGTH: int = 12  # Higher for production
+    PASSWORD_MIN_LENGTH: int = 8  # Simple 8-character minimum
     PASSWORD_MAX_LENGTH: int = 128
     
     # Enterprise Security Features
@@ -580,33 +580,27 @@ class ProductionAuthSystem:
         return errors
     
     def _validate_production_password(self, password: str, user_data: Dict[str, Any]) -> List[str]:
-        """Production-grade password validation"""
+        """Simple password validation: 8+ characters with letters and numbers"""
         errors = []
         
-        # Length requirements
+        # Length requirement
         if len(password) < self.config.PASSWORD_MIN_LENGTH:
-            errors.append(f"Password must be at least {self.config.PASSWORD_MIN_LENGTH} characters")
+            errors.append(f"Password must be at least {self.config.PASSWORD_MIN_LENGTH} characters long")
         if len(password) > self.config.PASSWORD_MAX_LENGTH:
             errors.append(f"Password cannot exceed {self.config.PASSWORD_MAX_LENGTH} characters")
         
-        # Character requirements (more strict)
-        requirements = {
-            "uppercase": any(c.isupper() for c in password),
-            "lowercase": any(c.islower() for c in password),
-            "digit": any(c.isdigit() for c in password),
-            "special": any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?`~" for c in password),
-        }
+        # Simple requirements: must have letters and numbers
+        has_letter = any(c.isalpha() for c in password)
+        has_number = any(c.isdigit() for c in password)
         
-        for req_name, passed in requirements.items():
-            if not passed:
-                errors.append(f"Password must contain at least one {req_name} character")
+        if not has_letter:
+            errors.append("Password must contain at least one letter")
+        if not has_number:
+            errors.append("Password must contain at least one number")
         
-        # Advanced security checks
-        if self._contains_common_patterns(password):
-            errors.append("Password contains common patterns")
-        
-        if self._contains_personal_info(password, user_data):
-            errors.append("Password must not contain personal information")
+        # Basic security check for obvious weak passwords
+        if password.lower() in ['password', '12345678', 'password1', 'password123']:
+            errors.append("Password is too common, please choose a more secure password")
         
         if self._is_compromised_password(password):
             errors.append("Password has been found in security breaches")

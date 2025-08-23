@@ -58,7 +58,6 @@ class ProfessionalMessagingService:
             # Execute query
             result = self.db.execute(text(query), params)
             rows = result.fetchall()
-            
             # Get count
             count_query = """
             SELECT COUNT(DISTINCT c.conversation_id)

@@ -82,7 +82,7 @@ export interface ReviewInnRightPanelAuthData {
 export type ReviewInnRightPanelData = ReviewInnRightPanelPublicData;
 
 class ReviewInnRightPanelService {
-  private baseUrl = `http://localhost:8000/api/v1/reviewinn-right-panel`;
+  private baseUrl = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1'}/reviewinn-right-panel`;
 
   /**
    * Get public right panel data - trending topics, popular entities, activity summary

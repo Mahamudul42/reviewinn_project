@@ -84,7 +84,7 @@ export interface ReviewInnLeftPanelResponse {
 }
 
 export class ReviewInnLeftPanelService {
-  private baseUrl = `http://localhost:8000/api/v1/reviewinn-left-panel`;
+  private baseUrl = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1'}/reviewinn-left-panel`;
 
   /**
    * Get ReviewInn left panel data with top reviews, categories, and reviewers

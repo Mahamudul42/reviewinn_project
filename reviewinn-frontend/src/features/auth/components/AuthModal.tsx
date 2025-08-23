@@ -73,21 +73,18 @@ const AuthModal: React.FC<AuthModalProps> = ({
     return emailRegex.test(email) && email.length <= 254; // RFC 5321 limit
   };
 
-  // Industry-standard password validation
+  // Simple password validation: 8+ characters with letters and numbers
   const validatePassword = (password: string) => {
     const checks = {
       minLength: password.length >= 8,
       maxLength: password.length <= 128,
-      hasLowercase: /[a-z]/.test(password),
-      hasUppercase: /[A-Z]/.test(password),
+      hasLetter: /[a-zA-Z]/.test(password),
       hasNumber: /\d/.test(password),
-      hasSpecialChar: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
-      noCommonPatterns: !/^(password|123456|qwerty|admin|user|test)$/i.test(password),
-      noSequential: !/(?:012|123|234|345|456|567|678|789|890|abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz)/i.test(password)
+      notCommon: !['password', '12345678', 'password1', 'password123'].includes(password.toLowerCase())
     };
     
-    const strength = Object.values(checks).filter(Boolean).length;
-    return { checks, strength, isValid: strength >= 6 };
+    const passedChecks = Object.values(checks).filter(Boolean).length;
+    return { checks, isValid: passedChecks === 5 };
   };
 
   // Name validation
@@ -306,15 +303,12 @@ const AuthModal: React.FC<AuthModalProps> = ({
     const passwordValidation = validatePassword(registerForm.password);
     if (!passwordValidation.isValid) {
       const { checks } = passwordValidation;
-      let errorMsg = 'Password must meet the following requirements:\n';
-      if (!checks.minLength) errorMsg += '• At least 8 characters\n';
-      if (!checks.maxLength) errorMsg += '• No more than 128 characters\n';
-      if (!checks.hasLowercase) errorMsg += '• At least one lowercase letter\n';
-      if (!checks.hasUppercase) errorMsg += '• At least one uppercase letter\n';
-      if (!checks.hasNumber) errorMsg += '• At least one number\n';
-      if (!checks.hasSpecialChar) errorMsg += '• At least one special character (!@#$%^&*)\n';
-      if (!checks.noCommonPatterns) errorMsg += '• Cannot be a common password\n';
-      if (!checks.noSequential) errorMsg += '• Cannot contain sequential characters\n';
+      let errorMsg = 'Password requirements:\n';
+      if (!checks.minLength) errorMsg += '• Must be at least 8 characters long\n';
+      if (!checks.maxLength) errorMsg += '• Cannot exceed 128 characters\n';
+      if (!checks.hasLetter) errorMsg += '• Must contain at least one letter\n';
+      if (!checks.hasNumber) errorMsg += '• Must contain at least one number\n';
+      if (!checks.notCommon) errorMsg += '• Cannot be a common password\n';
       
       setError(errorMsg.trim());
       setIsLoading(false);

@@ -254,10 +254,6 @@ const MessengerPage: React.FC = () => {
     if (!activeConversation) return;
 
     try {
-        conversationId: activeConversation.conversation_id,
-        messageId: messageId
-      });
-      
       // Skip problematic API call - use WebSocket and optimistic updates only
       // The API has validation issues, but WebSocket + UI updates work perfectly
       
@@ -285,11 +281,6 @@ const MessengerPage: React.FC = () => {
   }, [activeConversation, sendMessage, isConnected]);
 
   const handleConversationSelect = useCallback((conversation: ProfessionalConversation) => {
-      conversationId: conversation.conversation_id,
-      title: conversation.title,
-      activeConversationId: activeConversation?.conversation_id
-    });
-    
     if (activeConversation?.conversation_id === conversation.conversation_id) {
       return;
     }
