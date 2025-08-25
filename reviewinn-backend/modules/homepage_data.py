@@ -269,146 +269,71 @@ class HomepageDataService:
         self.repository = HomepageRepository(db_session)
     
     def get_recent_reviews(self, limit: int = 15, offset: int = 0) -> List[ReviewData]:
-        """Fetch recent reviews with full data - OPTIMIZED VERSION"""
-        # Use subqueries to get counts in a single query
-        from sqlalchemy import func, select
+        """Fetch recent reviews with JOIN-FREE approach using review_main table"""
+        from sqlalchemy import text
         
-        # Subquery for comment counts
-        comment_counts = (
-            self.repository.db.query(
-                Comment.review_id,
-                func.count(Comment.comment_id).label('comment_count')
-            )
-            .group_by(Comment.review_id)
-            .subquery()
-        )
+        # JOIN-FREE QUERY: Use review_main table with pre-populated JSONB data
+        # This eliminates all joins with users, entities, and count subqueries
+        query = text("""
+            SELECT 
+                review_id,
+                entity_id,
+                user_id,
+                title,
+                content,
+                overall_rating,
+                ratings,
+                pros,
+                cons,
+                is_anonymous,
+                is_verified,
+                images,
+                view_count,
+                reaction_count,
+                comment_count,
+                top_reactions,
+                created_at,
+                updated_at,
+                -- Pre-populated JSONB data (no joins needed)
+                entity_summary as entity,
+                user_summary as user
+            FROM review_main 
+            WHERE entity_summary IS NOT NULL 
+              AND user_summary IS NOT NULL
+            ORDER BY created_at DESC 
+            LIMIT :limit OFFSET :offset
+        """)
         
-        # Subquery for reaction counts
-        reaction_counts = (
-            self.repository.db.query(
-                ReviewReaction.review_id,
-                func.count(ReviewReaction.reaction_id).label('reaction_count')
-            )
-            .group_by(ReviewReaction.review_id)
-            .subquery()
-        )
+        result = self.repository.db.execute(query, {"limit": limit, "offset": offset})
+        reviews = result.fetchall()
         
-        # Main query with joins and counts - Load hierarchical categories like user reviews
-        reviews = (
-            self.repository.db.query(
-                Review,
-                func.coalesce(comment_counts.c.comment_count, 0).label('comment_count'),
-                func.coalesce(reaction_counts.c.reaction_count, 0).label('reaction_count')
-            )
-            .outerjoin(comment_counts, Review.review_id == comment_counts.c.review_id)
-            .outerjoin(reaction_counts, Review.review_id == reaction_counts.c.review_id)
-            .join(User, Review.user_id == User.user_id)
-            .join(Entity, Review.entity_id == Entity.entity_id)
-            .options(
-                selectinload(Review.entity)
-            )
-            .order_by(desc(Review.created_at))
-            .offset(offset)
-            .limit(limit)
-            .all()
-        )
-        
+        # JOIN-FREE DATA PROCESSING: Use JSONB data directly from review_main
         review_data = []
-        for review, comment_count, reaction_count in reviews:
-            # Build complete entity object like user reviews for consistent frontend experience
-            entity = review.entity
-            entity_data = None
-            if entity:
-                entity_data = {
-                    "id": str(entity.entity_id),
-                    "entity_id": entity.entity_id,
-                    "name": entity.name,
-                    "description": entity.description,
-                    # Use hierarchical category names for legacy compatibility
-                    "category": entity.root_category.get('name') if entity.root_category else 'General',
-                    "subcategory": entity.final_category.get('name') if entity.final_category else None,
-                    "avatar": entity.avatar,
-                    "isVerified": entity.is_verified,
-                    "isClaimed": entity.is_claimed,
-                    "claimedBy": entity.claimed_by,
-                    "claimedAt": entity.claimed_at.isoformat() if entity.claimed_at else None,
-                    "context": getattr(entity, 'context', {}) or {},
-                    "average_rating": float(entity.average_rating) if entity.average_rating else 0,
-                    "averageRating": float(entity.average_rating) if entity.average_rating else 0,
-                    "rating": float(entity.average_rating) if entity.average_rating else 0,
-                    "review_count": entity.review_count or 0,
-                    "reviewCount": entity.review_count or 0,
-                    "view_count": entity.view_count or 0,
-                    "viewCount": entity.view_count or 0,
-                    "createdAt": entity.created_at.isoformat() if entity.created_at else None,
-                    "updatedAt": entity.updated_at.isoformat() if entity.updated_at else None,
-                    # Hierarchical category information
-                    "root_category_name": entity.root_category.get('name') if entity.root_category else None,
-                    "final_category_name": entity.final_category.get('name') if entity.final_category else None,
-                    "root_category_id": entity.root_category.get('id') if entity.root_category else None,
-                    "final_category_id": entity.final_category.get('id') if entity.final_category else None,
-                }
-                
-                # Add category relationships if they exist
-                if entity.root_category:
-                    entity_data["root_category"] = {
-                        "id": entity.root_category.get('id'),
-                        "name": entity.root_category.get('name'),
-                        "slug": entity.root_category.get('slug'),
-                        "icon": entity.root_category.get('icon'),
-                        "color": entity.root_category.get('color'),
-                        "level": entity.root_category.get('level', 1)
-                    }
-                
-                if entity.final_category:
-                    entity_data["final_category"] = {
-                        "id": entity.final_category.get('id'),
-                        "name": entity.final_category.get('name'),
-                        "slug": entity.final_category.get('slug'),
-                        "level": entity.final_category.get('level', 1),
-                        "icon": getattr(entity.final_category, 'icon', None),
-                        "color": getattr(entity.final_category, 'color', None)
-                    }
-                    
-                    # Build category breadcrumb for UI display
-                    category_breadcrumb = []
-                    if entity.root_category and entity.root_category.get('id') != entity.final_category.get('id'):
-                        category_breadcrumb.append({
-                            "id": entity.root_category.get('id'),
-                            "name": entity.root_category.get('name'),
-                            "slug": entity.root_category.get('slug'),
-                            "level": entity.root_category.get('level', 1)
-                        })
-                    
-                    category_breadcrumb.append({
-                        "id": entity.final_category.get('id'),
-                        "name": entity.final_category.get('name'),
-                        "slug": entity.final_category.get('slug'),
-                        "level": entity.final_category.get('level', 1)
-                    })
-                    
-                    entity_data["category_breadcrumb"] = category_breadcrumb
-                    entity_data["category_display"] = " > ".join([cat["name"] for cat in category_breadcrumb])
+        for row in reviews:
+            # Extract entity and user data from JSONB columns (no object processing needed)
+            entity_data = row.entity  # Already a dict from JSONB
+            user_data = row.user      # Already a dict from JSONB
             
+            # Create ReviewData with direct field access (no joins, no object relationships)
             review_data.append(ReviewData(
-                review_id=review.review_id,
-                title=review.title,
-                content=review.content,
-                overall_rating=review.overall_rating,
-                view_count=review.view_count,
-                created_at=review.created_at,
-                is_verified=review.is_verified,
-                is_anonymous=review.is_anonymous,
-                user_name="Anonymous" if review.is_anonymous else review.user.name,
-                user_avatar=None if review.is_anonymous else getattr(review.user, 'avatar', None),
-                entity_name=review.entity.name,
-                entity_root_category=getattr(review.entity.root_category, 'name', None) if hasattr(review.entity, 'root_category') and review.entity.root_category else None,
-                entity_final_category=getattr(review.entity.final_category, 'name', None) if hasattr(review.entity, 'final_category') and review.entity.final_category else None,
-                comment_count=comment_count,
-                reaction_count=reaction_count,
-                pros=review.pros or [],
-                cons=review.cons or [],
-                # NEW: Complete entity object like user reviews
+                review_id=row.review_id,
+                title=row.title,
+                content=row.content,
+                overall_rating=row.overall_rating,
+                view_count=row.view_count,
+                created_at=row.created_at,
+                is_verified=row.is_verified,
+                is_anonymous=row.is_anonymous,
+                user_name="Anonymous" if row.is_anonymous else user_data.get('name', 'Unknown'),
+                user_avatar=None if row.is_anonymous else user_data.get('avatar'),
+                entity_name=entity_data.get('name', 'Unknown') if entity_data else 'Unknown',
+                entity_root_category=entity_data.get('category') if entity_data else None,
+                entity_final_category=entity_data.get('subcategory') if entity_data else None,
+                comment_count=row.comment_count or 0,
+                reaction_count=row.reaction_count or 0,
+                pros=row.pros or [],
+                cons=row.cons or [],
+                # Complete entity object from JSONB (no join processing)
                 entity=entity_data
             ))
         

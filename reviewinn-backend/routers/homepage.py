@@ -468,29 +468,11 @@ async def migrate_to_single_table(db: Session = Depends(get_db)):
                         'average_rating', ce.average_rating,
                         'review_count', ce.review_count,
                         'view_count', ce.view_count,
-                        'root_category', CASE WHEN rc.id IS NOT NULL THEN
-                            jsonb_build_object(
-                                'id', rc.id,
-                                'name', rc.name,
-                                'slug', rc.slug,
-                                'icon', rc.icon,
-                                'color', rc.color,
-                                'level', rc.level
-                            ) ELSE NULL END,
-                        'final_category', CASE WHEN fc.id IS NOT NULL THEN
-                            jsonb_build_object(
-                                'id', fc.id,
-                                'name', fc.name,
-                                'slug', fc.slug,
-                                'icon', fc.icon,
-                                'color', fc.color,
-                                'level', fc.level
-                            ) ELSE NULL END
+                        'root_category', ce.root_category,
+                        'final_category', ce.final_category
                     ) as entity_data
                 FROM review_main rm2
                 LEFT JOIN core_entities ce ON rm2.entity_id = ce.entity_id
-                LEFT JOIN unified_categories rc ON ce.root_category_id = rc.id
-                LEFT JOIN unified_categories fc ON ce.final_category_id = fc.id
                 ORDER BY rm2.created_at DESC
                 LIMIT 20
             ) as subquery
