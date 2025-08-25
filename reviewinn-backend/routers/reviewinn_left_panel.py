@@ -76,6 +76,7 @@ async def get_reviewinn_left_panel_data(
                 cu.user_id,
                 cu.first_name,
                 cu.last_name,
+                cu.display_name,
                 cu.username,
                 cu.avatar,
                 cu.review_count,
@@ -121,10 +122,16 @@ async def get_reviewinn_left_panel_data(
         
         top_reviewers = []
         for row in top_reviewers_data:
-            name = f"{row.first_name or ''} {row.last_name or ''}".strip()
+            # Use display_name first, then fallback to first_name + last_name, then username
+            name = row.display_name
+            if not name:
+                name = f"{row.first_name or ''} {row.last_name or ''}".strip()
+            if not name:
+                name = row.username
+            
             reviewer = {
                 "user_id": row.user_id,
-                "name": name if name else row.username,
+                "name": name,
                 "username": row.username,
                 "avatar": row.avatar,
                 "review_count": row.review_count or 0,
