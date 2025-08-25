@@ -51,7 +51,7 @@ def get_notification_dropdown(
         )
 
 @router.get("/summary", response_model=NotificationSummary)
-def get_notification_summary(
+async def get_notification_summary(
     current_user = RequiredUser,
     db: Session = Depends(get_db)
 ):
@@ -68,7 +68,7 @@ def get_notification_summary(
         
         logger.info(f"Getting notification summary for user {current_user.user_id}")
         service = EnterpriseNotificationService(db)
-        dropdown_data = service.get_notification_dropdown(current_user.user_id)
+        dropdown_data = await service.get_notification_dropdown(current_user.user_id)
         
         return NotificationSummary(
             total_unread=dropdown_data.unread_count,

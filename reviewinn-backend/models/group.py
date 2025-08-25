@@ -80,7 +80,7 @@ class Group(Base):
     creator = relationship("User", foreign_keys=[created_by])
     memberships = relationship("GroupMembership", back_populates="group", cascade="all, delete-orphan")
     invitations = relationship("GroupInvitation", back_populates="group", cascade="all, delete-orphan")
-    reviews = relationship("Review", back_populates="group")
+    # reviews = relationship("Review", back_populates="group")  # Commented out - Review.group_id doesn't exist yet
     category_mappings = relationship("GroupCategoryMapping", back_populates="group", cascade="all, delete-orphan")
     
     def __repr__(self):

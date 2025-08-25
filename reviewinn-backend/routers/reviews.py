@@ -5,7 +5,7 @@ from typing import List, Optional, Any
 from database import get_db
 from models.review import Review
 from models.review_reaction import ReviewReaction, ReactionType as ReviewReactionType
-from models.comment import Comment, CommentReaction
+from models.comment import Comment, CommentReaction, ReactionType as CommentReactionType
 from models.user import User
 from models.entity import Entity
 from auth.production_dependencies import CurrentUser, RequiredUser
@@ -985,16 +985,14 @@ async def add_comment_reaction(
         
         if existing_reaction:
             # Update existing reaction
-            from models.comment import ReactionType
-            existing_reaction.reaction_type = ReactionType(reaction_request.reaction_type)
+            existing_reaction.reaction_type = CommentReactionType(reaction_request.reaction_type)
             existing_reaction.updated_at = func.now()
         else:
             # Create new reaction
-            from models.comment import ReactionType
             reaction = CommentReaction(
                 comment_id=comment_id,
                 user_id=current_user.user_id,
-                reaction_type=ReactionType(reaction_request.reaction_type)
+                reaction_type=CommentReactionType(reaction_request.reaction_type)
             )
             db.add(reaction)
         
@@ -1106,7 +1104,17 @@ async def add_or_update_reaction(
     current_user = RequiredUser
 ):
     """Add or update a reaction for a review by the current user."""
+    logger.info(f"🎯 REACTION ENDPOINT CALLED: review_id={review_id}")
+    logger.info(f"🎯 Request data: {reaction_request}")
+    logger.info(f"🎯 Current user type: {type(current_user)}")
+    
+    # Add a simple test log to see if we reach here
+    print(f"🔍 DEBUG: Reaction endpoint called for review {review_id}")
+    
     try:
+        logger.info(f"🚀 Adding reaction for review {review_id} by user {current_user.user_id}")
+        logger.info(f"📝 Reaction type: {reaction_request.reaction_type}")
+        logger.info(f"👤 Current user: {current_user.username} (ID: {current_user.user_id})")
         # Validate reaction type
         try:
             reaction_type = ReviewReactionType(reaction_request.reaction_type)
@@ -1133,6 +1141,8 @@ async def add_or_update_reaction(
         if existing:
             existing.reaction_type = reaction_type
         else:
+            # Debug logging for user_id issue
+            logger.info(f"🔍 Creating reaction: user_id={current_user.user_id} (type: {type(current_user.user_id)}), review_id={review_id}, reaction_type={reaction_type}")
             reaction = ReviewReaction(
                 review_id=review_id,
                 user_id=current_user.user_id,
@@ -1144,11 +1154,21 @@ async def add_or_update_reaction(
             db.commit()
             if not existing:
                 db.refresh(reaction)
+            logger.info(f"✅ Successfully committed reaction for review {review_id}")
         except IntegrityError as e:
             db.rollback()
-            logger.error(f"IntegrityError in add_or_update_reaction: {e}")
+            logger.error(f"💥 IntegrityError in add_or_update_reaction: {e}")
+            logger.error(f"🔍 Error details: review_id={review_id}, user_id={current_user.user_id}, reaction_type={reaction_type}")
             return error_response(
-                message="Could not add reaction",
+                message=f"Could not add reaction: {str(e)}",
+                status_code=500
+            )
+        except Exception as db_error:
+            db.rollback()
+            logger.error(f"💥 Database error in add_or_update_reaction: {db_error}")
+            logger.error(f"🔍 Error details: review_id={review_id}, user_id={current_user.user_id}, reaction_type={reaction_type}")
+            return error_response(
+                message=f"Database error: {str(db_error)}",
                 status_code=500
             )
         
@@ -1217,14 +1237,8 @@ async def add_or_update_reaction(
                 logger.warning(f"Failed to update entity reaction count (non-critical): {entity_error}")
             
             # 🔄 CACHE MANAGEMENT: Update user reaction cache
-            try:
-                from services.user_reaction_cache_service import user_reaction_cache_service
-                reaction_type_str = reaction_type.value if hasattr(reaction_type, 'value') else str(reaction_type)
-                await user_reaction_cache_service.update_user_reaction_cache(
-                    str(current_user.user_id), str(review_id), reaction_type_str
-                )
-            except Exception as cache_error:
-                logger.warning(f"Cache update failed (non-critical): {cache_error}")
+            # TODO: Implement user reaction cache service when needed
+            logger.info(f"🔄 User reaction cache update skipped (service not implemented yet)")
                 
         except Exception as counter_error:
             logger.warning(f"Failed to update denormalized data: {counter_error}")
@@ -1241,16 +1255,64 @@ async def add_or_update_reaction(
                 logger.info(f"Cache invalidated for user {review.user_id} after reaction update")
         except Exception as cache_error:
             logger.warning(f"Failed to invalidate cache after reaction update: {cache_error}")
+            # Don't fail the request if cache invalidation fails
         
         return api_response(data=reaction_summary)
         
     except Exception as e:
-        logger.error(f"Error adding reaction to review {review_id}: {str(e)}")
+        logger.error(f"💥 CRITICAL ERROR adding reaction to review {review_id}: {str(e)}")
+        logger.error(f"🔍 Exception type: {type(e)}")
+        logger.error(f"🔍 User ID: {getattr(current_user, 'user_id', 'UNKNOWN')}")
+        logger.error(f"🔍 Reaction type: {getattr(reaction_request, 'reaction_type', 'UNKNOWN')}")
         traceback.print_exc()
         return error_response(
             message=f"Failed to add reaction: {str(e)}",
             status_code=500
         )
+
+@router.get("/test-reaction-endpoint", tags=["Test"])
+async def test_reaction_endpoint():
+    """Test endpoint to verify the router is working."""
+    return {"message": "Reaction router is working!", "status": "success"}
+
+@router.post("/debug-reaction-test", tags=["Test"])
+async def debug_reaction_test():
+    """Test endpoint to debug reaction API without auth."""
+    logger.info("🧪 DEBUG: Test reaction endpoint called!")
+    print("🧪 DEBUG: Test reaction endpoint called!")
+    return {"message": "Debug endpoint working!", "status": "success"}
+
+@router.get("/unprotected-test", tags=["Test"])  
+async def unprotected_test():
+    """Completely unprotected test endpoint."""
+    logger.info("🔓 UNPROTECTED: Test endpoint called!")
+    print("🔓 UNPROTECTED: Test endpoint called!")
+    return {"message": "Unprotected endpoint working!", "status": "success"}
+
+@router.post("/simple-auth-test", tags=["Test"])
+async def simple_auth_test(current_user = RequiredUser):
+    """Simple test with authentication to isolate the auth issue."""
+    logger.info(f"🔑 AUTH TEST: User {current_user.user_id} authenticated successfully")
+    print(f"🔑 AUTH TEST: User {current_user.user_id} authenticated successfully")
+    return {
+        "message": "Authentication working!", 
+        "user_id": current_user.user_id,
+        "username": current_user.username
+    }
+
+@router.post("/minimal-reaction-test/{review_id}", tags=["Test"])
+async def minimal_reaction_test(
+    review_id: int,
+    current_user = RequiredUser
+):
+    """Minimal reaction test without any complex logic."""
+    logger.info(f"🎯 MINIMAL REACTION TEST: User {current_user.user_id} on review {review_id}")
+    print(f"🎯 MINIMAL REACTION TEST: User {current_user.user_id} on review {review_id}")
+    return {
+        "message": "Minimal reaction test successful!", 
+        "review_id": review_id,
+        "user_id": current_user.user_id
+    }
 
 @router.delete("/{review_id}/react", tags=["Review Reactions"])
 async def remove_reaction(
@@ -1326,13 +1388,8 @@ async def remove_reaction(
                     logger.warning(f"Failed to update entity reaction count (non-critical): {entity_error}")
                 
                 # 🔄 CACHE MANAGEMENT: Invalidate user reaction cache  
-                try:
-                    from services.user_reaction_cache_service import user_reaction_cache_service
-                    await user_reaction_cache_service.update_user_reaction_cache(
-                        str(current_user.user_id), str(review_id), None  # None = removed reaction
-                    )
-                except Exception as cache_error:
-                    logger.warning(f"Cache invalidation failed (non-critical): {cache_error}")
+                # TODO: Implement user reaction cache service when needed
+                logger.info(f"🔄 User reaction cache invalidation skipped (service not implemented yet)")
                     
             except Exception as counter_error:
                 logger.warning(f"Failed to update denormalized data: {counter_error}")

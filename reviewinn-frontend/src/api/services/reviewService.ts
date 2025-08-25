@@ -959,7 +959,26 @@ export class ReviewService {
     });
 
     if (!fetchResponse.ok) {
-      throw new Error(`Failed to add reaction: ${fetchResponse.statusText}`);
+      let errorMessage = `Failed to add reaction: ${fetchResponse.status} ${fetchResponse.statusText}`;
+      let errorData = null;
+      try {
+        errorData = await fetchResponse.json();
+        if (errorData.error?.message) {
+          errorMessage += ` - ${errorData.error.message}`;
+        } else if (errorData.detail) {
+          errorMessage += ` - ${errorData.detail}`;
+        }
+      } catch {
+        // Ignore JSON parsing errors, use default message
+      }
+      console.error('🚨 ReviewService: Add reaction failed:', { 
+        url, 
+        status: fetchResponse.status, 
+        statusText: fetchResponse.statusText,
+        errorData,
+        headers: Object.fromEntries(fetchResponse.headers.entries())
+      });
+      throw new Error(errorMessage);
     }
 
     const response = await fetchResponse.json();
@@ -993,7 +1012,19 @@ export class ReviewService {
     });
 
     if (!fetchResponse.ok) {
-      throw new Error(`Failed to remove reaction: ${fetchResponse.statusText}`);
+      let errorMessage = `Failed to remove reaction: ${fetchResponse.status} ${fetchResponse.statusText}`;
+      try {
+        const errorData = await fetchResponse.json();
+        if (errorData.error?.message) {
+          errorMessage += ` - ${errorData.error.message}`;
+        } else if (errorData.detail) {
+          errorMessage += ` - ${errorData.detail}`;
+        }
+      } catch {
+        // Ignore JSON parsing errors, use default message
+      }
+      console.error('ReviewService: Remove reaction failed:', { url, status: fetchResponse.status, statusText: fetchResponse.statusText });
+      throw new Error(errorMessage);
     }
 
     const response = await fetchResponse.json();

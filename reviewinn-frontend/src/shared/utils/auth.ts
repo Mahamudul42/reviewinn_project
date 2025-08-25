@@ -14,6 +14,11 @@ import { useAuthStore } from '../../stores/authStore';
  */
 export const getAuthHeaders = (): Record<string, string> => {
   const token = useAuthStore.getState().token;
+  console.log('🔐 getAuthHeaders:', { 
+    hasToken: !!token, 
+    tokenLength: token?.length,
+    tokenStart: token?.substring(0, 10) + '...'
+  });
   return token ? { 'Authorization': `Bearer ${token}` } : {};
 };
 
