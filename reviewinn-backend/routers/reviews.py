@@ -16,6 +16,7 @@ from models.user_entity_view import UserEntityView
 from core.responses import api_response, error_response
 from services.cache_service import cache_result, cache_service
 from services.review_service import ReviewService
+from services.count_validation_service import CountValidationService
 from schemas.review import ReviewCreateRequest
 import traceback
 import logging
@@ -810,35 +811,77 @@ async def create_comment(
 @router.post("/{review_id}/view")
 async def track_view(
     review_id: int, 
+    request: Request,
     db: Session = Depends(get_db),
     current_user: CurrentUser = None
 ):
-    """Track a view for a review."""
+    """Track a view for a review using enterprise-grade view tracking."""
     try:
         # Get the review to find the entity_id
         review = db.query(Review).filter(Review.review_id == review_id).first()
         if not review:
             return error_response(message="Review not found", status_code=404)
         
-        # Increment the review view count
-        review.view_count += 1
+        # Extract client information
+        client_ip = request.client.host
+        user_agent = request.headers.get("user-agent", "")
         
-        # Record view if user is authenticated
+        # Create a new view record - database triggers will handle count updates automatically
+        from models.view_tracking import ReviewView
+        from datetime import datetime, timedelta
+        import uuid
+        
+        # Generate session ID if not provided
+        session_id = request.headers.get("x-session-id", str(uuid.uuid4()))
+        
+        # Check for duplicate view in the last 30 minutes (anti-spam)
+        recent_view = db.query(ReviewView).filter(
+            ReviewView.review_id == review_id,
+            ReviewView.ip_address == client_ip,
+            ReviewView.viewed_at > datetime.utcnow() - timedelta(minutes=30)
+        ).first()
+        
+        if not recent_view:
+            # Create new view record
+            view = ReviewView(
+                review_id=review_id,
+                user_id=current_user.user_id if current_user else None,
+                ip_address=client_ip,
+                user_agent=user_agent,
+                session_id=session_id,
+                viewed_at=datetime.utcnow(),
+                expires_at=datetime.utcnow() + timedelta(days=30),  # Views expire after 30 days
+                is_valid=True,
+                is_unique_user=current_user is not None,
+                is_unique_session=True
+            )
+            db.add(view)
+        
+        # Record entity view if user is authenticated
         if current_user:
-            existing_view = db.query(UserEntityView).filter(
+            existing_entity_view = db.query(UserEntityView).filter(
                 UserEntityView.user_id == current_user.user_id,
                 UserEntityView.entity_id == review.entity_id
             ).first()
             
-            if not existing_view:
-                view = UserEntityView(
+            if not existing_entity_view:
+                entity_view = UserEntityView(
                     user_id=current_user.user_id,
                     entity_id=review.entity_id
                 )
-                db.add(view)
+                db.add(entity_view)
         
         db.commit()
-        return api_response(data={"status": "view_tracked", "view_count": review.view_count, "incremented": True})
+        
+        # Get updated view count from database (updated by trigger)
+        db.refresh(review)
+        
+        return api_response(data={
+            "status": "view_tracked", 
+            "view_count": review.view_count, 
+            "incremented": not bool(recent_view),
+            "is_duplicate": bool(recent_view)
+        })
     
     except Exception as e:
         logger.error(f"Error tracking view for review {review_id}: {str(e)}")
@@ -1189,60 +1232,9 @@ async def add_or_update_reaction(
             logger.warning(f"⚠️ Failed to trigger notification for reaction: {notification_error}")
             # Don't fail the request if notification fails
         
-        # 🚀 ULTRA-OPTIMIZATION: Update denormalized counters AND top reactions JSON
-        try:
-            # Get updated reaction counts and top reactions in one query
-            reaction_stats = db.query(
-                ReviewReaction.reaction_type,
-                func.count(ReviewReaction.reaction_id).label('count')
-            ).filter(ReviewReaction.review_id == review_id)\
-             .group_by(ReviewReaction.reaction_type)\
-             .order_by(func.count(ReviewReaction.reaction_id).desc())\
-             .limit(5).all()  # Top 5 reactions
-            
-            # Build top reactions JSON (Industry standard format)
-            top_reactions_json = {}
-            total_reactions = 0
-            
-            for reaction_stat in reaction_stats:
-                reaction_type_str = reaction_stat.reaction_type.value if hasattr(reaction_stat.reaction_type, 'value') else str(reaction_stat.reaction_type)
-                count = reaction_stat.count
-                top_reactions_json[reaction_type_str] = count
-                total_reactions += count
-            
-            # Update both denormalized fields atomically
-            db.query(Review).filter(Review.review_id == review_id).update({
-                'reaction_count': total_reactions,
-                'top_reactions': top_reactions_json
-            })
-            db.commit()
-            
-            logger.info(f"🚀 Updated denormalized data for review {review_id}: {total_reactions} total, top: {top_reactions_json}")
-            
-            # 🎯 ENTITY AGGREGATION: Update entity total reaction count
-            try:
-                from models.entity import Entity
-                entity_total_reactions = db.query(
-                    func.sum(Review.reaction_count)
-                ).filter(
-                    Review.entity_id == review.entity_id
-                ).scalar() or 0
-                
-                db.query(Entity).filter(Entity.entity_id == review.entity_id).update({
-                    'reaction_count': entity_total_reactions
-                })
-                db.commit()
-                logger.info(f"🎯 Updated entity {review.entity_id} total reaction count to {entity_total_reactions}")
-            except Exception as entity_error:
-                logger.warning(f"Failed to update entity reaction count (non-critical): {entity_error}")
-            
-            # 🔄 CACHE MANAGEMENT: Update user reaction cache
-            # TODO: Implement user reaction cache service when needed
-            logger.info(f"🔄 User reaction cache update skipped (service not implemented yet)")
-                
-        except Exception as counter_error:
-            logger.warning(f"Failed to update denormalized data: {counter_error}")
-            # Don't fail the request if denormalization fails
+        # ✅ DATABASE TRIGGERS: Count updates are now handled automatically by database triggers
+        # This provides better consistency, performance, and eliminates race conditions
+        logger.info(f"✅ Reaction processed for review {review_id} - counts updated by database triggers")
         
         # Return updated reaction summary
         reaction_summary = get_reaction_summary_response(review_id, db, current_user.user_id)
@@ -1340,60 +1332,9 @@ async def remove_reaction(
             db.delete(reaction)
             db.commit()
             
-            # 🚀 ULTRA-OPTIMIZATION: Update denormalized counters AND top reactions JSON
-            try:
-                # Get updated reaction counts and top reactions in one query
-                reaction_stats = db.query(
-                    ReviewReaction.reaction_type,
-                    func.count(ReviewReaction.reaction_id).label('count')
-                ).filter(ReviewReaction.review_id == review_id)\
-                 .group_by(ReviewReaction.reaction_type)\
-                 .order_by(func.count(ReviewReaction.reaction_id).desc())\
-                 .limit(5).all()  # Top 5 reactions
-                
-                # Build top reactions JSON (Industry standard format)
-                top_reactions_json = {}
-                total_reactions = 0
-                
-                for reaction_stat in reaction_stats:
-                    reaction_type_str = reaction_stat.reaction_type.value if hasattr(reaction_stat.reaction_type, 'value') else str(reaction_stat.reaction_type)
-                    count = reaction_stat.count
-                    top_reactions_json[reaction_type_str] = count
-                    total_reactions += count
-                
-                # Update both denormalized fields atomically
-                db.query(Review).filter(Review.review_id == review_id).update({
-                    'reaction_count': total_reactions,
-                    'top_reactions': top_reactions_json
-                })
-                db.commit()
-                
-                logger.info(f"🚀 Updated denormalized data for review {review_id}: {total_reactions} total, top: {top_reactions_json}")
-                
-                # 🎯 ENTITY AGGREGATION: Update entity total reaction count
-                try:
-                    from models.entity import Entity
-                    entity_total_reactions = db.query(
-                        func.sum(Review.reaction_count)
-                    ).filter(
-                        Review.entity_id == review.entity_id
-                    ).scalar() or 0
-                    
-                    db.query(Entity).filter(Entity.entity_id == review.entity_id).update({
-                        'reaction_count': entity_total_reactions
-                    })
-                    db.commit()
-                    logger.info(f"🎯 Updated entity {review.entity_id} total reaction count to {entity_total_reactions}")
-                except Exception as entity_error:
-                    logger.warning(f"Failed to update entity reaction count (non-critical): {entity_error}")
-                
-                # 🔄 CACHE MANAGEMENT: Invalidate user reaction cache  
-                # TODO: Implement user reaction cache service when needed
-                logger.info(f"🔄 User reaction cache invalidation skipped (service not implemented yet)")
-                    
-            except Exception as counter_error:
-                logger.warning(f"Failed to update denormalized data: {counter_error}")
-                # Don't fail the request if denormalization fails
+            # ✅ DATABASE TRIGGERS: Count updates are now handled automatically by database triggers
+            # This provides better consistency, performance, and eliminates race conditions
+            logger.info(f"✅ Reaction removed from review {review_id} - counts updated by database triggers")
         
         # Return updated reaction summary
         reaction_summary = get_reaction_summary_response(review_id, db, current_user.user_id)
@@ -1726,4 +1667,125 @@ async def get_review_share_metadata(
             message=f"Failed to retrieve share metadata: {str(e)}",
             status_code=500,
             error_code="METADATA_RETRIEVAL_ERROR"
+        )
+
+# =============================================================================
+# COUNT VALIDATION AND HEALTH CHECK ENDPOINTS
+# =============================================================================
+
+@router.get("/admin/counts/health", tags=["Admin - Count Validation"])
+async def get_count_health_check(
+    db: Session = Depends(get_db),
+    current_user: RequiredUser = None  # Add proper admin authorization later
+):
+    """Get a quick health check of the counting system"""
+    try:
+        validation_service = CountValidationService(db)
+        sample_validation = validation_service.validate_sample_counts(sample_size=20)
+        trigger_status = validation_service.get_trigger_status()
+        
+        overall_health = "healthy"
+        if sample_validation.get("accuracy_percentage", 0) < 95 or trigger_status.get("health_status") != "healthy":
+            overall_health = "degraded"
+        if sample_validation.get("status") == "error" or trigger_status.get("health_status") == "error":
+            overall_health = "error"
+        
+        return api_response(
+            data={
+                "overall_health": overall_health,
+                "sample_validation": sample_validation,
+                "trigger_status": trigger_status,
+                "timestamp": datetime.utcnow().isoformat()
+            },
+            message=f"Count system health: {overall_health}"
+        )
+    except Exception as e:
+        logger.error(f"Error in count health check: {str(e)}")
+        return error_response(
+            message=f"Failed to get count health: {str(e)}",
+            status_code=500
+        )
+
+@router.get("/admin/counts/report", tags=["Admin - Count Validation"])
+async def get_count_consistency_report(
+    db: Session = Depends(get_db),
+    current_user: RequiredUser = None  # Add proper admin authorization later
+):
+    """Get a detailed consistency report for all counts"""
+    try:
+        validation_service = CountValidationService(db)
+        report = validation_service.get_consistency_report()
+        
+        return api_response(
+            data=report,
+            message="Count consistency report generated successfully"
+        )
+    except Exception as e:
+        logger.error(f"Error generating consistency report: {str(e)}")
+        return error_response(
+            message=f"Failed to generate report: {str(e)}",
+            status_code=500
+        )
+
+@router.post("/admin/counts/fix", tags=["Admin - Count Validation"])
+async def fix_count_inconsistencies(
+    db: Session = Depends(get_db),
+    current_user: RequiredUser = None  # Add proper admin authorization later
+):
+    """Automatically fix all count inconsistencies"""
+    try:
+        validation_service = CountValidationService(db)
+        result = validation_service.fix_all_inconsistencies()
+        
+        return api_response(
+            data=result,
+            message="Count inconsistencies fixed" if result.get("success") else "Failed to fix inconsistencies"
+        )
+    except Exception as e:
+        logger.error(f"Error fixing count inconsistencies: {str(e)}")
+        return error_response(
+            message=f"Failed to fix inconsistencies: {str(e)}",
+            status_code=500
+        )
+
+@router.get("/admin/counts/triggers", tags=["Admin - Count Validation"])
+async def get_trigger_status(
+    db: Session = Depends(get_db),
+    current_user: RequiredUser = None  # Add proper admin authorization later
+):
+    """Get the status of database triggers"""
+    try:
+        validation_service = CountValidationService(db)
+        status = validation_service.get_trigger_status()
+        
+        return api_response(
+            data=status,
+            message="Trigger status retrieved successfully"
+        )
+    except Exception as e:
+        logger.error(f"Error getting trigger status: {str(e)}")
+        return error_response(
+            message=f"Failed to get trigger status: {str(e)}",
+            status_code=500
+        )
+
+@router.get("/admin/counts/metrics", tags=["Admin - Count Validation"])
+async def get_count_performance_metrics(
+    db: Session = Depends(get_db),
+    current_user: RequiredUser = None  # Add proper admin authorization later
+):
+    """Get performance metrics for the counting system"""
+    try:
+        validation_service = CountValidationService(db)
+        metrics = validation_service.get_performance_metrics()
+        
+        return api_response(
+            data=metrics,
+            message="Performance metrics retrieved successfully"
+        )
+    except Exception as e:
+        logger.error(f"Error getting performance metrics: {str(e)}")
+        return error_response(
+            message=f"Failed to get metrics: {str(e)}",
+            status_code=500
         )
