@@ -76,6 +76,11 @@ class ProductionAuthMiddleware(BaseHTTPMiddleware):
             "/api/v1/homepage"
         }
         
+        # Endpoints that work with optional authentication (CurrentUser = None)
+        self.optional_auth_endpoints = {
+            "/api/v1/reviews/"  # Covers /api/v1/reviews/{id}/view and similar endpoints
+        }
+        
         # High-risk endpoints requiring additional security
         self.high_risk_endpoints = {
             "/api/v1/auth-production/change-password",
@@ -102,7 +107,24 @@ class ProductionAuthMiddleware(BaseHTTPMiddleware):
                 response = await call_next(request)
                 return self._add_security_headers(response)
             
-            # Perform authentication
+            # Check if endpoint supports optional authentication
+            if self._is_optional_auth_endpoint(request.url.path):
+                # Try to authenticate but don't fail if auth is missing
+                auth_result = await self._authenticate_request_optional(request)
+                if auth_result.success:
+                    request.state.current_user = auth_result.user
+                    request.state.token_payload = auth_result.token_payload
+                else:
+                    request.state.current_user = None
+                    request.state.token_payload = None
+                
+                response = await call_next(request)
+                response = self._add_security_headers(response)
+                if auth_result.success:
+                    response = await self._add_auth_headers(response, auth_result)
+                return response
+            
+            # Perform authentication (required for all other endpoints)
             auth_result = await self._authenticate_request(request)
             
             if not auth_result.success:
@@ -208,6 +230,59 @@ class ProductionAuthMiddleware(BaseHTTPMiddleware):
                 success=False,
                 error_code="AUTHENTICATION_ERROR",
                 error_message="Authentication failed"
+            )
+    
+    async def _authenticate_request_optional(self, request: Request) -> 'AuthResult':
+        """Authenticate request with optional authentication (for CurrentUser = None endpoints)"""
+        # Extract authorization header
+        auth_header = request.headers.get("authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            # Return successful result with no user for optional auth
+            return AuthResult(
+                success=False,
+                error_code="NO_AUTH_HEADER",
+                error_message="No authorization header provided"
+            )
+        
+        token = auth_header[7:]  # Remove "Bearer " prefix
+        
+        try:
+            # Verify token using same logic as required auth
+            payload = await self.auth_system.verify_token(token, "access")
+            
+            # Get user from database with proper session management
+            db = next(get_db())
+            try:
+                user = db.query(User).filter(User.user_id == int(payload["sub"])).first()
+            finally:
+                db.close()
+            
+            if not user or not user.is_active:
+                # For optional auth, just return failure without user
+                return AuthResult(
+                    success=False,
+                    error_code="USER_INVALID",
+                    error_message="Invalid user"
+                )
+            
+            # Update last activity (async to avoid blocking)
+            asyncio.create_task(self._update_user_activity(user.user_id))
+            
+            # Skip device fingerprint validation for view tracking (performance optimization)
+            
+            return AuthResult(
+                success=True,
+                user=user,
+                token_payload=payload
+            )
+            
+        except Exception as e:
+            # For optional auth, don't log failures as security events
+            logger.debug(f"Optional authentication failed: {e}")
+            return AuthResult(
+                success=False,
+                error_code="OPTIONAL_AUTH_FAILED",
+                error_message="Optional authentication failed"
             )
     
     async def _perform_security_checks(self, request: Request):
@@ -324,6 +399,10 @@ class ProductionAuthMiddleware(BaseHTTPMiddleware):
     def _is_high_risk_endpoint(self, path: str) -> bool:
         """Check if endpoint is high-risk"""
         return any(path.startswith(endpoint) for endpoint in self.high_risk_endpoints)
+    
+    def _is_optional_auth_endpoint(self, path: str) -> bool:
+        """Check if endpoint supports optional authentication"""
+        return any(path.startswith(endpoint) for endpoint in self.optional_auth_endpoints)
     
     def _add_security_headers(self, response: Response) -> Response:
         """Add production security headers"""

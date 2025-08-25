@@ -36,7 +36,7 @@ async def track_review_view(
     review_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    current_user = CurrentUser
+    current_user: CurrentUser = None
 ):
     """
     Track a review view with industry-standard rate limiting.
@@ -93,7 +93,7 @@ async def track_entity_view(
     entity_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    current_user = CurrentUser
+    current_user: CurrentUser = None
 ):
     """
     Track an entity view with the same rate limiting as reviews.
@@ -142,8 +142,8 @@ async def track_entity_view(
 @router.get("/reviews/{review_id}/analytics", response_model=ViewAnalyticsResponse)
 async def get_review_analytics(
     review_id: int,
-    db: Session = Depends(get_db),
-    current_user = RequiredUser
+    current_user: RequiredUser,
+    db: Session = Depends(get_db)
 ):
     """
     Get view analytics for a review.
