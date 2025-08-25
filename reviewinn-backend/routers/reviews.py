@@ -667,7 +667,7 @@ def get_review_comment_count(
     if not review:
         raise HTTPException(status_code=404, detail="Review not found")
     count = db.query(Comment).filter(Comment.review_id == review_id).count()
-    return {"count": count}
+    return api_response(data={"count": count}, message="Comment count retrieved successfully")
 
 @router.get("/{review_id}/comments")
 def get_review_comments(
@@ -720,13 +720,16 @@ def get_review_comments(
             )
             comment_responses.append(comment_response)
 
-        return {
-            "comments": [c.model_dump(mode='json') for c in comment_responses],
-            "total": total,
-            "page": page,
-            "limit": limit,
-            "pages": (total // limit) + (1 if total % limit else 0)
-        }
+        return api_response(
+            data={
+                "comments": [c.model_dump(mode='json') for c in comment_responses],
+                "total": total,
+                "page": page,
+                "limit": limit,
+                "pages": (total // limit) + (1 if total % limit else 0)
+            },
+            message="Comments retrieved successfully"
+        )
     except Exception as e:
         import traceback
         print(f"Error in get_review_comments: {str(e)}")
