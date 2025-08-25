@@ -3,7 +3,6 @@ Enterprise-grade user profile router using only core_users table.
 No legacy tables or mock data - only real production data.
 """
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
 from typing import Dict, Any, Optional
 import logging
@@ -14,7 +13,6 @@ from models.user import User as CoreUser
 from auth.production_dependencies import CurrentUser, RequiredUser
 
 logger = logging.getLogger(__name__)
-security = HTTPBearer()
 
 router = APIRouter(prefix="/users", tags=["User Profiles"])
 

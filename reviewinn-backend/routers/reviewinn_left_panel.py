@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 import logging
 
 from database import get_db
-from auth.production_dependencies import CurrentUser, RequiredUser
+from auth.production_dependencies import CurrentUser
 
 router = APIRouter()
 

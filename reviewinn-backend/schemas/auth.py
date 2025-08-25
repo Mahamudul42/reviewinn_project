@@ -16,26 +16,28 @@ class LoginRequest(BaseModel):
 class RegisterRequest(BaseModel):
     """Schema for user registration."""
     email: EmailStr = Field(..., description="User email address")
-    password: str = Field(..., min_length=12, max_length=128, description="User password")
+    password: str = Field(..., min_length=8, max_length=128, description="User password")
     first_name: str = Field(..., min_length=1, max_length=100, description="User first name")
     last_name: str = Field(..., min_length=1, max_length=100, description="User last name")
     username: Optional[str] = Field(None, min_length=3, max_length=30, description="Username")
 
     @validator('password')
     def validate_password(cls, v: str) -> str:
-        """Production-grade password validation matching auth system requirements"""
-        if len(v) < 12:
-            raise ValueError('Password must be at least 12 characters long')
+        """Password validation: 8+ characters with letters and numbers"""
+        if len(v) < 8:
+            raise ValueError('Password must be at least 8 characters long')
         if len(v) > 128:
             raise ValueError('Password cannot exceed 128 characters')
-        if not any(c.isupper() for c in v):
-            raise ValueError('Password must contain at least one uppercase letter')
-        if not any(c.islower() for c in v):
-            raise ValueError('Password must contain at least one lowercase letter')
-        if not any(c.isdigit() for c in v):
-            raise ValueError('Password must contain at least one digit')
-        if not any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?`~" for c in v):
-            raise ValueError('Password must contain at least one special character')
+        
+        # Check for letters (any case) and numbers
+        has_letters = any(c.isalpha() for c in v)
+        has_digits = any(c.isdigit() for c in v)
+        
+        if not has_letters:
+            raise ValueError('Password must contain at least one letter')
+        if not has_digits:
+            raise ValueError('Password must contain at least one number')
+        
         return v
 
 
@@ -61,46 +63,50 @@ class ForgotPasswordRequest(BaseModel):
 class ResetPasswordRequest(BaseModel):
     """Schema for password reset request."""
     token: str = Field(..., description="Password reset token")
-    new_password: str = Field(..., min_length=12, max_length=128, description="New password")
+    new_password: str = Field(..., min_length=8, max_length=128, description="New password")
     
     @validator('new_password')
     def validate_password(cls, v: str) -> str:
-        """Production-grade password validation matching auth system requirements"""
-        if len(v) < 12:
-            raise ValueError('Password must be at least 12 characters long')
+        """Password validation: 8+ characters with letters and numbers"""
+        if len(v) < 8:
+            raise ValueError('Password must be at least 8 characters long')
         if len(v) > 128:
             raise ValueError('Password cannot exceed 128 characters')
-        if not any(c.isupper() for c in v):
-            raise ValueError('Password must contain at least one uppercase letter')
-        if not any(c.islower() for c in v):
-            raise ValueError('Password must contain at least one lowercase letter')
-        if not any(c.isdigit() for c in v):
-            raise ValueError('Password must contain at least one digit')
-        if not any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?`~" for c in v):
-            raise ValueError('Password must contain at least one special character')
+        
+        # Check for letters (any case) and numbers
+        has_letters = any(c.isalpha() for c in v)
+        has_digits = any(c.isdigit() for c in v)
+        
+        if not has_letters:
+            raise ValueError('Password must contain at least one letter')
+        if not has_digits:
+            raise ValueError('Password must contain at least one number')
+        
         return v
 
 
 class ChangePasswordRequest(BaseModel):
     """Schema for password change request."""
     current_password: str = Field(..., description="Current password")
-    new_password: str = Field(..., min_length=12, max_length=128, description="New password")
+    new_password: str = Field(..., min_length=8, max_length=128, description="New password")
     
     @validator('new_password')
     def validate_password(cls, v: str) -> str:
-        """Production-grade password validation matching auth system requirements"""
-        if len(v) < 12:
-            raise ValueError('Password must be at least 12 characters long')
+        """Password validation: 8+ characters with letters and numbers"""
+        if len(v) < 8:
+            raise ValueError('Password must be at least 8 characters long')
         if len(v) > 128:
             raise ValueError('Password cannot exceed 128 characters')
-        if not any(c.isupper() for c in v):
-            raise ValueError('Password must contain at least one uppercase letter')
-        if not any(c.islower() for c in v):
-            raise ValueError('Password must contain at least one lowercase letter')
-        if not any(c.isdigit() for c in v):
-            raise ValueError('Password must contain at least one digit')
-        if not any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?`~" for c in v):
-            raise ValueError('Password must contain at least one special character')
+        
+        # Check for letters (any case) and numbers
+        has_letters = any(c.isalpha() for c in v)
+        has_digits = any(c.isdigit() for c in v)
+        
+        if not has_letters:
+            raise ValueError('Password must contain at least one letter')
+        if not has_digits:
+            raise ValueError('Password must contain at least one number')
+        
         return v
 
 
