@@ -28,7 +28,7 @@ const LoginPage: React.FC = () => {
     
     // Redirect to intended destination if available
     const intendedDestination = sessionStorage.getItem('intendedDestination');
-    if (intendedDestination && intendedDestination !== '/') {
+    if (intendedDestination) {
       sessionStorage.removeItem('intendedDestination');
       navigate(intendedDestination, { replace: true });
     } else if (state?.from) {
@@ -41,6 +41,7 @@ const LoginPage: React.FC = () => {
         } 
       });
     } else {
+      // If no specific destination, stay on homepage
       navigate('/', { replace: true });
     }
   };
