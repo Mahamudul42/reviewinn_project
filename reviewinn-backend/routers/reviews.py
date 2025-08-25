@@ -163,8 +163,8 @@ def get_comment_reaction_summary_response(comment_id: int, db: Session, current_
 @router.post("/test", response_model=None, status_code=200)
 async def test_review_endpoint(
     request: Request,
-    db: Session = Depends(get_db),
-    current_user = RequiredUser
+    current_user: RequiredUser,
+    db: Session = Depends(get_db)
 ):
     """Test endpoint to verify authentication and database connection."""
     try:
@@ -192,8 +192,8 @@ async def test_review_endpoint(
 @router.post("/create", response_model=None, status_code=201)
 async def create_review(
     review_data: ReviewCreateRequest,
-    db: Session = Depends(get_db),
-    current_user = RequiredUser
+    current_user: RequiredUser,
+    db: Session = Depends(get_db)
 ):
     """Create a new review for an entity."""
     try:
@@ -739,8 +739,8 @@ def get_review_comments(
 async def create_comment(
     review_id: int,
     comment_request: CommentRequest,
-    db: Session = Depends(get_db),
-    current_user = RequiredUser
+    current_user: RequiredUser,
+    db: Session = Depends(get_db)
 ):
     """Create a new comment on a review."""
     try:
@@ -967,8 +967,8 @@ def search_reviews(
 async def add_comment_reaction(
     comment_id: int,
     reaction_request: ReactionRequest,
-    db: Session = Depends(get_db),
-    current_user = RequiredUser
+    current_user: RequiredUser,
+    db: Session = Depends(get_db)
 ):
     """Add or update a reaction to a comment."""
     try:
@@ -1032,8 +1032,8 @@ async def add_comment_reaction(
 @router.delete("/comments/{comment_id}/react", tags=["Comment Reactions"])
 async def remove_comment_reaction(
     comment_id: int,
-    db: Session = Depends(get_db),
-    current_user = RequiredUser
+    current_user: RequiredUser,
+    db: Session = Depends(get_db)
 ):
     """Remove a reaction from a comment."""
     try:
@@ -1100,8 +1100,8 @@ async def get_comment_reactions(
 async def add_or_update_reaction(
     review_id: int,
     reaction_request: ReactionRequest,
-    db: Session = Depends(get_db),
-    current_user = RequiredUser
+    current_user: RequiredUser,
+    db: Session = Depends(get_db)
 ):
     """Add or update a reaction for a review by the current user."""
     logger.info(f"🎯 REACTION ENDPOINT CALLED: review_id={review_id}")
@@ -1213,7 +1213,7 @@ async def add_or_update_reaction(
             # Update both denormalized fields atomically
             db.query(Review).filter(Review.review_id == review_id).update({
                 'reaction_count': total_reactions,
-                'top_reactions_json': top_reactions_json
+                'top_reactions': top_reactions_json
             })
             db.commit()
             
@@ -1290,7 +1290,7 @@ async def unprotected_test():
     return {"message": "Unprotected endpoint working!", "status": "success"}
 
 @router.post("/simple-auth-test", tags=["Test"])
-async def simple_auth_test(current_user = RequiredUser):
+async def simple_auth_test(current_user: RequiredUser):
     """Simple test with authentication to isolate the auth issue."""
     logger.info(f"🔑 AUTH TEST: User {current_user.user_id} authenticated successfully")
     print(f"🔑 AUTH TEST: User {current_user.user_id} authenticated successfully")
@@ -1303,7 +1303,7 @@ async def simple_auth_test(current_user = RequiredUser):
 @router.post("/minimal-reaction-test/{review_id}", tags=["Test"])
 async def minimal_reaction_test(
     review_id: int,
-    current_user = RequiredUser
+    current_user: RequiredUser
 ):
     """Minimal reaction test without any complex logic."""
     logger.info(f"🎯 MINIMAL REACTION TEST: User {current_user.user_id} on review {review_id}")
@@ -1317,8 +1317,8 @@ async def minimal_reaction_test(
 @router.delete("/{review_id}/react", tags=["Review Reactions"])
 async def remove_reaction(
     review_id: int,
-    db: Session = Depends(get_db),
-    current_user = RequiredUser
+    current_user: RequiredUser,
+    db: Session = Depends(get_db)
 ):
     """Remove the current user's reaction from a review."""
     try:
@@ -1364,7 +1364,7 @@ async def remove_reaction(
                 # Update both denormalized fields atomically
                 db.query(Review).filter(Review.review_id == review_id).update({
                     'reaction_count': total_reactions,
-                    'top_reactions_json': top_reactions_json
+                    'top_reactions': top_reactions_json
                 })
                 db.commit()
                 
