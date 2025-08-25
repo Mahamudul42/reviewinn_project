@@ -164,10 +164,6 @@ class HomepageRepository:
         """Get trending entities query with category relationships"""
         return (
             self.db.query(Entity)
-            .options(
-                selectinload(Entity.root_category),
-                selectinload(Entity.final_category)
-            )
             .filter(Entity.review_count > 0)
             .order_by(Entity.review_count.desc(), Entity.average_rating.desc())
             .limit(limit)
@@ -229,24 +225,18 @@ class HomepageRepository:
         # Average rating
         avg_rating = self.db.query(func.avg(Review.overall_rating)).scalar() or 0.0
         
-        # Most active category - use hierarchical system
+        # Most active category - use hierarchical system with JSONB extraction
         most_active_category = (
-            self.db.query(Entity.final_category_id, func.count(Review.review_id).label('count'))
+            self.db.query(Entity.final_category['name'].astext, func.count(Review.review_id).label('count'))
             .join(Review, Entity.entity_id == Review.entity_id)
-            .filter(Entity.final_category_id.isnot(None))
-            .group_by(Entity.final_category_id)
+            .filter(Entity.final_category.isnot(None))
+            .group_by(Entity.final_category['name'].astext)
             .order_by(desc('count'))
             .first()
         )
         
-        # Get category name if found
-        most_active_category_name = 'N/A'
-        if most_active_category:
-            from models.unified_category import UnifiedCategory
-            category = self.db.query(UnifiedCategory).filter(
-                UnifiedCategory.id == most_active_category[0]
-            ).first()
-            most_active_category_name = category.name if category else 'Unknown'
+        # Get category name if found (now directly from query)
+        most_active_category_name = most_active_category[0] if most_active_category else 'N/A'
         
         return {
             'total_reviews': total_reviews,
@@ -315,8 +305,7 @@ class HomepageDataService:
             .join(User, Review.user_id == User.user_id)
             .join(Entity, Review.entity_id == Entity.entity_id)
             .options(
-                selectinload(Review.entity).selectinload(Entity.root_category),
-                selectinload(Review.entity).selectinload(Entity.final_category)
+                selectinload(Review.entity)
             )
             .order_by(desc(Review.created_at))
             .offset(offset)
@@ -336,14 +325,14 @@ class HomepageDataService:
                     "name": entity.name,
                     "description": entity.description,
                     # Use hierarchical category names for legacy compatibility
-                    "category": entity.root_category.name if hasattr(entity, 'root_category') and entity.root_category else 'General',
-                    "subcategory": entity.final_category.name if hasattr(entity, 'final_category') and entity.final_category else None,
+                    "category": entity.root_category.get('name') if entity.root_category else 'General',
+                    "subcategory": entity.final_category.get('name') if entity.final_category else None,
                     "avatar": entity.avatar,
                     "isVerified": entity.is_verified,
                     "isClaimed": entity.is_claimed,
                     "claimedBy": entity.claimed_by,
                     "claimedAt": entity.claimed_at.isoformat() if entity.claimed_at else None,
-                    "context": entity.context or {},
+                    "context": getattr(entity, 'context', {}) or {},
                     "average_rating": float(entity.average_rating) if entity.average_rating else 0,
                     "averageRating": float(entity.average_rating) if entity.average_rating else 0,
                     "rating": float(entity.average_rating) if entity.average_rating else 0,
@@ -354,48 +343,48 @@ class HomepageDataService:
                     "createdAt": entity.created_at.isoformat() if entity.created_at else None,
                     "updatedAt": entity.updated_at.isoformat() if entity.updated_at else None,
                     # Hierarchical category information
-                    "root_category_name": entity.root_category.name if hasattr(entity, 'root_category') and entity.root_category else None,
-                    "final_category_name": entity.final_category.name if hasattr(entity, 'final_category') and entity.final_category else None,
-                    "root_category_id": entity.root_category_id,
-                    "final_category_id": entity.final_category_id,
+                    "root_category_name": entity.root_category.get('name') if entity.root_category else None,
+                    "final_category_name": entity.final_category.get('name') if entity.final_category else None,
+                    "root_category_id": entity.root_category.get('id') if entity.root_category else None,
+                    "final_category_id": entity.final_category.get('id') if entity.final_category else None,
                 }
                 
                 # Add category relationships if they exist
-                if hasattr(entity, 'root_category') and entity.root_category:
+                if entity.root_category:
                     entity_data["root_category"] = {
-                        "id": entity.root_category.id,
-                        "name": entity.root_category.name,
-                        "slug": entity.root_category.slug,
-                        "icon": getattr(entity.root_category, 'icon', None),
-                        "color": getattr(entity.root_category, 'color', None),
-                        "level": getattr(entity.root_category, 'level', 1)
+                        "id": entity.root_category.get('id'),
+                        "name": entity.root_category.get('name'),
+                        "slug": entity.root_category.get('slug'),
+                        "icon": entity.root_category.get('icon'),
+                        "color": entity.root_category.get('color'),
+                        "level": entity.root_category.get('level', 1)
                     }
                 
-                if hasattr(entity, 'final_category') and entity.final_category:
+                if entity.final_category:
                     entity_data["final_category"] = {
-                        "id": entity.final_category.id,
-                        "name": entity.final_category.name,
-                        "slug": entity.final_category.slug,
-                        "level": getattr(entity.final_category, 'level', 1),
+                        "id": entity.final_category.get('id'),
+                        "name": entity.final_category.get('name'),
+                        "slug": entity.final_category.get('slug'),
+                        "level": entity.final_category.get('level', 1),
                         "icon": getattr(entity.final_category, 'icon', None),
                         "color": getattr(entity.final_category, 'color', None)
                     }
                     
                     # Build category breadcrumb for UI display
                     category_breadcrumb = []
-                    if entity.root_category and entity.root_category.id != entity.final_category.id:
+                    if entity.root_category and entity.root_category.get('id') != entity.final_category.get('id'):
                         category_breadcrumb.append({
-                            "id": entity.root_category.id,
-                            "name": entity.root_category.name,
-                            "slug": entity.root_category.slug,
-                            "level": getattr(entity.root_category, 'level', 1)
+                            "id": entity.root_category.get('id'),
+                            "name": entity.root_category.get('name'),
+                            "slug": entity.root_category.get('slug'),
+                            "level": entity.root_category.get('level', 1)
                         })
                     
                     category_breadcrumb.append({
-                        "id": entity.final_category.id,
-                        "name": entity.final_category.name,
-                        "slug": entity.final_category.slug,
-                        "level": getattr(entity.final_category, 'level', 1)
+                        "id": entity.final_category.get('id'),
+                        "name": entity.final_category.get('name'),
+                        "slug": entity.final_category.get('slug'),
+                        "level": entity.final_category.get('level', 1)
                     })
                     
                     entity_data["category_breadcrumb"] = category_breadcrumb
@@ -445,9 +434,9 @@ class HomepageDataService:
                 review_count=entity.review_count or 0,
                 view_count=getattr(entity, 'view_count', 0) or 0,
                 created_at=entity.created_at,
-                # OPTIMIZED: Use hierarchical category names from relationships
-                root_category_name=entity.root_category.name if entity.root_category else None,
-                final_category_name=entity.final_category.name if entity.final_category else None,
+                # OPTIMIZED: Use hierarchical category names from JSONB data
+                root_category_name=entity.root_category.get('name') if entity.root_category else None,
+                final_category_name=entity.final_category.get('name') if entity.final_category else None,
                 # Include hierarchical category data
                 root_category_id=entity_dict.get('root_category_id'),
                 final_category_id=entity_dict.get('final_category_id'),

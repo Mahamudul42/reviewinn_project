@@ -79,7 +79,13 @@ class ProductionAuthMiddleware(BaseHTTPMiddleware):
         # Endpoints that work with optional authentication (CurrentUser = None)
         self.optional_auth_endpoints = {
             "/api/v1/reviews/",  # Covers /api/v1/reviews/{id}/view and similar endpoints
-            "/api/v1/reviews"    # Also covers without trailing slash
+            "/api/v1/reviews",    # Also covers without trailing slash
+            "/api/v1/entities/",  # Entity endpoints with optional auth
+            "/api/v1/entities",   # Entity endpoints without trailing slash
+            "/api/v1/users/",     # User profile endpoints
+            "/api/v1/view-tracking/", # View tracking endpoints
+            "/api/v1/homepage/",  # Homepage endpoints 
+            "/api/v1/reviewinn-right-panel/public" # Public right panel
         }
         
         # High-risk endpoints requiring additional security

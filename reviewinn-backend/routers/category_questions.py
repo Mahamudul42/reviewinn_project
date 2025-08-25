@@ -117,8 +117,8 @@ async def create_category_questions(
     category_path: str,
     category_name: str,
     questions: List[Dict[str, str]],
-    db: Session = Depends(get_db),
-    current_user = RequiredUser
+    current_user: RequiredUser,
+    db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
     """
     Create new questions for a category (admin only)

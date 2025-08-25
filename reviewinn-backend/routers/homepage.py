@@ -194,12 +194,8 @@ async def get_left_panel_data(
                 entity = db.query(Entity).filter(Entity.name == review.entity_name).first()
                 if entity:
                     entity_ids.add(entity.entity_id)
-        # OPTIMIZED: Fetch entities with hierarchical category relationships loaded
-        from sqlalchemy.orm import selectinload
-        entities = db.query(Entity).options(
-            selectinload(Entity.root_category),
-            selectinload(Entity.final_category)
-        ).filter(Entity.entity_id.in_(entity_ids)).all()
+        # OPTIMIZED: Fetch entities (root_category and final_category are JSONB columns, not relationships)
+        entities = db.query(Entity).filter(Entity.entity_id.in_(entity_ids)).all()
         # Convert to response models
         review_responses = [convert_review_data_to_response(r) for r in top_reviews]
         

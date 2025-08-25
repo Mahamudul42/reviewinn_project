@@ -52,7 +52,7 @@ def get_notification_dropdown(
 
 @router.get("/summary", response_model=NotificationSummary)
 async def get_notification_summary(
-    current_user = RequiredUser,
+    current_user: RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Get notification summary for header display with enterprise metrics."""
@@ -92,12 +92,12 @@ async def get_notification_summary(
 
 @router.get("/", response_model=NotificationListResponse)
 def get_notifications(
+    current_user: RequiredUser,
+    db: Session = Depends(get_db),
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(20, ge=1, le=100, description="Items per page"),
     unread_only: bool = Query(False, description="Show only unread notifications"),
-    priority_filter: Optional[str] = Query(None, description="Filter by priority"),
-    current_user = RequiredUser,
-    db: Session = Depends(get_db)
+    priority_filter: Optional[str] = Query(None, description="Filter by priority")
 ):
     """Get paginated notifications with enterprise filtering."""
     try:
@@ -120,7 +120,7 @@ def get_notifications(
 @router.post("/", response_model=NotificationRead)
 def create_notification(
     notification_data: NotificationCreate,
-    current_user = RequiredUser,
+    current_user: RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Create a new notification (admin/system use)."""
@@ -140,7 +140,7 @@ def create_notification(
 def update_notification(
     notification_id: int,
     update_data: NotificationUpdate,
-    current_user = RequiredUser,
+    current_user: RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Update a specific notification (supports is_read and other fields)."""
@@ -183,7 +183,7 @@ def update_notification(
 @router.patch("/{notification_id}/read")
 def mark_notification_as_read(
     notification_id: int,
-    current_user = RequiredUser,
+    current_user: RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Mark a specific notification as read."""
@@ -210,7 +210,7 @@ def mark_notification_as_read(
 
 @router.patch("/mark-all-read")
 def mark_all_notifications_as_read(
-    current_user = RequiredUser,
+    current_user: RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Mark all notifications as read for the current user."""
@@ -234,7 +234,7 @@ def mark_all_notifications_as_read(
 @router.patch("/bulk-update")
 def bulk_update_notifications(
     bulk_data: NotificationBulkUpdate,
-    current_user = RequiredUser,
+    current_user: RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Enterprise bulk update for multiple notifications."""
@@ -258,7 +258,7 @@ def bulk_update_notifications(
 @router.delete("/{notification_id}")
 def delete_notification(
     notification_id: int,
-    current_user = RequiredUser,
+    current_user: RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Delete a specific notification."""
@@ -285,7 +285,7 @@ def delete_notification(
 
 @router.get("/stats", response_model=NotificationStats)
 def get_notification_stats(
-    current_user = RequiredUser,
+    current_user: RequiredUser,
     db: Session = Depends(get_db)
 ):
     """Get comprehensive notification statistics for the user."""
@@ -305,11 +305,11 @@ def create_system_notification(
     title: str,
     content: str,
     notification_type: str,
+    current_user: RequiredUser,
+    db: Session = Depends(get_db),
     priority: str = "normal",
     target_users: Optional[List[int]] = None,
-    background_tasks: BackgroundTasks = BackgroundTasks(),
-    current_user = RequiredUser,
-    db: Session = Depends(get_db)
+    background_tasks: BackgroundTasks = BackgroundTasks()
 ):
     """Create system-wide notifications (admin only)."""
     try:
@@ -348,9 +348,9 @@ def create_system_notification(
 
 @router.post("/cleanup")
 def cleanup_expired_notifications(
-    background_tasks: BackgroundTasks = BackgroundTasks(),
-    current_user = RequiredUser,
-    db: Session = Depends(get_db)
+    current_user: RequiredUser,
+    db: Session = Depends(get_db),
+    background_tasks: BackgroundTasks = BackgroundTasks()
 ):
     """Enterprise cleanup job for expired notifications (admin only)."""
     try:
