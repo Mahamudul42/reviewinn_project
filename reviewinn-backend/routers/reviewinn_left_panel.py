@@ -31,22 +31,30 @@ async def get_reviewinn_left_panel_data(
         # 1. Get top 2 reviews by engagement (reaction + comment + view count)
         top_reviews_query = text("""
             SELECT 
-                review_id,
-                title,
-                content,
-                overall_rating,
-                view_count,
-                comment_count,
-                reaction_count,
-                (reaction_count + comment_count + view_count) as engagement_score,
-                top_reactions,
-                created_at,
-                entity_summary as entity,
-                user_summary as user
-            FROM review_main 
-            WHERE entity_summary IS NOT NULL 
-              AND user_summary IS NOT NULL
-            ORDER BY (reaction_count + comment_count + view_count) DESC
+                r.review_id,
+                r.title,
+                r.content,
+                r.overall_rating,
+                r.view_count,
+                r.comment_count,
+                r.reaction_count,
+                (r.reaction_count + r.comment_count + r.view_count) as engagement_score,
+                r.top_reactions,
+                r.created_at,
+                json_build_object(
+                    'entity_id', e.entity_id,
+                    'name', e.name,
+                    'category', e.final_category
+                ) as entity,
+                json_build_object(
+                    'user_id', u.user_id,
+                    'username', u.username,
+                    'display_name', u.display_name
+                ) as user
+            FROM review_main r
+            JOIN core_entities e ON r.entity_id = e.entity_id
+            JOIN core_users u ON r.user_id = u.user_id
+            ORDER BY (r.reaction_count + r.comment_count + r.view_count) DESC
             LIMIT 2
         """)
         
