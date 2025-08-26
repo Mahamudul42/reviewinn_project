@@ -44,12 +44,25 @@ async def get_reviewinn_left_panel_data(
                 json_build_object(
                     'entity_id', e.entity_id,
                     'name', e.name,
-                    'category', e.final_category
+                    'description', e.description,
+                    'avatar', e.avatar,
+                    'is_verified', e.is_verified,
+                    'is_claimed', e.is_claimed,
+                    'average_rating', e.average_rating,
+                    'review_count', e.review_count,
+                    'view_count', e.view_count,
+                    'final_category', e.final_category,
+                    'root_category', e.root_category
                 ) as entity,
                 json_build_object(
                     'user_id', u.user_id,
                     'username', u.username,
-                    'display_name', u.display_name
+                    'display_name', u.display_name,
+                    'first_name', u.first_name,
+                    'last_name', u.last_name,
+                    'avatar', u.avatar,
+                    'level', u.level,
+                    'is_verified', u.is_verified
                 ) as user
             FROM review_main r
             JOIN core_entities e ON r.entity_id = e.entity_id
@@ -103,6 +116,23 @@ async def get_reviewinn_left_panel_data(
         # Format response data
         top_reviews = []
         for row in top_reviews_data:
+            # Parse the user JSON and format the name
+            user_data = row.user
+            display_name = user_data.get('display_name')
+            first_name = user_data.get('first_name')
+            last_name = user_data.get('last_name')
+            username = user_data.get('username')
+            
+            # Use display_name first, then fallback to first_name + last_name, then username
+            name = display_name
+            if not name:
+                name = f"{first_name or ''} {last_name or ''}".strip()
+            if not name:
+                name = username
+            
+            # Update user object with formatted name
+            user_data['name'] = name
+            
             review = {
                 "review_id": row.review_id,
                 "title": row.title,
@@ -115,7 +145,7 @@ async def get_reviewinn_left_panel_data(
                 "top_reactions": row.top_reactions or {},
                 "created_at": row.created_at.isoformat() if row.created_at else None,
                 "entity": row.entity,
-                "user": row.user
+                "user": user_data
             }
             top_reviews.append(review)
         

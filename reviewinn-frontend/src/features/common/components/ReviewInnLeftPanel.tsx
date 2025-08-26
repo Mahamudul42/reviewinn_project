@@ -188,7 +188,7 @@ const ReviewInnLeftPanel: React.FC = () => {
                             rating={review.entity.average_rating} 
                             size="xs" 
                             showValue={true}
-                            style="golden"
+                            style="purple"
                             className="scale-75"
                           />
                         </div>
@@ -210,7 +210,7 @@ const ReviewInnLeftPanel: React.FC = () => {
                         rating={review.overall_rating} 
                         size="xs" 
                         showValue={true}
-                        style="golden"
+                        style="purple"
                         className="scale-75"
                       />
                     </div>
@@ -274,7 +274,7 @@ const ReviewInnLeftPanel: React.FC = () => {
                             rating={categoryData.avg_rating} 
                             size="xs" 
                             showValue={false}
-                            style="golden"
+                            style="purple"
                             className="scale-75"
                           />
                           <span className="text-xs text-gray-600 font-medium">{categoryData.avg_rating.toFixed(1)} avg</span>

@@ -8,7 +8,7 @@ interface StarRatingProps {
   interactive?: boolean;
   onRatingChange?: (rating: number) => void;
   className?: string;
-  style?: 'default' | 'golden';
+  style?: 'default' | 'golden' | 'purple';
   disabled?: boolean;
 }
 
@@ -97,6 +97,8 @@ const StarRating: React.FC<StarRatingProps> = ({
     
     if (style === 'golden') {
       return isFilled ? '#A855F7' : '#6B7280'; // Purple-500 for filled, Gray-500 for empty
+    } else if (style === 'purple') {
+      return isFilled ? '#A855F7' : '#6B7280'; // Purple-500 for filled, Gray-500 for empty
     } else {
       return isFilled ? '#FBBF24' : '#6B7280'; // Yellow-400 for filled, Gray-500 for empty
     }
@@ -110,6 +112,8 @@ const StarRating: React.FC<StarRatingProps> = ({
         ${interactive ? 'transition-all duration-300 transform hover:scale-105' : ''}
         px-4 py-3 flex items-center gap-3
       `;
+    } else if (style === 'purple') {
+      return 'flex items-center gap-1';
     } else {
       return 'flex items-center gap-1';
     }
@@ -138,7 +142,7 @@ const StarRating: React.FC<StarRatingProps> = ({
                 transition-transform duration-200 ease-in-out
                 ${interactive && !disabled ? 'cursor-pointer' : ''}
                 ${hover >= starValue && interactive && !disabled ? 'scale-125 drop-shadow-[0_5px_5px_rgba(168,85,247,0.5)]' : ''}
-                ${style === 'golden' && isFilled ? 'drop-shadow-[0_0_8px_rgba(168,85,247,0.4)]' : ''}
+                ${(style === 'golden' || style === 'purple') && isFilled ? 'drop-shadow-[0_0_8px_rgba(168,85,247,0.4)]' : ''}
               `}
               onClick={() => handleClick(starValue)}
               onMouseEnter={() => handleMouseEnter(starValue)}
@@ -151,13 +155,13 @@ const StarRating: React.FC<StarRatingProps> = ({
       {showValue && (
         <div className="flex items-center">
           <span className={`${textSizeClasses[size]} ${
-            style === 'golden' 
+            style === 'golden' || style === 'purple'
               ? 'font-bold bg-gradient-to-r from-purple-300 to-violet-300 bg-clip-text text-transparent drop-shadow-sm' 
               : 'text-gray-600 font-medium'
           } ml-2`}>
             {typeof rating === 'number' && !isNaN(rating) && rating >= 0 ? safeRating.toFixed(1) : 'N/A'}
           </span>
-          {style === 'golden' && (
+          {(style === 'golden' || style === 'purple') && (
             <span className="text-purple-300/70 text-xs ml-1 font-semibold">
               /{maxRating}
             </span>
