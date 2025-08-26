@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/enterprise-notifications", tags=["Enterprise Notifications"])
 
 @router.get("/dropdown", response_model=NotificationDropdownResponse)
-def get_notification_dropdown(
+async def get_notification_dropdown(
     current_user: CurrentUser,
     db: Session = Depends(get_db)
 ):
@@ -39,7 +39,7 @@ def get_notification_dropdown(
             )
         
         service = EnterpriseNotificationService(db)
-        return service.get_notification_dropdown(current_user.user_id)
+        return await service.get_notification_dropdown(current_user.user_id)
         
     except Exception as e:
         logger.error(f"Failed to get notification dropdown: {str(e)}")
