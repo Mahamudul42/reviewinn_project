@@ -58,8 +58,8 @@ class ProductionAuthConfig:
     SESSION_ABSOLUTE_TIMEOUT_HOURS: int = 24
     
     # Rate Limiting (Production Values)
-    LOGIN_MAX_ATTEMPTS: int = 3
-    LOGIN_WINDOW_MINUTES: int = 15
+    LOGIN_MAX_ATTEMPTS: int = 5
+    LOGIN_WINDOW_MINUTES: int = 60
     REGISTRATION_MAX_ATTEMPTS: int = 2
     REGISTRATION_WINDOW_MINUTES: int = 60
     PASSWORD_RESET_MAX_ATTEMPTS: int = 2

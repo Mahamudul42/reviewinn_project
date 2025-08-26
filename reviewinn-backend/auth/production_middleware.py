@@ -183,16 +183,24 @@ class ProductionAuthMiddleware(BaseHTTPMiddleware):
     
     async def _authenticate_request(self, request: Request) -> 'AuthResult':
         """Authenticate request with production security"""
-        # Extract authorization header
+        # Extract token from authorization header or httpOnly cookie
+        token = None
+        
+        # Try authorization header first
         auth_header = request.headers.get("authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header[7:]  # Remove "Bearer " prefix
+        
+        # Fallback to httpOnly cookie
+        if not token:
+            token = request.cookies.get("reviewinn_access_token")
+        
+        if not token:
             return AuthResult(
                 success=False,
                 error_code="MISSING_AUTH_HEADER",
-                error_message="Authorization header required"
+                error_message="Authorization header or cookie required"
             )
-        
-        token = auth_header[7:]  # Remove "Bearer " prefix
         
         try:
             # Verify token
@@ -260,17 +268,25 @@ class ProductionAuthMiddleware(BaseHTTPMiddleware):
     
     async def _authenticate_request_optional(self, request: Request) -> 'AuthResult':
         """Authenticate request with optional authentication (for CurrentUser = None endpoints)"""
-        # Extract authorization header
+        # Extract token from authorization header or httpOnly cookie
+        token = None
+        
+        # Try authorization header first
         auth_header = request.headers.get("authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header[7:]  # Remove "Bearer " prefix
+        
+        # Fallback to httpOnly cookie
+        if not token:
+            token = request.cookies.get("reviewinn_access_token")
+        
+        if not token:
             # Return successful result with no user for optional auth
             return AuthResult(
                 success=False,
                 error_code="NO_AUTH_HEADER",
-                error_message="No authorization header provided"
+                error_message="No authorization header or cookie provided"
             )
-        
-        token = auth_header[7:]  # Remove "Bearer " prefix
         
         try:
             # Verify token using same logic as required auth

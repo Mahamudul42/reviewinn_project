@@ -2,6 +2,7 @@ import { API_CONFIG, DEFAULT_HEADERS, HTTP_STATUS, API_ERROR_TYPES, type ApiResp
 import { authEvents, emitAuthEvent } from '../utils/authEvents';
 import { getAuthToken } from '../shared/utils/auth';
 import { useAuthStore } from '../stores/authStore';
+import { getCSRFToken } from '../utils/cookieAuth';
 
 // Simple in-memory cache implementation
 class ApiCache {
@@ -127,7 +128,7 @@ export class HttpClient {
     this.refreshToken = null;
   }
 
-  // Get headers with authentication
+  // Get headers with authentication and CSRF protection
   private getHeaders(customHeaders?: Record<string, string>): HeadersInit {
     const headers: HeadersInit = {
       ...DEFAULT_HEADERS,
@@ -148,6 +149,12 @@ export class HttpClient {
     
     if (token && token !== 'null' && token !== 'undefined') {
       headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    // Add CSRF token for additional security
+    const csrfToken = getCSRFToken();
+    if (csrfToken) {
+      headers['X-CSRF-Token'] = csrfToken;
     }
     
     return headers;

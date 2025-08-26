@@ -8,7 +8,7 @@ This is the definitive authentication router for ReviewInn platform.
 Built for enterprise scale with comprehensive security features.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request, BackgroundTasks, Body
+from fastapi import APIRouter, Depends, HTTPException, status, Request, BackgroundTasks, Body, Response
 from sqlalchemy.orm import Session
 from typing import Dict, Any, Optional
 from datetime import datetime, timezone
@@ -151,6 +151,7 @@ async def register_user(
 )
 async def authenticate_user(
     request: Request,
+    response: Response,
     login_data: LoginRequest,
     db: Session = Depends(get_db),
     _rate_limit = AuthRateLimit,
@@ -204,6 +205,30 @@ async def authenticate_user(
     
     # Get user data for response
     user = db.query(User).filter(User.user_id == result.user_id).first()
+    
+    # Set secure httpOnly cookies for tokens
+    # Use secure=False for development (HTTP), secure=True for production (HTTPS)
+    is_production = request.url.scheme == 'https'
+    
+    response.set_cookie(
+        key="reviewinn_access_token",
+        value=result.access_token,
+        max_age=result.metadata["expires_in"],  # 1 hour
+        httponly=True,
+        secure=is_production,  # Only secure in HTTPS production
+        samesite="strict",
+        path="/"
+    )
+    
+    response.set_cookie(
+        key="reviewinn_refresh_token", 
+        value=result.refresh_token,
+        max_age=30 * 24 * 60 * 60,  # 30 days
+        httponly=True,
+        secure=is_production,  # Only secure in HTTPS production
+        samesite="strict",
+        path="/"
+    )
     
     return TokenResponse(
         access_token=result.access_token,
@@ -285,6 +310,7 @@ async def refresh_access_token(
 )
 async def logout_user(
     request: Request,
+    response: Response,
     current_user = RequiredUser,
     _audit = AuditAction("user_logout")
 ):
@@ -306,6 +332,23 @@ async def logout_user(
                 "logout_method": "manual",
                 "token_blacklisted": blacklisted
             })
+        
+        # Clear httpOnly cookies - match settings used when setting them
+        is_production = request.url.scheme == 'https'
+        
+        response.delete_cookie(
+            key="reviewinn_access_token",
+            path="/",
+            secure=is_production,
+            samesite="strict"
+        )
+        
+        response.delete_cookie(
+            key="reviewinn_refresh_token", 
+            path="/",
+            secure=is_production,
+            samesite="strict"
+        )
         
         return None
         

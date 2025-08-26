@@ -22,6 +22,7 @@ import traceback
 import logging
 import json
 from fastapi.responses import JSONResponse
+from core.security import input_validator, review_validator
 
 # Set up logger
 logger = logging.getLogger(__name__)
@@ -200,11 +201,42 @@ async def create_review(
     try:
         logger.info(f"=== REVIEW CREATION STARTED ===")
         logger.info(f"Creating review for entity {review_data.entity_id} by user {current_user.user_id}")
-        logger.info(f"Current user: {current_user.username} (ID: {current_user.user_id})")
-        logger.info(f"Review data received: {review_data.dict()}")
-        logger.info(f"Review title: {review_data.title}")
-        logger.info(f"Review content length: {len(review_data.content or '')}")
-        logger.info(f"Overall rating: {review_data.overall_rating}")
+        
+        # Validate review content for security
+        if review_data.content:
+            content_validation = review_validator.validate_review_text(review_data.content)
+            if not content_validation['valid']:
+                return error_response(
+                    message="Invalid review content",
+                    status_code=400,
+                    error_code="INVALID_CONTENT",
+                    details=content_validation['errors']
+                )
+            # Use sanitized content
+            review_data.content = content_validation['sanitized_content']
+        
+        # Validate title
+        if review_data.title:
+            sanitized_title = input_validator.sanitize_text(review_data.title, max_length=200)
+            if input_validator.check_xss_patterns(review_data.title) or input_validator.check_sql_injection(review_data.title):
+                return error_response(
+                    message="Invalid review title",
+                    status_code=400,
+                    error_code="INVALID_TITLE"
+                )
+            review_data.title = sanitized_title
+        
+        # Validate rating
+        rating_validation = review_validator.validate_rating(review_data.overall_rating)
+        if not rating_validation['valid']:
+            return error_response(
+                message="Invalid rating",
+                status_code=400,
+                error_code="INVALID_RATING",
+                details=rating_validation['errors']
+            )
+        
+        logger.info(f"Review validation passed - content length: {len(review_data.content or '')}")
         
         # Initialize review service
         review_service = ReviewService(db)

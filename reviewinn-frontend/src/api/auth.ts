@@ -3,6 +3,7 @@ import type { User } from '../types';
 import type { AuthState } from '../services/authInterface';
 import { API_CONFIG, API_ENDPOINTS } from './config';
 import { httpClient } from './httpClient';
+import { cookieAuth, setSecureTokens, getSecureAccessToken, getSecureRefreshToken, clearSecureTokens } from '../utils/cookieAuth';
 
 export interface LoginCredentials {
   email: string;
@@ -87,26 +88,40 @@ class AuthService {
   }
 
   getToken(): string | null {
+    // Use secure cookie storage first, fallback to localStorage for backward compatibility
+    const secureToken = getSecureAccessToken();
+    if (secureToken) return secureToken;
+    
     return localStorage.getItem(AuthService.TOKEN_KEY);
   }
 
   getRefreshToken(): string | null {
+    // Use secure cookie storage first, fallback to localStorage for backward compatibility
+    const secureToken = getSecureRefreshToken();
+    if (secureToken) return secureToken;
+    
     return localStorage.getItem(AuthService.REFRESH_TOKEN_KEY);
   }
 
   setToken(token: string) {
+    // Store in secure cookies AND localStorage (for backward compatibility during transition)
+    setSecureTokens(token, this.getRefreshToken() || undefined);
     localStorage.setItem(AuthService.TOKEN_KEY, token);
   }
 
   setRefreshToken(token: string) {
+    // Store in secure cookies AND localStorage (for backward compatibility during transition)
+    setSecureTokens(this.getToken() || '', token);
     localStorage.setItem(AuthService.REFRESH_TOKEN_KEY, token);
   }
 
   removeToken() {
+    clearSecureTokens();
     localStorage.removeItem(AuthService.TOKEN_KEY);
   }
 
   removeRefreshToken() {
+    clearSecureTokens();
     localStorage.removeItem(AuthService.REFRESH_TOKEN_KEY);
   }
 
@@ -148,7 +163,8 @@ class AuthService {
       const response = { data: await fetchResponse.json() };
       if (!response.data || !response.data.access_token) throw new Error('Invalid login response');
       
-      // Store tokens in localStorage first
+      // Store tokens securely in cookies first, then localStorage for compatibility
+      setSecureTokens(response.data.access_token, response.data.refresh_token || '');
       this.setToken(response.data.access_token);
       this.setRefreshToken(response.data.refresh_token || '');
       
@@ -294,7 +310,8 @@ class AuthService {
       
       if (!loginResponse.data || !loginResponse.data.access_token) throw new Error('Auto-login failed after registration');
       
-      // Store the access token and refresh token
+      // Store the access token and refresh token securely
+      setSecureTokens(loginResponse.data.access_token, loginResponse.data.refresh_token);
       this.setToken(loginResponse.data.access_token);
       this.setRefreshToken(loginResponse.data.refresh_token);
       
@@ -412,7 +429,8 @@ class AuthService {
     httpClient.clearAuthTokens();
     console.log('AuthService: Cleared httpClient tokens');
     
-    // Clear all auth data comprehensively
+    // Clear all auth data comprehensively (secure cookies and localStorage)
+    clearSecureTokens();
     this.removeToken();
     this.removeRefreshToken();
     this.removeUser();
@@ -490,6 +508,8 @@ class AuthService {
       });
 
       if (response.data?.access_token) {
+        // Store tokens securely
+        setSecureTokens(response.data.access_token, response.data.refresh_token);
         this.setToken(response.data.access_token);
         
         // Update refresh token if provided
