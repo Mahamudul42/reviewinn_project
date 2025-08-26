@@ -270,17 +270,23 @@ def check_user_badges(
 @router.post("/user/{user_id}/registration")
 def unlock_registration_badge(
     user_id: int,
-    db: Session = Depends(get_db),
-    current_user = RequiredUser
+    current_user: CurrentUser,
+    db: Session = Depends(get_db)
 ):
-    """Unlock registration badge for new user (frontend compatible)"""
+    """Unlock registration badge for new user - Enterprise System Badge Service"""
     try:
-        # Check if the requesting user is the same as the target user
-        if current_user.user_id != user_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Can only unlock registration badge for yourself"
-            )
+        # ENTERPRISE SECURITY: Multi-level authorization check
+        # 1. System operation (no auth required) for auto-unlock on registration
+        # 2. User operation (user must be same as target) for manual unlock
+        # 3. Admin operation (admin can unlock for any user) for support
+        
+        if current_user is not None:
+            # Authenticated user - must be same user or admin
+            if current_user.user_id != user_id and not getattr(current_user, 'is_admin', False):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Can only unlock registration badge for yourself"
+                )
         
         # For production, return a simple success response to avoid database/uvloop issues
         # This is a temporary fix for production launch

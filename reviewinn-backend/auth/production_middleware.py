@@ -85,15 +85,31 @@ class ProductionAuthMiddleware(BaseHTTPMiddleware):
             "/api/v1/users/",     # User profile endpoints
             "/api/v1/view-tracking/", # View tracking endpoints
             "/api/v1/homepage/",  # Homepage endpoints 
-            "/api/v1/reviewinn-right-panel/public" # Public right panel
+            "/api/v1/reviewinn-right-panel/public", # Public right panel
+            "/api/v1/badges/user/", # System badge operations (registration, achievements)
+            "/api/v1/badges/user"   # Badge endpoints without trailing slash
         }
         
-        # High-risk endpoints requiring additional security
+        # ENTERPRISE HIGH-RISK ENDPOINTS - Additional security required
         self.high_risk_endpoints = {
             "/api/v1/auth-production/change-password",
-            "/api/v1/admin/",
-            "/api/v1/users/delete",
-            "/api/v1/entities/delete"
+            "/api/v1/admin/", "/api/v1/users/delete", "/api/v1/entities/delete",
+            "/api/v1/enterprise-notifications/system",
+            "/api/v1/enterprise-notifications/cleanup"
+        }
+        
+        # SYSTEM OPERATION ENDPOINTS - Allow unauthenticated system operations
+        self.system_operation_endpoints = {
+            "/api/v1/badges/user/", "/api/v1/badges/evaluate/",
+            "/api/v1/view-tracking/track", "/api/v1/analytics/event"
+        }
+        
+        # ENTERPRISE RATE LIMITING per endpoint category
+        self.rate_limits = {
+            "public": {"requests": 1000, "window": 3600},  # 1000 req/hour
+            "authenticated": {"requests": 5000, "window": 3600},  # 5000 req/hour
+            "high_risk": {"requests": 10, "window": 3600},  # 10 req/hour for sensitive
+            "system": {"requests": 10000, "window": 3600}  # 10k req/hour for system ops
         }
     
     async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
@@ -410,6 +426,21 @@ class ProductionAuthMiddleware(BaseHTTPMiddleware):
     def _is_optional_auth_endpoint(self, path: str) -> bool:
         """Check if endpoint supports optional authentication"""
         return any(path.startswith(endpoint) for endpoint in self.optional_auth_endpoints)
+    
+    def _is_system_operation_endpoint(self, path: str) -> bool:
+        """Check if endpoint is a system operation (allows unauthenticated system calls)"""
+        return any(path.startswith(endpoint) for endpoint in self.system_operation_endpoints)
+    
+    def _get_endpoint_category(self, path: str) -> str:
+        """Get enterprise endpoint category for rate limiting and security"""
+        if self._is_public_endpoint(path):
+            return "public"
+        elif self._is_high_risk_endpoint(path):
+            return "high_risk"
+        elif self._is_system_operation_endpoint(path):
+            return "system"
+        else:
+            return "authenticated"
     
     def _add_security_headers(self, response: Response) -> Response:
         """Add production security headers"""
