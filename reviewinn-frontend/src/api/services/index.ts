@@ -3,12 +3,6 @@ export type { EntityListParams, EntitySearchParams } from './entityService';
 export type { ReviewListParams } from './reviewService';
 export type { UserInteraction, UserInteractionCache } from './userInteractionService';
 export type { 
-  UserProgress, 
-  DailyTask, 
-  WeeklyEngagementData, 
-  GamificationDashboard 
-} from './gamificationService';
-export type { 
   HomepageData, 
   HomepageParams, 
   PlatformStats 
@@ -43,7 +37,6 @@ import { ReviewService } from './reviewService';
 import { UserService } from './userService';
 import { CommentService } from './commentService';
 import { userInteractionService } from './userInteractionService';
-import { gamificationService } from './gamificationService';
 import { homepageService } from './homepageService';
 import { professionalMessagingService } from './professionalMessagingService';
 import { circleService } from './circleService';
@@ -55,5 +48,5 @@ export const entityService = _entityService;
 export const reviewService = new ReviewService();
 export const userService = new UserService();
 export const commentService = new CommentService();
-export { userInteractionService, gamificationService, homepageService, professionalMessagingService, circleService, reviewinnRightPanelService, enterpriseNotificationService };
+export { userInteractionService, homepageService, professionalMessagingService, circleService, reviewinnRightPanelService, enterpriseNotificationService };
 // entityServiceFactory removed - use entityService directly 

@@ -264,7 +264,7 @@ const ThreePanelLayout: React.FC<ThreePanelLayoutProps> = ({
           <div className={`center-panel-container ${centerPanelClassName}`} style={{ 
             width: centerPanelWidth, 
             flexShrink: 0, 
-            overflowX: 'hidden',
+            overflow: 'visible',
             position: 'relative',
             minHeight: 'calc(100vh - 140px)'
           }}>

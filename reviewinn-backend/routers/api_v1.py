@@ -10,7 +10,7 @@ from routers import reviews
 
 # Import other routers (excluding auth to avoid conflicts)
 from routers import users
-from routers import homepage, analytics, gamification, search
+from routers import homepage, analytics, search
 
 # API Router with improved error handling
 v1_router = APIRouter(prefix="/api/v1", tags=["API v1"])
@@ -24,7 +24,6 @@ v1_router.include_router(reviews.router, prefix="/reviews", tags=["Reviews"])
 v1_router.include_router(search.router, prefix="/search", tags=["Search"])
 v1_router.include_router(analytics.router, prefix="/analytics", tags=["Analytics"])
 # Notifications now handled by enterprise_notifications in main.py
-v1_router.include_router(gamification.router, prefix="/gamification", tags=["Gamification"])
 v1_router.include_router(homepage.router, prefix="/homepage", tags=["Homepage"])
 
 # Health check endpoint with improved error handling

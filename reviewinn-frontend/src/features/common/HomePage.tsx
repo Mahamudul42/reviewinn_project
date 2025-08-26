@@ -5,8 +5,10 @@ import ThreePanelLayout from '../../shared/layouts/ThreePanelLayout';
 // Center Content (Home)
 import { useHomeData } from './hooks/useHomeData';
 import { useReviewManagement } from './hooks/useReviewManagement';
-import { MiddlePanelPublic, MiddlePanelAuth } from '../../shared/panels/MiddlePanel';
-import type { Entity } from '../../types';
+import ReviewFeed from './components/ReviewFeed';
+import AddReviewStatusBar from './components/AddReviewStatusBar';
+import ReviewSearchResults from './components/ReviewSearchResults';
+import type { Entity, Review } from '../../types';
 
 // Modal Components
 import AddReviewModal from '../reviews/components/AddReviewModal';
@@ -48,6 +50,13 @@ const HomePage: React.FC = () => {
   // Modal state
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [preselectedEntity, setPreselectedEntity] = useState<Entity | null>(null);
+
+  // Search state
+  const [searchMode, setSearchMode] = useState(false);
+  const [searchResults, setSearchResults] = useState<Review[]>([]);
+  const [searchEntities, setSearchEntities] = useState<Entity[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [hasMoreSearchResults, setHasMoreSearchResults] = useState(false);
 
   // Modal handlers
   const handleShowReviewModal = () => {
@@ -99,6 +108,23 @@ const HomePage: React.FC = () => {
     }
   };
 
+  // Search handlers
+  const handleSearchResults = (results: Review[], entities: Entity[], query: string, hasMore?: boolean) => {
+    setSearchResults(results);
+    setSearchEntities(entities);
+    setSearchQuery(query);
+    setHasMoreSearchResults(hasMore || false);
+    setSearchMode(results.length > 0 || query.length > 0);
+  };
+
+  const handleCloseSearch = () => {
+    setSearchMode(false);
+    setSearchResults([]);
+    setSearchEntities([]);
+    setSearchQuery('');
+    setHasMoreSearchResults(false);
+  };
+
   const displayUser = user || {
     name: 'Guest',
     avatar: 'https://ui-avatars.com/api/?name=Guest&background=gray&color=ffffff'
@@ -115,40 +141,33 @@ const HomePage: React.FC = () => {
           <p style={{ color: '#6b7280' }}>Unable to load home content: {centerError}</p>
         </div>
       ) : (
-        <div>
-          {(() => {
-            console.log('🎯 Middle panel rendering decision:', { isAuthenticated, user: !!user });
-            return isAuthenticated;
-          })() ? (
-            <MiddlePanelAuth
-              userAvatar={displayUser.avatar || ''}
-              userName={displayUser.name || 'Guest'}
-              onAddReviewClick={handleShowReviewModal}
-              reviewBarRef={reviewBarRef}
-              reviews={reviews}
-              entities={reviews.map(r => r.entity).filter(Boolean) as Entity[]}
-              hasMoreReviews={hasMoreReviews}
-              loadingMore={loadingMore}
-              loading={centerLoading}
-              onLoadMore={handleLoadMore}
-              onReactionChange={handleReactionChange}
+        <div className="space-y-6">
+          {/* Add Review Status Bar with Search */}
+          <AddReviewStatusBar
+            userAvatar={displayUser.avatar || 'https://ui-avatars.com/api/?name=Guest&background=gray&color=ffffff'}
+            userName={displayUser.name || 'Guest'}
+            onClick={handleShowReviewModal}
+            onSearchResults={handleSearchResults}
+          />
+
+          {/* Show search results or normal feed */}
+          {searchMode ? (
+            <ReviewSearchResults
+              reviews={searchResults}
+              entities={searchEntities}
+              query={searchQuery}
+              hasMoreResults={hasMoreSearchResults}
+              onClose={handleCloseSearch}
               onCommentAdd={handleCommentAdd}
               onCommentDelete={handleCommentDelete}
               onCommentReaction={handleCommentReaction}
-              onGiveReviewClick={handleGiveReviewClick}
-              onViewCountUpdate={updateViewCount}
             />
           ) : (
-            <MiddlePanelPublic
-              userAvatar={displayUser.avatar || ''}
-              userName={displayUser.name || 'Guest'}
-              onAddReviewClick={handleShowReviewModal}
-              reviewBarRef={reviewBarRef}
+            <ReviewFeed
               reviews={reviews}
               entities={reviews.map(r => r.entity).filter(Boolean) as Entity[]}
               hasMoreReviews={hasMoreReviews}
               loadingMore={loadingMore}
-              loading={centerLoading}
               onLoadMore={handleLoadMore}
               onReactionChange={handleReactionChange}
               onCommentAdd={handleCommentAdd}
