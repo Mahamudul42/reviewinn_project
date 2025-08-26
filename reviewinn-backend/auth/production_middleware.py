@@ -85,7 +85,10 @@ class ProductionAuthMiddleware(BaseHTTPMiddleware):
             "/api/v1/users/",     # User profile endpoints
             "/api/v1/view-tracking/", # View tracking endpoints
             "/api/v1/homepage/",  # Homepage endpoints 
-            "/api/v1/reviewinn-right-panel/public", # Public right panel
+            "/api/v1/reviewinn-right-panel/", # ReviewInn right panel endpoints
+            "/api/v1/reviewinn-right-panel",  # ReviewInn right panel without trailing slash
+            "/api/v1/reviewinn-left-panel/",  # ReviewInn left panel endpoints  
+            "/api/v1/reviewinn-left-panel",   # ReviewInn left panel without trailing slash
             "/api/v1/badges/user/", # System badge operations (registration, achievements)
             "/api/v1/badges/user"   # Badge endpoints without trailing slash
         }

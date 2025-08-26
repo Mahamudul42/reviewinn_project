@@ -49,8 +49,8 @@ const RightPanelPublic: React.FC<RightPanelPublicProps> = ({
           sortBy: 'created_at',
           sortOrder: 'desc'
         }).catch(() => ({ reviews: [] })),
-        // OPTIMIZED: Load platform stats from gamification API
-        gamificationService.getDashboard().catch(() => ({ data: { public_stats: null } }))
+        // PUBLIC: Use mock stats or skip gamification data for unauthenticated users
+        Promise.resolve({ data: { public_stats: null } })
       ]);
 
       if (entitiesResult?.entities) {
