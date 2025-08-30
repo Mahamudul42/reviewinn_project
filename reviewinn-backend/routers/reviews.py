@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session, joinedload, selectinload
-from sqlalchemy import desc, asc, func
+from sqlalchemy import desc, asc, func, text
 from typing import List, Optional, Any
+from datetime import datetime, timezone
 from database import get_db
 from models.review import Review
 from models.review_reaction import ReviewReaction, ReactionType as ReviewReactionType
@@ -434,7 +435,8 @@ def get_recent_reviews(
                 )
             
             # Get reaction summary
-            reaction_summary = get_reaction_summary_response(r.review_id, db, getattr(current_user, 'user_id', None))
+            current_user_id = getattr(current_user, 'user_id', None)
+            reaction_summary = get_reaction_summary_response(r.review_id, db, current_user_id)
             
             # Get latest comments (limit to 3 for recent reviews)
             comment_objs = sorted(r.comments, key=lambda c: c.created_at, reverse=True)[:3]
@@ -1427,46 +1429,49 @@ async def get_cached_reaction_summary(review_id: int, user_id: Optional[int] = N
     pass
 
 def get_reaction_summary_response(review_id: int, db: Session, user_id: Optional[int] = None) -> dict:
-    """Get reaction summary including counts, top reactions, and user's reaction."""
+    """Fast and simple reaction summary with user state - no complex queries."""
     try:
-        # Get reaction counts
+        # Simple approach: Two fast indexed queries
+        
+        # Query 1: Get reaction counts (fast with existing index)
         counts = (
             db.query(ReviewReaction.reaction_type, func.count(ReviewReaction.reaction_id))
             .filter(ReviewReaction.review_id == review_id)
             .group_by(ReviewReaction.reaction_type)
             .all()
         )
-        
         reaction_counts = {r.value: c for r, c in counts}
         
-        # Top 3 reactions by count
-        top_reactions = sorted(reaction_counts.items(), key=lambda x: x[1], reverse=True)[:3]
-        total = sum(reaction_counts.values())
-        
+        # Query 2: Get user's specific reaction (O(1) with unique constraint)
         user_reaction = None
         if user_id:
-            user_reaction_obj = db.query(ReviewReaction).filter_by(
-                review_id=review_id, 
-                user_id=user_id
+            user_reaction_obj = db.query(ReviewReaction.reaction_type).filter(
+                ReviewReaction.review_id == review_id,
+                ReviewReaction.user_id == user_id
             ).first()
             if user_reaction_obj:
-                user_reaction = user_reaction_obj.reaction_type.value
+                user_reaction = user_reaction_obj[0].value
+        
+        # Calculate derived data
+        top_reactions = sorted(reaction_counts.items(), key=lambda x: x[1], reverse=True)[:3]
+        total = sum(reaction_counts.values())
         
         return {
             "reactions": reaction_counts,
             "top_reactions": [r[0] for r in top_reactions],
             "total_reactions": total,
-            "total": total,  # Frontend expects this field
+            "total": total,
             "user_reaction": user_reaction
         }
         
     except Exception as e:
         logger.error(f"Error getting reaction summary for review {review_id}: {str(e)}")
+        # Return empty state for graceful degradation
         return {
             "reactions": {},
             "top_reactions": [],
             "total_reactions": 0,
-            "total": 0,  # Frontend expects this field
+            "total": 0,
             "user_reaction": None
         }
 

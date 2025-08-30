@@ -80,6 +80,10 @@ export const useUnifiedAuth = (): UseUnifiedAuthReturn => {
     console.log('useUnifiedAuth: Starting login process for:', credentials.email);
     setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
     
+    // Clear any cached user interactions from previous session
+    localStorage.removeItem('user_interactions');
+    console.log('useUnifiedAuth: Cleared cached user interactions for fresh login');
+    
     const result = await authManagerRef.current.login(credentials);
     console.log('useUnifiedAuth: Login result:', result);
     
@@ -96,6 +100,10 @@ export const useUnifiedAuth = (): UseUnifiedAuthReturn => {
     
     // Emit login success event for homepage refresh
     window.dispatchEvent(new CustomEvent('authLoginSuccess'));
+    // Emit user session changed event for reaction state refresh
+    window.dispatchEvent(new CustomEvent('userSessionChanged', { 
+      detail: { userId: postLoginState.user?.id || postLoginState.user?.user_id }
+    }));
     
     console.log('useUnifiedAuth: Login process completed successfully');
   }, []);
@@ -117,6 +125,10 @@ export const useUnifiedAuth = (): UseUnifiedAuthReturn => {
     
     // Emit login success event for homepage refresh
     window.dispatchEvent(new CustomEvent('authLoginSuccess'));
+    // Emit user session changed event for reaction state refresh
+    window.dispatchEvent(new CustomEvent('userSessionChanged', { 
+      detail: { userId: postRegisterState.user?.id || postRegisterState.user?.user_id }
+    }));
     
     console.log('useUnifiedAuth: Registration successful');
   }, []);
@@ -162,7 +174,8 @@ export const useUnifiedAuth = (): UseUnifiedAuthReturn => {
         'reviewinn_refresh_token',
         'reviewinn_user_data',
         'reviewinn_remember_me',
-        'auth-storage'
+        'auth-storage',
+        'user_interactions'  // Clear cached reaction data
       ];
       
       authKeysToRemove.forEach(key => {
@@ -191,7 +204,8 @@ export const useUnifiedAuth = (): UseUnifiedAuthReturn => {
         'reviewinn_refresh_token',
         'reviewinn_user_data',
         'reviewinn_remember_me',
-        'auth-storage'
+        'auth-storage',
+        'user_interactions'  // Clear cached reaction data
       ];
       
       emergencyCleanupKeys.forEach(key => {

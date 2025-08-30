@@ -35,6 +35,34 @@ export interface ReviewSearchParams {
 export class ReviewService {
   private baseUrl = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.LIST}/`;
   private MAX_LIMIT = 100;
+  
+  constructor() {
+    // Listen for authentication state changes to invalidate cached review data
+    this.setupAuthChangeListeners();
+  }
+  
+  private setupAuthChangeListeners() {
+    const handleAuthChange = () => {
+      console.log('🔄 ReviewService: Auth state changed, clearing cached review interactions');
+      // Clear any cached user interaction data when auth changes
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('reviewDataInvalidated'));
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      const authEvents = [
+        'authLoginSuccess',
+        'authLogout',
+        'userSessionChanged',
+        'tokenRefreshed'
+      ];
+      
+      authEvents.forEach(event => {
+        window.addEventListener(event, handleAuthChange);
+      });
+    }
+  }
 
   // Helper to map comprehensive API entity data to frontend format
   private mapEntityApiToFrontend(apiEntity: any): any {
@@ -1059,11 +1087,20 @@ export class ReviewService {
     }
     
     const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.REACTIONS(reviewId)}`;
-    const fetchResponse = await fetch(url, {
-      ...createAuthenticatedRequestInit(),
-      method: 'GET',
-      credentials: 'include',
-    });
+    
+    // Try authenticated request first, fallback to unauthenticated if needed
+    const authHeaders = getAuthHeaders();
+    const requestInit = authHeaders.Authorization 
+      ? { ...createAuthenticatedRequestInit(), method: 'GET', credentials: 'include' as RequestCredentials }
+      : { 
+          method: 'GET', 
+          credentials: 'include' as RequestCredentials,
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        };
+    
+    const fetchResponse = await fetch(url, requestInit);
 
     if (!fetchResponse.ok) {
       throw new Error(`Failed to get reaction counts: ${fetchResponse.statusText}`);

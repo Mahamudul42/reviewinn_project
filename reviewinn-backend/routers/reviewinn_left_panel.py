@@ -13,20 +13,33 @@ from auth.production_dependencies import CurrentUser
 
 router = APIRouter()
 
+# Simple in-memory cache to prevent repeated expensive queries
+_left_panel_cache = {}
+_cache_timestamp = {}
+CACHE_DURATION = 30  # 30 seconds
+
 @router.get("/data", response_model=None)
 async def get_reviewinn_left_panel_data(
     current_user: CurrentUser,
     db: Session = Depends(get_db)
 ):
     """
-    ReviewInn-specific endpoint for left panel data:
-    - Top 2 reviews: Based on reaction_count + comment_count + view_count
-    - Top 2 categories: Categories from reviewed entities
-    - Top reviewers: Based on core_users.review_count
+    Fast cached ReviewInn left panel data.
     """
     try:
-        # Debug logging
-        logging.info(f"[REVIEWINN LEFT PANEL] Request received")
+        import time
+        
+        # Check cache first
+        cache_key = f"left_panel_{getattr(current_user, 'user_id', 'anonymous')}"
+        current_time = time.time()
+        
+        if (cache_key in _left_panel_cache and 
+            cache_key in _cache_timestamp and 
+            current_time - _cache_timestamp[cache_key] < CACHE_DURATION):
+            logging.info(f"[REVIEWINN LEFT PANEL] Returning cached data")
+            return _left_panel_cache[cache_key]
+        
+        logging.info(f"[REVIEWINN LEFT PANEL] Cache miss, fetching fresh data")
         
         # 1. Get top 2 reviews by engagement (reaction + comment + view count)
         top_reviews_query = text("""
@@ -179,7 +192,8 @@ async def get_reviewinn_left_panel_data(
             }
             top_reviewers.append(reviewer)
         
-        return JSONResponse(content={
+        # Prepare response
+        response_data = JSONResponse(content={
             "success": True,
             "data": {
                 "top_reviews": top_reviews,
@@ -188,6 +202,13 @@ async def get_reviewinn_left_panel_data(
             },
             "message": "ReviewInn left panel data retrieved successfully"
         })
+        
+        # Cache the response
+        _left_panel_cache[cache_key] = response_data
+        _cache_timestamp[cache_key] = current_time
+        logging.info(f"[REVIEWINN LEFT PANEL] Data cached for {CACHE_DURATION}s")
+        
+        return response_data
         
     except Exception as e:
         logging.error(f"[REVIEWINN LEFT PANEL ERROR] {e}")

@@ -55,39 +55,118 @@ interface SocialReactionButtonProps {
   userReaction?: string;
   onReactionChange: (reaction: string | null) => Promise<void>;
   onRequireAuth?: () => void;
+  onRefreshReactions?: () => Promise<void>;
 }
 
 const SocialReactionButton: React.FC<SocialReactionButtonProps> = ({
   reactions,
   userReaction,
   onReactionChange,
-  onRequireAuth
+  onRequireAuth,
+  onRefreshReactions
 }) => {
   const { isAuthenticated, user } = useUnifiedAuth();
   const [isHovered, setIsHovered] = useState(false);
   const [forceUpdate, setForceUpdate] = useState(0);
+  
+  // Create a unique key for the current user session to force re-render when user changes
+  const userSessionKey = `${user?.id || user?.user_id || 'anonymous'}-${isAuthenticated ? 'auth' : 'unauth'}`;
 
-  // Listen for auth state changes and force re-render
+  // Listen for auth state changes and handle gracefully
   useEffect(() => {
     const handleAuthChange = () => {
-      console.log('🔄 SocialReactionButton: Auth state changed, forcing re-render');
+      console.log('🔄 SocialReactionButton: Auth state changed, handling gracefully');
+      
+      // Clear localStorage cache that might contain stale reaction data
+      localStorage.removeItem('user_interactions');
+      
+      // Only clear local state if we don't have current valid server data
+      // This prevents clearing reactions during login when server data is already loaded
+      if (!reactions || Object.keys(reactions).length === 0) {
+        console.log('🔄 SocialReactionButton: No server data available, clearing local state');
+        setLocalReactions({});
+        setLocalUserReaction(undefined);
+      } else {
+        console.log('🔄 SocialReactionButton: Server data available, preserving reactions');
+      }
+      
       setForceUpdate(prev => prev + 1);
     };
 
-    // Listen for both login success and general auth state changes
-    window.addEventListener('loginSuccess', handleAuthChange);
-    window.addEventListener('authStateChanged', handleAuthChange);
+    const handleReviewDataInvalidated = async () => {
+      console.log('🔄 SocialReactionButton: Review data invalidated, refreshing reactions');
+      if (onRefreshReactions) {
+        try {
+          await onRefreshReactions();
+        } catch (error) {
+          console.error('Failed to refresh reactions:', error);
+        }
+      }
+      setForceUpdate(prev => prev + 1);
+    };
+
+    // Listen for comprehensive set of auth events
+    const authEvents = [
+      'loginSuccess', 
+      'authStateChanged',
+      'authLoginSuccess',
+      'userSessionChanged',
+      'tokenRefreshed',
+      'reviewDataInvalidated'
+    ];
+    
+    authEvents.forEach(event => {
+      if (event === 'reviewDataInvalidated') {
+        window.addEventListener(event, handleReviewDataInvalidated);
+      } else {
+        window.addEventListener(event, handleAuthChange);
+      }
+    });
 
     return () => {
-      window.removeEventListener('loginSuccess', handleAuthChange);
-      window.removeEventListener('authStateChanged', handleAuthChange);
+      authEvents.forEach(event => {
+        if (event === 'reviewDataInvalidated') {
+          window.removeEventListener(event, handleReviewDataInvalidated);
+        } else {
+          window.removeEventListener(event, handleAuthChange);
+        }
+      });
     };
   }, []);
 
   // Debug authentication state
-  console.log('🔐 SocialReactionButton auth state:', { isAuthenticated, hasUser: !!user, forceUpdate });
+  console.log('🔐 SocialReactionButton auth state:', { 
+    isAuthenticated, 
+    hasUser: !!user, 
+    userSessionKey, 
+    forceUpdate,
+    serverUserReaction: userReaction,
+    serverReactions: reactions
+  });
+  
+  // Initialize local state with server data
   const [localReactions, setLocalReactions] = useState(reactions || {});
   const [localUserReaction, setLocalUserReaction] = useState(userReaction);
+  const [lastUserSessionKey, setLastUserSessionKey] = useState(userSessionKey);
+  
+  // Handle user session changes gracefully - preserve server data
+  useEffect(() => {
+    if (lastUserSessionKey !== userSessionKey) {
+      console.log('🔄 SocialReactionButton: User session changed, updating state with server data');
+      console.log('   - Old session:', lastUserSessionKey);
+      console.log('   - New session:', userSessionKey);
+      console.log('   - Server data - reactions:', reactions, 'userReaction:', userReaction);
+      
+      // Clear localStorage cache that might be stale
+      localStorage.removeItem('user_interactions');
+      
+      // Always prioritize fresh server data when session changes
+      setLocalReactions(reactions || {});
+      setLocalUserReaction(userReaction);
+      setLastUserSessionKey(userSessionKey);
+      setForceUpdate(prev => prev + 1);
+    }
+  }, [userSessionKey, lastUserSessionKey, reactions, userReaction]);
   const [popupPosition, setPopupPosition] = useState<'left' | 'center' | 'right'>('left');
   const containerRef = useRef<HTMLDivElement>(null);
   const hoverTimeoutRef = useRef<number | null>(null);
@@ -95,15 +174,57 @@ const SocialReactionButton: React.FC<SocialReactionButtonProps> = ({
   const [isUpdating, setIsUpdating] = useState(false);
   const [showOnClick, setShowOnClick] = useState(false);
 
-  // Sync local state when props change (important for persistence after refresh)
+  // ALWAYS use server data - never trust local cache
   useEffect(() => {
+    console.log('🔄 SocialReactionButton: SERVER DATA UPDATE - reactions:', reactions);
     setLocalReactions(reactions || {});
   }, [reactions]);
 
   useEffect(() => {
+    console.log('🔄 SocialReactionButton: SERVER DATA UPDATE - userReaction:', userReaction);
     setLocalUserReaction(userReaction);
-    console.log('🔄 SocialReactionButton: Updated local user reaction from prop:', userReaction);
   }, [userReaction]);
+
+  // Handle authentication changes more gracefully - preserve server data
+  useEffect(() => {
+    const currentUserId = user?.id || user?.user_id;
+    console.log('🔄 SocialReactionButton: User/auth changed, handling gracefully');
+    console.log('   - User ID:', currentUserId);
+    console.log('   - Is authenticated:', isAuthenticated);
+    console.log('   - Have server reactions:', !!Object.keys(reactions || {}).length);
+    console.log('   - Have server userReaction:', !!userReaction);
+    
+    // Only clear state if we don't have valid server data
+    // This prevents clearing initial reaction state during first login
+    const hasValidServerData = (reactions && Object.keys(reactions).length > 0) || userReaction;
+    
+    if (!hasValidServerData) {
+      console.log('🔄 SocialReactionButton: No valid server data, clearing local state');
+      setLocalReactions({});
+      setLocalUserReaction(undefined);
+      
+      // Clear browser cache only when no server data
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('user_interactions');
+        localStorage.removeItem('review_reactions_cache');
+      }
+      
+      // Force parent to refresh data
+      if (onRefreshReactions) {
+        console.log('🔄 SocialReactionButton: Requesting fresh data from parent');
+        onRefreshReactions().catch(error => {
+          console.error('Failed to refresh reactions:', error);
+        });
+      }
+    } else {
+      console.log('🔄 SocialReactionButton: Have valid server data, preserving state');
+      // Keep server data, just update local state to ensure consistency
+      setLocalReactions(reactions || {});
+      setLocalUserReaction(userReaction);
+    }
+    
+    setForceUpdate(prev => prev + 1);
+  }, [user?.id, user?.user_id, isAuthenticated, reactions, userReaction]);
 
   // Debug logging
   console.log('SocialReactionButton received:', { reactions, userReaction, hasOnReactionChange: !!onReactionChange });
