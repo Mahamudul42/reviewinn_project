@@ -57,8 +57,8 @@ class EnhancedVerificationService:
         self.MAX_REQUESTS_PER_WINDOW = 3
         self.RESEND_COOLDOWN_MINUTES = 2
         
-        # Development mode settings
-        self.development_mode = os.environ.get('VERIFICATION_DEV_MODE', 'false').lower() == 'true'
+        # Development mode settings (force True for local development)
+        self.development_mode = True  # Force development mode
         self.dev_code = "123456"  # Fixed code for development
         
         # Email settings (configure these in production)
@@ -127,6 +127,9 @@ class EnhancedVerificationService:
 
     async def send_email_verification_code(self, email: str, db: Session) -> VerificationCodeResponse:
         """Send 6-digit email verification code"""
+        logger.info(f"Sending email verification code to {email}")
+        logger.info(f"Development mode: {self.development_mode}")
+        
         # Check rate limiting
         if not self.check_rate_limit(email, "email_verification"):
             raise HTTPException(
@@ -164,6 +167,11 @@ class EnhancedVerificationService:
         key = self.get_code_key(email, "email_verification")
         self.codes_storage[key] = VerificationCode(code, email, "email_verification")
         
+        logger.info(f"Generated and stored verification code for {email}")
+        logger.info(f"Code: {code} (dev mode: {self.development_mode})")
+        logger.info(f"Storage key: {key}")
+        logger.info(f"Current storage keys: {list(self.codes_storage.keys())}")
+        
         # Send email
         try:
             await self.send_verification_email(email, code, "email_verification")
@@ -180,9 +188,33 @@ class EnhancedVerificationService:
 
     async def verify_email_code(self, email: str, code: str, db: Session) -> bool:
         """Verify 6-digit email verification code"""
+        logger.info(f"Attempting to verify email code for {email} with code {code}")
+        logger.info(f"Development mode: {self.development_mode}")
+        
+        # In development mode, accept the fixed dev code for any email
+        if self.development_mode and code == self.dev_code:
+            logger.info(f"Development mode: accepting fixed code {self.dev_code}")
+            # Still verify the user exists
+            user = db.query(User).filter(User.email == email).first()
+            if user:
+                user.is_verified = True
+                user.email_verified_at = datetime.now(timezone.utc)
+                db.commit()
+                logger.info(f"Email verified successfully for {email} (dev mode)")
+                return True
+            else:
+                logger.warning(f"User not found for email {email}")
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="User not found."
+                )
+        
         key = self.get_code_key(email, "email_verification")
+        logger.info(f"Looking for verification code with key: {key}")
+        logger.info(f"Available keys in storage: {list(self.codes_storage.keys())}")
         
         if key not in self.codes_storage:
+            logger.warning(f"No verification code found for key {key}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="No verification code found. Please request a new code."
@@ -340,7 +372,7 @@ class EnhancedVerificationService:
         # Hash and update password using production auth system
         from auth.production_auth_system import get_auth_system
         auth_system = get_auth_system()
-        user.password_hash = auth_system._hash_password(new_password)
+        user.hashed_password = auth_system._hash_password(new_password)
         user.password_reset_at = now
         db.commit()
         
