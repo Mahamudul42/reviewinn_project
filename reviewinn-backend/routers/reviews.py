@@ -30,6 +30,39 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+# ==================== USER REACTIONS ENDPOINT ====================
+
+@router.get("/user-reactions")
+async def get_user_reactions(
+    current_user: User = Depends(RequiredUser),
+    db: Session = Depends(get_db)
+):
+    """Get all reactions by the current user - for cross-browser sync"""
+    try:
+        reactions = db.query(ReviewReaction).filter(
+            ReviewReaction.user_id == current_user.user_id
+        ).all()
+        
+        reaction_data = []
+        for reaction in reactions:
+            reaction_data.append({
+                "review_id": reaction.review_id,
+                "reaction_type": reaction.reaction_type.value if hasattr(reaction.reaction_type, 'value') else str(reaction.reaction_type),
+                "created_at": reaction.created_at.isoformat()
+            })
+        
+        return api_response(
+            data=reaction_data,
+            message=f"Retrieved {len(reaction_data)} user reactions"
+        )
+        
+    except Exception as e:
+        logger.error(f"Error retrieving user reactions: {e}")
+        return error_response(
+            message="Failed to retrieve user reactions",
+            status_code=500
+        )
+
 # Keep existing Pydantic models here...
 class ReviewEntityInfo(BaseModel):
     entity_id: int

@@ -19,9 +19,31 @@ class UserInteractionService {
   private interactionCache: UserInteractionCache = {};
   private isInitialized = false;
   private subscribers: ((interactions: UserInteractionCache) => void)[] = [];
+  private syncInProgress = false;
 
   constructor() {
     this.initializeFromStorage();
+    this.setupAuthEventListeners();
+  }
+
+  private setupAuthEventListeners() {
+    // Listen for login events to sync from server
+    window.addEventListener('authLoginSuccess', () => {
+      console.log('🔄 UserInteractionService: Auth login success - syncing from server');
+      this.loadUserInteractionsFromServer();
+    });
+    
+    // Listen for user session changes
+    window.addEventListener('userSessionChanged', () => {
+      console.log('🔄 UserInteractionService: User session changed - syncing from server');  
+      this.loadUserInteractionsFromServer();
+    });
+    
+    // Clear cache on logout
+    window.addEventListener('authLogout', () => {
+      console.log('🧹 UserInteractionService: Auth logout - clearing cache');
+      this.clearInteractions();
+    });
   }
 
   private initializeFromStorage() {
@@ -54,9 +76,13 @@ class UserInteractionService {
     this.subscribers.forEach(callback => callback(this.interactionCache));
   }
 
-  // Load user interactions from backend
-  async loadUserInteractions(): Promise<void> {
-    // Use unified auth through store
+  // ENHANCED: Server synchronization on login/session change
+  async loadUserInteractionsFromServer(): Promise<void> {
+    if (this.syncInProgress) {
+      console.log('🔄 UserInteractionService: Sync already in progress, skipping');
+      return;
+    }
+
     const authState = useAuthStore.getState();
     console.log('🔍 UserInteractionService: Auth state:', {
       isAuthenticated: authState.isAuthenticated,
@@ -66,90 +92,139 @@ class UserInteractionService {
     });
     
     if (!authState.isAuthenticated || !authState.token || !authState.user) {
-      console.log('🔍 UserInteractionService: Not authenticated, using localStorage cache only');
+      console.log('🔍 UserInteractionService: Not authenticated, clearing cache');
+      this.clearInteractions();
       return;
     }
 
-    // For now, skip the backend call and rely on localStorage cache
-    // TODO: Implement backend user interactions endpoint when available
-    console.log('🔍 UserInteractionService: Using localStorage cache for user interactions');
-    
-    // Just notify subscribers that we've "loaded" (from localStorage)
-    this.notifySubscribers();
-    
-    /*
-    // Backend endpoint not implemented yet - keeping code for future use
+    this.syncInProgress = true;
+
     try {
-      console.log('🔍 UserInteractionService: Making authenticated request to interactions');
-      const response = await httpClient.get(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.USERS.ME_INTERACTIONS}`, true);
+      console.log('🔄 UserInteractionService: Fetching user reactions from server...');
       
-      // Handle enterprise API response format
-      const apiResponse = response.data;
-      if (apiResponse && apiResponse.status === 'success' && apiResponse.data) {
-        this.interactionCache = apiResponse.data.reduce((acc: UserInteractionCache, interaction: any) => {
-          acc[interaction.reviewId] = {
-            reviewId: interaction.reviewId,
-            reaction: interaction.reaction,
-            isBookmarked: interaction.isBookmarked,
-            isHelpful: interaction.isHelpful,
-            lastInteraction: new Date(interaction.lastInteraction)
+      // Fetch user's reactions from review system
+      const response = await this.fetchUserReactionsFromReviewSystem(authState.user.id);
+      
+      if (response && response.length > 0) {
+        // Convert server response to interaction cache format
+        const serverInteractions: UserInteractionCache = {};
+        
+        response.forEach((reaction: any) => {
+          serverInteractions[reaction.review_id] = {
+            reviewId: reaction.review_id,
+            reaction: reaction.reaction_type,
+            isBookmarked: false, // We'll extend this later if needed
+            isHelpful: undefined,
+            lastInteraction: new Date(reaction.created_at || Date.now())
           };
-          return acc;
-        }, {});
+        });
+
+        // Merge with existing cache (server takes precedence)
+        this.interactionCache = { ...this.interactionCache, ...serverInteractions };
         this.saveToStorage();
         this.notifySubscribers();
+        
+        console.log(`✅ UserInteractionService: Loaded ${response.length} reactions from server`);
+      } else {
+        console.log('📭 UserInteractionService: No reactions found on server');
       }
+      
     } catch (error) {
-      console.warn('User interactions endpoint not available, using localStorage only:', error);
-      // Don't throw error - just use localStorage cache
+      console.warn('⚠️ UserInteractionService: Failed to fetch from server, using local cache:', error);
+    } finally {
+      this.syncInProgress = false;
     }
-    */
   }
 
-  // Get user interaction for a specific review
-  getUserInteraction(reviewId: string): UserInteraction | null {
-    return this.interactionCache[reviewId] || null;
+  // SIMPLIFIED: Fetch reactions directly from review system
+  private async fetchUserReactionsFromReviewSystem(userId: string | number): Promise<any[]> {
+    try {
+      // Use your existing review API to get user's reactions
+      const response = await httpClient.get(`${API_CONFIG.BASE_URL}/api/v1/reviews/user-reactions`, true);
+      
+      if (response && response.data && response.data.success && response.data.data) {
+        return response.data.data;
+      }
+      
+      return [];
+    } catch (error) {
+      console.error('Failed to fetch user reactions:', error);
+      return [];
+    }
   }
 
-  // Update user interaction
+  // ENHANCED: Update interaction both locally and on server
   updateUserInteraction(reviewId: string, interaction: Partial<UserInteraction>): void {
     this.interactionCache[reviewId] = {
       ...this.interactionCache[reviewId],
       ...interaction,
+      reviewId,
       lastInteraction: new Date()
     };
     this.saveToStorage();
     this.notifySubscribers();
+
+    // Sync to server in background (don't wait)
+    this.syncInteractionToServer(reviewId, interaction).catch(error => {
+      console.warn('Failed to sync interaction to server:', error);
+    });
   }
 
-  // Remove user interaction
+  // SIMPLIFIED: Sync single interaction to server
+  private async syncInteractionToServer(reviewId: string, interaction: Partial<UserInteraction>): Promise<void> {
+    const authState = useAuthStore.getState();
+    if (!authState.isAuthenticated || !authState.token) {
+      return;
+    }
+
+    try {
+      if (interaction.reaction !== undefined) {
+        // Sync reaction using your existing review reaction API
+        if (interaction.reaction) {
+          await httpClient.post(`${API_CONFIG.BASE_URL}/api/v1/reviews/${reviewId}/reaction`, {
+            reaction_type: interaction.reaction
+          }, true);
+        } else {
+          await httpClient.delete(`${API_CONFIG.BASE_URL}/api/v1/reviews/${reviewId}/reaction`, true);
+        }
+      }
+    } catch (error) {
+      console.warn(`Failed to sync interaction for review ${reviewId}:`, error);
+    }
+  }
+
+  // Public API methods (unchanged)
+  async loadUserInteractions(): Promise<void> {
+    await this.loadUserInteractionsFromServer();
+  }
+
+  getUserInteraction(reviewId: string): UserInteraction | null {
+    return this.interactionCache[reviewId] || null;
+  }
+
   removeUserInteraction(reviewId: string): void {
     delete this.interactionCache[reviewId];
     this.saveToStorage();
     this.notifySubscribers();
   }
 
-  // Clear all interactions (useful for logout)
   clearInteractions(): void {
     this.interactionCache = {};
     this.saveToStorage();
     this.notifySubscribers();
   }
 
-  // Get all user interactions
   getAllInteractions(): UserInteractionCache {
     return { ...this.interactionCache };
   }
 
-  // Check if user has interacted with a review
   hasUserInteracted(reviewId: string): boolean {
     return reviewId in this.interactionCache;
   }
 
-  // Get user's reaction for a review
   getUserReaction(reviewId: string): string | null {
     return this.interactionCache[reviewId]?.reaction || null;
   }
 }
 
-export const userInteractionService = new UserInteractionService(); 
+export const userInteractionService = new UserInteractionService();
