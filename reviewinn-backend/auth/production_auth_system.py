@@ -34,11 +34,25 @@ logger = logging.getLogger(__name__)
 class ProductionAuthConfig:
     """Production authentication configuration"""
     
-    # JWT Configuration
-    JWT_SECRET_KEY: str
+    # JWT Configuration - FIXED: Proper default handling
+    JWT_SECRET_KEY: str = None  # Will be set in __post_init__
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 30
+    
+    def __post_init__(self):
+        """Initialize configuration after dataclass creation"""
+        if self.JWT_SECRET_KEY is None:
+            import os
+            import secrets
+            # Try environment variables first, then generate secure default
+            self.JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY') or os.getenv('SECRET_KEY') or secrets.token_urlsafe(64)
+            
+        # Validate minimum key length for security
+        if len(self.JWT_SECRET_KEY) < 32:
+            import secrets
+            logger.warning("JWT secret key too short - generating secure key")
+            self.JWT_SECRET_KEY = secrets.token_urlsafe(64)
     
     # Redis Configuration (Required for production)
     REDIS_URL: str = "redis://localhost:6379/0"  # Default for local dev
@@ -930,11 +944,11 @@ def get_production_auth_system() -> ProductionAuthSystem:
     import os
     
     config = ProductionAuthConfig(
-        JWT_SECRET_KEY=os.getenv('JWT_SECRET_KEY', os.getenv('SECRET_KEY', 'dev-secret-change-in-production')),
+        # JWT_SECRET_KEY will be auto-configured in __post_init__
         REDIS_URL=os.getenv('REDIS_URL', 'redis://localhost:6379/0'),
         BCRYPT_ROUNDS=int(os.getenv('BCRYPT_ROUNDS', '14')),
-        PASSWORD_MIN_LENGTH=int(os.getenv('PASSWORD_MIN_LENGTH', '12')),
-        LOGIN_MAX_ATTEMPTS=int(os.getenv('LOGIN_MAX_ATTEMPTS', '3')),
+        PASSWORD_MIN_LENGTH=int(os.getenv('PASSWORD_MIN_LENGTH', '8')),  # Fixed: was 12, now matches your requirement
+        LOGIN_MAX_ATTEMPTS=int(os.getenv('LOGIN_MAX_ATTEMPTS', '5')),    # Fixed: was 3, now 5 attempts
         REGISTRATION_MAX_ATTEMPTS=int(os.getenv('REGISTRATION_MAX_ATTEMPTS', '2'))
     )
     
