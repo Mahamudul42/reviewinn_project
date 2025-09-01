@@ -31,13 +31,11 @@ class CleanReactionService {
   private setupAuthListeners() {
     // Sync when user logs in using the proper auth events
     authEvents.on('login', () => {
-      console.log('🔄 CleanReactionService: User login detected, syncing from server');
       setTimeout(() => this.syncUserReactionsFromServer(), 100);
     });
 
     // Clear when user logs out
     authEvents.on('logout', () => {
-      console.log('🧹 CleanReactionService: User logout detected, clearing cache');
       this.cache.clear();
       this.saveToStorage();
     });
@@ -45,10 +43,8 @@ class CleanReactionService {
     // Listen for cross-tab login
     window.addEventListener('storage', (e) => {
       if (e.key === 'reviewinn_jwt_token' && e.newValue) {
-        console.log('🔄 CleanReactionService: Token detected in another tab, syncing from server');
         setTimeout(() => this.syncUserReactionsFromServer(), 200);
       } else if (e.key === 'reviewinn_jwt_token' && !e.newValue) {
-        console.log('🧹 CleanReactionService: Token cleared in another tab, clearing cache');
         this.cache.clear();
         this.saveToStorage();
       }
@@ -56,7 +52,6 @@ class CleanReactionService {
 
     // Listen for auth state changes
     window.addEventListener('authStateChanged', () => {
-      console.log('🔄 CleanReactionService: Auth state changed, syncing from server');
       setTimeout(() => this.syncUserReactionsFromServer(), 200);
     });
   }

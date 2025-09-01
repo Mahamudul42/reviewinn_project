@@ -327,7 +327,7 @@ export const CategoryBasedRating: React.FC<CategoryBasedRatingProps> = ({
           maxRating={5}
           size="md"
           showValue={true}
-          style="golden"
+          style="purple"
           onRatingChange={(rating) => !disabled && onRatingChange(questionKey, rating)}
           disabled={disabled}
         />

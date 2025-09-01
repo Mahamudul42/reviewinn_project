@@ -671,6 +671,7 @@ const MessengerPage: React.FC = () => {
   // Handle conversation ID from URL params
   useEffect(() => {
     const conversationId = searchParams.get('conversation');
+    console.log({
       conversationId,
       conversationsLength: conversations.length,
       activeConversationId: activeConversation?.conversation_id
@@ -681,6 +682,7 @@ const MessengerPage: React.FC = () => {
       
       if (!activeConversation || activeConversation.conversation_id !== targetId) {
         const conversation = conversations.find(c => c.conversation_id === targetId);
+        console.log(conversation ? {
           id: conversation.conversation_id,
           title: conversation.title
         } : 'Not found');
@@ -692,9 +694,7 @@ const MessengerPage: React.FC = () => {
           setIsInitialLoad(true);
           loadMessages(conversation.conversation_id);
         }
-      } else {
       }
-    } else {
     }
   }, [searchParams, conversations.length, activeConversation, loadMessages]);
 

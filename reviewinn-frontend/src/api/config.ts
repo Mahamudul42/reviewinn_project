@@ -80,6 +80,8 @@ export const API_ENDPOINTS = {
     LOGOUT: '/auth-production/logout',
     REFRESH: '/auth-production/refresh',
     VERIFY: '/auth-production/verify',
+    VERIFY_EMAIL: '/auth-production/verify-email',
+    RESEND_VERIFICATION: '/auth-production/resend-verification',
     FORGOT_PASSWORD: '/auth-production/forgot-password',
     RESET_PASSWORD: '/auth-production/reset-password',
     CHANGE_PASSWORD: '/auth-production/change-password',

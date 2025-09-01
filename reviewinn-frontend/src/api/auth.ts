@@ -788,13 +788,6 @@ class AuthService {
   }
 
   /**
-   * Verify email with token
-   */
-  async verifyEmail(token: string): Promise<void> {
-    await httpClient.post(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.AUTH.VERIFY}`, { token });
-  }
-
-  /**
    * Start monitoring user activity for persistent login
    */
   private startActivityMonitoring(): void {
@@ -864,7 +857,7 @@ class AuthService {
     this.updateAuthState({ isLoading: true, error: null });
 
     try {
-      const response = await httpClient.post(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.auth.register}`, {
+      const response = await httpClient.post(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.AUTH.REGISTER}`, {
         first_name: data.firstName,
         last_name: data.lastName,
         email: data.email,
@@ -908,7 +901,7 @@ class AuthService {
    */
   async verifyEmail(email: string, verificationCode: string): Promise<{ success: boolean; message?: string }> {
     try {
-      const response = await httpClient.post(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.auth.verifyEmail}`, {
+      const response = await httpClient.post(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.AUTH.VERIFY_EMAIL}`, {
         email,
         verification_code: verificationCode
       });
@@ -928,7 +921,7 @@ class AuthService {
    */
   async resendVerificationCode(email: string): Promise<{ success: boolean; message?: string; resend_available_in?: number }> {
     try {
-      const response = await httpClient.post(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.auth.resendVerification}`, {
+      const response = await httpClient.post(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.AUTH.RESEND_VERIFICATION}`, {
         email
       });
 
