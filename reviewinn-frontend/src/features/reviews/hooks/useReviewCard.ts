@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUnifiedAuth } from '../../../hooks/useUnifiedAuth';
 import { reviewService, commentService } from '../../../api/services';
+import { userInteractionService } from '../../../api/services/userInteractionService';
 import type { Review, Entity } from '../../../types';
 
 interface UseReviewCardProps {
@@ -26,6 +27,7 @@ export const useReviewCard = ({ review, entity, onEntityClick, onReactionChange,
   // Reaction State
   const [localReactions, setLocalReactions] = useState<Record<string, number>>(review.reactions || {});
   const [localUserReaction, setLocalUserReaction] = useState<string | undefined>(review.user_reaction);
+  const localUserReactionRef = useRef<string | undefined>(review.user_reaction);
   const [topReactions, setTopReactions] = useState<any[]>(review.top_reactions || []);
   const [totalReactions, setTotalReactions] = useState<number>(review.total_reactions || 0);
   const [optimisticError, setOptimisticError] = useState<string | null>(null);
@@ -44,6 +46,11 @@ export const useReviewCard = ({ review, entity, onEntityClick, onReactionChange,
       viewTrackedRef.current = true;
     }
   }, [review.id]);
+
+  // Update ref when localUserReaction changes
+  useEffect(() => {
+    localUserReactionRef.current = localUserReaction;
+  }, [localUserReaction]);
 
   // Comment count state
   const [commentCount, setCommentCount] = useState<number>(
@@ -108,13 +115,11 @@ export const useReviewCard = ({ review, entity, onEntityClick, onReactionChange,
     } else if (isAuthenticated) {
       // Load from userInteractionService for persistence with small delay to ensure cache is ready
       setTimeout(() => {
-        import('../../../api/services/userInteractionService').then(({ userInteractionService }) => {
-          const cachedReaction = userInteractionService.getUserReaction(review.id);
-          if (cachedReaction) {
-            console.log('🔄 useReviewCard: Setting user reaction from cache:', cachedReaction, 'for review:', review.id);
-            setLocalUserReaction(cachedReaction);
-          }
-        });
+        const cachedReaction = userInteractionService.getUserReaction(review.id);
+        if (cachedReaction) {
+          console.log('🔄 useReviewCard: Setting user reaction from cache:', cachedReaction, 'for review:', review.id);
+          setLocalUserReaction(cachedReaction);
+        }
       }, 100);
     }
   }, [review.reactions, review.top_reactions, review.total_reactions, review.view_count, review.comment_count, review.user_reaction, review.id, isAuthenticated]);
@@ -124,34 +129,32 @@ export const useReviewCard = ({ review, entity, onEntityClick, onReactionChange,
     if (isAuthenticated) {
       let unsubscribe: (() => void) | undefined;
       
-      import('../../../api/services/userInteractionService').then(({ userInteractionService }) => {
-        // Load interactions
-        userInteractionService.loadUserInteractions().catch(error => {
-          console.warn('Failed to load user interactions:', error);
-        });
-        
-        // Subscribe to interaction updates
-        unsubscribe = userInteractionService.subscribe((interactions) => {
-          const userReaction = interactions[review.id]?.reaction;
-          if (userReaction !== localUserReaction) {
-            console.log('🔄 useReviewCard: User interaction updated from cache subscription:', userReaction, 'for review:', review.id);
-            setLocalUserReaction(userReaction);
-          }
-        });
-        
-        // Also check immediately for existing cached reactions
-        const existingReaction = userInteractionService.getUserReaction(review.id);
-        if (existingReaction && existingReaction !== localUserReaction) {
-          console.log('🔄 useReviewCard: Found existing cached reaction:', existingReaction, 'for review:', review.id);
-          setLocalUserReaction(existingReaction);
+      // Load interactions
+      userInteractionService.loadUserInteractions().catch(error => {
+        console.warn('Failed to load user interactions:', error);
+      });
+      
+      // Subscribe to interaction updates
+      unsubscribe = userInteractionService.subscribe((interactions) => {
+        const userReaction = interactions[review.id]?.reaction;
+        if (userReaction !== localUserReactionRef.current) {
+          console.log('🔄 useReviewCard: User interaction updated from cache subscription:', userReaction, 'for review:', review.id);
+          setLocalUserReaction(userReaction);
         }
       });
+      
+      // Also check immediately for existing cached reactions
+      const existingReaction = userInteractionService.getUserReaction(review.id);
+      if (existingReaction && existingReaction !== localUserReaction) {
+        console.log('🔄 useReviewCard: Found existing cached reaction:', existingReaction, 'for review:', review.id);
+        setLocalUserReaction(existingReaction);
+      }
       
       return () => {
         unsubscribe?.();
       };
     }
-  }, [isAuthenticated, review.id, localUserReaction]);
+  }, [isAuthenticated, review.id]);
 
   // Auth is now handled by context, no need for manual subscription
 

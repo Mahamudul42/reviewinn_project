@@ -33,6 +33,7 @@ export function useReactions(reviewId: string) {
       try {
         const reactionState = await reactionService.getReactionState(reviewId);
         if (isMounted) {
+          console.log(`🎯 useReactions: Setting state for ${reviewId} with reaction: ${reactionState.userReaction}`);
           setState({
             reviewId,
             userReaction: reactionState.userReaction,
@@ -55,6 +56,7 @@ export function useReactions(reviewId: string) {
     // Subscribe to changes
     const unsubscribe = reactionService.subscribe(reviewId, (reactionState) => {
       if (isMounted) {
+        console.log(`🔔 useReactions: Subscription update for ${reviewId} with reaction: ${reactionState.userReaction}`);
         setState({
           reviewId,
           userReaction: reactionState.userReaction,
@@ -65,11 +67,22 @@ export function useReactions(reviewId: string) {
       }
     });
 
+    // Listen for global reaction sync events
+    const handleReactionsSync = () => {
+      if (isMounted) {
+        console.log(`🔄 useReactions: Global sync event detected, reloading for ${reviewId}`);
+        loadReactions();
+      }
+    };
+    
+    window.addEventListener('reactionsSync', handleReactionsSync);
+
     loadReactions();
 
     return () => {
       isMounted = false;
       unsubscribe();
+      window.removeEventListener('reactionsSync', handleReactionsSync);
     };
   }, [reviewId]);
 

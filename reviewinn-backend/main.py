@@ -46,7 +46,6 @@ from routers.reviewinn_left_panel import router as reviewinn_left_panel_router
 from routers.reviewinn_right_panel import router as reviewinn_right_panel_router
 from routers.badges import router as badges_router
 from routers.groups import router as groups_router
-from routers.user_interactions import router as user_interactions_router
 
 # Import dependencies setup
 from core.dependencies import setup_di_container
@@ -241,7 +240,6 @@ class APIApplication(LoggerMixin):
         app.include_router(reviewinn_right_panel_router)
         app.include_router(badges_router, tags=["badges"])
         app.include_router(groups_router, prefix="/api/v1/groups", tags=["groups"])
-        app.include_router(user_interactions_router, prefix="/api/v1", tags=["user-interactions"])
         
         
         # Legacy entity endpoints for backward compatibility (keeping disabled to avoid conflicts)

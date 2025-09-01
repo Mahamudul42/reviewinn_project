@@ -34,11 +34,19 @@ router = APIRouter()
 
 @router.get("/user-reactions")
 async def get_user_reactions(
-    current_user: User = Depends(RequiredUser),
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """Get all reactions by the current user - for cross-browser sync"""
     try:
+        # Get current user from request state (set by middleware)
+        if not hasattr(request.state, 'current_user') or not request.state.current_user:
+            return error_response(
+                message="Authentication required",
+                status_code=401
+            )
+        
+        current_user = request.state.current_user
         reactions = db.query(ReviewReaction).filter(
             ReviewReaction.user_id == current_user.user_id
         ).all()
@@ -46,9 +54,9 @@ async def get_user_reactions(
         reaction_data = []
         for reaction in reactions:
             reaction_data.append({
-                "review_id": reaction.review_id,
+                "review_id": str(reaction.review_id),
                 "reaction_type": reaction.reaction_type.value if hasattr(reaction.reaction_type, 'value') else str(reaction.reaction_type),
-                "created_at": reaction.created_at.isoformat()
+                "created_at": reaction.created_at.isoformat() if reaction.created_at else datetime.now().isoformat()
             })
         
         return api_response(
@@ -62,6 +70,12 @@ async def get_user_reactions(
             message="Failed to retrieve user reactions",
             status_code=500
         )
+
+# Simple test endpoint
+@router.get("/user-reactions-test")
+async def get_user_reactions_test():
+    """Simple test endpoint without dependencies"""
+    return {"status": "ok", "message": "Test endpoint working"}
 
 # Keep existing Pydantic models here...
 class ReviewEntityInfo(BaseModel):

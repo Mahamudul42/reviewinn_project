@@ -190,10 +190,10 @@ class UnifiedReactionService {
   // ============================================================================
 
   private async fetchFromServer(reviewId: string): Promise<ReactionState> {
-    const response = await httpClient.get(`${API_CONFIG.BASE_URL}/api/v1/reviews/${reviewId}/reactions`, true);
+    const response = await httpClient.get(`${API_CONFIG.BASE_URL}/reviews/${reviewId}/reactions`);
     
-    if (response.data && response.data.success) {
-      const data = response.data.data;
+    if (response.success && response.data) {
+      const data = response.data;
       return {
         reviewId,
         userReaction: data.user_reaction || null,
@@ -210,10 +210,10 @@ class UnifiedReactionService {
       // Add or update reaction
       const response = await httpClient.post(`${API_CONFIG.BASE_URL}/api/v1/reviews/${reviewId}/reaction`, {
         reaction_type: reactionType
-      }, true);
+      });
       
-      if (response.data && response.data.success) {
-        const data = response.data.data;
+      if (response.success && response.data) {
+        const data = response.data;
         return {
           reviewId,
           userReaction: data.user_reaction || null,
@@ -223,10 +223,10 @@ class UnifiedReactionService {
       }
     } else {
       // Remove reaction
-      const response = await httpClient.delete(`${API_CONFIG.BASE_URL}/api/v1/reviews/${reviewId}/reaction`, true);
+      const response = await httpClient.delete(`${API_CONFIG.BASE_URL}/api/v1/reviews/${reviewId}/reaction`);
       
-      if (response.data && response.data.success) {
-        const data = response.data.data;
+      if (response.success && response.data) {
+        const data = response.data;
         return {
           reviewId,
           userReaction: null,
@@ -291,10 +291,10 @@ class UnifiedReactionService {
 
     try {
       // Fetch all user reactions from server
-      const response = await httpClient.get(`${API_CONFIG.BASE_URL}/api/v1/reviews/user-reactions`, true);
+      const response = await httpClient.get(`${API_CONFIG.BASE_URL}/reviews/user-reactions`);
       
-      if (response.data && response.data.success && response.data.data) {
-        const userReactions = response.data.data;
+      if (response.success && response.data) {
+        const userReactions = response.data as any[];
         
         // Update cache with server data
         userReactions.forEach((reaction: any) => {

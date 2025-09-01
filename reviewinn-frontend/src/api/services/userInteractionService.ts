@@ -1,7 +1,7 @@
 import { httpClient } from '../httpClient';
-import { API_CONFIG, API_ENDPOINTS } from '../config';
-import { isAuthenticated, getCurrentUser } from '../../shared/utils/auth';
+import { API_CONFIG } from '../config';
 import { useAuthStore } from '../../stores/authStore';
+import { authEvents } from '../../utils/authEvents';
 
 export interface UserInteraction {
   reviewId: string;
@@ -17,32 +17,43 @@ export interface UserInteractionCache {
 
 class UserInteractionService {
   private interactionCache: UserInteractionCache = {};
-  private isInitialized = false;
   private subscribers: ((interactions: UserInteractionCache) => void)[] = [];
-  private syncInProgress = false;
 
   constructor() {
     this.initializeFromStorage();
     this.setupAuthEventListeners();
+    // Auto-sync if user is already authenticated
+    setTimeout(() => this.checkAndSyncOnInit(), 500);
   }
 
   private setupAuthEventListeners() {
-    // Listen for login events to sync from server
-    window.addEventListener('authLoginSuccess', () => {
-      console.log('🔄 UserInteractionService: Auth login success - syncing from server');
-      this.loadUserInteractionsFromServer();
+    // Sync reactions from server when user logs in
+    authEvents.on('login', () => {
+      console.log('🔄 UserInteractionService: User login detected, syncing from server');
+      setTimeout(() => this.syncReactionsFromServer(), 100); // Faster sync
     });
     
-    // Listen for user session changes
-    window.addEventListener('userSessionChanged', () => {
-      console.log('🔄 UserInteractionService: User session changed - syncing from server');  
-      this.loadUserInteractionsFromServer();
-    });
-    
-    // Clear cache on logout
-    window.addEventListener('authLogout', () => {
-      console.log('🧹 UserInteractionService: Auth logout - clearing cache');
+    // Clear cache on logout  
+    authEvents.on('logout', () => {
+      console.log('🧹 UserInteractionService: User logout detected, clearing cache');
       this.clearInteractions();
+    });
+    
+    // Also listen for window storage events (cross-tab login detection)
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'reviewinn_jwt_token' && e.newValue) {
+        console.log('🔄 UserInteractionService: Token detected in another tab, syncing from server');
+        setTimeout(() => this.syncReactionsFromServer(), 200);
+      } else if (e.key === 'reviewinn_jwt_token' && !e.newValue) {
+        console.log('🧹 UserInteractionService: Token cleared in another tab, clearing cache');
+        this.clearInteractions();
+      }
+    });
+
+    // Also listen for auth state changes from the auth store
+    window.addEventListener('authStateChanged', () => {
+      console.log('🔄 UserInteractionService: Auth state changed, syncing from server');
+      setTimeout(() => this.syncReactionsFromServer(), 200);
     });
   }
 
@@ -76,84 +87,72 @@ class UserInteractionService {
     this.subscribers.forEach(callback => callback(this.interactionCache));
   }
 
-  // ENHANCED: Server synchronization on login/session change
-  async loadUserInteractionsFromServer(): Promise<void> {
-    if (this.syncInProgress) {
-      console.log('🔄 UserInteractionService: Sync already in progress, skipping');
-      return;
-    }
+  // Load user interactions from local storage only
+  async loadUserInteractions(): Promise<void> {
+    // Just notify subscribers that we've "loaded" (from localStorage)
+    this.notifySubscribers();
+  }
 
+  // Sync reactions from server for cross-browser support
+  private async syncReactionsFromServer(): Promise<void> {
     const authState = useAuthStore.getState();
-    console.log('🔍 UserInteractionService: Auth state:', {
-      isAuthenticated: authState.isAuthenticated,
-      hasToken: !!authState.token,
-      hasUser: !!authState.user,
-      userId: authState.user?.id
-    });
     
     if (!authState.isAuthenticated || !authState.token || !authState.user) {
-      console.log('🔍 UserInteractionService: Not authenticated, clearing cache');
-      this.clearInteractions();
+      console.log('🔍 UserInteractionService: Not authenticated, skipping sync');
       return;
     }
 
-    this.syncInProgress = true;
-
     try {
-      console.log('🔄 UserInteractionService: Fetching user reactions from server...');
+      console.log('🔄 UserInteractionService: Fetching reactions from server...');
       
-      // Fetch user's reactions from review system
-      const response = await this.fetchUserReactionsFromReviewSystem(authState.user.id);
+      const response = await httpClient.get(`${API_CONFIG.BASE_URL}/reviews/user-reactions`, true);
       
-      if (response && response.length > 0) {
-        // Convert server response to interaction cache format
-        const serverInteractions: UserInteractionCache = {};
+      if (response && response.success && response.data) {
+        const serverReactions = response.data as any[];
         
-        response.forEach((reaction: any) => {
-          serverInteractions[reaction.review_id] = {
+        // Convert server response to interaction cache format
+        serverReactions.forEach((reaction: any) => {
+          this.interactionCache[reaction.review_id] = {
             reviewId: reaction.review_id,
             reaction: reaction.reaction_type,
-            isBookmarked: false, // We'll extend this later if needed
+            isBookmarked: false,
             isHelpful: undefined,
             lastInteraction: new Date(reaction.created_at || Date.now())
           };
         });
 
-        // Merge with existing cache (server takes precedence)
-        this.interactionCache = { ...this.interactionCache, ...serverInteractions };
         this.saveToStorage();
         this.notifySubscribers();
         
-        console.log(`✅ UserInteractionService: Loaded ${response.length} reactions from server`);
-      } else {
-        console.log('📭 UserInteractionService: No reactions found on server');
+        console.log(`✅ UserInteractionService: Synced ${serverReactions.length} reactions from server`);
+        
+        // Force a second notification to ensure UI updates
+        setTimeout(() => {
+          this.notifySubscribers();
+          console.log('🔄 UserInteractionService: Force UI refresh after sync');
+          
+          // Dispatch a custom event that components can listen to
+          window.dispatchEvent(new CustomEvent('reactionsSync', {
+            detail: { syncedReactions: serverReactions.length, reactions: serverReactions }
+          }));
+        }, 100);
       }
       
     } catch (error) {
-      console.warn('⚠️ UserInteractionService: Failed to fetch from server, using local cache:', error);
-    } finally {
-      this.syncInProgress = false;
+      console.warn('⚠️ UserInteractionService: Failed to sync from server:', error);
     }
   }
 
-  // SIMPLIFIED: Fetch reactions directly from review system
-  private async fetchUserReactionsFromReviewSystem(userId: string | number): Promise<any[]> {
-    try {
-      // Use your existing review API to get user's reactions
-      const response = await httpClient.get(`${API_CONFIG.BASE_URL}/api/v1/reviews/user-reactions`, true);
-      
-      if (response && response.data && response.data.success && response.data.data) {
-        return response.data.data;
-      }
-      
-      return [];
-    } catch (error) {
-      console.error('Failed to fetch user reactions:', error);
-      return [];
+  // Check if user is authenticated on init and sync if needed
+  private async checkAndSyncOnInit(): Promise<void> {
+    const authState = useAuthStore.getState();
+    if (authState.isAuthenticated && authState.token && authState.user) {
+      console.log('🔄 UserInteractionService: User authenticated on init, syncing reactions');
+      await this.syncReactionsFromServer();
     }
   }
 
-  // ENHANCED: Update interaction both locally and on server
+  // Update interaction locally only
   updateUserInteraction(reviewId: string, interaction: Partial<UserInteraction>): void {
     this.interactionCache[reviewId] = {
       ...this.interactionCache[reviewId],
@@ -163,39 +162,6 @@ class UserInteractionService {
     };
     this.saveToStorage();
     this.notifySubscribers();
-
-    // Sync to server in background (don't wait)
-    this.syncInteractionToServer(reviewId, interaction).catch(error => {
-      console.warn('Failed to sync interaction to server:', error);
-    });
-  }
-
-  // SIMPLIFIED: Sync single interaction to server
-  private async syncInteractionToServer(reviewId: string, interaction: Partial<UserInteraction>): Promise<void> {
-    const authState = useAuthStore.getState();
-    if (!authState.isAuthenticated || !authState.token) {
-      return;
-    }
-
-    try {
-      if (interaction.reaction !== undefined) {
-        // Sync reaction using your existing review reaction API
-        if (interaction.reaction) {
-          await httpClient.post(`${API_CONFIG.BASE_URL}/api/v1/reviews/${reviewId}/reaction`, {
-            reaction_type: interaction.reaction
-          }, true);
-        } else {
-          await httpClient.delete(`${API_CONFIG.BASE_URL}/api/v1/reviews/${reviewId}/reaction`, true);
-        }
-      }
-    } catch (error) {
-      console.warn(`Failed to sync interaction for review ${reviewId}:`, error);
-    }
-  }
-
-  // Public API methods (unchanged)
-  async loadUserInteractions(): Promise<void> {
-    await this.loadUserInteractionsFromServer();
   }
 
   getUserInteraction(reviewId: string): UserInteraction | null {
@@ -224,6 +190,17 @@ class UserInteractionService {
 
   getUserReaction(reviewId: string): string | null {
     return this.interactionCache[reviewId]?.reaction || null;
+  }
+
+  // Manual sync method for testing and force refresh
+  async syncFromServer(): Promise<void> {
+    await this.syncReactionsFromServer();
+  }
+
+  // Force immediate sync - useful when components mount
+  async forceSync(): Promise<void> {
+    console.log('🔄 UserInteractionService: Force sync requested');
+    await this.syncReactionsFromServer();
   }
 }
 
