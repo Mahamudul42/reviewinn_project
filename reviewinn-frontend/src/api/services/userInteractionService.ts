@@ -9,10 +9,15 @@ export interface UserInteraction {
   isBookmarked?: boolean;
   isHelpful?: boolean;
   lastInteraction: Date;
+  userId?: string; // Track which user owns this interaction
 }
 
 export interface UserInteractionCache {
   [reviewId: string]: UserInteraction;
+  _metadata?: {
+    userId: string;
+    lastSync: Date;
+  };
 }
 
 class UserInteractionService {
@@ -39,21 +44,26 @@ class UserInteractionService {
       this.clearInteractions();
     });
     
-    // Also listen for window storage events (cross-tab login detection)
-    window.addEventListener('storage', (e) => {
-      if (e.key === 'reviewinn_jwt_token' && e.newValue) {
-        console.log('🔄 UserInteractionService: Token detected in another tab, syncing from server');
-        setTimeout(() => this.syncReactionsFromServer(), 200);
-      } else if (e.key === 'reviewinn_jwt_token' && !e.newValue) {
-        console.log('🧹 UserInteractionService: Token cleared in another tab, clearing cache');
+    // FIXED: Listen for unified auth events with user switching protection
+    window.addEventListener('authStateChanged', (e) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail.isAuthenticated && detail.user) {
+        console.log('🔄 UserInteractionService: Auth state changed to authenticated, validating cache');
+        
+        // ENHANCED: Check if cache belongs to current user
+        const currentUserId = detail.user.id || detail.user.user_id;
+        if (this.validateCacheOwnership(currentUserId)) {
+          console.log('✅ UserInteractionService: Cache validated for current user, syncing from server');
+          setTimeout(() => this.syncReactionsFromServer(), 200);
+        } else {
+          console.log('🔄 UserInteractionService: Cache belongs to different user, clearing and syncing');
+          this.clearInteractions();
+          setTimeout(() => this.syncReactionsFromServer(), 300);
+        }
+      } else {
+        console.log('🧹 UserInteractionService: Auth state changed to unauthenticated, clearing cache');
         this.clearInteractions();
       }
-    });
-
-    // Also listen for auth state changes from the auth store
-    window.addEventListener('authStateChanged', () => {
-      console.log('🔄 UserInteractionService: Auth state changed, syncing from server');
-      setTimeout(() => this.syncReactionsFromServer(), 200);
     });
   }
 
@@ -74,6 +84,25 @@ class UserInteractionService {
     } catch (error) {
       console.error('Failed to save user interactions to storage:', error);
     }
+  }
+
+  // ENHANCED: Validate if cache belongs to current user (user-switching protection)
+  private validateCacheOwnership(currentUserId: string): boolean {
+    if (!this.interactionCache._metadata) {
+      // No metadata means old cache or empty cache - need to clear
+      return false;
+    }
+    
+    const cacheUserId = this.interactionCache._metadata.userId;
+    const belongsToCurrentUser = cacheUserId === String(currentUserId);
+    
+    console.log('🔍 UserInteractionService: Cache validation:', {
+      cacheUserId,
+      currentUserId: String(currentUserId),
+      belongsToCurrentUser
+    });
+    
+    return belongsToCurrentUser;
   }
 
   subscribe(callback: (interactions: UserInteractionCache) => void) {
@@ -110,16 +139,26 @@ class UserInteractionService {
       if (response && response.success && response.data) {
         const serverReactions = response.data as any[];
         
-        // Convert server response to interaction cache format
+        // ENHANCED: Store user metadata for better cross-browser sync
+        const currentUserId = authState.user.id || authState.user.user_id;
+        
+        // Convert server response to interaction cache format  
         serverReactions.forEach((reaction: any) => {
           this.interactionCache[reaction.review_id] = {
             reviewId: reaction.review_id,
             reaction: reaction.reaction_type,
             isBookmarked: false,
             isHelpful: undefined,
-            lastInteraction: new Date(reaction.created_at || Date.now())
+            lastInteraction: new Date(reaction.created_at || Date.now()),
+            userId: String(currentUserId) // Track ownership for validation
           };
         });
+
+        // Store metadata for cache validation
+        this.interactionCache._metadata = {
+          userId: String(currentUserId),
+          lastSync: new Date()
+        };
 
         this.saveToStorage();
         this.notifySubscribers();
@@ -154,12 +193,26 @@ class UserInteractionService {
 
   // Update interaction locally only
   updateUserInteraction(reviewId: string, interaction: Partial<UserInteraction>): void {
+    // ENHANCED: Include current user ID for ownership tracking
+    const authState = useAuthStore.getState();
+    const currentUserId = authState.user?.id || authState.user?.user_id;
+    
     this.interactionCache[reviewId] = {
       ...this.interactionCache[reviewId],
       ...interaction,
       reviewId,
-      lastInteraction: new Date()
+      lastInteraction: new Date(),
+      userId: currentUserId ? String(currentUserId) : undefined
     };
+    
+    // Update metadata if needed
+    if (currentUserId && (!this.interactionCache._metadata || this.interactionCache._metadata.userId !== String(currentUserId))) {
+      this.interactionCache._metadata = {
+        userId: String(currentUserId),
+        lastSync: new Date()
+      };
+    }
+    
     this.saveToStorage();
     this.notifySubscribers();
   }

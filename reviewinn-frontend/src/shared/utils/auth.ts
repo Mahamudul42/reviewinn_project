@@ -13,13 +13,14 @@ import { useAuthStore } from '../../stores/authStore';
  * Uses only the unified auth store - no fallbacks
  */
 export const getAuthHeaders = (): Record<string, string> => {
-  const token = useAuthStore.getState().token;
-  console.log('🔐 getAuthHeaders:', { 
-    hasToken: !!token, 
-    tokenLength: token?.length,
-    tokenStart: token?.substring(0, 10) + '...'
-  });
-  return token ? { 'Authorization': `Bearer ${token}` } : {};
+  const authState = useAuthStore.getState();
+  const token = authState.token;
+  
+  // FIXED: Only return auth headers if user is actually authenticated
+  if (token && authState.isAuthenticated && token !== 'null' && token !== 'undefined') {
+    return { 'Authorization': `Bearer ${token}` };
+  }
+  return {};
 };
 
 /**
@@ -27,7 +28,12 @@ export const getAuthHeaders = (): Record<string, string> => {
  * Uses only the unified auth store - no fallbacks
  */
 export const getAuthToken = (): string | null => {
-  return useAuthStore.getState().token;
+  const authState = useAuthStore.getState();
+  // FIXED: Only return token if user is actually authenticated
+  if (authState.isAuthenticated && authState.token) {
+    return authState.token;
+  }
+  return null;
 };
 
 /**
@@ -35,7 +41,9 @@ export const getAuthToken = (): string | null => {
  * Uses only the unified auth store - no fallbacks
  */
 export const isAuthenticated = (): boolean => {
-  return useAuthStore.getState().isAuthenticated;
+  const authState = useAuthStore.getState();
+  // FIXED: Check both token and authenticated state
+  return authState.isAuthenticated && !!authState.token && !!authState.user;
 };
 
 /**

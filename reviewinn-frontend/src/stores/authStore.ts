@@ -210,6 +210,37 @@ export const useAuthStore = create<AuthStore>()(
           if (state.isAuthenticated && state.user && state.token) {
             console.log('AuthStore: Found valid persisted auth state');
             
+            // FIXED: Validate token synchronously before trusting persisted state
+            try {
+              // Basic token structure validation (don't trust expired tokens)
+              const tokenParts = state.token.split('.');
+              if (tokenParts.length === 3) {
+                const payload = JSON.parse(atob(tokenParts[1]));
+                const now = Math.floor(Date.now() / 1000);
+                
+                // If token is expired, clear state and continue to fallback
+                if (payload.exp && payload.exp < now) {
+                  console.log('AuthStore: Persisted token is expired, clearing state');
+                  set({ 
+                    user: null, 
+                    token: null, 
+                    isAuthenticated: false, 
+                    isLoading: false 
+                  });
+                  return;
+                }
+              }
+            } catch (error) {
+              console.warn('AuthStore: Invalid token format, clearing state');
+              set({ 
+                user: null, 
+                token: null, 
+                isAuthenticated: false, 
+                isLoading: false 
+              });
+              return;
+            }
+            
             // Get refresh token from localStorage for token sync
             const refreshToken = localStorage.getItem('reviewinn_refresh_token');
             

@@ -135,19 +135,16 @@ export class HttpClient {
       ...customHeaders
     };
 
-    // Get the latest token using unified auth utilities
-    let token = this.authToken; // First try instance token
+    // FIXED: Use single source of truth for token - always use authStore
+    const authState = useAuthStore.getState();
+    const token = authState.token;
     
-    if (!token) {
-      // Use unified auth utility for consistent token retrieval
-      token = getAuthToken();
-      if (token) {
-        // Sync instance token
-        this.authToken = token;
-      }
+    // Sync instance token with store (for performance)
+    if (token && token !== this.authToken) {
+      this.authToken = token;
     }
     
-    if (token && token !== 'null' && token !== 'undefined') {
+    if (token && token !== 'null' && token !== 'undefined' && authState.isAuthenticated) {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
@@ -189,18 +186,17 @@ export class HttpClient {
         const newToken = data.access_token;
         
         if (newToken) {
-          // Update localStorage
-          localStorage.setItem('reviewinn_jwt_token', newToken);
+          // FIXED: Update through unified auth store instead of direct localStorage
+          const authStore = useAuthStore.getState();
+          authStore.setToken(newToken);
+          
           if (data.refresh_token) {
             localStorage.setItem('reviewinn_refresh_token', data.refresh_token);
           }
           
-          // Update httpClient tokens
+          // Update httpClient tokens (for sync)
           this.authToken = newToken;
           this.refreshToken = data.refresh_token || refreshToken;
-          
-          // Update auth state through unified system
-          // The auth system will handle state updates automatically
           
           // Notify subscribers
           this.refreshSubscribers.forEach(resolve => resolve(newToken));
@@ -433,8 +429,9 @@ export class HttpClient {
               authStore.logout();
             }
           } else {
-            // Only force logout if this was a protected endpoint
-            if (isProtectedEndpoint) {
+            // FIXED: Only force logout if this was a protected endpoint and we had valid auth
+            if (isProtectedEndpoint && useAuthStore.getState().isAuthenticated) {
+              console.log('HttpClient: 401 on protected endpoint, initiating logout');
               const authStore = useAuthStore.getState();
               authStore.logout();
             }
