@@ -95,7 +95,7 @@ export interface NotificationBulkUpdate {
 }
 
 class EnterpriseNotificationService {
-  private baseUrl = `http://localhost:8000/api/v1/enterprise-notifications`;
+  private baseUrl = `${import.meta.env.VITE_API_BASE_URL || '/api/v1'}/enterprise-notifications`;
   private cache = new Map<string, { data: any; timestamp: number }>();
   private readonly cacheTimeout = 30000; // 30 seconds cache for real-time feel
 

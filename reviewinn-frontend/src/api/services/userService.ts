@@ -22,7 +22,7 @@ export interface UserSearchParams {
 }
 
 export class UserService {
-  private baseUrl = `http://localhost:8000/api/v1/users`;
+  private baseUrl = `${import.meta.env.VITE_API_BASE_URL || '/api/v1'}/users`;
 
   /**
    * Get list of users with pagination and filtering
@@ -74,7 +74,7 @@ export class UserService {
     if (params.limit) searchParams.append('limit', params.limit.toString());
 
     try {
-      const url = `http://localhost:8000/api/v1/users/search?${searchParams.toString()}`;
+      const url = `${this.baseUrl}/search?${searchParams.toString()}`;
       const response = await fetch(url, createAuthenticatedRequestInit({
         method: 'GET',
         credentials: 'include',
@@ -132,7 +132,7 @@ export class UserService {
    */
   async getUser(id: string): Promise<User | null> {
     try {
-      const url = `http://localhost:8000/api/v1/users/${id}`;
+      const url = `${this.baseUrl}/${id}`;
       const response = await fetch(url, createAuthenticatedRequestInit({
         method: 'GET',
         credentials: 'include',
@@ -155,7 +155,7 @@ export class UserService {
    */
   async getCurrentUser(): Promise<User | null> {
     try {
-      const url = `http://localhost:8000/api/v1/users/me`;
+      const url = `${this.baseUrl}/me`;
       const response = await fetch(url, createAuthenticatedRequestInit({
         method: 'GET',
         credentials: 'include',
@@ -178,7 +178,7 @@ export class UserService {
    */
   async getUserProfile(id: string): Promise<UserProfile | null> {
     try {
-      const url = `http://localhost:8000/api/v1/users/${id}/profile`;
+      const url = `${this.baseUrl}/${id}/profile`;
       const response = await fetch(url, createAuthenticatedRequestInit({
         method: 'GET',
         credentials: 'include',
@@ -207,7 +207,7 @@ export class UserService {
    */
   async getUserProfileByIdentifier(identifier: string): Promise<UserProfile | null> {
     try {
-      const url = `http://localhost:8000/api/v1/users/${identifier}/profile`;
+      const url = `${this.baseUrl}/${identifier}/profile`;
       
       // Use direct fetch for public profile viewing (no auth required)
       const response = await fetch(url);
@@ -229,7 +229,7 @@ export class UserService {
    * Update user profile
    */
   async updateUserProfile(id: string, profileData: Partial<UserProfile>): Promise<UserProfile> {
-    const url = `http://localhost:8000/api/v1/users/me/profile`;
+    const url = `${this.baseUrl}/me/profile`;
     const response = await fetch(url, createAuthenticatedRequestInit({
       method: 'PUT',
       body: JSON.stringify(profileData),
@@ -254,7 +254,7 @@ export class UserService {
    * Delete user account (added for profile deletion)
    */
   async deleteUser(id: string): Promise<void> {
-    const url = `http://localhost:8000/api/v1/users/${id}`;
+    const url = `${this.baseUrl}/${id}`;
     const response = await fetch(url, createAuthenticatedRequestInit({
       method: 'DELETE',
       credentials: 'include',
@@ -276,7 +276,7 @@ export class UserService {
    * Get user statistics
    */
   async getUserStats(id: string): Promise<UserStats | null> {
-    const url = `http://localhost:8000/api/v1/users/${id}/stats`;
+    const url = `${this.baseUrl}/${id}/stats`;
     const response = await fetch(url, createAuthenticatedRequestInit({
       method: 'GET',
       credentials: 'include',
@@ -294,7 +294,7 @@ export class UserService {
    * Get user badges
    */
   async getUserBadges(id: string): Promise<Badge[]> {
-    const url = `http://localhost:8000/api/v1/users/${id}/badges`;
+    const url = `${this.baseUrl}/${id}/badges`;
     const response = await fetch(url, createAuthenticatedRequestInit({
       method: 'GET',
       credentials: 'include',
@@ -312,7 +312,7 @@ export class UserService {
    * Follow a user
    */
   async followUser(userId: string): Promise<void> {
-    const url = `http://localhost:8000/api/v1/users/${userId}/follow`;
+    const url = `${this.baseUrl}/${userId}/follow`;
     const response = await fetch(url, createAuthenticatedRequestInit({
       method: 'POST',
       credentials: 'include',
@@ -327,7 +327,7 @@ export class UserService {
    * Unfollow a user
    */
   async unfollowUser(userId: string): Promise<void> {
-    const url = `http://localhost:8000/api/v1/users/${userId}/follow`;
+    const url = `${this.baseUrl}/${userId}/follow`;
     const response = await fetch(url, createAuthenticatedRequestInit({
       method: 'DELETE',
       credentials: 'include',
@@ -346,7 +346,7 @@ export class UserService {
     total: number;
     hasMore: boolean;
   }> {
-    const url = `http://localhost:8000/api/v1/users/${userId}/followers?page=${page}&limit=${limit}`;
+    const url = `${this.baseUrl}/${userId}/followers?page=${page}&limit=${limit}`;
     const response = await fetch(url, createAuthenticatedRequestInit({
       method: 'GET',
       credentials: 'include',
@@ -368,7 +368,7 @@ export class UserService {
     total: number;
     hasMore: boolean;
   }> {
-    const url = `http://localhost:8000/api/v1/users/${userId}/following?page=${page}&limit=${limit}`;
+    const url = `${this.baseUrl}/${userId}/following?page=${page}&limit=${limit}`;
     const response = await fetch(url, createAuthenticatedRequestInit({
       method: 'GET',
       credentials: 'include',
@@ -387,7 +387,7 @@ export class UserService {
    */
   async getUserPreferences(userId: string): Promise<UserPreferences | null> {
     try {
-      const url = `http://localhost:8000/api/v1/users/${userId}/preferences`;
+      const url = `${this.baseUrl}/${userId}/preferences`;
       const response = await fetch(url, createAuthenticatedRequestInit({
         method: 'GET',
         credentials: 'include',
@@ -409,7 +409,7 @@ export class UserService {
    * Update user preferences
    */
   async updateUserPreferences(userId: string, preferences: Partial<UserPreferences>): Promise<UserPreferences> {
-    const url = `http://localhost:8000/api/v1/users/${userId}/preferences`;
+    const url = `${this.baseUrl}/${userId}/preferences`;
     const response = await fetch(url, createAuthenticatedRequestInit({
       method: 'PUT',
       body: JSON.stringify(preferences),
@@ -433,7 +433,7 @@ export class UserService {
    */
   async getUserDailyTasks(userId: string): Promise<DailyTask[]> {
     try {
-      const url = `http://localhost:8000/api/v1/users/${userId}/daily-tasks`;
+      const url = `${this.baseUrl}/${userId}/daily-tasks`;
       const response = await fetch(url, createAuthenticatedRequestInit({
         method: 'GET',
         credentials: 'include',
@@ -455,7 +455,7 @@ export class UserService {
    * Complete a daily task
    */
   async completeDailyTask(userId: string, taskId: string): Promise<DailyTask> {
-    const url = `http://localhost:8000/api/v1/users/${userId}/daily-tasks/${taskId}/complete`;
+    const url = `${this.baseUrl}/${userId}/daily-tasks/${taskId}/complete`;
     const response = await fetch(url, createAuthenticatedRequestInit({
       method: 'POST',
       credentials: 'include',
@@ -483,7 +483,7 @@ export class UserService {
     unreadCount: number;
   }> {
     try {
-      const url = `http://localhost:8000/api/v1/users/${userId}/notifications?page=${page}&limit=${limit}`;
+      const url = `${this.baseUrl}/${userId}/notifications?page=${page}&limit=${limit}`;
       const response = await fetch(url, createAuthenticatedRequestInit({
         method: 'GET',
         credentials: 'include',
@@ -505,7 +505,7 @@ export class UserService {
    * Mark notification as read
    */
   async markNotificationAsRead(userId: string, notificationId: string): Promise<void> {
-    const url = `http://localhost:8000/api/v1/users/${userId}/notifications/${notificationId}/read`;
+    const url = `${this.baseUrl}/${userId}/notifications/${notificationId}/read`;
     const response = await fetch(url, createAuthenticatedRequestInit({
       method: 'POST',
       credentials: 'include',
@@ -520,7 +520,7 @@ export class UserService {
    * Mark all notifications as read
    */
   async markAllNotificationsAsRead(userId: string): Promise<void> {
-    const url = `http://localhost:8000/api/v1/users/${userId}/notifications/read-all`;
+    const url = `${this.baseUrl}/${userId}/notifications/read-all`;
     const response = await fetch(url, createAuthenticatedRequestInit({
       method: 'POST',
       credentials: 'include',
@@ -548,7 +548,7 @@ export class UserService {
     if (params.limit) searchParams.append('size', params.limit.toString()); // Backend uses 'size' parameter
     if (params.includeAnonymous !== undefined) searchParams.append('include_anonymous', params.includeAnonymous.toString());
 
-    const url = `http://localhost:8000/api/v1/users/${userId}/reviews?${searchParams.toString()}`;
+    const url = `${this.baseUrl}/${userId}/reviews?${searchParams.toString()}`;
     
     // Use direct fetch to get the new optimized API response
     const directResponse = await fetch(url);

@@ -48,7 +48,7 @@ export interface BlockedUsersResponse {
 }
 
 export class CircleService {
-  private baseUrl = 'http://localhost:8000/api/v1';
+  private baseUrl = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
   /**
    * Create a new review circle

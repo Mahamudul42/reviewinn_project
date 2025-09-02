@@ -284,7 +284,7 @@ export interface SearchResults {
 // ========== SERVICE CLASS ==========
 
 export class ProfessionalMessagingService {
-  private baseURL = 'http://localhost:8000/api/v1';
+  private baseURL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
   private apiPrefix = '/messaging';
   private wsConnection: WebSocket | null = null;
   private eventListeners: Map<string, Function[]> = new Map();

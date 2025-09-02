@@ -1,7 +1,7 @@
 // Group service for API interactions - using any to avoid import issues
 import { getAuthHeaders, createAuthenticatedRequestInit } from '../../../shared/utils/auth';
 
-const API_BASE = 'http://localhost:8000/api/v1/groups';
+const API_BASE = `${import.meta.env.VITE_API_BASE_URL || '/api/v1'}/groups`;
 
 class GroupService {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {

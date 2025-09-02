@@ -4,7 +4,7 @@ import { httpClient } from '../../../api/httpClient';
 import { API_CONFIG } from '../../../api/config';
 
 export class BadgeService {
-  private baseUrl = `http://localhost:8000/api/v1/badges`;
+  private baseUrl = `${API_CONFIG.BASE_URL}/badges`;
 
   constructor() {
     console.log('[BadgeService] Base URL:', this.baseUrl);
