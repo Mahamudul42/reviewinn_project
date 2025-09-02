@@ -322,7 +322,7 @@ const EntityListPage: React.FC = () => {
               onClick={() => setActiveTab(id as TabType)}
               className={`relative flex items-center space-x-3 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-300 transform hover:scale-105 flex-1 justify-center group ${
                 activeTab === id
-                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
+                  ? 'bg-purple-600 text-white shadow-lg'
                   : 'text-gray-600 hover:text-gray-800 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 border border-gray-100 hover:border-gray-200 hover:shadow-md'
               }`}
               style={activeTab === id ? { 
@@ -330,12 +330,9 @@ const EntityListPage: React.FC = () => {
               } : {}}
             >
               <Icon className={`w-5 h-5 transition-all duration-300 ${activeTab === id ? 'text-white transform rotate-12' : 'group-hover:scale-110'}`} />
-              <span className="font-semibold tracking-wide">{label}</span>
+              <span className={`font-semibold tracking-wide ${activeTab === id ? 'text-white' : ''}`}>{label}</span>
               {activeTab === id && (
-                <>
-                  <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-white/20 to-transparent pointer-events-none" />
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-white/30 rounded-full animate-ping" />
-                </>
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-white/30 rounded-full animate-ping" />
               )}
             </button>
           ))}
