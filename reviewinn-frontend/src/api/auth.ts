@@ -145,7 +145,7 @@ class AuthService {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     this.updateAuthState({ isLoading: true, error: null });
     try {
-      const url = `http://localhost:8000/api/v1/auth-production/login`;
+      const url = `/api/v1/auth-production/login`;
       const fetchResponse = await fetch(url, {
         method: 'POST',
         headers: {

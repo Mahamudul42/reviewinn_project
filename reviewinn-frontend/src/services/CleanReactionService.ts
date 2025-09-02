@@ -128,11 +128,11 @@ class CleanReactionService {
       // Update on server first
       let response;
       if (reactionType) {
-        response = await httpClient.post(`${API_CONFIG.BASE_URL}/api/v1/reviews/${reviewId}/reaction`, {
+        response = await httpClient.post(`${API_CONFIG.BASE_URL}/reviews/${reviewId}/reaction`, {
           reaction_type: reactionType
         });
       } else {
-        response = await httpClient.delete(`${API_CONFIG.BASE_URL}/api/v1/reviews/${reviewId}/reaction`);
+        response = await httpClient.delete(`${API_CONFIG.BASE_URL}/reviews/${reviewId}/reaction`);
       }
 
       if (response.success && response.data) {

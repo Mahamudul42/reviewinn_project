@@ -124,7 +124,7 @@ const transformApiReview = (apiReview: ApiReview): Review => {
 // Optimized API fetch function using the proper reviews endpoint
 const fetchHomepageData = async (page: number = 1, limit: number = 15): Promise<HomepageData> => {
   // Use unified auth for authenticated requests
-  const response = await fetch(`http://localhost:8000/api/v1/homepage/reviews?page=${page}&limit=${limit}`, createAuthenticatedRequestInit({
+  const response = await fetch(`/api/v1/homepage/reviews?page=${page}&limit=${limit}`, createAuthenticatedRequestInit({
     method: 'GET',
     credentials: 'include',
   }));

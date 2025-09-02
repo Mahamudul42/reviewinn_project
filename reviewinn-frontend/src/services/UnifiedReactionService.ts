@@ -208,7 +208,7 @@ class UnifiedReactionService {
   private async updateOnServer(reviewId: string, reactionType: string | null): Promise<ReactionState> {
     if (reactionType) {
       // Add or update reaction
-      const response = await httpClient.post(`${API_CONFIG.BASE_URL}/api/v1/reviews/${reviewId}/reaction`, {
+      const response = await httpClient.post(`${API_CONFIG.BASE_URL}/reviews/${reviewId}/reaction`, {
         reaction_type: reactionType
       });
       
@@ -223,7 +223,7 @@ class UnifiedReactionService {
       }
     } else {
       // Remove reaction
-      const response = await httpClient.delete(`${API_CONFIG.BASE_URL}/api/v1/reviews/${reviewId}/reaction`);
+      const response = await httpClient.delete(`${API_CONFIG.BASE_URL}/reviews/${reviewId}/reaction`);
       
       if (response.success && response.data) {
         const data = response.data;

@@ -63,6 +63,9 @@ services:
       - backend
     env_file:
       - ./reviewinn-frontend/.env
+    environment:
+      - VITE_DOCKER=true
+      - VITE_API_BASE_URL=/api/v1
 
   # Django Admin Panel
   admin:
