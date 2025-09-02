@@ -4,6 +4,7 @@
  * Gracefully handles errors and doesn't break the UI if backend is unavailable
  */
 import { useEffect, useRef, useCallback } from 'react';
+import { viewTrackingService } from '../api/viewTracking';
 
 export interface UseReviewViewTrackingOptions {
   /** Whether to track views when the element enters the viewport */
@@ -12,6 +13,8 @@ export interface UseReviewViewTrackingOptions {
   visibilityThreshold?: number;
   /** Whether to show console logs for debugging */
   debug?: boolean;
+  /** Callback called when a view is successfully tracked */
+  onViewTracked?: (newViewCount: number) => void;
 }
 
 /**
@@ -26,7 +29,8 @@ export function useReviewViewTracking(
   const {
     trackOnVisible = true,
     visibilityThreshold = 2000, // 2 seconds
-    debug = false
+    debug = false,
+    onViewTracked
   } = options;
 
   const elementRef = useRef<HTMLDivElement>(null);
@@ -52,7 +56,7 @@ export function useReviewViewTracking(
     }
   }, [reviewId, debug]);
 
-  // Manual tracking function with error handling
+  // Manual tracking function with optimistic updates (like comment count pattern)
   const trackView = useCallback(async () => {
     if (hasTrackedRef.current) {
       if (debug) console.log(`Review ${reviewId}: Already tracked in this session`);
@@ -67,30 +71,42 @@ export function useReviewViewTracking(
     try {
       if (debug) console.log(`Review ${reviewId}: Attempting to track view`);
       
-      // Try to import and use the view tracking service dynamically
-      const { viewTrackingService } = await import('../api/viewTracking');
+      // 🚀 IMMEDIATE UPDATE: Call callback immediately for optimistic update
+      hasTrackedRef.current = true;
+      const sessionKey = `review_view_${reviewId}`;
+      sessionStorage.setItem(sessionKey, 'true');
+      
+      // Store the view time for rate limiting
+      const lastViewKey = `review_view_${reviewId}`;
+      localStorage.setItem(lastViewKey, Date.now().toString());
+      
+      // Call the callback immediately for optimistic UI update (like comment count)
+      if (onViewTracked) {
+        // We don't have the exact count from server yet, so trigger the increment
+        onViewTracked(0); // The callback will handle the increment
+      }
+      
+      if (debug) console.log(`Review ${reviewId}: View tracked optimistically`);
+      
+      // Use the view tracking service
       const result = await viewTrackingService.trackReviewView(reviewId);
       
-      if (result.tracked) {
-        hasTrackedRef.current = true;
-        // Store the view time for rate limiting
-        const lastViewKey = `review_view_${reviewId}`;
-        localStorage.setItem(lastViewKey, Date.now().toString());
-        
-        if (debug) console.log(`Review ${reviewId}: View tracked successfully`);
-      } else {
-        if (debug) console.log(`Review ${reviewId}: View not tracked - ${result.reason}`);
+      // Sync with server if successful and different from optimistic count
+      if (result.tracked && result.view_count && onViewTracked) {
+        // Note: The actual sync logic will be handled by the callback implementation
+        if (debug) console.log(`Review ${reviewId}: View synced with server: ${result.view_count}`);
+      } else if (!result.tracked) {
+        if (debug) console.log(`Review ${reviewId}: Server didn't track - ${result.reason}`);
+        // Keep optimistic update anyway (like comment count pattern)
       }
     } catch (error) {
       // Silently handle errors to prevent breaking the UI
       if (debug) console.warn(`Review ${reviewId}: Failed to track view:`, error);
       
-      // Still mark as tracked locally to prevent repeated failed attempts
-      hasTrackedRef.current = true;
-      const lastViewKey = `review_view_${reviewId}`;
-      localStorage.setItem(lastViewKey, Date.now().toString());
+      // Keep the optimistic update even if API fails (like comment count pattern)
+      // The hasTrackedRef.current is already set to true above
     }
-  }, [reviewId, debug, canView]);
+  }, [reviewId, debug, canView, onViewTracked]);
 
   // Intersection Observer for visibility tracking
   useEffect(() => {

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useUnifiedAuth } from '../../../hooks/useUnifiedAuth';
 import { reviewService, commentService } from '../../../api/services';
 import { userInteractionService } from '../../../api/services/userInteractionService';
+import { viewTrackingService } from '../../../api/viewTracking';
 import type { Review, Entity } from '../../../types';
 
 interface UseReviewCardProps {
@@ -90,6 +91,33 @@ export const useReviewCard = ({ review, entity, onEntityClick, onReactionChange,
     }
   };
 
+  // State to track when view count needs to be reported to parent
+  const [pendingViewCountUpdate, setPendingViewCountUpdate] = useState<number | null>(null);
+
+  // Functions to update view count (similar to comment count)
+  const updateViewCount = (count: number) => {
+    setViewCount(count);
+    // Mark for parent update via useEffect
+    setPendingViewCountUpdate(count);
+  };
+
+  const incrementViewCount = () => {
+    setViewCount(prev => {
+      const newCount = prev + 1;
+      // Mark for parent update via useEffect
+      setPendingViewCountUpdate(newCount);
+      return newCount;
+    });
+  };
+
+  // Handle parent callback updates outside of render cycle
+  useEffect(() => {
+    if (pendingViewCountUpdate !== null && onViewCountUpdate) {
+      onViewCountUpdate(review.id, pendingViewCountUpdate);
+      setPendingViewCountUpdate(null);
+    }
+  }, [pendingViewCountUpdate, onViewCountUpdate, review.id]);
+
   // Initialize reaction data from review prop and userInteractionService
   useEffect(() => {
     if (review.reactions) {
@@ -161,7 +189,7 @@ export const useReviewCard = ({ review, entity, onEntityClick, onReactionChange,
   // Skip separate comment count fetch since we already have it from the API response
   // The comment count is already properly initialized from review.comment_count above
 
-  // View tracking function with session-based prevention - only for modal opening
+  // View tracking function with optimistic updates - similar to comment count pattern
   const trackView = async () => {
     if (viewTrackedRef.current) return;
     
@@ -172,20 +200,25 @@ export const useReviewCard = ({ review, entity, onEntityClick, onReactionChange,
       const sessionKey = `review_viewed_${review.id}`;
       sessionStorage.setItem(sessionKey, 'true');
       
+      // 🚀 IMMEDIATE UPDATE: Increment view count optimistically (like comment count)
+      incrementViewCount();
+      console.log(`📈 View count incremented optimistically for review ${review.id}`);
+      
       // Use the proper view tracking service (not reviewService)
-      const { viewTrackingService } = await import('../../../api/viewTracking');
       const result = await viewTrackingService.trackReviewView(Number(review.id));
       
-      // Update view count if tracking was successful
+      // Sync with server response if available (but don't rollback on failure)
       if (result && result.tracked && result.view_count) {
-        setViewCount(result.view_count);
-        // Call the parent callback to update the global view count
-        onViewCountUpdate?.(review.id, result.view_count);
-        console.log(`📈 View count updated for review ${review.id}: ${result.view_count}`);
+        // Only update if server count is different from our optimistic count
+        if (result.view_count !== viewCount + 1) {
+          updateViewCount(result.view_count);
+          console.log(`📈 View count synced with server for review ${review.id}: ${result.view_count}`);
+        }
       }
     } catch (error) {
       console.error('Failed to track view:', error);
-      // Don't reset on error to prevent multiple attempts
+      // Don't rollback the optimistic update - keep the incremented count
+      // This matches the comment count behavior pattern
     }
   };
 
@@ -443,12 +476,6 @@ export const useReviewCard = ({ review, entity, onEntityClick, onReactionChange,
     }
   };
 
-  // Function to update view count from external sources (like modal or view tracking)
-  const updateViewCount = (newViewCount: number) => {
-    console.log('🔄 Updating view count from external source:', newViewCount);
-    setViewCount(newViewCount);
-  };
-
   return {
     // State
     isHidden,
@@ -492,6 +519,7 @@ export const useReviewCard = ({ review, entity, onEntityClick, onReactionChange,
     updateReactionData,
     
     // View count management
-    updateViewCount
+    updateViewCount,
+    incrementViewCount
   };
 }; 

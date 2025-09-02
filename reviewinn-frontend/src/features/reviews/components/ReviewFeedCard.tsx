@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import type { Review, Entity, Comment } from '../../../types';
 import { useReviewCard } from '../hooks/useReviewCard';
 import { formatTimeAgo } from '../../../shared/utils/reviewUtils';
@@ -17,6 +17,7 @@ import { useToast } from '../../../shared/components/ToastProvider';
 import ReviewDetailModal from './ReviewDetailModal';
 import ReviewEditModal from './ReviewEditModal';
 import ReviewDeleteModal from './ReviewDeleteModal';
+import { useReviewViewTracking } from '../../../hooks/useViewTracking';
 import {
   ReportReviewModal,
   BlockUserModal,
@@ -61,7 +62,7 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
   const menuButtonRef = useRef<HTMLButtonElement>(null!);
   const { showToast } = useToast();
   const { getToken } = useUnifiedAuth();
-  
+
   // Local state for edit/delete modals
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -117,7 +118,8 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
     // Reaction data management
     updateReactionData,
     // View count management
-    updateViewCount
+    updateViewCount,
+    incrementViewCount
   } = useReviewCard({
     review,
     entity,
@@ -125,6 +127,26 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
     onReactionChange,
     onGiveReviewClick,
     onViewCountUpdate
+  });
+
+  // Stable callback for view tracking to prevent unnecessary re-renders
+  const handleViewTracked = useCallback((newViewCount: number) => {
+    // Immediate optimistic update (like comment count)
+    if (newViewCount === 0) {
+      // Signal for optimistic increment - increment immediately
+      incrementViewCount();
+    } else if (newViewCount > 0) {
+      // Server sync with actual count - update to exact count
+      updateViewCount(newViewCount);
+    }
+  }, [incrementViewCount, updateViewCount]);
+
+  // View tracking hook - automatically tracks when review becomes visible (like comment count updates)
+  const { elementRef: viewTrackingRef } = useReviewViewTracking(Number(review.id), {
+    debug: false,
+    trackOnVisible: true,
+    visibilityThreshold: 2000, // Track after 2 seconds of visibility
+    onViewTracked: handleViewTracked
   });
 
   // Handler for menu actions
@@ -401,6 +423,7 @@ const ReviewFeedCard: React.FC<ReviewFeedCardProps> = ({
   return (
     <>
       <div 
+        ref={viewTrackingRef}
         className="w-full bg-white rounded-lg shadow-sm border border-gray-200 relative overflow-hidden transition-all duration-300 group hover:shadow-md hover:border-gray-300"
         style={{ transform: 'translateZ(0)' }}
         data-review-id={review.id}
