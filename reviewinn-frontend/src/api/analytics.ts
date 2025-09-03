@@ -169,7 +169,7 @@ class AnalyticsService {
     localStorage.setItem('searches', JSON.stringify(searches.slice(-100))); // Keep last 100
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   public getPersonalizedRecommendations(_userId: string): Promise<Entity[]> {
     // Simulate personalized recommendations based on user activity
     return new Promise(resolve => {
