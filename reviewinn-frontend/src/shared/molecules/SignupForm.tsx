@@ -27,7 +27,13 @@ const SignupForm: React.FC<SignupFormProps> = ({
   firstName, lastName, email, password, agreeToTerms, showPassword, loading, error,
   onFirstNameChange, onLastNameChange, onEmailChange, onPasswordChange, onAgreeToTermsChange, onTogglePassword, onSubmit
 }) => (
-  <form onSubmit={onSubmit} className="auth-form">
+  <form 
+    onSubmit={onSubmit} 
+    className="auth-form"
+    role="form"
+    aria-label="Create new account"
+    noValidate
+  >
     <AuthError message={error} />
     <AuthFormField
       id="first-name"
@@ -82,13 +88,16 @@ const SignupForm: React.FC<SignupFormProps> = ({
         onChange={onAgreeToTermsChange}
         className="mt-1 h-4 w-4 text-blue-600 border-2 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
         required
+        aria-required="true"
+        aria-describedby="agree-terms-description"
       />
-      <label htmlFor="agree-terms" className="text-sm text-gray-700 leading-relaxed">
+      <label htmlFor="agree-terms" className="text-sm text-gray-700 leading-relaxed" id="agree-terms-description">
         I agree to the{' '}
         <button
           type="button"
           onClick={() => window.open('/terms-of-service', '_blank')}
-          className="text-blue-600 hover:text-blue-800 underline font-medium"
+          className="text-blue-600 hover:text-blue-800 underline font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded-sm"
+          aria-label="Open Terms of Service in new tab"
         >
           Terms of Service
         </button>
@@ -96,7 +105,8 @@ const SignupForm: React.FC<SignupFormProps> = ({
         <button
           type="button"
           onClick={() => window.open('/privacy-policy', '_blank')}
-          className="text-blue-600 hover:text-blue-800 underline font-medium"
+          className="text-blue-600 hover:text-blue-800 underline font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded-sm"
+          aria-label="Open Privacy Policy in new tab"
         >
           Privacy Policy
         </button>

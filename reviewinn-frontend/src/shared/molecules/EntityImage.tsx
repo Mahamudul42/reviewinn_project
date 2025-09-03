@@ -42,14 +42,42 @@ const EntityImage: React.FC<EntityImageProps> = ({
     }
     return getEntityImage(entity);
   };
+
+  // Generate descriptive alt text
+  const generateAltText = () => {
+    if (alt) return alt;
+    
+    const entityName = entity.name;
+    const category = entity.category;
+    
+    if (imageError) {
+      return `${entityName} - placeholder image for ${category}`;
+    }
+    
+    if (useSubcategoryImage) {
+      return `${category} category image representing ${entityName}`;
+    }
+    
+    return `${entityName} - ${category}`;
+  };
+
   return (
     <div className={`${sizeClasses[size]} bg-gray-200 rounded-2xl overflow-hidden flex items-center justify-center border-2 border-white shadow-lg ring-1 ring-gray-200 ${className}`}>
       {imageError ? (
-        <ImageIcon className={`${size === 'uniform' ? 'w-10 h-10' : 'w-8 h-8'} text-gray-400`} />
+        <div 
+          role="img" 
+          aria-label={generateAltText()}
+          className="w-full h-full flex items-center justify-center"
+        >
+          <ImageIcon 
+            className={`${size === 'uniform' ? 'w-10 h-10' : 'w-8 h-8'} text-gray-400`} 
+            aria-hidden="true"
+          />
+        </div>
       ) : (
         <img
           src={getImageUrl()}
-          alt={alt || entity.name}
+          alt={generateAltText()}
           className="w-full h-full object-cover object-center"
           onError={() => setImageError(true)}
           loading="lazy"

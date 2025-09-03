@@ -16,6 +16,9 @@ export const DynamicFormField: React.FC<DynamicFormFieldProps> = ({
   error,
   disabled = false
 }) => {
+  const fieldId = `field-${field.name.toLowerCase().replace(/\s+/g, '-')}`;
+  const errorId = error ? `${fieldId}-error` : undefined;
+  const helpId = field.helpText ? `${fieldId}-help` : undefined;
   const baseClasses = `
     w-full px-3 py-2 border border-gray-300 rounded-lg
     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
@@ -28,6 +31,7 @@ export const DynamicFormField: React.FC<DynamicFormFieldProps> = ({
       case 'text':
         return (
           <input
+            id={fieldId}
             type="text"
             className={baseClasses}
             value={value || ''}
@@ -35,12 +39,15 @@ export const DynamicFormField: React.FC<DynamicFormFieldProps> = ({
             placeholder={field.placeholder}
             disabled={disabled}
             required={field.required}
+            aria-invalid={!!error}
+            aria-describedby={[helpId, errorId].filter(Boolean).join(' ') || undefined}
           />
         );
 
       case 'textarea':
         return (
           <textarea
+            id={fieldId}
             className={`${baseClasses} min-h-[80px] resize-y`}
             value={value || ''}
             onChange={(e) => onChange(e.target.value)}
@@ -48,17 +55,22 @@ export const DynamicFormField: React.FC<DynamicFormFieldProps> = ({
             disabled={disabled}
             required={field.required}
             rows={3}
+            aria-invalid={!!error}
+            aria-describedby={[helpId, errorId].filter(Boolean).join(' ') || undefined}
           />
         );
 
       case 'select':
         return (
           <select
+            id={fieldId}
             className={baseClasses}
             value={value || ''}
             onChange={(e) => onChange(e.target.value)}
             disabled={disabled}
             required={field.required}
+            aria-invalid={!!error}
+            aria-describedby={[helpId, errorId].filter(Boolean).join(' ') || undefined}
           >
             <option value="">Select {field.name}</option>
             {field.options?.map((option) => (
@@ -72,6 +84,7 @@ export const DynamicFormField: React.FC<DynamicFormFieldProps> = ({
       case 'number':
         return (
           <input
+            id={fieldId}
             type="number"
             className={baseClasses}
             value={value || ''}
@@ -81,24 +94,30 @@ export const DynamicFormField: React.FC<DynamicFormFieldProps> = ({
             required={field.required}
             min={field.validation?.min}
             max={field.validation?.max}
+            aria-invalid={!!error}
+            aria-describedby={[helpId, errorId].filter(Boolean).join(' ') || undefined}
           />
         );
 
       case 'date':
         return (
           <input
+            id={fieldId}
             type="date"
             className={baseClasses}
             value={value || ''}
             onChange={(e) => onChange(e.target.value)}
             disabled={disabled}
             required={field.required}
+            aria-invalid={!!error}
+            aria-describedby={[helpId, errorId].filter(Boolean).join(' ') || undefined}
           />
         );
 
       default:
         return (
           <input
+            id={fieldId}
             type="text"
             className={baseClasses}
             value={value || ''}
@@ -106,6 +125,8 @@ export const DynamicFormField: React.FC<DynamicFormFieldProps> = ({
             placeholder={field.placeholder}
             disabled={disabled}
             required={field.required}
+            aria-invalid={!!error}
+            aria-describedby={[helpId, errorId].filter(Boolean).join(' ') || undefined}
           />
         );
     }
@@ -113,19 +134,20 @@ export const DynamicFormField: React.FC<DynamicFormFieldProps> = ({
 
   return (
     <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700 mb-1">
+      <label htmlFor={fieldId} className="block text-sm font-medium text-gray-700 mb-1">
         {field.name}
-        {field.required && <span className="text-red-500 ml-1">*</span>}
+        {field.required && <span className="text-red-500 ml-1" aria-hidden="true">*</span>}
+        {field.required && <span className="sr-only">(required)</span>}
       </label>
       
       {renderField()}
       
       {field.helpText && (
-        <p className="text-xs text-gray-500 mt-1">{field.helpText}</p>
+        <p id={helpId} className="text-xs text-gray-500 mt-1">{field.helpText}</p>
       )}
       
       {error && (
-        <p className="text-xs text-red-500 mt-1">{error}</p>
+        <p id={errorId} className="text-xs text-red-500 mt-1" role="alert" aria-live="polite">{error}</p>
       )}
     </div>
   );

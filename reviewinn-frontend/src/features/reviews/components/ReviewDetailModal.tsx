@@ -526,26 +526,49 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
               {/* Main Review Card */}
               <div className="space-y-6">
               {/* Reviewer Info - Moved to top like review cards */}
-              <div 
-                className={`flex items-center gap-3 ${(local_review.user_id || local_review.reviewerId) && (local_review.user_summary?.name || local_review.reviewerName) !== 'Anonymous' ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
-                onClick={(local_review.user_id || local_review.reviewerId) && (local_review.user_summary?.name || local_review.reviewerName) !== 'Anonymous' ? handle_user_click : undefined}
-                title={(local_review.user_id || local_review.reviewerId) && (local_review.user_summary?.name || local_review.reviewerName) !== 'Anonymous' ? `View ${local_review.user_summary?.name || local_review.reviewerName}'s profile` : undefined}
-              >
-                {(local_review.user_summary?.avatar || local_review.reviewerAvatar) ? (
-                  <img 
-                    src={local_review.user_summary?.avatar || local_review.reviewerAvatar} 
-                    alt={local_review.user_summary?.name || local_review.reviewerName} 
-                    className={`w-12 h-12 rounded-full object-cover border border-gray-200 ${(local_review.user_id || local_review.reviewerId) && (local_review.user_summary?.name || local_review.reviewerName) !== 'Anonymous' ? 'hover:border-blue-300 transition-colors' : ''}`}
-                  />
+              <div className="flex items-center gap-3">
+                {(local_review.user_id || local_review.reviewerId) && (local_review.user_summary?.name || local_review.reviewerName) !== 'Anonymous' ? (
+                  <button
+                    type="button"
+                    onClick={handle_user_click}
+                    className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg p-2 -m-2"
+                    aria-label={`View ${local_review.user_summary?.name || local_review.reviewerName}'s profile`}
+                  >
+                    {(local_review.user_summary?.avatar || local_review.reviewerAvatar) ? (
+                      <img 
+                        src={local_review.user_summary?.avatar || local_review.reviewerAvatar} 
+                        alt={`${local_review.user_summary?.name || local_review.reviewerName}'s profile picture`}
+                        className="w-12 h-12 rounded-full object-cover border border-gray-200 hover:border-blue-300 transition-colors"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 font-bold text-lg hover:shadow-md transition-shadow" aria-hidden="true">
+                        {(local_review.user_summary?.name || local_review.reviewerName) ? (local_review.user_summary?.name || local_review.reviewerName).split(' ').map((n: string) => n[0]).join('').slice(0,2) : 'U'}
+                      </div>
+                    )}
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-lg text-gray-900 hover:text-blue-600 transition-colors">{local_review.user_summary?.name || local_review.reviewerName || 'Anonymous'}</span>
+                      <span className="text-sm text-gray-500">{time_ago} • {formatted_date}</span>
+                    </div>
+                  </button>
                 ) : (
-                  <div className={`w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 font-bold text-lg ${(local_review.user_id || local_review.reviewerId) && (local_review.user_summary?.name || local_review.reviewerName) !== 'Anonymous' ? 'hover:shadow-md transition-shadow' : ''}`}>
-                    {(local_review.user_summary?.name || local_review.reviewerName) ? (local_review.user_summary?.name || local_review.reviewerName).split(' ').map((n: string) => n[0]).join('').slice(0,2) : 'U'}
-                  </div>
+                  <>
+                    {(local_review.user_summary?.avatar || local_review.reviewerAvatar) ? (
+                      <img 
+                        src={local_review.user_summary?.avatar || local_review.reviewerAvatar} 
+                        alt="Anonymous user"
+                        className="w-12 h-12 rounded-full object-cover border border-gray-200"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 font-bold text-lg" aria-hidden="true">
+                        {(local_review.user_summary?.name || local_review.reviewerName) ? (local_review.user_summary?.name || local_review.reviewerName).split(' ').map((n: string) => n[0]).join('').slice(0,2) : 'U'}
+                      </div>
+                    )}
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-lg text-gray-900">{local_review.user_summary?.name || local_review.reviewerName || 'Anonymous'}</span>
+                      <span className="text-sm text-gray-500">{time_ago} • {formatted_date}</span>
+                    </div>
+                  </>
                 )}
-                <div className="flex flex-col">
-                  <span className={`font-semibold text-lg text-gray-900 ${(local_review.user_id || local_review.reviewerId) && (local_review.user_summary?.name || local_review.reviewerName) !== 'Anonymous' ? 'hover:text-blue-600 transition-colors' : ''}`}>{local_review.user_summary?.name || local_review.reviewerName || 'Anonymous'}</span>
-                  <span className="text-sm text-gray-500">{time_ago} • {formatted_date}</span>
-                </div>
               </div>
 
               {/* Entity Info - Moved below user info like review cards */}
@@ -554,14 +577,17 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
                   {entity_avatar || entity_image_url ? (
                     <img 
                       src={entity_avatar || entity_image_url} 
-                      alt={entity_name} 
+                      alt={`${entity_name} logo`}
                       className="rounded-lg object-cover border-2 border-white shadow-md"
                       style={{ width: '198px', height: '132px' }}
+                      role="img"
                     />
                   ) : (
                     <div 
                       className="rounded-lg bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center text-blue-700 font-bold text-3xl shadow-md"
                       style={{ width: '198px', height: '132px' }}
+                      role="img"
+                      aria-label={`${entity_name} placeholder logo`}
                     >
                       {entity_name.charAt(0)}
                     </div>
@@ -569,12 +595,12 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
                   <div className="flex flex-col flex-1">
                     {/* Title and Badges */}
                     <div className="flex flex-wrap items-center gap-2 mb-3">
-                      <h2 className="text-xl font-bold text-blue-600">{entity_name}</h2>
+                      <h2 className="text-xl font-bold text-blue-600" id="entity-name">{entity_name}</h2>
                       
                       {/* Verification Badge */}
                       {entity_is_verified && (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full border border-green-200">
-                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full border border-green-200" role="img" aria-label="Verified entity">
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                             <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                           </svg>
                           Verified
@@ -646,10 +672,10 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
                 {local_review.title && (
                   <div className="mb-4">
                     <div className="flex items-start gap-3">
-                      <svg className="w-5 h-5 text-gray-500 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-gray-500 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
                       </svg>
-                      <h3 className="text-xl font-semibold text-gray-900 flex-1">{local_review.title}</h3>
+                      <h3 className="text-xl font-semibold text-gray-900 flex-1" id="review-title">{local_review.title}</h3>
                     </div>
                   </div>
                 )}
@@ -657,7 +683,7 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
                 {/* Overall Rating */}
                 <div className="mb-5 pb-4 border-b border-gray-100">
                   <div className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-gray-500 mt-1 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-gray-500 mt-1 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                     </svg>
                     <div className="flex-1">
@@ -672,7 +698,7 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
                 {/* Review Content */}
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-gray-500 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-gray-500 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                     <div className="flex-1">
@@ -802,11 +828,15 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
                     <span className="text-sm text-gray-600 hidden sm:inline">Sort by:</span>
                     <div className="relative" ref={sort_menu_ref}>
                       <button
+                        type="button"
                         onClick={() => set_show_sort_menu(!show_sort_menu)}
-                        className="flex items-center space-x-2 px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg transition-all duration-200 border-2 border-blue-600 shadow-md hover:shadow-lg min-w-[160px]"
+                        className="flex items-center space-x-2 px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg transition-all duration-200 border-2 border-blue-600 shadow-md hover:shadow-lg min-w-[160px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                         style={{ zIndex: 1 }}
+                        aria-expanded={show_sort_menu}
+                        aria-haspopup="menu"
+                        aria-label="Sort comments"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
                         </svg>
                         <span className="flex-1 text-left">{SORT_OPTIONS.find(opt => opt.key === comment_sort)?.label || 'Most relevant'}</span>
@@ -817,6 +847,8 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
                         <div 
                           className="absolute top-full right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden"
                           style={{ zIndex: 99999 }}
+                          role="menu"
+                          aria-labelledby="sort-menu-button"
                         >
                           <div className="py-1">
                             <div className="px-4 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wide border-b border-gray-100 bg-gray-50">
@@ -825,11 +857,14 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
                             {SORT_OPTIONS.map(option => (
                               <button
                                 key={option.key}
+                                type="button"
                                 onClick={() => {
                                   set_show_sort_menu(false);
                                   set_comment_sort(option.key);
                                 }}
-                                className={`w-full text-left px-4 py-3 hover:bg-gray-50 focus:bg-gray-50 transition-colors ${comment_sort === option.key ? 'bg-blue-50 border-l-4 border-blue-500' : ''}`}
+                                className={`w-full text-left px-4 py-3 hover:bg-gray-50 focus:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset ${comment_sort === option.key ? 'bg-blue-50 border-l-4 border-blue-500' : ''}`}
+                                role="menuitem"
+                                aria-selected={comment_sort === option.key}
                               >
                                 <div className="flex items-start space-x-3">
                                   <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center mt-0.5 ${comment_sort === option.key ? 'border-blue-500 bg-blue-500' : 'border-gray-300'}`}>

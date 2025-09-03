@@ -7,7 +7,7 @@ interface NavIconProps {
 }
 
 const NavIcon: React.FC<NavIconProps> = ({ icon: Icon, className = '' }) => (
-  <Icon className={`w-5 h-5 ${className}`} />
+  <Icon className={`w-5 h-5 ${className}`} aria-hidden="true" />
 );
 
 export default NavIcon; 

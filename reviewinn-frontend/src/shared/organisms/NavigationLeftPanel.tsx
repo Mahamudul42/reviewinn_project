@@ -85,18 +85,22 @@ const NavigationLeftPanel: React.FC<NavigationLeftPanelProps> = ({
         {activeSection === 'navigation' && (
           <div className="space-y-6">
             {/* Main Navigation */}
-            <div>
+            <nav aria-label="Main navigation">
               <h4 className="font-semibold text-gray-900 mb-3">Navigation</h4>
-              <div className="space-y-1">
+              <ul className="space-y-1" role="list">
                 {navigationItems.map(item => (
-                  <button
+                  <li key={`li-${item.id}`}>
+                    <button
                     key={item.id}
                     onClick={() => handleNavigation(item.path)}
-                    className={`w-full flex items-center justify-between p-3 rounded-lg transition-all group ${
+                    className={`w-full flex items-center justify-between p-3 rounded-lg transition-all group focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ${
                       item.active
                         ? 'bg-blue-50 text-blue-600 font-medium'
                         : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                     }`}
+                    aria-current={item.active ? 'page' : undefined}
+                    aria-label={`Navigate to ${item.label}${item.count ? ` (${item.count} items)` : ''}`}
+                    type="button"
                   >
                     <div className="flex items-center space-x-3">
                       <item.icon className={`w-5 h-5 ${item.active ? 'text-blue-600' : 'text-gray-500 group-hover:text-gray-700'}`} />
@@ -108,9 +112,10 @@ const NavigationLeftPanel: React.FC<NavigationLeftPanelProps> = ({
                       </span>
                     )}
                   </button>
+                  </li>
                 ))}
-              </div>
-            </div>
+              </ul>
+            </nav>
             {/* Quick Stats */}
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4">
               <h5 className="font-semibold text-gray-900 mb-3">Community Stats</h5>

@@ -2,13 +2,43 @@ import React from 'react';
 
 interface FormSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   className?: string;
+  error?: string;
+  helpText?: string;
 }
 
-const FormSelect: React.FC<FormSelectProps> = ({ className = '', ...props }) => (
-  <select
-    className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${className}`}
-    {...props}
-  />
-);
+const FormSelect: React.FC<FormSelectProps> = ({ 
+  className = '', 
+  error, 
+  helpText, 
+  disabled, 
+  required,
+  'aria-invalid': ariaInvalid,
+  'aria-describedby': ariaDescribedBy,
+  ...props 
+}) => {
+  const baseClasses = 'w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-colors bg-white';
+  const normalClasses = 'border-gray-300 focus:ring-blue-500';
+  const errorClasses = 'border-red-500 focus:ring-red-500';
+  const disabledClasses = 'bg-gray-100 cursor-not-allowed text-gray-500 border-gray-200';
+  
+  const hasError = error || ariaInvalid === 'true' || ariaInvalid === true;
+  
+  const classes = `${baseClasses} ${
+    hasError ? errorClasses : normalClasses
+  } ${disabled ? disabledClasses : ''} ${className}`;
+
+  return (
+    <select
+      className={classes}
+      disabled={disabled}
+      required={required}
+      aria-disabled={disabled}
+      aria-required={required}
+      aria-invalid={hasError}
+      aria-describedby={ariaDescribedBy}
+      {...props}
+    />
+  );
+};
 
 export default FormSelect; 

@@ -329,6 +329,7 @@ export const Modal: React.FC<ModalProps> = ({
             </div>
             {showCloseButton && (
               <button
+                type="button"
                 style={{ 
                   color: '#6b7280', 
                   background: 'none', 
@@ -342,7 +343,15 @@ export const Modal: React.FC<ModalProps> = ({
                   justifyContent: 'center',
                   transition: 'all 0.2s ease',
                   fontSize: '20px',
-                  fontWeight: 400
+                  fontWeight: 400,
+                  outline: 'none'
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.outline = '2px solid #3b82f6';
+                  e.currentTarget.style.outlineOffset = '2px';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.outline = 'none';
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
@@ -355,7 +364,7 @@ export const Modal: React.FC<ModalProps> = ({
                 onClick={onClose}
                 aria-label="Close modal"
               >
-                ×
+                <span aria-hidden="true">×</span>
               </button>
             )}
           </div>
@@ -437,6 +446,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       footer={
         <div className="flex justify-end space-x-3 px-6 py-4 bg-gray-50 border-t border-gray-200">
           <button
+            type="button"
             onClick={onClose}
             disabled={isLoading}
             className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50 transition-all duration-200"
@@ -444,6 +454,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             {cancelText}
           </button>
           <button
+            type="button"
             onClick={onConfirm}
             disabled={isLoading}
             className={clsx(
@@ -530,6 +541,7 @@ export const AlertModal: React.FC<AlertModalProps> = ({
       footer={
         <div className="flex justify-end">
           <button
+            type="button"
             onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
@@ -539,11 +551,11 @@ export const AlertModal: React.FC<AlertModalProps> = ({
       }
     >
       <div className="flex items-start space-x-4">
-        <div className={clsx('flex-shrink-0', iconColors[variant])}>
+        <div className={clsx('flex-shrink-0', iconColors[variant])} aria-hidden="true">
           {icons[variant]}
         </div>
         <div className="flex-1">
-          <h3 className="text-lg font-medium text-gray-900 mb-2">{title}</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2" id="alert-title">{title}</h3>
           <p className="text-gray-600">{message}</p>
         </div>
       </div>

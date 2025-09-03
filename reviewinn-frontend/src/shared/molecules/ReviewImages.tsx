@@ -79,13 +79,21 @@ const ReviewImages: React.FC<ReviewImagesProps> = ({
       <div className={`grid ${gridClasses[gridCols as keyof typeof gridClasses]} gap-3 ${className}`}>
         {images.map((image, index) => (
           <div key={index} className="relative group overflow-hidden rounded-xl">
-            <img
-              src={getImageUrl(image)}
-              alt={getImageAlt(image, index)}
-              className="w-full h-32 sm:h-28 object-cover rounded-xl border border-gray-200 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 cursor-pointer"
-              loading="lazy"
+            <button
+              type="button"
+              className="w-full h-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-xl"
               onClick={() => setSelectedImage(index)}
-            />
+              aria-label={`View ${getImageAlt(image, index)} in full screen`}
+              tabIndex={0}
+            >
+              <img
+                src={getImageUrl(image)}
+                alt={getImageAlt(image, index)}
+                className="w-full h-32 sm:h-28 object-cover rounded-xl border border-gray-200 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                loading="lazy"
+                role="img"
+              />
+            </button>
             {/* Beautiful gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl pointer-events-none"></div>
             
@@ -116,6 +124,10 @@ const ReviewImages: React.FC<ReviewImagesProps> = ({
         <div 
           className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity duration-300"
           onClick={() => setSelectedImage(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="image-modal-title"
+          aria-describedby="image-modal-description"
         >
           <div className="relative max-w-6xl max-h-full w-full flex items-center justify-center" onClick={e => e.stopPropagation()}>
             {/* Main Image */}
@@ -124,6 +136,8 @@ const ReviewImages: React.FC<ReviewImagesProps> = ({
                 src={getImageUrl(images[selectedImage])}
                 alt={getImageAlt(images[selectedImage], selectedImage)}
                 className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl"
+                role="img"
+                id="image-modal-title"
               />
               
               {/* Loading placeholder would go here if needed */}
@@ -133,18 +147,24 @@ const ReviewImages: React.FC<ReviewImagesProps> = ({
             {images.length > 1 && (
               <>
                 <button
+                  type="button"
                   onClick={(e) => { e.stopPropagation(); navigateImage('prev'); }}
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-full w-12 h-12 flex items-center justify-center transition-all duration-200 hover:scale-110"
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-full w-12 h-12 flex items-center justify-center transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black/20"
+                  aria-label="Previous image"
+                  title="Previous image (Left arrow key)"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
                 <button
+                  type="button"
                   onClick={(e) => { e.stopPropagation(); navigateImage('next'); }}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-full w-12 h-12 flex items-center justify-center transition-all duration-200 hover:scale-110"
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-full w-12 h-12 flex items-center justify-center transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black/20"
+                  aria-label="Next image"
+                  title="Next image (Right arrow key)"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
@@ -153,22 +173,25 @@ const ReviewImages: React.FC<ReviewImagesProps> = ({
 
             {/* Close Button */}
             <button
+              type="button"
               onClick={() => setSelectedImage(null)}
-              className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-full w-12 h-12 flex items-center justify-center transition-all duration-200 hover:scale-110"
+              className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-full w-12 h-12 flex items-center justify-center transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black/20"
+              aria-label="Close image viewer"
+              title="Close image viewer (Escape key)"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
 
             {/* Image Info Bar */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/60 backdrop-blur-sm text-white px-4 py-2 rounded-full flex items-center gap-3">
-              <span className="text-sm font-medium">
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/60 backdrop-blur-sm text-white px-4 py-2 rounded-full flex items-center gap-3" id="image-modal-description">
+              <span className="text-sm font-medium" aria-live="polite">
                 {selectedImage + 1} of {images.length}
               </span>
               {images.length > 1 && (
                 <>
-                  <span className="text-gray-300">•</span>
+                  <span className="text-gray-300" aria-hidden="true">•</span>
                   <span className="text-xs text-gray-300">
                     Use ← → keys to navigate
                   </span>
@@ -182,17 +205,21 @@ const ReviewImages: React.FC<ReviewImagesProps> = ({
                 {images.map((image, index) => (
                   <button
                     key={index}
+                    type="button"
                     onClick={(e) => { e.stopPropagation(); setSelectedImage(index); }}
-                    className={`flex-shrink-0 w-16 h-12 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                    className={`flex-shrink-0 w-16 h-12 rounded-lg overflow-hidden border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black/20 ${
                       index === selectedImage 
                         ? 'border-white shadow-lg scale-110' 
                         : 'border-white/30 hover:border-white/60 hover:scale-105'
                     }`}
+                    aria-label={`View ${getImageAlt(image, index)}`}
+                    aria-pressed={index === selectedImage}
                   >
                     <img
                       src={getImageUrl(image)}
                       alt={getImageAlt(image, index)}
                       className="w-full h-full object-cover"
+                      role="img"
                     />
                   </button>
                 ))}

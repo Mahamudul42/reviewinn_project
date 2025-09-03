@@ -6,6 +6,7 @@ import ProtectedRoute from './shared/components/ProtectedRoute';
 import { ConfirmationProvider } from './shared/components/ConfirmationSystem';
 import { AuthProvider } from './contexts/AuthContext';
 import { PanelDataProvider } from './contexts/PanelDataContext';
+import { AccessibilityProvider } from './contexts/AccessibilityContext';
 import ErrorBoundary from './shared/components/ErrorBoundary';
 import NetworkErrorBoundary from './shared/components/NetworkErrorBoundary';
 import SuspenseWrapper from './shared/components/SuspenseWrapper';
@@ -84,9 +85,10 @@ function App() {
   return (
     <ErrorBoundary onError={handleAppError} showDetails={import.meta.env.DEV}>
       <NetworkErrorBoundary onError={handleAppError}>
-        <AuthProvider>
-          <PanelDataProvider>
-            <ConfirmationProvider>
+        <AccessibilityProvider>
+          <AuthProvider>
+            <PanelDataProvider>
+              <ConfirmationProvider>
               <Router>
                 <SuspenseWrapper
                   fallback={<PageLoader />}
@@ -210,9 +212,10 @@ function App() {
               </Routes>
                 </SuspenseWrapper>
               </Router>
-            </ConfirmationProvider>
-          </PanelDataProvider>
-        </AuthProvider>
+              </ConfirmationProvider>
+            </PanelDataProvider>
+          </AuthProvider>
+        </AccessibilityProvider>
       </NetworkErrorBoundary>
     </ErrorBoundary>
   );

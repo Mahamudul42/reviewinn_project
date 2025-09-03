@@ -30,6 +30,13 @@ const InfoBanner: React.FC<InfoBannerProps> = ({
     }
   };
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleDismiss();
+    }
+  };
+
   if (isDismissed) {
     return null;
   }
@@ -46,20 +53,48 @@ const InfoBanner: React.FC<InfoBannerProps> = ({
     warning: 'text-yellow-600'
   };
 
+  const roleMap = {
+    info: 'status',
+    tip: 'status',
+    warning: 'alert'
+  };
+
   return (
-    <div className={`border rounded-lg p-4 ${colorClasses[type]}`}>
+    <div 
+      className={`border rounded-lg p-4 ${colorClasses[type]}`}
+      role={roleMap[type]}
+      aria-live={type === 'warning' ? 'assertive' : 'polite'}
+      aria-labelledby={`banner-title-${type}`}
+      aria-describedby={`banner-message-${type}`}
+    >
       <div className="flex items-start">
-        <Info className={`h-5 w-5 mt-0.5 mr-3 flex-shrink-0 ${iconColorClasses[type]}`} />
+        <Info 
+          className={`h-5 w-5 mt-0.5 mr-3 flex-shrink-0 ${iconColorClasses[type]}`} 
+          aria-hidden="true"
+        />
         <div className="flex-1">
-          <h3 className="text-sm font-medium mb-1">{title}</h3>
-          <p className="text-sm opacity-90">{message}</p>
+          <h3 
+            id={`banner-title-${type}`}
+            className="text-sm font-medium mb-1"
+          >
+            {title}
+          </h3>
+          <p 
+            id={`banner-message-${type}`}
+            className="text-sm opacity-90"
+          >
+            {message}
+          </p>
         </div>
         {dismissible && (
           <button
             onClick={handleDismiss}
-            className={`ml-3 flex-shrink-0 ${iconColorClasses[type]} hover:opacity-70 transition-opacity`}
+            onKeyDown={handleKeyDown}
+            className={`ml-3 flex-shrink-0 p-1 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${iconColorClasses[type]} hover:opacity-70 transition-all`}
+            aria-label={`Dismiss ${type} notification: ${title}`}
+            type="button"
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4" aria-hidden="true" />
           </button>
         )}
       </div>

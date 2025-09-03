@@ -105,13 +105,38 @@ const SearchBar: React.FC<SearchBarProps> = ({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => query.length > 0 && setShowSuggestions(true)}
+          role="combobox"
+          aria-expanded={showSuggestions}
+          aria-haspopup="listbox"
+          aria-autocomplete="list"
+          aria-describedby="search-status"
+          aria-label="Search for entities"
         />
       </div>
+      {/* Live region for search announcements */}
+      <div
+        id="search-status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {isLoading && "Searching..."}
+        {!isLoading && searchResults && (
+          `Found ${searchResults.entities.length} result${searchResults.entities.length === 1 ? '' : 's'} for "${query}"`
+        )}
+        {!isLoading && query.length > 0 && searchResults?.entities.length === 0 && (
+          `No results found for "${query}"`
+        )}
+      </div>
+      
       {/* Search Results Dropdown */}
       {showSuggestions && searchResults && (
-        <div className="search-dropdown absolute z-[2000] w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl max-h-[500px] overflow-y-auto" style={{ 
-          animation: 'fadeInUp 0.2s ease-out'
-        }}>
+        <div 
+          className="search-dropdown absolute z-[2000] w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl max-h-[500px] overflow-y-auto" 
+          style={{ animation: 'fadeInUp 0.2s ease-out' }}
+          role="listbox"
+          aria-label="Search results"
+        >
           {entitiesToShow.length > 0 && (
             <div className="px-6 py-4 text-sm font-semibold text-gray-900 bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-100 rounded-t-2xl">
               <div className="flex items-center gap-2">
@@ -123,8 +148,15 @@ const SearchBar: React.FC<SearchBarProps> = ({
             </div>
           )}
           <div className="p-2 space-y-2">
-            {entitiesToShow.map((entity) => (
-              <div key={entity.id} className="hover:bg-blue-50 rounded-xl transition-colors p-1">
+            {entitiesToShow.map((entity, index) => (
+              <div 
+                key={entity.id} 
+                className="hover:bg-blue-50 rounded-xl transition-colors p-1"
+                role="option"
+                aria-selected={false}
+                aria-posinset={index + 1}
+                aria-setsize={entitiesToShow.length}
+              >
                 <EntityListCard
                   entity={entity}
                   onClick={() => handleEntityClick(entity)}
@@ -140,8 +172,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
           {hasMore && onShowAdvancedSearch && (
             <div className="px-4 py-3 text-center">
               <button
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1"
                 onClick={onShowAdvancedSearch}
+                type="button"
+                aria-label={`See all ${searchResults.entities.length} results in advanced search`}
               >
                 See more results in advanced search
               </button>
