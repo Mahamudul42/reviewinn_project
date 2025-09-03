@@ -1,11 +1,14 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Suspense, lazy } from 'react';
+import { lazy } from 'react';
 // Homepage component (now using the enhanced design)
 import Layout from './shared/layouts/Layout';
 import ProtectedRoute from './shared/components/ProtectedRoute';
 import { ConfirmationProvider } from './shared/components/ConfirmationSystem';
 import { AuthProvider } from './contexts/AuthContext';
 import { PanelDataProvider } from './contexts/PanelDataContext';
+import ErrorBoundary from './shared/components/ErrorBoundary';
+import NetworkErrorBoundary from './shared/components/NetworkErrorBoundary';
+import SuspenseWrapper from './shared/components/SuspenseWrapper';
 import { authService } from './api/auth';
 import { initializeAuthManager } from './services/authInterface';
 import { ReviewInnAuthService } from './services/ReviewInnAuthService';
@@ -56,22 +59,44 @@ const HelpCenterPage = lazy(() => import('./features/legal/HelpCenterPage'));
 const ReportAbusePage = lazy(() => import('./features/legal/ReportAbusePage'));
 const FeedbackPage = lazy(() => import('./features/legal/FeedbackPage'));
 
-// Loading component
+// Enhanced loading component
 const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center">
-    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-600 border-t-transparent mx-auto mb-4"></div>
+      <p className="text-gray-600 font-medium">Loading ReviewInn...</p>
+    </div>
   </div>
 );
 
+// Error logging function
+const handleAppError = (error: Error, errorInfo: React.ErrorInfo) => {
+  // Log to console in development
+  if (import.meta.env.DEV) {
+    console.error('App-level error:', error, errorInfo);
+  }
+  
+  // In production, you would send this to an error reporting service
+  // Example: Sentry, LogRocket, etc.
+};
+
 function App() {
   return (
-    <AuthProvider>
-      <PanelDataProvider>
-        <ConfirmationProvider>
-          <Router>
-            <Suspense fallback={<PageLoader />}>
-              {/* Badge System Components */}
-              <RegistrationBadgeTrigger />
+    <ErrorBoundary onError={handleAppError} showDetails={import.meta.env.DEV}>
+      <NetworkErrorBoundary onError={handleAppError}>
+        <AuthProvider>
+          <PanelDataProvider>
+            <ConfirmationProvider>
+              <Router>
+                <SuspenseWrapper
+                  fallback={<PageLoader />}
+                  enableErrorBoundary={false} // Already wrapped above
+                  enableNetworkErrorBoundary={false}
+                  fallbackType="spinner"
+                  loadingText="Loading page..."
+                >
+                  {/* Badge System Components */}
+                  <RegistrationBadgeTrigger />
               
               <Routes>
             <Route path="/" element={<Layout />}>
@@ -183,11 +208,13 @@ function App() {
               <Route path="feedback" element={<FeedbackPage />} />
             </Route>
               </Routes>
-            </Suspense>
-          </Router>
-        </ConfirmationProvider>
-      </PanelDataProvider>
-    </AuthProvider>
+                </SuspenseWrapper>
+              </Router>
+            </ConfirmationProvider>
+          </PanelDataProvider>
+        </AuthProvider>
+      </NetworkErrorBoundary>
+    </ErrorBoundary>
   );
 }
 

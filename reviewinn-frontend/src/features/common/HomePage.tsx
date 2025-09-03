@@ -168,6 +168,8 @@ const HomePage: React.FC = () => {
               entities={reviews.map(r => r.entity).filter(Boolean) as Entity[]}
               hasMoreReviews={hasMoreReviews}
               loadingMore={loadingMore}
+              loading={centerLoading}
+              error={centerError}
               onLoadMore={handleLoadMore}
               onReactionChange={handleReactionChange}
               onCommentAdd={handleCommentAdd}
@@ -175,6 +177,8 @@ const HomePage: React.FC = () => {
               onCommentReaction={handleCommentReaction}
               onGiveReviewClick={handleGiveReviewClick}
               onViewCountUpdate={updateViewCount}
+              onAuthRequired={() => window.dispatchEvent(new CustomEvent('openAuthModal'))}
+              onRetry={() => window.location.reload()}
             />
           )}
         </div>
