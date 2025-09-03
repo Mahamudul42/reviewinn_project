@@ -7,6 +7,7 @@ import QuickActionsPanel from '../organisms/QuickActionsPanel';
 import RecentActivityDropdown from '../molecules/RecentActivityDropdown';
 import MessagesDropdown from '../molecules/MessagesDropdown';
 import NotificationBell from '../components/NotificationBell';
+import SkipLink from '../components/accessibility/SkipLink';
 import { professionalMessagingService } from '../../api/services/professionalMessagingService';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
@@ -427,14 +428,18 @@ const Layout: React.FC = () => {
 
   return (
     <div className="layout">
-      <header className="header">
+      {/* Skip Links for Accessibility */}
+      <SkipLink href="#main-content">Skip to main content</SkipLink>
+      <SkipLink href="#primary-navigation">Skip to navigation</SkipLink>
+      
+      <header className="header" role="banner">
         <div className="header-container">
           <div className="header-content">
-            <Link to="/" className="logo">
+            <Link to="/" className="logo" aria-label="ReviewInn Home">
               <h1>ReviewInn</h1>
             </Link>
             
-            <nav className="main-nav">
+            <nav className="main-nav" role="navigation" aria-label="Primary navigation" id="primary-navigation">
               <Link to="/" className="nav-link">
                 <Home size={16} />
                 Home
@@ -546,7 +551,7 @@ const Layout: React.FC = () => {
         
       </header>
 
-      <main className="main-content">
+      <main className="main-content" role="main" id="main-content">
         <Outlet />
       </main>
 

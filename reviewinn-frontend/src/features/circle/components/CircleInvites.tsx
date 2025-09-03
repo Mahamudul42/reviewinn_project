@@ -153,6 +153,9 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
                             onClick={() => toggleDropdown(String(request.id))}
                             disabled={processingRequests.has(String(request.id))}
                             className="circle-action-button-primary px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 flex items-center space-x-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                            aria-label={`Accept circle request from ${request.requester.name || request.requester.username} - choose option`}
+                            aria-expanded={openDropdowns.has(String(request.id))}
+                            aria-haspopup="true"
                           >
                             {processingRequests.has(String(request.id)) ? (
                               <div className="animate-spin rounded-full h-3 w-3 border border-white border-t-transparent" />
@@ -164,7 +167,11 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
                           </button>
                           
                           {openDropdowns.has(String(request.id)) && (
-                            <div className="absolute bottom-full mb-1 left-0 z-50 bg-white border border-gray-200 rounded-lg shadow-lg min-w-[180px]">
+                            <div 
+                              className="absolute bottom-full mb-1 left-0 z-50 bg-white border border-gray-200 rounded-lg shadow-lg min-w-[180px]"
+                              role="menu"
+                              aria-label={`Accept options for ${request.requester.name || request.requester.username}`}
+                            >
                               <div className="py-1">
                                 <button
                                   onClick={() => {
@@ -176,6 +183,8 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
                                     });
                                   }}
                                   className="w-full text-left px-4 py-2 text-sm text-purple-600 hover:bg-purple-50 flex items-center space-x-2"
+                                  role="menuitem"
+                                  aria-label={`Add ${request.requester.name || request.requester.username} as circle member`}
                                 >
                                   <Users size={14} />
                                   <span>Add as Circle Mate</span>
@@ -190,6 +199,8 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
                                     });
                                   }}
                                   className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 flex items-center space-x-2"
+                                  role="menuitem"
+                                  aria-label={`Keep ${request.requester.name || request.requester.username} as follower only`}
                                 >
                                   <Heart size={14} />
                                   <span>Keep as Follower</span>
@@ -205,6 +216,8 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
                                       });
                                     }}
                                     className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2 border-t border-gray-100"
+                                    role="menuitem"
+                                    aria-label={`Cancel request from ${request.requester.name || request.requester.username}`}
                                   >
                                     <X size={14} />
                                     <span>Cancel Request</span>
@@ -219,6 +232,7 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
                           onClick={() => handleRequestResponse(request.id, 'decline')}
                           disabled={processingRequests.has(String(request.id))}
                           className="bg-red-50 text-red-600 border border-red-200 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:bg-red-100 flex items-center space-x-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                          aria-label={`Decline circle request from ${request.requester.name || request.requester.username}`}
                         >
                           {processingRequests.has(String(request.id)) ? (
                             <div className="animate-spin rounded-full h-3 w-3 border border-red-600 border-t-transparent" />
@@ -271,6 +285,7 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
                           onClick={() => handleRequestResponse(invite.id, 'accept')}
                           disabled={processingRequests.has(String(invite.id))}
                           className="circle-action-button-primary px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 flex items-center space-x-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                          aria-label={`Accept circle invitation from ${invite.inviter.name || invite.inviter.username}`}
                         >
                           {processingRequests.has(String(invite.id)) ? (
                             <div className="animate-spin rounded-full h-3 w-3 border border-white border-t-transparent" />
@@ -283,6 +298,7 @@ const CircleInvites: React.FC<CircleInvitesProps> = ({
                           onClick={() => handleRequestResponse(invite.id, 'decline')}
                           disabled={processingRequests.has(String(invite.id))}
                           className="circle-action-button-primary px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 flex items-center space-x-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                          aria-label={`Decline circle invitation from ${invite.inviter.name || invite.inviter.username}`}
                         >
                           {processingRequests.has(String(invite.id)) ? (
                             <div className="animate-spin rounded-full h-3 w-3 border border-white border-t-transparent" />

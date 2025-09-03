@@ -134,6 +134,10 @@ const UserSearchBar: React.FC<UserSearchBarProps> = ({
 
   return (
     <div className="w-full space-y-4">
+      {/* Screen reader helper text */}
+      <div id="search-help" className="sr-only">
+        Enter at least 2 characters to search for users. Use the arrow keys to navigate results when available.
+      </div>
       {/* Main Search Bar - YouTube Style */}
       <div className="flex items-center space-x-3">
         <div className="relative flex-1 max-w-2xl user-search-container">
@@ -145,39 +149,56 @@ const UserSearchBar: React.FC<UserSearchBarProps> = ({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyPress}
+              aria-label="Search for users by name, username, or interests"
+              aria-describedby="search-help"
+              role="searchbox"
+              aria-autocomplete="list"
+              aria-expanded={enableDropdown && showDropdown}
+              aria-haspopup="listbox"
             />
             {query && (
               <button
                 onClick={clearSearch}
-                className="p-2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                className="p-2 text-gray-400 hover:text-gray-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 rounded"
+                aria-label="Clear search"
+                type="button"
               >
-                <X className="h-5 w-5" />
+                <X className="h-5 w-5" aria-hidden="true" />
               </button>
             )}
             {/* Search Button */}
             <button
               onClick={handleSearch}
               disabled={isLoading}
-              className={`px-6 py-3 rounded-r-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed border-l border-gray-300 ${
+              className={`px-6 py-3 rounded-r-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed border-l border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 ${
                 query.trim().length >= 2 
                   ? 'bg-purple-600 hover:bg-purple-700 text-white' 
                   : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
               }`}
-              title={query.trim().length < 2 ? 'Enter at least 2 characters to search' : 'Search for users'}
+              aria-label={query.trim().length < 2 ? 'Enter at least 2 characters to search' : 'Search for users'}
+              type="button"
             >
               {isLoading ? (
-                <div className={`animate-spin rounded-full h-5 w-5 border-2 border-t-transparent ${
-                  query.trim().length >= 2 ? 'border-white' : 'border-gray-400'
-                }`} />
+                <div 
+                  className={`animate-spin rounded-full h-5 w-5 border-2 border-t-transparent ${
+                    query.trim().length >= 2 ? 'border-white' : 'border-gray-400'
+                  }`}
+                  role="status"
+                  aria-label="Searching"
+                />
               ) : (
-                <Search className="h-5 w-5" />
+                <Search className="h-5 w-5" aria-hidden="true" />
               )}
             </button>
           </div>
 
           {/* Search Results Dropdown - Only show if dropdown is enabled */}
           {enableDropdown && showDropdown && (
-            <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto">
+            <div 
+              className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto"
+              role="listbox"
+              aria-label="Search results"
+            >
               {query.trim().length < 2 ? (
                 <div className="p-4 text-center text-gray-500">
                   <Search className="mx-auto h-8 w-8 text-gray-300 mb-2" />
@@ -234,17 +255,20 @@ const UserSearchBar: React.FC<UserSearchBarProps> = ({
                             <div className="flex items-center space-x-2">
                               <button
                                 onClick={() => onSendRequest(user)}
-                                className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg text-xs font-medium hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-md hover:shadow-lg flex items-center space-x-1.5"
+                                className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg text-xs font-medium hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg flex items-center space-x-1.5"
+                                aria-label={`Send friend request to ${user.name}`}
+                                type="button"
                               >
-                                <UserPlus className="w-3 h-3" />
+                                <UserPlus className="w-3 h-3" aria-hidden="true" />
                                 <span>Add to Circle</span>
                               </button>
                               <button
                                 onClick={() => onBlockUser(user.id, user.name)}
-                                className="px-2 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs hover:bg-red-100 hover:text-red-600 transition-colors flex items-center"
-                                title="Block user"
+                                className="px-2 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs hover:bg-red-100 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors flex items-center"
+                                aria-label={`Block user ${user.name}`}
+                                type="button"
                               >
-                                <Ban className="w-3 h-3" />
+                                <Ban className="w-3 h-3" aria-hidden="true" />
                               </button>
                             </div>
                           ) : undefined
@@ -262,17 +286,21 @@ const UserSearchBar: React.FC<UserSearchBarProps> = ({
         {/* Filter Button */}
         <button
           onClick={() => setShowFilterModal(true)}
-          className={`relative flex items-center space-x-2 px-4 py-3 border-2 rounded-xl transition-all duration-200 shadow-sm ${
+          className={`relative flex items-center space-x-2 px-4 py-3 border-2 rounded-xl transition-all duration-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 ${
             filterCount > 0 
               ? 'bg-purple-50 border-purple-200 text-purple-700' 
               : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
           }`}
-          title={filterCount > 0 ? `${filterCount} filter(s) applied` : 'Add search filters'}
+          aria-label={filterCount > 0 ? `Search filters: ${filterCount} filter(s) applied` : 'Add search filters'}
+          type="button"
         >
-          <Filter className="h-5 w-5" />
+          <Filter className="h-5 w-5" aria-hidden="true" />
           <span className="font-medium">Filter</span>
           {filterCount > 0 && (
-            <span className="absolute -top-2 -right-2 bg-purple-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+            <span 
+              className="absolute -top-2 -right-2 bg-purple-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center"
+              aria-label={`${filterCount} filters applied`}
+            >
               {filterCount}
             </span>
           )}

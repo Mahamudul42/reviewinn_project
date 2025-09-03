@@ -343,6 +343,10 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
   return createPortal(
     <>
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="review-modal-title"
+        aria-describedby="review-modal-description"
         style={{
           position: 'absolute',
           top: 0,
@@ -459,12 +463,12 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
                 alignItems: 'center',
                 justifyContent: 'center'
               }}>
-                <svg width="16" height="16" fill="white" viewBox="0 0 24 24">
+                <svg width="16" height="16" fill="white" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
               </div>
-              Review Details
+              <span id="review-modal-title">Review Details</span>
             </div>
             <button
               style={{
@@ -484,7 +488,8 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
                 transition: 'all 0.2s ease',
               }}
               onClick={handle_close}
-              aria-label="Close"
+              aria-label="Close review details dialog"
+              type="button"
               onMouseOver={e => {
                 e.currentTarget.style.background = '#f3f4f6';
                 e.currentTarget.style.color = '#374151';
@@ -494,13 +499,14 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
                 e.currentTarget.style.color = '#6b7280';
               }}
             >
-              ×
+              <span aria-hidden="true">×</span>
             </button>
           </div>
 
           {/* Content */}
           <div 
             className="modal-content"
+            id="review-modal-description"
             style={{ 
               flex: 1, 
               overflow: 'auto', 
@@ -508,6 +514,13 @@ const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
               background: 'white' // Match homepage panel background
             }}
           >
+            {/* Screen reader description */}
+            <div className="sr-only">
+              This dialog shows detailed information about a review, including the reviewer's information, 
+              entity details, ratings, content, and comments. Use Tab to navigate through interactive elements 
+              or press Escape to close.
+            </div>
+            
             {/* Review Content */}
             <div className="space-y-6">
               {/* Main Review Card */}

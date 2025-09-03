@@ -54,24 +54,43 @@ const ReviewCardHeader: React.FC<ReviewCardHeaderProps> = ({
         )}
         <div>
           <span className="font-semibold text-xs text-gray-900">{reviewerName}</span>
-          {isVerified && <span className="ml-1 inline-block align-middle w-3 h-3 bg-green-500 rounded-full" title="Verified"></span>}
+          {isVerified && (
+            <span 
+              className="ml-1 inline-block align-middle w-3 h-3 bg-green-500 rounded-full" 
+              role="img"
+              aria-label="Verified reviewer"
+              title="Verified"
+            />
+          )}
           {claimed && <ClaimedBadge />}
           <div className="text-[11px] text-gray-500 italic">{timeAgo(createdAt)}</div>
         </div>
       </div>
       <div className="flex items-center gap-1 absolute top-0 right-0 z-10">
-        <button className="w-5 h-5 text-gray-400 hover:text-blue-500 flex items-center justify-center" onClick={() => {
-          setMenuOpen((v) => !v);
-          onMenuClick?.();
-        }}>
-          <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-4 h-4">
+        <button 
+          className="w-5 h-5 text-gray-400 hover:text-blue-500 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 rounded"
+          onClick={() => {
+            setMenuOpen((v) => !v);
+            onMenuClick?.();
+          }}
+          aria-label="Review options menu"
+          aria-expanded={menuOpen}
+          aria-haspopup="menu"
+          type="button"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-4 h-4" aria-hidden="true">
             <circle cx="5" cy="12" r="1.5" />
             <circle cx="12" cy="12" r="1.5" />
             <circle cx="19" cy="12" r="1.5" />
           </svg>
         </button>
-        <button className="w-5 h-5 text-gray-400 hover:text-red-500 flex items-center justify-center ml-1" title="Hide" onClick={onHide}>
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+        <button 
+          className="w-5 h-5 text-gray-400 hover:text-red-500 flex items-center justify-center ml-1 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 rounded" 
+          onClick={onHide}
+          aria-label="Hide this review"
+          type="button"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>

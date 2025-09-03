@@ -85,7 +85,14 @@ function PageLoader<T = any>({
         <div>
           <h2 className="text-xl font-semibold mb-2">Request timed out</h2>
           <p className="text-gray-600 mb-4">The request took too long. Please try again.</p>
-          <button onClick={() => window.location.reload()} className="bg-blue-600 text-white px-4 py-2 rounded-lg">Reload</button>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
+            aria-label="Reload page to retry loading content"
+            type="button"
+          >
+            Reload
+          </button>
         </div>
       </div>
     );
@@ -97,7 +104,14 @@ function PageLoader<T = any>({
         <div>
           <h2 className="text-xl font-semibold mb-2">Error</h2>
           <p className="text-gray-600 mb-4">{error.message}</p>
-          <button onClick={() => window.location.reload()} className="bg-blue-600 text-white px-4 py-2 rounded-lg">Reload</button>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
+            aria-label="Reload page to retry loading content"
+            type="button"
+          >
+            Reload
+          </button>
         </div>
       </div>
     );

@@ -10,6 +10,10 @@ interface StarRatingProps {
   className?: string;
   style?: 'default' | 'golden' | 'purple';
   disabled?: boolean;
+  // Accessibility props
+  'aria-label'?: string;
+  'aria-describedby'?: string;
+  id?: string;
 }
 
 // A component that renders a star icon using an inline SVG.
@@ -47,7 +51,10 @@ const StarRating: React.FC<StarRatingProps> = ({
   onRatingChange,
   className = '',
   style = 'golden',
-  disabled = false
+  disabled = false,
+  'aria-label': ariaLabel,
+  'aria-describedby': ariaDescribedBy,
+  id
 }) => {
   const [hover, setHover] = useState(0);
 
@@ -69,10 +76,56 @@ const StarRating: React.FC<StarRatingProps> = ({
 
   const safeRating = typeof rating === 'number' && !isNaN(rating) && rating >= 0 ? rating : 0;
 
+  // Generate accessible label
+  const generateAriaLabel = (currentRating: number) => {
+    if (ariaLabel) return ariaLabel;
+    
+    if (interactive) {
+      return `Rate ${currentRating} out of ${maxRating} stars`;
+    }
+    
+    return `Rating: ${currentRating} out of ${maxRating} stars`;
+  };
+
   // Handles click event on a star
   const handleClick = (starValue: number) => {
     if (interactive && onRatingChange && !disabled) {
       onRatingChange(starValue);
+    }
+  };
+
+  // Handle keyboard navigation
+  const handleKeyDown = (event: React.KeyboardEvent, starValue: number) => {
+    if (!interactive || disabled) return;
+    
+    switch (event.key) {
+      case 'Enter':
+      case ' ':
+        event.preventDefault();
+        handleClick(starValue);
+        break;
+      case 'ArrowRight':
+      case 'ArrowUp':
+        event.preventDefault();
+        if (starValue < maxRating) {
+          handleClick(starValue + 1);
+        }
+        break;
+      case 'ArrowLeft':
+      case 'ArrowDown':
+        event.preventDefault();
+        if (starValue > 1) {
+          handleClick(starValue - 1);
+        }
+        break;
+      case 'Home':
+        event.preventDefault();
+        handleClick(1);
+        break;
+      case 'End':
+        event.preventDefault();
+        handleClick(maxRating);
+        break;
     }
   };
 
@@ -121,16 +174,93 @@ const StarRating: React.FC<StarRatingProps> = ({
 
   const containerClass = getContainerStyle();
 
+  if (interactive) {
+    return (
+      <div className={`${containerClass} ${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
+        <div
+          role="radiogroup"
+          aria-label={generateAriaLabel(safeRating)}
+          aria-describedby={ariaDescribedBy}
+          id={id}
+          className="flex justify-center items-center gap-1"
+          onMouseLeave={handleMouseLeave}
+        >
+          {/* Loop to render interactive stars */}
+          {[...Array(maxRating)].map((_, index) => {
+            const starValue = index + 1;
+            const isFilled = (hover || safeRating) >= starValue;
+            const starColor = getStarColor(index);
+            const isSelected = safeRating >= starValue;
+            
+            return (
+              <button
+                key={index}
+                type="button"
+                role="radio"
+                aria-checked={isSelected}
+                aria-label={`${starValue} star${starValue !== 1 ? 's' : ''}`}
+                tabIndex={isSelected ? 0 : -1}
+                disabled={disabled}
+                className={`
+                  transition-transform duration-200 ease-in-out
+                  focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 rounded
+                  ${interactive && !disabled ? 'cursor-pointer' : ''}
+                  ${hover >= starValue && interactive && !disabled ? 'scale-125' : ''}
+                `}
+                onClick={() => handleClick(starValue)}
+                onMouseEnter={() => handleMouseEnter(starValue)}
+                onKeyDown={(e) => handleKeyDown(e, starValue)}
+              >
+                <StarIcon
+                  size={sizeMap[size]}
+                  color={starColor}
+                  className={`
+                    ${hover >= starValue && interactive && !disabled ? 'drop-shadow-[0_5px_5px_rgba(168,85,247,0.5)]' : ''}
+                    ${(style === 'golden' || style === 'purple') && isFilled ? 'drop-shadow-[0_0_8px_rgba(168,85,247,0.4)]' : ''}
+                  `}
+                  interactive={interactive && !disabled}
+                />
+              </button>
+            );
+          })}
+        </div>
+        
+        {showValue && (
+          <div className="flex items-center">
+            <span 
+              className={`${textSizeClasses[size]} ${
+                style === 'golden' || style === 'purple'
+                  ? 'font-bold bg-gradient-to-r from-purple-300 to-violet-300 bg-clip-text text-transparent drop-shadow-sm' 
+                  : 'text-gray-600 font-medium'
+              } ml-2`}
+              aria-label={`Current rating: ${typeof rating === 'number' && !isNaN(rating) && rating >= 0 ? safeRating.toFixed(1) : 'Not available'} out of ${maxRating}`}
+            >
+              {typeof rating === 'number' && !isNaN(rating) && rating >= 0 ? safeRating.toFixed(1) : 'N/A'}
+            </span>
+            {(style === 'golden' || style === 'purple') && (
+              <span className="text-purple-300/70 text-xs ml-1 font-semibold" aria-hidden="true">
+                /{maxRating}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className={`${containerClass} ${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
       <div
+        role="img"
+        aria-label={generateAriaLabel(safeRating)}
+        aria-describedby={ariaDescribedBy}
+        id={id}
         className="flex justify-center items-center gap-1"
-        onMouseLeave={handleMouseLeave}
       >
-        {/* Loop to render stars */}
+        {/* Loop to render non-interactive stars */}
         {[...Array(maxRating)].map((_, index) => {
           const starValue = index + 1;
-          const isFilled = (hover || safeRating) >= starValue;
+          const isFilled = safeRating >= starValue;
           const starColor = getStarColor(index);
           
           return (
@@ -139,14 +269,9 @@ const StarRating: React.FC<StarRatingProps> = ({
               size={sizeMap[size]}
               color={starColor}
               className={`
-                transition-transform duration-200 ease-in-out
-                ${interactive && !disabled ? 'cursor-pointer' : ''}
-                ${hover >= starValue && interactive && !disabled ? 'scale-125 drop-shadow-[0_5px_5px_rgba(168,85,247,0.5)]' : ''}
                 ${(style === 'golden' || style === 'purple') && isFilled ? 'drop-shadow-[0_0_8px_rgba(168,85,247,0.4)]' : ''}
               `}
-              onClick={() => handleClick(starValue)}
-              onMouseEnter={() => handleMouseEnter(starValue)}
-              interactive={interactive && !disabled}
+              interactive={false}
             />
           );
         })}
@@ -154,15 +279,18 @@ const StarRating: React.FC<StarRatingProps> = ({
       
       {showValue && (
         <div className="flex items-center">
-          <span className={`${textSizeClasses[size]} ${
-            style === 'golden' || style === 'purple'
-              ? 'font-bold bg-gradient-to-r from-purple-300 to-violet-300 bg-clip-text text-transparent drop-shadow-sm' 
-              : 'text-gray-600 font-medium'
-          } ml-2`}>
+          <span 
+            className={`${textSizeClasses[size]} ${
+              style === 'golden' || style === 'purple'
+                ? 'font-bold bg-gradient-to-r from-purple-300 to-violet-300 bg-clip-text text-transparent drop-shadow-sm' 
+                : 'text-gray-600 font-medium'
+            } ml-2`}
+            aria-label={`Rating: ${typeof rating === 'number' && !isNaN(rating) && rating >= 0 ? safeRating.toFixed(1) : 'Not available'} out of ${maxRating}`}
+          >
             {typeof rating === 'number' && !isNaN(rating) && rating >= 0 ? safeRating.toFixed(1) : 'N/A'}
           </span>
           {(style === 'golden' || style === 'purple') && (
-            <span className="text-purple-300/70 text-xs ml-1 font-semibold">
+            <span className="text-purple-300/70 text-xs ml-1 font-semibold" aria-hidden="true">
               /{maxRating}
             </span>
           )}
