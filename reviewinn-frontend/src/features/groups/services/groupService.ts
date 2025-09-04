@@ -1,5 +1,20 @@
-// Group service for API interactions - using any to avoid import issues
-import { getAuthHeaders, createAuthenticatedRequestInit } from '../../../shared/utils/auth';
+// Group service for API interactions
+import { createAuthenticatedRequestInit } from '../../../shared/utils/auth';
+import {
+  Group,
+  GroupCategory,
+  GroupMembership,
+  GroupInvitation,
+  GroupInvitationRequest,
+  GroupInvitationResponse,
+  GroupCreateRequest,
+  GroupUpdateRequest,
+  GroupListParams,
+  GroupSearchResult,
+  GroupAnalytics,
+  ReviewScopeRequest,
+  PaginatedResponse
+} from '../types';
 
 const API_BASE = `${import.meta.env.VITE_API_BASE_URL || '/api/v1'}/groups`;
 
@@ -17,7 +32,7 @@ class GroupService {
   }
 
   // Groups CRUD
-  async getGroups(params?: any): Promise<any> {
+  async getGroups(params?: GroupListParams): Promise<PaginatedResponse<Group>> {
     const queryParams = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
@@ -28,22 +43,22 @@ class GroupService {
     }
     
     const query = queryParams.toString();
-    return this.request<any>(`/${query ? `?${query}` : ''}`);
+    return this.request<PaginatedResponse<Group>>(`/${query ? `?${query}` : ''}`);
   }
 
-  async getGroup(groupId: number): Promise<any> {
-    return this.request<any>(`/${groupId}`);
+  async getGroup(groupId: number): Promise<Group> {
+    return this.request<Group>(`/${groupId}`);
   }
 
-  async createGroup(group: any): Promise<any> {
-    return this.request<any>('/', {
+  async createGroup(group: GroupCreateRequest): Promise<Group> {
+    return this.request<Group>('/', {
       method: 'POST',
       body: JSON.stringify(group),
     });
   }
 
-  async updateGroup(groupId: number, updates: any): Promise<any> {
-    return this.request<any>(`/${groupId}`, {
+  async updateGroup(groupId: number, updates: GroupUpdateRequest): Promise<Group> {
+    return this.request<Group>(`/${groupId}`, {
       method: 'PUT',
       body: JSON.stringify(updates),
     });
@@ -56,7 +71,7 @@ class GroupService {
   }
 
   // Group membership
-  async getGroupMembers(groupId: number, params?: any): Promise<any> {
+  async getGroupMembers(groupId: number, params?: GroupListParams): Promise<PaginatedResponse<GroupMembership>> {
     const queryParams = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, value]) => {

@@ -532,6 +532,44 @@ export interface AuthState {
   error: string | null;
 }
 
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  user: User;
+  token: string;
+  access_token?: string;
+}
+
+export interface RegisterRequest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+}
+
+export interface RegisterResponse {
+  user_id: string;
+  email: string;
+  message: string;
+  requires_verification?: boolean;
+}
+
+export interface ApiResponse<T = unknown> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  error?: string;
+}
+
+export interface ApiError {
+  message: string;
+  status?: number;
+  details?: string;
+}
+
 // Advanced search and filtering
 export interface SearchFilters {
   category?: EntityCategory;

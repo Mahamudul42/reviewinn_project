@@ -38,11 +38,14 @@ export interface GroupInvitation {
 }
 
 export interface GroupInvitationRequest {
-  id: string;
-  group_id: string;
-  requester_id: string;
-  status: InvitationStatus;
-  created_at: string;
+  invitee_email?: string;
+  invitee_id?: string;
+  message?: string;
+}
+
+export interface GroupInvitationResponse {
+  action: 'accept' | 'decline';
+  message?: string;
 }
 
 export interface GroupCreateRequest {

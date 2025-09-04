@@ -3,7 +3,19 @@ import type { User } from '../types';
 import type { AuthState } from '../services/authInterface';
 import { API_CONFIG, API_ENDPOINTS } from './config';
 import { httpClient } from './httpClient';
-import { cookieAuth, setSecureTokens, getSecureAccessToken, getSecureRefreshToken, clearSecureTokens } from '../utils/cookieAuth';
+import { setSecureTokens, getSecureAccessToken, getSecureRefreshToken, clearSecureTokens } from '../utils/cookieAuth';
+import type { ApiError } from '../types';
+
+// Helper function to handle unknown errors
+function handleError(error: unknown): ApiError {
+  if (error instanceof Error) {
+    return { message: error.message };
+  }
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    return { message: String(error.message) };
+  }
+  return { message: 'An unknown error occurred' };
+}
 
 export interface LoginCredentials {
   email: string;
@@ -261,7 +273,7 @@ class AuthService {
       this.notifySubscribers();
       
       return { user, token: response.data.access_token };
-    } catch (error: any) {
+    } catch (error: unknown) {
       let errorMessage = 'Login failed. Please try again.';
       
       // Handle specific error types
@@ -372,7 +384,7 @@ class AuthService {
         user: user,
         token: loginResponse.data.access_token
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       let errorMessage = 'Registration failed. Please try again.';
       
       // Handle specific registration errors
@@ -416,7 +428,7 @@ class AuthService {
         await httpClient.post(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.AUTH.LOGOUT}`);
         console.log('AuthService: Logout API call successful');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Handle 401 errors gracefully (token already invalid)
       if (error.status === 401 || error.message?.includes('401')) {
         console.log('AuthService: Token already invalid, proceeding with local cleanup');
@@ -582,7 +594,7 @@ class AuthService {
         return user;
       }
       return null;
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Handle 401 Unauthorized errors gracefully
       if (error.response?.status === 401) {
         console.log('Auth token expired or invalid, clearing auth state');
@@ -872,7 +884,7 @@ class AuthService {
         message: response.data.message || 'Registration successful',
         requires_verification: response.data.requires_verification !== false // Default to true
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Registration failed:', error);
       
       let errorMessage = 'Registration failed. Please try again.';
@@ -910,7 +922,7 @@ class AuthService {
         success: true,
         message: response.data?.message || 'Email verified successfully'
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Email verification failed:', error);
       throw error;
     }
@@ -930,7 +942,7 @@ class AuthService {
         message: response.data?.message || 'Verification code sent',
         resend_available_in: response.data?.resend_available_in
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Resend verification failed:', error);
       throw error;
     }
