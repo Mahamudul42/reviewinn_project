@@ -4,8 +4,8 @@ import ConversationList from './components/ConversationList';
 import ChatWindow from './components/ChatWindow';
 import NewChatModal from './components/NewChatModal';
 import ThreePanelLayout from '../../shared/layouts/ThreePanelLayout';
-import { professionalMessagingService } from '../../api/services/professionalMessagingService';
-import type { ProfessionalConversation, ProfessionalMessage, ProfessionalUser } from '../../api/services/professionalMessagingService';
+import { professionalMessagingService } from '../../api/services/messaging';
+import type { ProfessionalConversation, ProfessionalMessage, ProfessionalUser } from '../../api/services/messaging';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
 import { useToast } from '../../shared/components/ToastProvider';
@@ -56,8 +56,10 @@ const MessengerPage: React.FC = () => {
   }, []);
 
   const loadConversations = useCallback(async () => {
+    setLoading(true);
+    
     try {
-      setLoading(true);
+      // One quick call - fail fast if not available
       const response = await professionalMessagingService.getConversations();
       
       let conversationsData: ProfessionalConversation[] = [];
@@ -67,22 +69,26 @@ const MessengerPage: React.FC = () => {
         conversationsData = response.conversations;
       }
       
-      if (conversationsData.length > 0) {
-        const uniqueConversations = deduplicateConversations(conversationsData);
-        setConversations(uniqueConversations);
-      }
+      const uniqueConversations = deduplicateConversations(conversationsData);
+      setConversations(uniqueConversations);
+      
     } catch (error) {
-      showError('Failed to load conversations');
-    } finally {
-      setLoading(false);
+      // Just show empty - user can refresh
+      setConversations([]);
     }
-  }, [showError, deduplicateConversations]);
+    
+    // Always stop loading immediately
+    setLoading(false);
+  }, [deduplicateConversations]);
 
   const loadMessages = useCallback(async (conversationId: number, offset: number = 0, limit?: number) => {
+    const isInitialMessageLoad = offset === 0;
+    setMessagesLoading(isInitialMessageLoad);
+    
     try {
-      setMessagesLoading(offset === 0);
+      const messageLimit = limit || (isInitialMessageLoad ? 15 : 20);
       
-      const messageLimit = limit || (offset === 0 ? 15 : 20);
+      // One simple call - no timeouts or complexity
       const response = await professionalMessagingService.getMessages(conversationId, { 
         limit: messageLimit, 
         beforeMessageId: offset > 0 ? messages[messages.length - 1]?.message_id : undefined 
@@ -91,7 +97,7 @@ const MessengerPage: React.FC = () => {
       if (response?.data?.messages) {
         const newMessages = response.data.messages;
         
-        if (offset === 0) {
+        if (isInitialMessageLoad) {
           setMessages(newMessages);
           setIsInitialLoad(true);
           setTimeout(() => setIsInitialLoad(false), 100);
@@ -100,13 +106,25 @@ const MessengerPage: React.FC = () => {
         }
         
         setHasMoreMessages(response.data.has_more || false);
+      } else if (isInitialMessageLoad) {
+        // No messages - show empty conversation
+        setMessages([]);
+        setIsInitialLoad(true);
+        setTimeout(() => setIsInitialLoad(false), 100);
       }
+      
     } catch (error) {
-      showError('Failed to load messages');
-    } finally {
-      setMessagesLoading(false);
+      // Failed - just show empty, user can refresh
+      if (isInitialMessageLoad) {
+        setMessages([]);
+        setIsInitialLoad(true);
+        setTimeout(() => setIsInitialLoad(false), 100);
+      }
     }
-  }, [showError, messages]);
+    
+    // Always stop loading immediately
+    setMessagesLoading(false);
+  }, [messages]);
 
   // WebSocket message handlers - now we can safely reference functions above
   const handleMarkAsRead = useCallback(async (messageId?: number) => {
@@ -832,6 +850,7 @@ const MessengerPage: React.FC = () => {
                   onConversationSelect={handleConversationSelect}
                   onNewChat={() => setShowNewChatModal(true)}
                   onNewGroup={() => setShowNewGroupModal(true)}
+                  onRefresh={loadConversations}
                   loading={loading}
                   currentUserId={currentUser?.user_id}
                 />

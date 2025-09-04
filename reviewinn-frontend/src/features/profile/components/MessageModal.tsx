@@ -9,7 +9,7 @@ import {
   Zap
 } from 'lucide-react';
 import type { UserProfile } from '../../../types';
-import { professionalMessagingService } from '../../../api/services/professionalMessagingService';
+import { professionalMessagingService } from '../../../api/services/messaging';
 import { useToast } from '../../../shared/components/ToastProvider';
 
 interface MessageModalProps {

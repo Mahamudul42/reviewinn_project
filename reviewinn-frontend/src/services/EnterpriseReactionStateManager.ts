@@ -459,5 +459,5 @@ export const enterpriseReactionStateManager = new EnterpriseReactionStateManager
   syncIntervalMs: 30000,
   maxRetryAttempts: 3,
   enableCrossBrowserSync: true,
-  debugMode: process.env.NODE_ENV === 'development'
+  debugMode: import.meta.env.MODE === 'development'
 });

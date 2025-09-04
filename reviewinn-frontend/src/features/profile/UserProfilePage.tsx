@@ -6,7 +6,7 @@ import { userService, homepageService, entityService, reviewService } from '../.
 import { reviewStatsService } from '../../services/reviewStatsService';
 import { useToast } from '../../shared/components/ToastProvider';
 import { circleService } from '../../api/services/circleService';
-import { professionalMessagingService } from '../../api/services/professionalMessagingService';
+import { professionalMessagingService } from '../../api/services/messaging';
 
 // Import organized components
 import {

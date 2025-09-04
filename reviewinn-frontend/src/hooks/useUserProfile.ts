@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { ProfessionalUser } from '../api/services/professionalMessagingService';
+import type { ProfessionalUser } from '../api/services/messaging';
 
 interface ExtendedUser extends ProfessionalUser {
   full_name?: string;

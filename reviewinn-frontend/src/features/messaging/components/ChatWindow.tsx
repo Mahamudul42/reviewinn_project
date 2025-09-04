@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Send, Paperclip, X, Phone, Video, Info, Smile, MoreVertical, Search } from 'lucide-react';
-import type { ProfessionalConversation, ProfessionalMessage, ProfessionalUser } from '../../../api/services/professionalMessagingService';
+import type { ProfessionalConversation, ProfessionalMessage, ProfessionalUser } from '../../../api/services/messaging';
 import MessageBubble from './MessageBubble';
 import TypingIndicator from './TypingIndicator';
 import UserProfileModal from './UserProfileModal';
@@ -196,19 +196,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     return otherParticipant?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(participantName)}&size=56`;
   };
 
-  if (loading) {
-    return (
-      <div className="chat-window h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
-        <div className="text-center bg-white rounded-2xl p-8 shadow-lg border border-gray-200">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">Loading messages</h3>
-          <p className="text-sm text-gray-600">Connecting to your conversation</p>
-        </div>
-      </div>
-    );
-  }
+  // Removed infinite loading screen - show chat interface immediately
+  // If data is not available, user can use refresh button
 
   return (
     <div 

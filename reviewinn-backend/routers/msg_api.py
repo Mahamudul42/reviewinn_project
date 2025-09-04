@@ -12,7 +12,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/v1/messaging", tags=["messaging"])
+router = APIRouter(prefix="/api/v1/messenger", tags=["messaging"])
 
 # Pydantic models for request/response
 class ConversationCreate(BaseModel):

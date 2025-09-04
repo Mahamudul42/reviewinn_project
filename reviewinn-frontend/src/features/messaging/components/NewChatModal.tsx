@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { X, Search, Users, User as UserIcon, MessageSquare, Plus, ArrowLeft, Send, Sparkles } from 'lucide-react';
 import { userService } from '../../../api/services/userService';
 import type { User } from '../../../types';
-import type { ProfessionalUser } from '../../../api/services/professionalMessagingService';
+import type { ProfessionalUser } from '../../../api/services/messaging';
 
 interface NewChatModalProps {
   onClose: () => void;

@@ -4,7 +4,7 @@
  */
 
 import { httpClient } from '../httpClient';
-import { API_CONFIG } from '../config';
+// API configuration (used for timeout values)
 import { createAuthenticatedRequestInit } from '../../shared/utils/auth';
 
 // Enterprise notification interfaces
@@ -117,7 +117,7 @@ class EnterpriseNotificationService {
       const data = response?.data || response;
       
       this.setCachedData(cacheKey, data);
-      return data;
+      return data as NotificationDropdownResponse;
     } catch (error: any) {
       // Silently return empty data when service is not available
       return {
@@ -198,7 +198,7 @@ class EnterpriseNotificationService {
       const response = await httpClient.get(url);
       
       // Standardized response handling
-      return response?.data || response;
+      return (response?.data || response) as NotificationListResponse;
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
       throw error;
@@ -217,7 +217,7 @@ class EnterpriseNotificationService {
       // Clear cache to force refresh
       this.clearCache();
       
-      return response.success || response.data?.success;
+      return (response as any).success || (response as any).data?.success;
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
       return false;
@@ -235,8 +235,8 @@ class EnterpriseNotificationService {
       this.clearCache();
       
       return {
-        success: response.success || response.data?.success,
-        count: response.data?.count || 0
+        success: (response as any).success || (response as any).data?.success,
+        count: (response as any).data?.count || 0
       };
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error);
@@ -255,8 +255,8 @@ class EnterpriseNotificationService {
       this.clearCache();
       
       return {
-        success: response.success || response.data?.success,
-        count: response.data?.count || 0
+        success: (response as any).success || (response as any).data?.success,
+        count: (response as any).data?.count || 0
       };
     } catch (error) {
       console.error('Failed to bulk update notifications:', error);
@@ -274,7 +274,7 @@ class EnterpriseNotificationService {
       // Clear cache to force refresh
       this.clearCache();
       
-      return response.success || response.data?.success;
+      return (response as any).success || (response as any).data?.success;
     } catch (error) {
       console.error('Failed to delete notification:', error);
       return false;
@@ -287,7 +287,7 @@ class EnterpriseNotificationService {
   async getNotificationStats(): Promise<NotificationStats> {
     try {
       const response = await httpClient.get(`${this.baseUrl}/stats`);
-      return response.success ? response : response.data;
+      return (response as any).success ? (response as unknown as NotificationStats) : ((response as any).data as NotificationStats);
     } catch (error) {
       console.error('Failed to fetch notification stats:', error);
       throw error;
@@ -304,7 +304,7 @@ class EnterpriseNotificationService {
       // Clear cache to force refresh
       this.clearCache();
       
-      return response.success ? response : response.data;
+      return (response as any).success ? (response as unknown as EnterpriseNotificationData) : ((response as any).data as EnterpriseNotificationData);
     } catch (error) {
       console.error('Failed to create notification:', error);
       throw error;
@@ -432,7 +432,7 @@ class EnterpriseNotificationService {
   /**
    * Real-time notification updates (for future WebSocket integration)
    */
-  onNotificationUpdate(callback: (notification: EnterpriseNotificationData) => void): void {
+  onNotificationUpdate(_callback: (notification: EnterpriseNotificationData) => void): void {
     // Future: WebSocket integration for real-time updates
     // For now, this is a placeholder for the interface
     console.log('Real-time notifications will be implemented with WebSocket');

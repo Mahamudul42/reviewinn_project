@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MessageCircle, Users, Plus } from 'lucide-react';
-import type { ProfessionalConversation } from '../../../api/services/professionalMessagingService';
+import { Search, MessageCircle, Users, Plus, RefreshCw } from 'lucide-react';
+import type { ProfessionalConversation } from '../../../api/services/messaging';
 import { formatTimeAgo } from '../../../shared/utils/reviewUtils';
 
 interface ConversationListProps {
@@ -9,6 +9,7 @@ interface ConversationListProps {
   onConversationSelect: (conversation: ProfessionalConversation) => void;
   onNewChat: () => void;
   onNewGroup: () => void;
+  onRefresh?: () => void;
   loading?: boolean;
   currentUserId?: number;
 }
@@ -19,6 +20,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
   onConversationSelect,
   onNewChat,
   onNewGroup,
+  onRefresh,
   loading = false,
   currentUserId,
 }) => {
@@ -116,19 +118,8 @@ const ConversationList: React.FC<ConversationListProps> = ({
     }
   };
 
-  if (loading) {
-    return (
-      <div className="conversation-list h-full flex items-center justify-center bg-gradient-to-b from-white to-gray-50">
-        <div className="text-center bg-white rounded-2xl p-8 shadow-lg border border-gray-200">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">Loading conversations</h3>
-          <p className="text-sm text-gray-600">Please wait while we fetch your messages</p>
-        </div>
-      </div>
-    );
-  }
+  // Removed infinite loading screen - show conversation list immediately
+  // If data is not available, user can use refresh actions
 
   return (
     <div className="conversation-list h-full flex flex-col bg-gray-50">
@@ -142,6 +133,15 @@ const ConversationList: React.FC<ConversationListProps> = ({
             <p className="text-xs text-gray-500 mt-0.5">{conversations.length} total</p>
           </div>
           <div className="flex space-x-1">
+            {onRefresh && (
+              <button
+                onClick={onRefresh}
+                className="p-2 bg-green-50 hover:bg-green-100 rounded-lg transition-all duration-200 hover:scale-105"
+                title="Refresh conversations"
+              >
+                <RefreshCw size={16} className="text-green-600" />
+              </button>
+            )}
             <button
               onClick={onNewChat}
               className="p-2 bg-blue-50 hover:bg-blue-100 rounded-lg transition-all duration-200 hover:scale-105"

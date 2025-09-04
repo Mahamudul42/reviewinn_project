@@ -25,8 +25,6 @@ from auth.production_middleware import ProductionAuthMiddleware
 from routers.api_v1 import v1_router
 # PRODUCTION AUTH SYSTEM - Final implementation
 from routers.auth_production import router as auth_production_router
-from routers.msg_api import router as msg_api_router
-from routers.messaging_emergency import router as messaging_emergency_router
 from routers.professional_messaging_api import router as professional_messaging_router
 from routers.websocket import router as websocket_router
 from routers.enterprise_notifications import router as enterprise_notifications_router
@@ -209,13 +207,9 @@ class APIApplication(LoggerMixin):
         # app.include_router(auth_unified_router, prefix="/api/v1")   # REMOVED
         
         # Messaging system routers
-        app.include_router(websocket_router)  # Re-enabled WebSocket support
+        app.include_router(websocket_router)  # WebSocket support for real-time messaging
         # Professional messaging API (production ready)
         app.include_router(professional_messaging_router)
-        # Emergency messaging system - Zero dependencies
-        app.include_router(messaging_emergency_router)
-        # Legacy messaging API (basic features)
-        app.include_router(msg_api_router)
         # Enterprise notifications using core_notifications table (only notification system)
         app.include_router(enterprise_notifications_router, prefix="/api/v1")
         app.include_router(user_profile_router, prefix="/api/v1")

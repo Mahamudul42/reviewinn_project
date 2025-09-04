@@ -1,5 +1,5 @@
 import { API_ENDPOINTS } from '../config';
-import { getAuthHeaders, createAuthenticatedRequestInit } from '../../shared/utils/auth';
+import { createAuthenticatedRequestInit } from '../../shared/utils/auth';
 import type {
   ReviewCircle,
   CircleMember,
@@ -615,7 +615,7 @@ export class CircleService {
   /**
    * Update trust level of a circle member (legacy method - not supported in new structure)
    */
-  async updateTrustLevel(connectionId: number, trustLevel: TrustLevel): Promise<CircleActionResponse> {
+  async updateTrustLevel(_connectionId: number, _trustLevel: TrustLevel): Promise<CircleActionResponse> {
     console.log('Trust level updates not supported in new structure');
     return { message: 'Trust level update not available in current version' };
   }

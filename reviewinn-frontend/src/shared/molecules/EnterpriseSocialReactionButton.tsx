@@ -118,7 +118,7 @@ const EnterpriseSocialReactionButton: React.FC<EnterpriseSocialReactionButtonPro
 
   // Enterprise logging and monitoring
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.MODE === 'development') {
       console.log(`🏢 EnterpriseSocialReactionButton: State update for ${reviewId}`, {
         reactions,
         userReaction,
@@ -408,7 +408,7 @@ const EnterpriseSocialReactionButton: React.FC<EnterpriseSocialReactionButtonPro
           )}
           
           {/* Development mode indicators */}
-          {process.env.NODE_ENV === 'development' && (
+          {import.meta.env.MODE === 'development' && (
             <div className="absolute top-0 right-0 -mt-1 -mr-1 flex gap-1">
               {isOptimistic && (
                 <span className="w-2 h-2 bg-yellow-400 rounded-full" title="Optimistic update" />

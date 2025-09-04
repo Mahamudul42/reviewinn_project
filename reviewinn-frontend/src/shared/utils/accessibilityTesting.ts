@@ -288,7 +288,7 @@ ${failedTests > 0 ? 'Issues found that need attention.' : 'No accessibility issu
 
 // Console logging helper for development
 export const logAccessibilityResults = (container?: HTMLElement): void => {
-  if (process.env.NODE_ENV !== 'development') {
+  if (import.meta.env.MODE !== 'development') {
     console.warn('Accessibility testing should only be used in development');
     return;
   }

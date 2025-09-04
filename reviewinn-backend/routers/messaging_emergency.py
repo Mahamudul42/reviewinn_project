@@ -9,7 +9,7 @@ import json
 from database import get_db
 from auth.production_dependencies import RequiredUser
 
-router = APIRouter(prefix="/api/v1/messaging", tags=["Messaging"])
+router = APIRouter(prefix="/api/v1/messenger", tags=["Messaging"])
 
 @router.get("/conversations")
 async def get_conversations(

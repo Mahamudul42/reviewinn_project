@@ -23,7 +23,7 @@ from database import get_db
 from auth.production_dependencies import CurrentUser, RequiredUser
 from services.professional_messaging_service import ProfessionalMessagingService
 
-router = APIRouter(prefix="/api/v1/messaging", tags=["Professional Messaging"])
+router = APIRouter(prefix="/api/v1/messenger", tags=["Professional Messaging"])
 logger = logging.getLogger(__name__)
 
 # ========== REQUEST/RESPONSE MODELS ==========

@@ -349,7 +349,7 @@ export class HttpClient {
                                 url.includes('/reviews/create') || url.includes('/entities/create') ||
                                 url.includes('/circles/') || url.includes('/notifications/') ||
                                 url.includes('/enterprise-notifications/') ||
-                                url.includes('/messenger/') || url.includes('/messaging/')) &&
+                                url.includes('/messenger/') || url.includes('/messenger/')) &&
                                 !url.includes('/messaging/debug/'); // Exclude debug endpoints from auth requirement
     
     // If it's a protected endpoint and we have no token, don't make the request

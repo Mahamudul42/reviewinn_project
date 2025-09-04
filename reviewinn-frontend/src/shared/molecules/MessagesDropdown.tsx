@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { MessageCircle, AlertTriangle, RefreshCw, X } from 'lucide-react';
-import { professionalMessagingService } from '../../api/services/professionalMessagingService';
+import { professionalMessagingService } from '../../api/services/messaging';
+import { messagingApiService } from '../../services/ApiService';
+import { MessagingErrorBoundary, ServiceUnavailableNotice } from '../../components/messaging/MessagingErrorBoundary';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
 import { PurpleButton } from '../design-system';
-import type { ProfessionalConversation } from '../../api/services/professionalMessagingService';
+import type { ProfessionalConversation } from '../../api/services/messaging';
 
 interface MessageItem {
   user: string;
@@ -21,7 +23,7 @@ interface MessagesDropdownProps {
   messages: MessageItem[];
 }
 
-const MessagesDropdown: React.FC<MessagesDropdownProps> = ({ open, onClose }) => {
+const MessagesDropdownContent: React.FC<MessagesDropdownProps> = ({ open, onClose }) => {
   const [recentConversations, setRecentConversations] = useState<ProfessionalConversation[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -69,120 +71,39 @@ const MessagesDropdown: React.FC<MessagesDropdownProps> = ({ open, onClose }) =>
     }
   }
 
-  // Enhanced conversation loading with error handling and retry logic
-  const loadRecentConversations = useCallback(async (isRetry = false) => {
+  // No loading state - just show empty immediately if no data
+  const loadRecentConversations = useCallback(async () => {
     if (loading) return; // Prevent concurrent requests
 
+    // Don't set loading to true - just try to get data
+    setError(null);
+
     try {
-      setLoading(true);
-      setError(null);
+      // One simple call - no timeouts, no complex logic
+      const result = await professionalMessagingService.conversations.getConversations({ limit: 10 });
       
-      console.log('MessagesDropdown: Loading recent conversations...');
-      // Try without parameters first, then with parameters if needed
-      let response;
-      try {
-        response = await professionalMessagingService.getConversations();
-        console.log('MessagesDropdown: API call with no parameters successful');
-      } catch (apiError) {
-        console.log('MessagesDropdown: API call with no parameters failed, trying with parameters:', apiError);
-        try {
-          response = await professionalMessagingService.getConversations(8, 0);
-        } catch (secondError) {
-          console.log('❌ MessagesDropdown: Both API calls failed, using fallback data');
-          // Temporary fallback for testing when API times out
-          response = {
-            success: true,
-            data: {
-              conversations: [
-                {
-                  conversation_id: 1,
-                  title: 'Test Conversation',
-                  conversation_type: 'direct',
-                  participants: [
-                    { user_id: 1, display_name: 'Test User' },
-                    { user_id: user?.id || 2, display_name: user?.name || 'You' }
-                  ],
-                  latest_message: {
-                    content: 'This is a test message to verify the UI works',
-                    created_at: new Date().toISOString(),
-                    sender_id: 1,
-                    message_type: 'text'
-                  },
-                  user_unread_count: 1,
-                  created_at: new Date().toISOString()
-                }
-              ]
-            }
-          };
-        }
+      // Handle response
+      let conversations = [];
+      if (result?.data?.conversations && Array.isArray(result.data.conversations)) {
+        conversations = result.data.conversations;
+      } else if (result?.conversations && Array.isArray(result.conversations)) {
+        conversations = result.conversations;
+      } else if (Array.isArray(result)) {
+        conversations = result;
       }
       
-      console.log('MessagesDropdown: Raw API response:', response);
-      console.log('MessagesDropdown: Response structure:', {
-        hasResponse: !!response,
-        hasData: !!response?.data,
-        hasConversations: !!response?.data?.conversations,
-        directConversations: !!response?.conversations,
-        responseKeys: response ? Object.keys(response) : null,
-        dataKeys: response?.data ? Object.keys(response.data) : null
-      });
+      setRecentConversations(conversations);
+      setRetryCount(0);
+      setLastUpdateTime(new Date().toLocaleTimeString());
       
-      // Handle multiple possible response structures
-      let conversations = null;
-      if (response?.data?.conversations && Array.isArray(response.data.conversations)) {
-        conversations = response.data.conversations;
-        console.log('MessagesDropdown: Using response.data.conversations');
-      } else if (response?.conversations && Array.isArray(response.conversations)) {
-        conversations = response.conversations;
-        console.log('MessagesDropdown: Using response.conversations');
-      } else if (Array.isArray(response)) {
-        conversations = response;
-        console.log('MessagesDropdown: Response is direct array');
-      }
-      
-      if (conversations) {
-        setRecentConversations(conversations);
-        setRetryCount(0); // Reset retry count on success
-        setLastUpdateTime(new Date().toLocaleTimeString());
-        console.log(`✅ MessagesDropdown: Successfully loaded ${conversations.length} conversations at ${new Date().toLocaleTimeString()}`);
-        console.log('MessagesDropdown: Sample conversation:', conversations[0] ? {
-          id: conversations[0].conversation_id,
-          title: conversations[0].title,
-          type: conversations[0].conversation_type,
-          participants: conversations[0].participants?.length,
-          lastMessage: conversations[0].latest_message?.content?.substring(0, 50) || conversations[0].last_message?.content?.substring(0, 50)
-        } : 'No conversations');
-      } else {
-        console.warn('MessagesDropdown: No conversations found in response');
-        console.warn('MessagesDropdown: Full response:', JSON.stringify(response, null, 2));
-        setRecentConversations([]);
-      }
-    } catch (error: any) {
-      console.error('MessagesDropdown: Failed to load conversations:', error);
-      
-      // Enhanced error handling
-      if (error?.response?.status === 401) {
-        setError('Authentication required. Please sign in again.');
-      } else if (error?.response?.status >= 500) {
-        setError('Server error. We\'re working to fix this.');
-      } else if (error?.code === 'NETWORK_ERROR' || !navigator.onLine) {
-        setError('Connection issue. Check your internet connection.');
-      } else {
-        setError('Failed to load messages. Please try again.');
-      }
-      
-      // Implement exponential backoff retry for transient errors
-      if (!isRetry && retryCount < 3 && error?.response?.status !== 401) {
-        const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 10000); // Max 10 seconds
-        setTimeout(() => {
-          setRetryCount(prev => prev + 1);
-          loadRecentConversations(true);
-        }, retryDelay);
-      }
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      // Just show empty - user can refresh
+      setRecentConversations([]);
+      setRetryCount(0);
     }
-  }, [loading, retryCount]);
+    
+    // Never set loading state
+  }, [loading]);
 
   // Load conversations when dropdown opens
   useEffect(() => {
@@ -385,7 +306,7 @@ const MessagesDropdown: React.FC<MessagesDropdownProps> = ({ open, onClose }) =>
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            {!loading && !error && (
+            {!error && (
               <button
                 onClick={() => loadRecentConversations()}
                 className="p-1 hover:bg-gray-200 rounded-full transition-colors"
@@ -407,38 +328,21 @@ const MessagesDropdown: React.FC<MessagesDropdownProps> = ({ open, onClose }) =>
         
         {/* Content Area */}
         <div className="flex flex-col overflow-hidden" style={{height: '320px'}}>
-          {/* Error State */}
+          {/* Enterprise Error State */}
           {error && (
-            <div className="flex items-center justify-center h-full p-4">
-              <div className="text-center">
-                <AlertTriangle size={48} className="mx-auto mb-4 text-red-400" />
-                <p className="text-red-600 font-medium mb-2">Oops! Something went wrong</p>
-                <p className="text-gray-600 text-sm mb-4">{error}</p>
-                <button
-                  onClick={handleRetry}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                  aria-label="Retry loading messages"
-                >
-                  Try Again
-                </button>
-              </div>
+            <div className="p-4 h-full flex items-center justify-center">
+              <ServiceUnavailableNotice
+                serviceName="Messaging"
+                onRetry={handleRetry}
+              />
             </div>
           )}
 
-          {/* Loading State */}
-          {loading && !error && (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="text-gray-500 mt-3 font-medium">Loading your messages...</p>
-                <p className="text-gray-400 text-sm mt-1">This won't take long</p>
-              </div>
-            </div>
-          )}
+          {/* Removed loading state - show empty immediately */}
           
 
-          {/* Empty State */}
-          {!loading && !error && recentConversations.length === 0 && (
+          {/* Enhanced Empty State */}
+          {!error && recentConversations.length === 0 && (
             <div className="flex items-center justify-center h-full">
               <div className="text-center p-4">
                 <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -450,6 +354,7 @@ const MessagesDropdown: React.FC<MessagesDropdownProps> = ({ open, onClose }) =>
                   <button
                     onClick={handleRetry}
                     className="inline-flex items-center px-3 py-1 bg-gray-600 text-white text-xs rounded-lg hover:bg-gray-700 transition-colors"
+                    aria-label="Retry loading conversations"
                   >
                     <RefreshCw size={14} className="mr-1" />
                     Retry Loading
@@ -468,7 +373,7 @@ const MessagesDropdown: React.FC<MessagesDropdownProps> = ({ open, onClose }) =>
           )}
           
           {/* Industry-Standard Conversations List */}
-          {!loading && !error && recentConversations.length > 0 && (
+          {!error && recentConversations.length > 0 && (
             <div className="overflow-y-auto flex-1">
               {recentConversations.map((conversation) => {
                 const isUnread = conversation.user_unread_count > 0;
@@ -603,7 +508,7 @@ const MessagesDropdown: React.FC<MessagesDropdownProps> = ({ open, onClose }) =>
         </div>
         
         {/* Footer */}
-        {!loading && !error && (
+        {!error && (
           <div className="p-3 border-t border-gray-100 bg-gray-50 rounded-b-xl">
             <PurpleButton
               onClick={() => {
@@ -621,5 +526,12 @@ const MessagesDropdown: React.FC<MessagesDropdownProps> = ({ open, onClose }) =>
     </div>
   );
 };
+
+// Wrap with error boundary for enterprise-grade error handling
+const MessagesDropdown: React.FC<MessagesDropdownProps> = (props) => (
+  <MessagingErrorBoundary featureName="Messages Dropdown">
+    <MessagesDropdownContent {...props} />
+  </MessagingErrorBoundary>
+);
 
 export default MessagesDropdown;

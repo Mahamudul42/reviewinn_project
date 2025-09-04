@@ -1,5 +1,5 @@
-import { API_ENDPOINTS } from '../config';
-import { getAuthHeaders, createAuthenticatedRequestInit } from '../../shared/utils/auth';
+// Import configuration and auth utilities
+import { createAuthenticatedRequestInit } from '../../shared/utils/auth';
 import type { User, UserProfile, UserPreferences, UserStats, Badge, DailyTask, Notification, Review } from '../../types';
 
 export interface UserListParams {
@@ -90,16 +90,19 @@ export class UserService {
       console.log('User search API failed, using fallback with mock data:', error);
       
       // Fallback: return mock users that match the search
-      const mockUsers = [
+      const mockUsers: User[] = [
         {
           id: 'user-1',
           name: 'Alice Johnson',
           username: 'alice_johnson',
           email: 'alice@example.com',
           avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b829?w=150&h=150&fit=crop&crop=face',
+          points: 1500,
+          badges: [],
+          createdAt: new Date().toISOString(),
           bio: 'Tech enthusiast and food critic',
           level: 15,
-          stats: { totalReviews: 45, helpfulVotes: 120, followers: 89 }
+          stats: { totalReviews: 45, averageRatingGiven: 4.2, entitiesReviewed: 15, streakDays: 12 }
         },
         {
           id: 'user-2', 
@@ -107,16 +110,19 @@ export class UserService {
           username: 'bob_smith',
           email: 'bob@example.com',
           avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+          points: 1200,
+          badges: [],
+          createdAt: new Date().toISOString(),
           bio: 'Restaurant reviewer and travel blogger',
           level: 12,
-          stats: { totalReviews: 32, helpfulVotes: 95, followers: 67 }
+          stats: { totalReviews: 32, averageRatingGiven: 3.8, entitiesReviewed: 12, streakDays: 8 }
         }
       ];
 
       const filteredUsers = mockUsers.filter(user => 
         user.name.toLowerCase().includes(query.toLowerCase()) ||
-        user.username.toLowerCase().includes(query.toLowerCase()) ||
-        user.bio.toLowerCase().includes(query.toLowerCase())
+        (user.username && user.username.toLowerCase().includes(query.toLowerCase())) ||
+        (user.bio && user.bio.toLowerCase().includes(query.toLowerCase()))
       );
       
       return {
@@ -228,7 +234,7 @@ export class UserService {
   /**
    * Update user profile
    */
-  async updateUserProfile(id: string, profileData: Partial<UserProfile>): Promise<UserProfile> {
+  async updateUserProfile(_id: string, profileData: Partial<UserProfile>): Promise<UserProfile> {
     const url = `${this.baseUrl}/me/profile`;
     const response = await fetch(url, createAuthenticatedRequestInit({
       method: 'PUT',

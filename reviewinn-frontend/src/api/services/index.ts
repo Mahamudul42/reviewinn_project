@@ -7,15 +7,8 @@ export type {
   HomepageParams, 
   PlatformStats 
 } from './homepageService';
-export type { 
-  ProfessionalUser, 
-  ProfessionalMessage, 
-  ProfessionalConversation, 
-  ConversationCreateRequest,
-  MessageSendRequest,
-  MessageEditRequest,
-  ReactionRequest
-} from './professionalMessagingService';
+// Messaging types are now exported directly from './messaging' module
+// Remove this block to avoid module resolution issues
 export type {
   CircleListResponse,
   CircleMemberListResponse,
@@ -38,7 +31,7 @@ import { UserService } from './userService';
 import { CommentService } from './commentService';
 import { userInteractionService } from './userInteractionService';
 import { homepageService } from './homepageService';
-import { professionalMessagingService } from './professionalMessagingService';
+// Removed professionalMessagingService import - now available from './messaging' module
 import { circleService } from './circleService';
 import { reviewinnRightPanelService } from './reviewinnRightPanelService';
 import { enterpriseNotificationService } from './enterpriseNotificationService';
@@ -48,5 +41,6 @@ export const entityService = _entityService;
 export const reviewService = new ReviewService();
 export const userService = new UserService();
 export const commentService = new CommentService();
-export { userInteractionService, homepageService, professionalMessagingService, circleService, reviewinnRightPanelService, enterpriseNotificationService };
+export { userInteractionService, homepageService, circleService, reviewinnRightPanelService, enterpriseNotificationService };
+// Note: professionalMessagingService is now exported from './messaging' module
 // entityServiceFactory removed - use entityService directly 

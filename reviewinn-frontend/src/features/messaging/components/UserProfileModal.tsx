@@ -1,6 +1,6 @@
 import React from 'react';
 import { X, MessageCircle, UserPlus, Mail, MapPin, Calendar, Star, Users, Heart, Award } from 'lucide-react';
-import type { ProfessionalUser } from '../../../api/services/professionalMessagingService';
+import type { ProfessionalUser } from '../../../api/services/messaging';
 
 interface ExtendedUser extends ProfessionalUser {
   full_name?: string;

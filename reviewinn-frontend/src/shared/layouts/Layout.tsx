@@ -5,12 +5,14 @@ import AuthModal from '../../features/auth/components/AuthModal';
 import NotificationSystem, { useNotifications } from '../organisms/NotificationSystem';
 import QuickActionsPanel from '../organisms/QuickActionsPanel';
 import RecentActivityDropdown from '../molecules/RecentActivityDropdown';
-import MessagesDropdown from '../molecules/MessagesDropdown';
+import SimpleMessagesDropdown from '../molecules/SimpleMessagesDropdown';
 import NotificationBell from '../components/NotificationBell';
 import SkipLink from '../components/accessibility/SkipLink';
-import { professionalMessagingService } from '../../api/services/professionalMessagingService';
+import { professionalMessagingService } from '../../api/services/messaging';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
+import { featureFlags } from '../../services/FeatureFlags';
+import { messagingApiService } from '../../services/ApiService';
 
 const Layout: React.FC = () => {
   const { user, isAuthenticated, isLoading, logout, getToken } = useUnifiedAuth();
@@ -173,10 +175,17 @@ const Layout: React.FC = () => {
     }
     
     
+    // Enterprise feature flag check
+    if (!featureFlags.isMessagingEndpointEnabled('conversations')) {
+      console.log('📢 Messaging conversations disabled by feature flag');
+      return;
+    }
+
     try {
+      // Simple direct call - no complex wrapper logic
       const response = await professionalMessagingService.getConversations();
-      
-      
+        
+        
       // Handle multiple possible response structures
       let conversations = null;
       if (response?.data?.conversations && Array.isArray(response.data.conversations)) {
@@ -186,7 +195,7 @@ const Layout: React.FC = () => {
       } else if (Array.isArray(response)) {
         conversations = response;
       }
-      
+        
       if (conversations && Array.isArray(conversations)) {
         // Industry Standard: Count conversations with unread messages (not total message count)
         const unreadConversations = conversations.filter(conv => {
@@ -198,7 +207,6 @@ const Layout: React.FC = () => {
         const unreadConversationsCount = unreadConversations.length;
         setUnreadConversationsCount(unreadConversationsCount);
         
-        
         // Also emit event for MessagesDropdown to update
         window.dispatchEvent(new CustomEvent('conversationCountUpdated', { 
           detail: { count: unreadConversationsCount } 
@@ -207,18 +215,8 @@ const Layout: React.FC = () => {
         setUnreadConversationsCount(0);
       }
     } catch (error: any) {
-      
-      // Handle specific error cases
-      if (error.message?.includes('timeout') || error.code === 'TIMEOUT') {
-        setUnreadConversationsCount(0);
-        // Don't retry timeout errors immediately
-      } else if (error.response?.status === 401) {
-        setUnreadConversationsCount(0);
-      } else if (error.response?.status >= 500) {
-        setUnreadConversationsCount(0);
-      } else {
-        setUnreadConversationsCount(0);
-      }
+      // Just set to 0 - no complex error handling
+      setUnreadConversationsCount(0);
     }
   };
 
@@ -537,10 +535,9 @@ const Layout: React.FC = () => {
                   )}
                 </button>
                 {isAuthenticated && (
-                  <MessagesDropdown
+                  <SimpleMessagesDropdown
                     open={showMessagesDropdown}
                     onClose={() => setShowMessagesDropdown(false)}
-                    messages={messages}
                   />
                 )}
               </div>
