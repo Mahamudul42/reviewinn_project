@@ -92,7 +92,7 @@ class CleanReactionService {
       const response = await httpClient.get(`${API_CONFIG.BASE_URL}/reviews/${reviewId}/reactions`);
       
       if (response.success && response.data) {
-        const data = response.data;
+        const data = response.data as import('../types').ReactionApiResponse;
         const state: ReactionState = {
           reviewId,
           userReaction: data.user_reaction || null,
@@ -136,7 +136,7 @@ class CleanReactionService {
       }
 
       if (response.success && response.data) {
-        const data = response.data;
+        const data = response.data as import('../types').ReactionApiResponse;
         const newState: ReactionState = {
           reviewId,
           userReaction: data.user_reaction || null,

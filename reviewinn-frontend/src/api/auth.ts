@@ -4,15 +4,27 @@ import type { AuthState } from '../services/authInterface';
 import { API_CONFIG, API_ENDPOINTS } from './config';
 import { httpClient } from './httpClient';
 import { setSecureTokens, getSecureAccessToken, getSecureRefreshToken, clearSecureTokens } from '../utils/cookieAuth';
-import type { ApiError } from '../types';
+import type { ApiError, RegistrationApiResponse, VerificationApiResponse, ResendVerificationApiResponse } from '../types';
 
 // Helper function to handle unknown errors
-function handleError(error: unknown): ApiError {
+function handleError(error: unknown): ApiError & { status?: number; response?: any } {
   if (error instanceof Error) {
     return { message: error.message };
   }
-  if (typeof error === 'object' && error !== null && 'message' in error) {
-    return { message: String(error.message) };
+  if (typeof error === 'object' && error !== null) {
+    if ('message' in error) {
+      return { 
+        message: String(error.message),
+        status: 'status' in error ? Number(error.status) : undefined,
+        response: 'response' in error ? error.response : undefined
+      };
+    }
+    if ('response' in error) {
+      return { 
+        message: 'Request failed',
+        response: error.response
+      };
+    }
   }
   return { message: 'An unknown error occurred' };
 }
@@ -277,18 +289,19 @@ class AuthService {
       let errorMessage = 'Login failed. Please try again.';
       
       // Handle specific error types
-      if (error.message?.includes('detail')) {
-        errorMessage = error.message.replace('Login failed: ', '');
-      } else if (error.message?.includes('401')) {
+      const err = handleError(error);
+      if (err.message?.includes('detail')) {
+        errorMessage = err.message.replace('Login failed: ', '');
+      } else if (err.message?.includes('401')) {
         errorMessage = 'Incorrect email or password. Please check your credentials and try again.';
-      } else if (error.message?.includes('429')) {
+      } else if (err.message?.includes('429')) {
         errorMessage = 'Too many login attempts. Please wait a moment before trying again.';
-      } else if (error.message?.includes('5')) {
+      } else if (err.message?.includes('5')) {
         errorMessage = 'Server error. Please try again later.';
-      } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+      } else if (err.message?.includes('network') || err.message?.includes('fetch')) {
         errorMessage = 'Network error. Please check your internet connection.';
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
+      } else {
+        errorMessage = err.message;
       }
 
       this.updateAuthState({
@@ -388,25 +401,26 @@ class AuthService {
       let errorMessage = 'Registration failed. Please try again.';
       
       // Handle specific registration errors
-      if (error.response?.data?.detail) {
-        errorMessage = error.response.data.detail;
-      } else if (error.response?.status === 400) {
+      const err = handleError(error);
+      if (err.response?.data?.detail) {
+        errorMessage = err.response.data.detail;
+      } else if (err.response?.status === 400) {
         // Usually means user already exists or validation failed
-        if (error.response.data?.detail?.includes('email')) {
+        if (err.response.data?.detail?.includes('email')) {
           errorMessage = 'An account with this email already exists. Please use a different email or try signing in.';
         } else {
           errorMessage = 'Invalid registration information. Please check your details and try again.';
         }
-      } else if (error.response?.status === 422) {
+      } else if (err.response?.status === 422) {
         errorMessage = 'Please check all fields and ensure they meet the requirements.';
-      } else if (error.response?.status === 429) {
+      } else if (err.response?.status === 429) {
         errorMessage = 'Too many registration attempts. Please wait a moment before trying again.';
-      } else if (error.response?.status >= 500) {
+      } else if (err.response?.status >= 500) {
         errorMessage = 'Server error during registration. Please try again later.';
-      } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+      } else if (err.message?.includes('network') || err.message?.includes('fetch')) {
         errorMessage = 'Network error. Please check your internet connection.';
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
+      } else {
+        errorMessage = err.message;
       }
 
       this.updateAuthState({
@@ -430,10 +444,11 @@ class AuthService {
       }
     } catch (error: unknown) {
       // Handle 401 errors gracefully (token already invalid)
-      if (error.status === 401 || error.message?.includes('401')) {
+      const err = handleError(error);
+      if (err.status === 401 || err.message?.includes('401')) {
         console.log('AuthService: Token already invalid, proceeding with local cleanup');
       } else {
-        console.warn('AuthService: Logout API call failed:', error);
+        console.warn('AuthService: Logout API call failed:', err.message);
       }
     }
     
@@ -596,12 +611,13 @@ class AuthService {
       return null;
     } catch (error: unknown) {
       // Handle 401 Unauthorized errors gracefully
-      if (error.response?.status === 401) {
+      const err = handleError(error);
+      if (err.response?.status === 401) {
         console.log('Auth token expired or invalid, clearing auth state');
         this.logout();
         return null;
       }
-      console.error('Failed to fetch current user data:', error);
+      console.error('Failed to fetch current user data:', err.message);
       return null;
     }
   }
@@ -865,11 +881,11 @@ class AuthService {
   /**
    * Register user without auto-login (for verification flow)
    */
-  async registerWithoutLogin(data: RegisterData): Promise<{ user_id: number; email: string; message: string; requires_verification: boolean }> {
+  async registerWithoutLogin(data: RegisterData): Promise<{ user_id: string; email: string; message: string; requires_verification: boolean }> {
     this.updateAuthState({ isLoading: true, error: null });
 
     try {
-      const response = await httpClient.post(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.AUTH.REGISTER}`, {
+      const response = await httpClient.post<RegistrationApiResponse>(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.AUTH.REGISTER}`, {
         first_name: data.firstName,
         last_name: data.lastName,
         email: data.email,
@@ -878,11 +894,12 @@ class AuthService {
 
       this.updateAuthState({ isLoading: false, error: null });
 
+      const responseData = response.data as RegistrationApiResponse;
       return {
-        user_id: response.data.user_id,
+        user_id: responseData.user_id,
         email: data.email,
-        message: response.data.message || 'Registration successful',
-        requires_verification: response.data.requires_verification !== false // Default to true
+        message: responseData.message || 'Registration successful',
+        requires_verification: responseData.requires_verification !== false // Default to true
       };
     } catch (error: unknown) {
       console.error('Registration failed:', error);
@@ -890,14 +907,15 @@ class AuthService {
       let errorMessage = 'Registration failed. Please try again.';
       
       // Handle specific error types
-      if (error.message?.includes('422')) {
+      const err = handleError(error);
+      if (err.message?.includes('422')) {
         errorMessage = 'Please check all required fields and try again.';
-      } else if (error.message?.includes('409')) {
+      } else if (err.message?.includes('409')) {
         errorMessage = 'Email already exists. Please use a different email or sign in.';
-      } else if (error.message?.includes('400')) {
+      } else if (err.message?.includes('400')) {
         errorMessage = 'Invalid registration data. Please check your information.';
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
+      } else {
+        errorMessage = err.message;
       }
 
       this.updateAuthState({
@@ -913,14 +931,15 @@ class AuthService {
    */
   async verifyEmail(email: string, verificationCode: string): Promise<{ success: boolean; message?: string }> {
     try {
-      const response = await httpClient.post(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.AUTH.VERIFY_EMAIL}`, {
+      const response = await httpClient.post<VerificationApiResponse>(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.AUTH.VERIFY_EMAIL}`, {
         email,
         verification_code: verificationCode
       });
 
+      const responseData = response.data as VerificationApiResponse;
       return {
         success: true,
-        message: response.data?.message || 'Email verified successfully'
+        message: responseData.message || 'Email verified successfully'
       };
     } catch (error: unknown) {
       console.error('Email verification failed:', error);
@@ -933,14 +952,15 @@ class AuthService {
    */
   async resendVerificationCode(email: string): Promise<{ success: boolean; message?: string; resend_available_in?: number }> {
     try {
-      const response = await httpClient.post(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.AUTH.RESEND_VERIFICATION}`, {
+      const response = await httpClient.post<ResendVerificationApiResponse>(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.AUTH.RESEND_VERIFICATION}`, {
         email
       });
 
+      const responseData = response.data as ResendVerificationApiResponse;
       return {
         success: true,
-        message: response.data?.message || 'Verification code sent',
-        resend_available_in: response.data?.resend_available_in
+        message: responseData.message || 'Verification code sent',
+        resend_available_in: responseData.resend_available_in
       };
     } catch (error: unknown) {
       console.error('Resend verification failed:', error);

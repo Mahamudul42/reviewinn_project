@@ -570,6 +570,27 @@ export interface ApiError {
   details?: string;
 }
 
+export interface RegistrationApiResponse {
+  user_id: string;
+  message: string;
+  requires_verification?: boolean;
+}
+
+export interface VerificationApiResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface ResendVerificationApiResponse {
+  message: string;
+  resend_available_in?: number;
+}
+
+export interface ReactionApiResponse {
+  user_reaction: string | null;
+  reactions: Record<string, number>;
+}
+
 // Advanced search and filtering
 export interface SearchFilters {
   category?: EntityCategory;

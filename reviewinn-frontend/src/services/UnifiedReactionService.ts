@@ -193,7 +193,7 @@ class UnifiedReactionService {
     const response = await httpClient.get(`${API_CONFIG.BASE_URL}/reviews/${reviewId}/reactions`);
     
     if (response.success && response.data) {
-      const data = response.data;
+      const data = response.data as import('../types').ReactionApiResponse;
       return {
         reviewId,
         userReaction: data.user_reaction || null,
@@ -213,7 +213,7 @@ class UnifiedReactionService {
       });
       
       if (response.success && response.data) {
-        const data = response.data;
+        const data = response.data as import('../types').ReactionApiResponse;
         return {
           reviewId,
           userReaction: data.user_reaction || null,
@@ -226,7 +226,7 @@ class UnifiedReactionService {
       const response = await httpClient.delete(`${API_CONFIG.BASE_URL}/reviews/${reviewId}/reaction`);
       
       if (response.success && response.data) {
-        const data = response.data;
+        const data = response.data as import('../types').ReactionApiResponse;
         return {
           reviewId,
           userReaction: null,
@@ -335,7 +335,7 @@ export const userInteractionService = {
       return reactionService.updateReaction(reviewId, interaction.reaction);
     }
   },
-  subscribe: (callback: any) => () => {}, // Simplified for migration
+  subscribe: (_callback: any) => () => {}, // Simplified for migration
   loadUserInteractions: () => Promise.resolve()
 };
 
