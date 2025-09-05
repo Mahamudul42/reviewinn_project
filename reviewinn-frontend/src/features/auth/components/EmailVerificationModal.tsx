@@ -278,7 +278,7 @@ const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({
         width: '100%',
         height: Math.max(document.documentElement.scrollHeight, viewportHeight),
         zIndex: 9999999, // Match AuthModal z-index
-        background: 'rgba(255, 0, 0, 0.8)', // Match AuthModal background
+        background: 'rgba(0, 0, 0, 0.5)', // Match consistent modal background
         pointerEvents: 'auto',
       }}
       onClick={handleClose}

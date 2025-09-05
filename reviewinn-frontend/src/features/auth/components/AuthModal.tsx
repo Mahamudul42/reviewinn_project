@@ -460,7 +460,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
         width: '100%',
         height: Math.max(document.documentElement.scrollHeight, viewportHeight),
         zIndex: 9999999,
-        background: 'rgba(255, 0, 0, 0.8)',
+        background: 'rgba(0, 0, 0, 0.5)',
         pointerEvents: 'auto',
       }}
       onClick={onClose}

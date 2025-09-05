@@ -232,7 +232,7 @@ const SearchFilterModal: React.FC<SearchFilterModalProps> = ({
   if (!isOpen) return null;
 
   const contentStyles = getModalContentStyles({
-    maxWidth: 800,
+    maxWidth: 672, // Match middle panel max-w-2xl
     minWidth: 600,
     minHeight: 400,
   });
