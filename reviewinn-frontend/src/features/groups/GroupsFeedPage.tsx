@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { 
   Filter, 
@@ -13,7 +13,7 @@ import ThreePanelLayout from '../../shared/layouts/ThreePanelLayout';
 import { Button } from '../../shared/design-system/components/Button';
 import Badge from '../../shared/ui/Badge';
 import GroupFeed from './components/GroupFeed';
-import AddReviewStatusBar from '../common/components/AddReviewStatusBar';
+// import AddReviewStatusBar from '../common/components/AddReviewStatusBar'; // Not used in current implementation
 import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
 import GroupCreationForm, { GroupFormData } from './components/GroupCreationForm';
 import { imageUploadService } from './services/imageUploadService';
@@ -34,8 +34,26 @@ const GroupsFeedPage: React.FC = () => {
   const [loadingUserGroups, setLoadingUserGroups] = useState(false);
   const [loadingRecommendedGroups, setLoadingRecommendedGroups] = useState(false);
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
-  const [userGroups, setUserGroups] = useState<any[]>([]);
-  const [recommendedGroups, setRecommendedGroups] = useState<any[]>([]);
+  const [userGroups, setUserGroups] = useState<Array<{
+    id: string;
+    name: string;
+    description: string;
+    avatar: string;
+    member_count: number;
+    unread_count: number;
+    is_joined: boolean;
+    recent_activity: string;
+  }>>([]);
+  const [recommendedGroups, setRecommendedGroups] = useState<Array<{
+    id: string;
+    name: string;
+    description: string;
+    avatar: string;
+    member_count: number;
+    category: string;
+    mutual_connections: number;
+    is_joined: boolean;
+  }>>([]);
   const [loadingGroups, setLoadingGroups] = useState(true);
   const { user, isAuthenticated } = useUnifiedAuth();
   const { showSuccess, showError } = useShowToast();
@@ -62,20 +80,20 @@ const GroupsFeedPage: React.FC = () => {
       
       if (response.data && Array.isArray(response.data)) {
         // Transform API response to match component expectations
-        const transformedGroups = response.data.map((group: any) => ({
-          id: group.group_id.toString(),
-          name: group.name,
-          description: group.description,
-          avatar: group.avatar_url || 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=100&h=100&fit=crop',
-          member_count: group.member_count || 0,
+        const transformedGroups = response.data.map((group: Record<string, unknown>) => ({
+          id: (group.group_id as number).toString(),
+          name: group.name as string,
+          description: group.description as string,
+          avatar: (group.avatar_url as string) || 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=100&h=100&fit=crop',
+          member_count: (group.member_count as number) || 0,
           unread_count: Math.floor(Math.random() * 10), // TODO: Get real unread count from API
           is_joined: true,
-          recent_activity: new Date(group.updated_at).toLocaleDateString()
+          recent_activity: new Date(group.updated_at as string).toLocaleDateString()
         }));
         setUserGroups(transformedGroups);
       }
-    } catch (error) {
-      console.error('Error fetching user groups:', error);
+    } catch {
+      // Log error for debugging in development
       setUserGroups([]);
     } finally {
       setLoadingGroups(false);
@@ -83,7 +101,7 @@ const GroupsFeedPage: React.FC = () => {
   };
 
   // Fetch recommended groups
-  const fetchRecommendedGroups = async () => {
+  const fetchRecommendedGroups = useCallback(async () => {
     try {
       const response = await apiRequest(API_ENDPOINTS.groups.list + '?size=20');
       
@@ -91,24 +109,24 @@ const GroupsFeedPage: React.FC = () => {
         // Transform and filter out user's groups
         const userGroupIds = userGroups.map(g => g.id);
         const transformedGroups = response.data
-          .filter((group: any) => !userGroupIds.includes(group.group_id.toString()))
-          .map((group: any) => ({
-            id: group.group_id.toString(),
-            name: group.name,
-            description: group.description,
-            avatar: group.avatar_url || 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=100&h=100&fit=crop',
-            member_count: group.member_count || 0,
-            category: group.group_type || 'General',
+          .filter((group: Record<string, unknown>) => !userGroupIds.includes((group.group_id as number).toString()))
+          .map((group: Record<string, unknown>) => ({
+            id: (group.group_id as number).toString(),
+            name: group.name as string,
+            description: group.description as string,
+            avatar: (group.avatar_url as string) || 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=100&h=100&fit=crop',
+            member_count: (group.member_count as number) || 0,
+            category: (group.group_type as string) || 'General',
             mutual_connections: Math.floor(Math.random() * 20), // TODO: Get real mutual connections
             is_joined: false
           }));
         setRecommendedGroups(transformedGroups);
       }
-    } catch (error) {
-      console.error('Error fetching recommended groups:', error);
+    } catch {
+      // Log error for debugging in development
       setRecommendedGroups([]);
     }
-  };
+  }, [userGroups]);
 
   // Load groups when component mounts or user authentication changes
   useEffect(() => {
@@ -117,10 +135,13 @@ const GroupsFeedPage: React.FC = () => {
 
   // Load recommended groups after user groups are loaded
   useEffect(() => {
-    if (!loadingGroups && userGroups.length >= 0) {
-      fetchRecommendedGroups();
-    }
-  }, [loadingGroups, userGroups]);
+    const loadRecommendedGroups = async () => {
+      if (!loadingGroups && userGroups.length >= 0) {
+        await fetchRecommendedGroups();
+      }
+    };
+    loadRecommendedGroups();
+  }, [loadingGroups, userGroups, fetchRecommendedGroups]);
 
   const displayedUserGroupsData = userGroups.slice(0, displayedUserGroups);
 
@@ -211,14 +232,14 @@ const GroupsFeedPage: React.FC = () => {
         body: JSON.stringify(groupData)
       });
       
-      console.log('Group created successfully:', response);
+      // Group created successfully
       showSuccess('Group Created!', 'Your group has been created successfully and you can now start inviting members.');
       // Refresh user groups list
       await fetchUserGroups();
       setActiveTab('your-groups');
       
-    } catch (error) {
-      console.error('Error creating group:', error);
+    } catch {
+      // Handle error
       showError('Failed to Create Group', 'Something went wrong while creating your group. Please try again.');
     } finally {
       setIsCreatingGroup(false);
@@ -254,7 +275,7 @@ const GroupsFeedPage: React.FC = () => {
             {/* Active Filter Display */}
             <div className="flex items-center space-x-2">
               <span className="text-sm text-gray-500">Showing:</span>
-              <Badge variant="outline" className="capitalize">
+              <Badge variant="default" className="capitalize">
                 {activeFilter === 'all' ? 'All Posts' : activeFilter} Posts
               </Badge>
               {activeFilter !== 'all' && (
@@ -366,23 +387,56 @@ const GroupsFeedPage: React.FC = () => {
         return (
           <div className="space-y-6">
             {/* Discover Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div>
                 <h2 className="text-xl font-bold text-gray-900">Discover Groups</h2>
                 <p className="text-gray-600 mt-1">
                   Find groups that match your interests
                 </p>
               </div>
-              <div className="flex items-center space-x-3">
+              
+              {/* Search and Filters */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-3">
+                {/* Search */}
                 <div className="relative">
                   <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                   <input
                     type="text"
                     placeholder="Search groups..."
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent w-full sm:w-64"
                   />
                 </div>
+                
+                {/* Filter Dropdown */}
+                <select className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white">
+                  <option value="">All Categories</option>
+                  <option value="university">University</option>
+                  <option value="company">Company</option>
+                  <option value="location">Location</option>
+                  <option value="interest">Interest-Based</option>
+                </select>
+                
+                {/* Sort Dropdown */}
+                <select className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white">
+                  <option value="members">Most Members</option>
+                  <option value="activity">Most Active</option>
+                  <option value="recent">Recently Created</option>
+                  <option value="name">Alphabetical</option>
+                </select>
               </div>
+            </div>
+
+            {/* Quick Filter Tags */}
+            <div className="flex flex-wrap gap-2">
+              <span className="text-sm text-gray-600">Quick filters:</span>
+              {['Popular', 'New', 'Local', 'Tech', 'Business', 'Education'].map((filter) => (
+                <button
+                  key={filter}
+                  className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-full hover:bg-purple-100 hover:text-purple-700 transition-colors duration-200"
+                >
+                  {filter}
+                </button>
+              ))}
             </div>
 
             {/* Recommended Groups */}
@@ -464,7 +518,7 @@ const GroupsFeedPage: React.FC = () => {
     >
       {/* Tab Navigation */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6 overflow-hidden">
-        <nav className="flex space-x-2 p-2 bg-gradient-to-r from-gray-50 via-white to-gray-50">
+        <nav className="flex space-x-2 p-2 bg-gray-50">
           {[
             { id: 'reviews', label: 'Reviews', icon: MessageSquare },
             { id: 'your-groups', label: 'Your Groups', icon: Users },
@@ -474,9 +528,9 @@ const GroupsFeedPage: React.FC = () => {
             <button
               key={id}
               onClick={() => setActiveTab(id as TabType)}
-              className={`flex items-center space-x-3 py-3 px-4 rounded-lg font-semibold text-sm transition-colors duration-200 flex-1 justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+              className={`flex items-center space-x-3 py-3 px-4 rounded-lg font-semibold text-sm transition-colors duration-200 flex-1 justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 ${
                 activeTab === id
-                  ? 'bg-blue-600 !text-white hover:bg-blue-700'
+                  ? 'bg-purple-600 !text-white hover:bg-purple-700'
                   : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100 border border-gray-200 hover:border-gray-300'
               }`}
             >

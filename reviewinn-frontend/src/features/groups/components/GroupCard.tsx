@@ -75,7 +75,7 @@ interface Group {
   is_verified: boolean;
   rules_and_guidelines?: string;
   external_links: Array<{ [key: string]: string }>;
-  group_metadata: { [key: string]: any };
+  group_metadata: Record<string, unknown>;
   categories: GroupCategory[];
   creator?: GroupUser;
   user_membership?: GroupMembership;
@@ -176,20 +176,20 @@ const GroupCard: React.FC<GroupCardProps> = ({
 
   return (
     <div 
-      className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6 cursor-pointer"
+      className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-4 lg:p-6 cursor-pointer"
       onClick={handleCardClick}
     >
       {/* Group Header */}
-      <div className="flex items-start space-x-4 mb-4">
+      <div className="flex items-start space-x-3 lg:space-x-4 mb-4">
         {group.avatar_url ? (
           <img 
             src={group.avatar_url} 
             alt={group.name}
-            className="w-16 h-16 rounded-lg object-cover border-2 border-gray-100"
+            className="w-12 h-12 lg:w-16 lg:h-16 rounded-lg object-cover border-2 border-gray-100 flex-shrink-0"
           />
         ) : (
-          <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center">
-            <TypeIcon className="w-8 h-8 text-white" />
+          <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-lg bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center flex-shrink-0">
+            <TypeIcon className="w-6 h-6 lg:w-8 lg:h-8 text-white" />
           </div>
         )}
         
@@ -229,7 +229,7 @@ const GroupCard: React.FC<GroupCardProps> = ({
 
       {/* Group Stats */}
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-4 text-sm text-gray-500">
+        <div className="flex flex-wrap items-center gap-2 lg:gap-4 text-sm text-gray-500">
           <div className="flex items-center">
             <Users className="w-4 h-4 mr-1" />
             <span>{group.member_count.toLocaleString()} members</span>
@@ -276,7 +276,7 @@ const GroupCard: React.FC<GroupCardProps> = ({
           )}
         </div>
         
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
           {group.user_membership ? (
             <div className="flex items-center text-sm text-green-600">
               <Shield className="w-4 h-4 mr-1" />

@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { 
-  X, 
-  Upload, 
   MapPin, 
   Building, 
   GraduationCap, 
@@ -109,7 +107,7 @@ const GroupCreateModal: React.FC<GroupCreateModalProps> = ({
   const [step, setStep] = useState(1);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
 
-  const handleInputChange = (field: keyof GroupCreateRequest, value: any) => {
+  const handleInputChange = (field: keyof GroupCreateRequest, value: string | number | boolean | number[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -130,8 +128,8 @@ const GroupCreateModal: React.FC<GroupCreateModalProps> = ({
     try {
       const group = await createGroup(formData);
       onGroupCreated(group);
-    } catch (err) {
-      console.error('Failed to create group:', err);
+    } catch {
+      // Handle error - will be displayed in error state
     }
   };
 
@@ -433,7 +431,6 @@ const GroupCreateModal: React.FC<GroupCreateModalProps> = ({
               <Button
                 type="submit"
                 disabled={loading || !isStepValid(step)}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 <span>{loading ? 'Creating...' : 'Create Group'}</span>
               </Button>

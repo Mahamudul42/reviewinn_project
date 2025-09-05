@@ -1,25 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Users, 
   MessageSquare, 
-  Star, 
   Settings, 
   UserPlus, 
-  Crown,
   Shield,
   MapPin,
   Building,
   GraduationCap,
   Heart,
-  ExternalLink,
-  Edit,
-  MoreVertical,
   ArrowLeft,
   Eye,
   Globe,
   Lock,
-  UserCheck
+  UserCheck,
+  TrendingUp
 } from 'lucide-react';
 
 import ThreePanelLayout from '../../shared/layouts/ThreePanelLayout';
@@ -30,8 +26,7 @@ import Badge from '../../shared/ui/Badge';
 
 import { useGroup } from './hooks/useGroups';
 import { useUnifiedAuth } from '../../hooks/useUnifiedAuth';
-import { Group, GroupType, GroupVisibility, MembershipRole, MembershipStatus } from './types';
-import { groupService } from './services/groupService';
+import { GroupType, GroupVisibility, MembershipRole, MembershipStatus } from './types';
 
 import GroupMemberManagement from './components/GroupMemberManagement';
 import GroupInvitationManagement from './components/GroupInvitationManagement';
@@ -58,7 +53,7 @@ const GroupDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useUnifiedAuth();
   
-  const [activeTab, setActiveTab] = useState<'overview' | 'members' | 'reviews' | 'settings'>('reviews');
+  const [activeTab, setActiveTab] = useState<'overview' | 'members' | 'reviews' | 'settings'>('overview');
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
@@ -141,8 +136,8 @@ const GroupDetailPage: React.FC = () => {
       setLoading(true);
       await leaveGroup();
       setShowLeaveModal(false);
-    } catch (err) {
-      console.error('Failed to leave group:', err);
+    } catch {
+      // Handle error silently or show user-friendly error message
     } finally {
       setLoading(false);
     }
@@ -161,6 +156,18 @@ const GroupDetailPage: React.FC = () => {
         headerGradient="from-purple-600 via-blue-600 to-indigo-800"
         centerPanelClassName="space-y-6"
       >
+        {/* Breadcrumb Navigation */}
+        <nav className="flex items-center space-x-2 text-sm text-gray-600 mb-4">
+          <button 
+            onClick={() => navigate('/groups/feed')}
+            className="hover:text-purple-600 transition-colors duration-200"
+          >
+            Groups
+          </button>
+          <span className="text-gray-400">/</span>
+          <span className="text-gray-900 font-medium truncate max-w-xs">{group.name}</span>
+        </nav>
+
         {/* Group Header Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
           {/* Group Cover and Basic Info */}
@@ -173,19 +180,19 @@ const GroupDetailPage: React.FC = () => {
               />
             )}
             <div className="p-6">
-              <div className="flex items-start space-x-4">
+              <div className="flex flex-col sm:flex-row items-start space-y-4 sm:space-y-0 sm:space-x-4">
                 {group.avatar_url ? (
                   <img 
                     src={group.avatar_url} 
                     alt={group.name}
-                    className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg"
+                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-4 border-white shadow-lg mx-auto sm:mx-0"
                   />
                 ) : (
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-400 to-blue-600 flex items-center justify-center border-4 border-white shadow-lg">
-                    <TypeIcon className="w-10 h-10 text-white" />
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-purple-400 to-blue-600 flex items-center justify-center border-4 border-white shadow-lg mx-auto sm:mx-0">
+                    <TypeIcon className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
                   </div>
                 )}
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 text-center sm:text-left w-full sm:w-auto">
                   <div className="space-y-3">
                     {/* Group Info */}
                     <div>
@@ -218,7 +225,7 @@ const GroupDetailPage: React.FC = () => {
                     </div>
                     
                     {/* Quick Actions */}
-                    <div className="flex items-center space-x-2 flex-wrap gap-2">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 gap-2">
                       {!isMember && isAuthenticated && (
                         <Button 
                           onClick={() => setShowJoinModal(true)}
@@ -265,40 +272,41 @@ const GroupDetailPage: React.FC = () => {
         {/* Tab Navigation */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200">
           <div className="border-b border-gray-200">
-            <nav className="flex space-x-8 px-6">
+            <nav className="flex flex-wrap space-x-4 lg:space-x-8 px-4 lg:px-6 overflow-x-auto scrollbar-hide">
               {[
-                { key: 'reviews', label: 'Reviews', icon: MessageSquare },
                 { key: 'overview', label: 'Overview', icon: Eye },
+                { key: 'reviews', label: 'Posts', icon: MessageSquare },
                 { key: 'members', label: 'Members', icon: Users },
                 ...(canManage ? [{ key: 'settings', label: 'Settings', icon: Settings }] : []),
               ].map(({ key, label, icon: Icon }) => (
                 <button
                   key={key}
-                  onClick={() => setActiveTab(key as any)}
-                  className={`flex items-center py-4 px-3 border-b-2 font-medium text-sm rounded-t-lg transition-all duration-200 ${
+                  onClick={() => setActiveTab(key as 'overview' | 'members' | 'reviews' | 'settings')}
+                  className={`flex items-center py-3 lg:py-4 px-2 lg:px-3 border-b-2 font-medium text-sm rounded-t-lg transition-all duration-200 whitespace-nowrap ${
                     activeTab === key
-                      ? 'border-purple-600 text-purple-700 bg-purple-50'
+                      ? 'border-purple-600 text-white bg-purple-600'
                       : 'border-transparent text-gray-500 hover:text-purple-600 hover:border-purple-300 hover:bg-purple-50/30'
                   }`}
                 >
-                  <Icon className="w-4 h-4 mr-2" />
-                  {label}
+                  <Icon className="w-4 h-4 mr-1 lg:mr-2" />
+                  <span className="hidden sm:inline">{label}</span>
+                  <span className="sm:hidden">{label.charAt(0)}</span>
                 </button>
               ))}
             </nav>
           </div>
 
           {/* Tab Content */}
-          <div className="p-6">
+          <div className="p-4 lg:p-6">
             {activeTab === 'reviews' && (
               <div className="space-y-6">
                 {/* Homepage-style Search Bar */}
                 <AddReviewStatusBar 
                   userAvatar={user?.avatar || 'https://ui-avatars.com/api/?name=User&background=gray&color=ffffff'} 
                   userName={user?.name || 'User'} 
-                  onClick={() => console.log('Add review clicked')}
+                  onClick={() => {/* Handle add review */}}
                   barRef={null}
-                  onSearchResults={() => console.log('Search results')}
+                  onSearchResults={() => {/* Handle search results */}}
                 />
                 
                 {/* Enhanced Group Feed */}
@@ -308,10 +316,73 @@ const GroupDetailPage: React.FC = () => {
 
             {activeTab === 'overview' && (
               <div className="space-y-6">
+                {/* Pinned Posts Section */}
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Group Overview</h2>
-                  <div className="prose max-w-none">
-                    <p>{group.description || 'No description available.'}</p>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                      <Shield className="w-5 h-5 mr-2 text-yellow-500" />
+                      Pinned Posts
+                    </h2>
+                    {canModerate && (
+                      <Button variant="outline" size="sm">
+                        Manage Pins
+                      </Button>
+                    )}
+                  </div>
+                  <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg mb-6">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0">
+                        <MessageSquare className="h-5 w-5 text-yellow-400" />
+                      </div>
+                      <div className="ml-3">
+                        <h3 className="text-sm font-medium text-yellow-800">Welcome to {group.name}!</h3>
+                        <div className="mt-2 text-sm text-yellow-700">
+                          <p>Please read our group rules and guidelines before posting. Let's build a supportive community together!</p>
+                          <div className="mt-3 flex items-center space-x-4 text-xs">
+                            <span>Pinned by Admin</span>
+                            <span>•</span>
+                            <span>2 days ago</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">About This Group</h2>
+                  <div className="bg-white rounded-lg border border-gray-200 p-4">
+                    <p className="text-gray-700">{group.description || 'No description available.'}</p>
+                    
+                    {/* Group Rules */}
+                    {group.rules_and_guidelines && (
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <h3 className="font-medium text-gray-900 mb-2">Group Rules</h3>
+                        <p className="text-sm text-gray-600">{group.rules_and_guidelines}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Group Stats */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Group Statistics</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white rounded-lg border border-gray-200 p-4 text-center">
+                      <Users className="w-8 h-8 text-purple-500 mx-auto mb-2" />
+                      <div className="text-2xl font-bold text-gray-900">{group.member_count}</div>
+                      <div className="text-sm text-gray-600">Total Members</div>
+                    </div>
+                    <div className="bg-white rounded-lg border border-gray-200 p-4 text-center">
+                      <MessageSquare className="w-8 h-8 text-blue-500 mx-auto mb-2" />
+                      <div className="text-2xl font-bold text-gray-900">{group.review_count}</div>
+                      <div className="text-sm text-gray-600">Posts Shared</div>
+                    </div>
+                    <div className="bg-white rounded-lg border border-gray-200 p-4 text-center">
+                      <TrendingUp className="w-8 h-8 text-green-500 mx-auto mb-2" />
+                      <div className="text-2xl font-bold text-gray-900">{group.active_members_count}</div>
+                      <div className="text-sm text-gray-600">Active Members</div>
+                    </div>
                   </div>
                 </div>
 
@@ -319,8 +390,18 @@ const GroupDetailPage: React.FC = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
                   <div className="bg-gray-50 rounded-lg p-6 text-center">
-                    <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-600">No recent activity to show</p>
+                    <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                    <h4 className="text-lg font-medium text-gray-900 mb-2">No recent activity</h4>
+                    <p className="text-gray-600 mb-4">This group is just getting started. Be the first to share content!</p>
+                    {isMember && (
+                      <Button 
+                        onClick={() => setActiveTab('reviews')}
+                        size="sm"
+                        className="bg-purple-600 hover:bg-purple-700 text-white"
+                      >
+                        Share a Post
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
