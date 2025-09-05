@@ -73,7 +73,7 @@ const ModularSubmitSection: React.FC<ModularSubmitSectionProps> = ({
               size="lg"
               onClick={onSubmit}
               disabled={disabled || isLoading}
-              loading={isLoading}
+              isLoading={isLoading}
               leftIcon={!isLoading ? <Check className="h-6 w-6" /> : undefined}
               className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-12 py-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 min-w-[220px] text-lg"
             >

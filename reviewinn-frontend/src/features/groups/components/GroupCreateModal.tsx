@@ -433,11 +433,9 @@ const GroupCreateModal: React.FC<GroupCreateModalProps> = ({
               <Button
                 type="submit"
                 disabled={loading || !isStepValid(step)}
-                className="relative overflow-hidden bg-gradient-to-r from-emerald-500 via-blue-500 to-purple-500 hover:from-emerald-600 hover:via-blue-600 hover:to-purple-600 text-white font-bold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                {/* Shimmer Effect */}
-                <div className="absolute inset-0 -top-[1px] -bottom-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 translate-x-[-100%] animate-[shimmer_2s_infinite]"></div>
-                <span className="relative z-10">{loading ? 'Creating...' : 'Create Group'}</span>
+                <span>{loading ? 'Creating...' : 'Create Group'}</span>
               </Button>
             )}
           </div>

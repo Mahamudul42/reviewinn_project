@@ -814,7 +814,7 @@ const DynamicEntityForm: React.FC<DynamicEntityFormProps> = ({
                           </div>
                           
                           <div className="flex items-center justify-center">
-                            <label className="flex items-center gap-2 cursor-pointer bg-gradient-to-r from-emerald-500 to-green-600 text-white px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200">
+                            <label className="flex items-center gap-2 cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200">
                               <input
                                 type="checkbox"
                                 className="sr-only"
@@ -859,7 +859,7 @@ const DynamicEntityForm: React.FC<DynamicEntityFormProps> = ({
                               Additional Professional Role
                             </h4>
                             {context.isCurrent && (
-                              <div className="px-3 py-1 bg-gradient-to-r from-emerald-500 to-green-600 text-white text-xs font-bold rounded-full shadow-sm">
+                              <div className="px-3 py-1 bg-blue-600 text-white text-xs font-semibold rounded-full">
                                 CURRENT
                               </div>
                             )}
@@ -958,7 +958,7 @@ const DynamicEntityForm: React.FC<DynamicEntityFormProps> = ({
                             </div>
                             
                             <div className="flex items-center justify-center">
-                              <label className="flex items-center gap-2 cursor-pointer bg-gradient-to-r from-emerald-500 to-green-600 text-white px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200">
+                              <label className="flex items-center gap-2 cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200">
                                 <input
                                   type="checkbox"
                                   className="sr-only"
@@ -1074,7 +1074,7 @@ const DynamicEntityForm: React.FC<DynamicEntityFormProps> = ({
                         e.preventDefault();
                         handleSubmit(e);
                       }}
-                      className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-emerald-500 via-blue-500 to-purple-500 hover:from-emerald-600 hover:via-blue-600 hover:to-purple-600 text-white font-bold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                      className="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
                       ✨ Ready? Continue to Review ✨
                       <ChevronRight className="h-5 w-5" />
