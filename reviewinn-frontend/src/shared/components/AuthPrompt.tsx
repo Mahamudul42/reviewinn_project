@@ -40,10 +40,10 @@ const AuthPrompt: React.FC<AuthPromptProps> = ({
       
       <button
         onClick={onSignIn}
-        className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
+        className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
       >
         <LogIn size={18} />
-        Sign In to Continue
+        <span>Sign In to Continue</span>
       </button>
       
       <p className="text-sm text-gray-500 mt-4">

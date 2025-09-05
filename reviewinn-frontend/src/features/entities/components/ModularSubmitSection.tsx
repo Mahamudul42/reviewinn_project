@@ -75,12 +75,9 @@ const ModularSubmitSection: React.FC<ModularSubmitSectionProps> = ({
               disabled={disabled || isLoading}
               loading={isLoading}
               leftIcon={!isLoading ? <Check className="h-6 w-6" /> : undefined}
-              className="relative overflow-hidden bg-gradient-to-r from-emerald-500 via-blue-500 to-purple-500 hover:from-emerald-600 hover:via-blue-600 hover:to-purple-600 text-white font-bold px-12 py-4 rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 min-w-[220px] text-lg"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-12 py-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 min-w-[220px] text-lg"
             >
-              {/* Shimmer Effect */}
-              <div className="absolute inset-0 -top-[1px] -bottom-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 translate-x-[-100%] animate-[shimmer_2s_infinite]"></div>
-              
-              <span className="relative z-10">
+              <span>
                 {isLoading ? 'Creating Entity...' : '🚀 Create Entity'}
               </span>
             </Button>

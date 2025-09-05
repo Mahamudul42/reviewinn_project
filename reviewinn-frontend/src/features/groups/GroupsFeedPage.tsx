@@ -285,13 +285,13 @@ const GroupsFeedPage: React.FC = () => {
                   {loadingGroups ? 'Loading...' : `Groups you've joined (${userGroups.length})`}
                 </p>
               </div>
-              <Button 
-                size="sm"
+              <button 
                 onClick={() => setActiveTab('create')}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-4 py-2 text-sm inline-flex items-center transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Create Group
-              </Button>
+                <span>Create Group</span>
+              </button>
             </div>
 
             {/* Groups Grid */}
@@ -303,12 +303,12 @@ const GroupsFeedPage: React.FC = () => {
             ) : userGroups.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-gray-500">You haven't joined any groups yet.</p>
-                <Button 
-                  className="mt-4" 
+                <button 
                   onClick={() => setActiveTab('discover')}
+                  className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-6 py-3 inline-flex items-center transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
-                  Discover Groups
-                </Button>
+                  <span>Discover Groups</span>
+                </button>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -474,23 +474,14 @@ const GroupsFeedPage: React.FC = () => {
             <button
               key={id}
               onClick={() => setActiveTab(id as TabType)}
-              className={`relative flex items-center space-x-3 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-300 transform hover:scale-105 flex-1 justify-center group ${
+              className={`flex items-center space-x-3 py-3 px-4 rounded-lg font-semibold text-sm transition-colors duration-200 flex-1 justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                 activeTab === id
-                  ? 'bg-gradient-to-r from-purple-700 to-purple-600 text-white shadow-lg ring-2 ring-purple-400'
-                  : 'text-purple-600 hover:text-purple-800 hover:bg-gradient-to-r hover:from-purple-50 hover:to-purple-100 border border-purple-200 hover:border-purple-300 hover:shadow-md'
+                  ? 'bg-blue-600 !text-white hover:bg-blue-700'
+                  : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100 border border-gray-200 hover:border-gray-300'
               }`}
-              style={activeTab === id ? { 
-                boxShadow: '0 10px 25px rgba(126, 34, 206, 0.4), 0 4px 12px rgba(147, 51, 234, 0.3)' 
-              } : {}}
             >
-              <Icon className={`w-5 h-5 transition-all duration-300 ${activeTab === id ? 'text-white transform rotate-12' : 'group-hover:scale-110'}`} />
-              <span className="font-semibold tracking-wide">{label}</span>
-              {activeTab === id && (
-                <>
-                  <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-white/20 to-transparent pointer-events-none" />
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-white/30 rounded-full animate-ping" />
-                </>
-              )}
+              <Icon className={`w-5 h-5 ${activeTab === id ? '!text-white' : ''}`} />
+              <span className={activeTab === id ? '!text-white' : ''}>{label}</span>
             </button>
           ))}
         </nav>

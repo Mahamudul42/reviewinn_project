@@ -105,8 +105,8 @@ export const Button: React.FC<ButtonProps> = ({
       'bg-green-600 text-white border-green-600 hover:bg-green-700 hover:border-green-700 hover:-translate-y-0.5 hover:shadow-md active:bg-green-800 active:border-green-800 active:translate-y-0 active:shadow-sm': 
         variant === 'success' && !isDisabled,
       
-      // Purple - Brand Purple Theme
-      'text-white border-purple-600 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:shadow-md': 
+      // Purple - Brand Purple Theme clean style
+      'bg-blue-600 hover:bg-blue-700 text-white border-blue-600 hover:border-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500': 
         variant === 'purple' && !isDisabled,
     },
     
