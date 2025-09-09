@@ -1,7 +1,7 @@
 import React from 'react';
 import { clsx } from 'clsx';
 
-export type BadgeVariant = 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'info';
+export type BadgeVariant = 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'info' | 'outline';
 export type BadgeSize = 'sm' | 'md' | 'lg';
 
 interface BadgeProps {
@@ -45,6 +45,9 @@ const Badge: React.FC<BadgeProps> = ({
     info: gradient 
       ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white'
       : 'bg-cyan-100 text-cyan-800',
+    outline: gradient 
+      ? 'bg-transparent border-2 border-gray-300 text-gray-700'
+      : 'bg-transparent border border-gray-300 text-gray-700',
   };
 
   const sizeClasses = {

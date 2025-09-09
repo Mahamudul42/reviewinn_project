@@ -210,18 +210,21 @@ const AuthModal: React.FC<AuthModalProps> = ({
         // Log the full error structure for debugging
         console.log('Full error object:', JSON.stringify(err, null, 2));
         
+        // Type assertion for error handling
+        const error = err as any;
+        
         // Try different ways to extract the error
-        if (err.response?.data?.detail) {
-          if (typeof err.response.data.detail === 'string') {
-            errorMessage = err.response.data.detail;
-          } else if (err.response.data.detail.message) {
-            errorMessage = err.response.data.detail.message;
+        if (error.response?.data?.detail) {
+          if (typeof error.response.data.detail === 'string') {
+            errorMessage = error.response.data.detail;
+          } else if (error.response.data.detail.message) {
+            errorMessage = error.response.data.detail.message;
           } else {
             errorMessage = 'Invalid credentials. Please check your email and password.';
           }
-          errorStatus = err.response.status;
-        } else if (err.message && typeof err.message === 'string') {
-          errorMessage = err.message;
+          errorStatus = error.response.status;
+        } else if (error.message && typeof error.message === 'string') {
+          errorMessage = error.message;
         } else if (typeof err === 'string') {
           errorMessage = err;
         } else {
@@ -373,7 +376,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
         // Handle registration error
         console.error('Registration failed with status:', response.status, 'Data:', data);
         const errorDetail = typeof data.detail === 'string' ? data.detail : 
-                           Array.isArray(data.detail) ? data.detail.map(d => d.msg || d).join(', ') :
+                           Array.isArray(data.detail) ? data.detail.map((d: any) => d.msg || d).join(', ') :
                            data.message || 'Registration failed';
         throw new Error(errorDetail);
       }

@@ -84,6 +84,7 @@ class NotificationService {
     // Import authService dynamically to avoid circular dependencies
     const authService = (window as any).authService || (() => {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         return require('../../api/auth').authService;
       } catch {
         return null;

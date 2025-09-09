@@ -21,7 +21,7 @@ export * from './messaging/types';
 
 export class ProfessionalMessagingService {
   private wsConnection: WebSocket | null = null;
-  private eventListeners: Map<string, Function[]> = new Map();
+  private eventListeners: Map<string, ((...args: any[]) => void)[]> = new Map();
   
   // Modular components
   public readonly conversations: ConversationsModule;

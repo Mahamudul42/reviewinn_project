@@ -36,7 +36,7 @@ const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({
   const [isVerified, setIsVerified] = useState(false);
   
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const cooldownInterval = useRef<NodeJS.Timeout>();
+  const cooldownInterval = useRef<number>(0);
 
   // Focus first input when modal opens
   useEffect(() => {
@@ -398,7 +398,7 @@ const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({
                   {code.map((digit, index) => (
                     <input
                       key={index}
-                      ref={el => inputRefs.current[index] = el}
+                      ref={el => { inputRefs.current[index] = el; }}
                       type="text"
                       inputMode="numeric"
                       pattern="\d*"

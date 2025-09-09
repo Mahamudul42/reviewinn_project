@@ -205,7 +205,7 @@ const DynamicEntityForm: React.FC<DynamicEntityFormProps> = ({
   const isFormValid = useMemo(() => {
     // Check basic required fields (name and description)
     const hasName = formData.name.trim() !== '';
-    const hasDescription = formData.description.trim() !== '';
+    const hasDescription = formData.description?.trim() !== '';
     
     // Check category-specific required fields (excluding name and description which are handled above)
     const categorySpecificRequiredFields = subcategory.fields.filter(f => 
@@ -213,7 +213,7 @@ const DynamicEntityForm: React.FC<DynamicEntityFormProps> = ({
     );
     
     const hasRequiredCategoryFields = categorySpecificRequiredFields.every(field => {
-      const value = formData.customFields[field.id];
+      const value = formData.customFields?.[field.id];
       return value && value.toString().trim() !== '';
     });
     
@@ -231,7 +231,7 @@ const DynamicEntityForm: React.FC<DynamicEntityFormProps> = ({
         categorySpecificRequiredFields: categorySpecificRequiredFields.map(f => ({ 
           id: f.id, 
           name: f.name, 
-          value: formData.customFields[f.id] 
+          value: formData.customFields?.[f.id] 
         }))
       });
     }
@@ -264,11 +264,11 @@ const DynamicEntityForm: React.FC<DynamicEntityFormProps> = ({
       // Show specific validation errors
       const errors = [];
       if (!formData.name.trim()) errors.push('Entity name');
-      if (!formData.description.trim()) errors.push('Entity description');
+      if (!formData.description?.trim()) errors.push('Entity description');
       
       const requiredFields = subcategory.fields.filter(f => f.required && !['name', 'description'].includes(f.id));
       requiredFields.forEach(field => {
-        if (!formData.customFields[field.id] || !formData.customFields[field.id].toString().trim()) {
+        if (!formData.customFields?.[field.id] || !formData.customFields?.[field.id]?.toString().trim()) {
           errors.push(field.name);
         }
       });
@@ -286,7 +286,7 @@ const DynamicEntityForm: React.FC<DynamicEntityFormProps> = ({
   // Render field based on type
   const renderField = (field: FormField) => {
     const fieldId = field.id;
-    const value = formData.customFields[fieldId] || '';
+    const value = formData.customFields?.[fieldId] || '';
 
     const fieldClasses = `w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-${scheme.accent} focus:ring-2 focus:ring-${scheme.accent}/20 transition-all duration-200 bg-white/80 backdrop-blur-sm`;
 
@@ -443,7 +443,7 @@ const DynamicEntityForm: React.FC<DynamicEntityFormProps> = ({
 
         {/* Key details */}
         <div className="space-y-2">
-          {Object.entries(formData.customFields)
+          {Object.entries(formData.customFields || {})
             .filter(([_, value]) => value)
             .slice(0, 3)
             .map(([key, value]) => (
@@ -1049,7 +1049,7 @@ const DynamicEntityForm: React.FC<DynamicEntityFormProps> = ({
                     variant="primary"
                     size="lg"
                     disabled={!isFormValid}
-                    loading={isLoading}
+                    isLoading={isLoading}
                     onClick={(e) => {
                       e.preventDefault();
                       handleSubmit(e);
@@ -1087,11 +1087,11 @@ const DynamicEntityForm: React.FC<DynamicEntityFormProps> = ({
                     <h4 className="font-medium text-amber-800 mb-2">Required Fields:</h4>
                     <ul className="text-sm text-amber-700 space-y-1">
                       {!formData.name.trim() && <li>• Entity name</li>}
-                      {!formData.description.trim() && <li>• Entity description</li>}
+                      {!formData.description?.trim() && <li>• Entity description</li>}
                       {subcategory.fields
                         .filter(f => f.required && !['name', 'description'].includes(f.id))
                         .map(field => 
-                          !formData.customFields[field.id] && (
+                          !formData.customFields?.[field.id] && (
                             <li key={field.id}>• {field.name}</li>
                           )
                         )

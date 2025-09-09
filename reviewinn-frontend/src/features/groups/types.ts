@@ -2,6 +2,7 @@
 
 export interface Group {
   id: string;
+  group_id?: number;
   name: string;
   description: string;
   group_type: GroupType;
@@ -15,8 +16,10 @@ export interface Group {
 
 export interface GroupCategory {
   id: string;
+  category_id: number;
   name: string;
   description?: string;
+  icon?: string;
 }
 
 export interface GroupMembership {
@@ -54,6 +57,11 @@ export interface GroupCreateRequest {
   group_type: GroupType;
   visibility: GroupVisibility;
   category_id?: string;
+  allow_public_reviews?: boolean;
+  require_approval_for_reviews?: boolean;
+  max_members?: number;
+  rules_and_guidelines?: string;
+  category_ids?: number[];
 }
 
 export interface GroupUpdateRequest {

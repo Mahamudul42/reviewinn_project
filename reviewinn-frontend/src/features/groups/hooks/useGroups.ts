@@ -324,6 +324,6 @@ export const useGroup = (groupId?: number) => {
 
 // Export useGroupCreation alias for backward compatibility
 export const useGroupCreation = () => {
-  const { createGroup } = useGroups();
-  return { createGroup };
+  const { createGroup, loading, error } = useGroups();
+  return { createGroup, loading, error };
 };

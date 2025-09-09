@@ -127,7 +127,18 @@ const GroupCreateModal: React.FC<GroupCreateModalProps> = ({
     
     try {
       const group = await createGroup(formData);
-      onGroupCreated(group);
+      // Convert from API format to component format
+      const adaptedGroup: Group = {
+        id: group.group_id?.toString() || '',
+        name: group.name,
+        description: group.description || '',
+        group_type: formData.group_type,
+        visibility: formData.visibility,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        member_count: 1
+      };
+      onGroupCreated(adaptedGroup);
     } catch {
       // Handle error - will be displayed in error state
     }

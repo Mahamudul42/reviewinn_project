@@ -385,6 +385,9 @@ export interface EntityFormData {
   avatar?: string;
   website?: string;
   images?: string[];
+  // Category fields
+  category?: EntityCategory;
+  subcategory?: string;
   // JSONB category fields for enterprise scalability
   root_category?: Record<string, any>; // Root category JSONB object
   final_category?: Record<string, any>; // Final category JSONB object
