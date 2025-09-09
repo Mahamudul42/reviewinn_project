@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { createAuthenticatedRequestInit } from '../../../shared/utils/auth';
 
 // Helper function for API requests
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+const API_BASE_URL = '/api/v1'; // Use relative path to leverage Vite proxy
 const makeApiRequest = async (endpoint: string, options: RequestInit = {}) => {
   const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
   

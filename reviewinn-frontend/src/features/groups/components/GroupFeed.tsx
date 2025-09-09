@@ -212,7 +212,7 @@ const GroupFeed: React.FC<GroupFeedProps> = ({ groupId, className = '', groupNam
       try {
         // First, check if we have a specific group and get its details
         if (groupId) {
-          const groupResponse = await fetch(`http://localhost:8000/api/v1/groups/${groupId}`);
+          const groupResponse = await fetch(`/api/v1/groups/${groupId}`);
           if (groupResponse.ok) {
             const groupData = await groupResponse.json();
             
