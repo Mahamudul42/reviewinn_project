@@ -10,11 +10,22 @@ import type { Group } from '../types';
 class GroupsApiService {
   private getAuthToken(): string | null {
     // Use the same auth method as the rest of the application
-    const zustandToken = useAuthStore.getState().token;
+    const zustandState = useAuthStore.getState();
+    const zustandToken = zustandState.token;
     const localStorageToken = localStorage.getItem('reviewinn_jwt_token');
     
+    console.log('🔍 Token sources:', {
+      zustandToken: zustandToken ? `${zustandToken.slice(0, 30)}...` : 'null',
+      localStorageToken: localStorageToken ? `${localStorageToken.slice(0, 30)}...` : 'null',
+      isAuthenticated: zustandState.isAuthenticated,
+      user: zustandState.user
+    });
+    
     // Prefer Zustand token as it's the source of truth
-    return zustandToken || localStorageToken;
+    const finalToken = zustandToken || localStorageToken;
+    console.log('🎯 Final token selected:', finalToken ? `${finalToken.slice(0, 30)}...` : 'null');
+    
+    return finalToken;
   }
 
   private async makeRequest(method: string, endpoint: string, body?: any): Promise<any> {
@@ -65,6 +76,14 @@ class GroupsApiService {
       console.log(`🔐 Auth token available:`, !!token);
       console.log(`🔐 Token preview:`, token ? `${token.slice(0, 30)}...` : 'NO TOKEN');
       
+      // Test authentication by checking store state
+      const zustandState = useAuthStore.getState();
+      console.log(`🏪 Zustand auth state:`, {
+        isAuthenticated: zustandState.isAuthenticated,
+        hasToken: !!zustandState.token,
+        user: zustandState.user ? `${zustandState.user.username} (ID: ${(zustandState.user as any).user_id || zustandState.user.id})` : 'No user'
+      });
+      
       const data = await this.makeRequest('GET', endpoint);
       const groups = data.data || [];
       
@@ -73,6 +92,10 @@ class GroupsApiService {
       // Debug: Check if any groups have user_membership data
       const groupsWithMembership = groups.filter((g: Group) => g.user_membership !== null);
       console.log(`👥 Groups with membership data: ${groupsWithMembership.length}`);
+      
+      if (userGroupsOnly && groups.length === 0) {
+        console.warn('⚠️ No user groups returned. This might indicate authentication or backend filtering issues.');
+      }
       
       return groups;
     } catch (error) {

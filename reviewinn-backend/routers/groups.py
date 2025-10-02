@@ -78,6 +78,29 @@ async def get_groups(
     """
     from schemas.group import GroupType, GroupVisibility, GroupListParams
     
+    # Debug logging for authentication
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"get_groups called: user_groups_only={user_groups_only}, current_user={current_user}")
+    
+    # If user_groups_only is requested but no user is authenticated, return empty result
+    if user_groups_only and not current_user:
+        logger.warning("user_groups_only=True but current_user is None - returning empty result")
+        from schemas.common import PaginationSchema
+        from datetime import datetime
+        return PaginatedAPIResponse(
+            data=[],
+            pagination=PaginationSchema(
+                total=0,
+                page=page,
+                per_page=size,
+                pages=0,
+                has_next=False,
+                has_prev=False
+            ),
+            timestamp=datetime.utcnow()
+        )
+    
     # Parse enum values
     parsed_group_type = None
     if group_type:
