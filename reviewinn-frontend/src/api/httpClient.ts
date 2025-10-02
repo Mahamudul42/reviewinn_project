@@ -173,7 +173,7 @@ export class HttpClient {
         throw new ApiClientError(API_ERROR_TYPES.AUTHENTICATION_ERROR, 'No refresh token available');
       }
 
-      const response = await fetch(`${API_CONFIG.BASE_URL}/api/v1/auth-production/refresh`, {
+      const response = await fetch(this.buildUrl('/auth-production/refresh'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -337,6 +337,43 @@ export class HttpClient {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
+  // Build full URL from relative path
+  private buildUrl(url: string): string {
+    console.log('🔧 buildUrl input:', url);
+    
+    // If URL is already absolute, return as-is
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      console.log('🔧 buildUrl output (absolute):', url);
+      return url;
+    }
+    
+    // Always ensure we use relative URLs for the Vite proxy
+    let result: string;
+    
+    if (url.startsWith('/api/v1')) {
+      // Already has /api/v1 prefix
+      result = url;
+    } else if (url.startsWith('/')) {
+      // Starts with / but doesn't have /api/v1
+      result = `/api/v1${url}`;
+    } else {
+      // No leading slash
+      result = `/api/v1/${url}`;
+    }
+    
+    console.log('🔧 buildUrl output:', result);
+    
+    // Additional safety check - if we're in development and the result somehow
+    // contains a Docker hostname, force it to be relative
+    if (result.includes('reviewinn_backend')) {
+      const fallbackUrl = result.replace(/^.*\/api\/v1/, '/api/v1');
+      console.warn('� Detected Docker hostname in URL, converting to relative:', fallbackUrl);
+      return fallbackUrl;
+    }
+    
+    return result;
+  }
+
   // Main request method
   async request<T = unknown>(
     url: string,
@@ -387,7 +424,13 @@ export class HttpClient {
       const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
 
       try {
-        const response = await fetch(url, {
+        const fullUrl = this.buildUrl(url);
+        console.log('🌐 Making request to:', fullUrl);
+        console.log('🌐 Current window location:', window.location.href);
+        console.log('🌐 API_CONFIG.BASE_URL:', API_CONFIG.BASE_URL);
+        console.log('🌐 VITE_API_BASE_URL env var:', import.meta.env.VITE_API_BASE_URL);
+        
+        const response = await fetch(fullUrl, {
           ...options,
           headers: this.getHeaders(options.headers as Record<string, string>),
           signal: controller.signal

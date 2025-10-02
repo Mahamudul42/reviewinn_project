@@ -377,6 +377,8 @@ export interface ReviewFormData {
   pros?: string[];               // Max 5 points, each max 100 characters
   cons?: string[];               // Max 5 points, each max 100 characters
   images?: string[];             // Up to 5 image URLs
+  groupId?: number;              // Optional group ID for group reviews
+  reviewScope?: 'independent' | 'group'; // Review scope
 }
 
 export interface EntityFormData {

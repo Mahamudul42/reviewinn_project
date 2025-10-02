@@ -90,7 +90,9 @@ class ProductionAuthMiddleware(BaseHTTPMiddleware):
             "/api/v1/reviewinn-left-panel/",  # ReviewInn left panel endpoints  
             "/api/v1/reviewinn-left-panel",   # ReviewInn left panel without trailing slash
             "/api/v1/badges/user/", # System badge operations (registration, achievements)
-            "/api/v1/badges/user"   # Badge endpoints without trailing slash
+            "/api/v1/badges/user",   # Badge endpoints without trailing slash
+            "/api/v1/groups/",    # Groups endpoints with optional auth (for discovering public groups)
+            "/api/v1/groups"      # Groups endpoints without trailing slash
         }
         
         # ENTERPRISE HIGH-RISK ENDPOINTS - Additional security required

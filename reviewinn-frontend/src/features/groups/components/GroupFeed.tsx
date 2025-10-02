@@ -228,7 +228,7 @@ const GroupFeed: React.FC<GroupFeedProps> = ({ groupId, className = '', groupNam
         }
         
         // For now, fetch from homepage reviews as we don't have a specific group feed endpoint yet
-        const response = await fetch('http://localhost:8000/api/v1/homepage/reviews?page=1&limit=20', {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || '/api/v1'}/homepage/reviews?page=1&limit=20`, {
           ...createAuthenticatedRequestInit({
             method: 'GET',
             credentials: 'include',

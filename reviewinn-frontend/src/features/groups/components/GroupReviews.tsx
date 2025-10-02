@@ -15,12 +15,17 @@ import {
 import LoadingSpinner from '../../../shared/atoms/LoadingSpinner';
 import { Button } from '../../../shared/design-system/components/Button';
 import Badge from '../../../shared/ui/Badge';
+import AddReviewModal from '../../reviews/components/AddReviewModal';
+import type { Entity, ReviewFormData } from '../../../types';
+import { useUnifiedAuth } from '../../../hooks/useUnifiedAuth';
+import { reviewService } from '../../../api/services';
 
 import { GroupMembership, ReviewScope } from '../types';
 import { groupService } from '../services/groupService';
 
 interface GroupReviewsProps {
   groupId: number;
+  groupName?: string; // NEW: Optional group name for review modal
   userMembership?: GroupMembership;
 }
 
@@ -63,13 +68,16 @@ const SCOPE_COLORS = {
 
 const GroupReviews: React.FC<GroupReviewsProps> = ({
   groupId,
+  groupName,
   userMembership
 }) => {
+  const { user, isAuthenticated } = useUnifiedAuth();
   const [reviews, setReviews] = useState<GroupReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
   
   // Filter states
   const [selectedScope, setSelectedScope] = useState<ReviewScope | ''>('');
@@ -315,11 +323,88 @@ const GroupReviews: React.FC<GroupReviewsProps> = ({
           <p className="text-purple-700 mb-4">
             Have you tried a product or service? Share your review with the group!
           </p>
-          <Button className="bg-purple-600 hover:bg-purple-700">
+          <Button 
+            className="bg-purple-600 hover:bg-purple-700"
+            onClick={() => {
+              if (!isAuthenticated) {
+                window.dispatchEvent(new CustomEvent('openAuthModal'));
+                return;
+              }
+              setShowReviewModal(true);
+            }}
+          >
             <MessageSquare className="w-4 h-4 mr-2" />
             Write a Review
           </Button>
         </div>
+      )}
+
+      {/* Review Modal */}
+      {user && (
+        <AddReviewModal
+          open={showReviewModal}
+          onClose={() => setShowReviewModal(false)}
+          onReviewSubmit={async (entity: Entity, reviewData: ReviewFormData) => {
+            try {
+              console.log('📝 Group review submission started:', { 
+                entity: entity.name, 
+                groupId, 
+                groupName,
+                hasGroupId: !!reviewData.groupId,
+                reviewScope: reviewData.reviewScope 
+              });
+              
+              // Call the reviewService to create the review with group context
+              const newReview = await reviewService.createReview({
+                ...reviewData,
+                entityId: entity.id,
+                groupId: groupId,
+                reviewScope: 'group'
+              });
+              
+              console.log('✅ Group review created successfully:', {
+                reviewId: newReview.id,
+                entityName: entity.name,
+                groupId,
+                groupName
+              });
+              
+              setShowReviewModal(false);
+              
+              // Refresh reviews to show the new review
+              await fetchReviews(true);
+              
+              // Show success message
+              window.dispatchEvent(new CustomEvent('showNotification', {
+                detail: {
+                  type: 'success',
+                  message: `Review posted in ${groupName || 'group'}!`
+                }
+              }));
+              
+              return { success: true };
+            } catch (error) {
+              console.error('❌ Error submitting group review:', error);
+              
+              // Show error message
+              window.dispatchEvent(new CustomEvent('showNotification', {
+                detail: {
+                  type: 'error',
+                  message: error instanceof Error ? error.message : 'Failed to submit review'
+                }
+              }));
+              
+              return { 
+                success: false, 
+                error: error instanceof Error ? error.message : 'Failed to submit review'
+              };
+            }
+          }}
+          userName={user.name || 'User'}
+          userAvatar={user.avatar || ''}
+          groupId={groupId}
+          groupName={groupName}
+        />
       )}
     </div>
   );

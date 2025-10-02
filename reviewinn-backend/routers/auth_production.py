@@ -253,24 +253,28 @@ async def authenticate_user(
     response_model=Dict[str, Any],
     summary="Token Refresh",
     description="""
-    Refresh expired access token using refresh token.
+    Refresh expired access token using refresh token with token rotation.
     
     **Production Security Features:**
-    - Refresh token validation and rotation
+    - Refresh token validation and rotation (NEW!)
+    - Old refresh token blacklisting (NEW!)
     - User status verification
     - Device consistency checking
     - Suspicious activity detection
     - Comprehensive audit logging
+    
+    **Token Rotation:** Each refresh returns a NEW refresh token and blacklists the old one.
     """
 )
 async def refresh_access_token(
     request: Request,
+    response: Response,
     refresh_data: RefreshTokenRequest,
     db: Session = Depends(get_db),
     _rate_limit = StandardRateLimit,
     _audit = AuditAction("token_refresh")
 ):
-    """Refresh access token with production security"""
+    """Refresh access token with production security and token rotation"""
     
     result = await auth_system.refresh_access_token(refresh_data.refresh_token, db)
     
@@ -288,8 +292,20 @@ async def refresh_access_token(
             }
         )
     
+    # SECURITY FIX: Set new refresh token in httpOnly cookie (token rotation)
+    if result.refresh_token:
+        response.set_cookie(
+            "reviewinn_refresh_token",
+            result.refresh_token,
+            max_age=30 * 24 * 60 * 60,  # 30 days
+            httponly=True,
+            secure=True,
+            samesite="lax"
+        )
+    
     return {
         "access_token": result.access_token,
+        "refresh_token": result.refresh_token,  # SECURITY FIX: Return new refresh token
         "token_type": "bearer",
         "expires_in": result.metadata["expires_in"]
     }

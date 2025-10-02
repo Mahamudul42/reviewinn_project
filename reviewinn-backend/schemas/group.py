@@ -92,7 +92,7 @@ class GroupCategoryResponse(BaseModel):
     icon: Optional[str] = None
     color_code: Optional[str] = None
     parent_category_id: Optional[int] = None
-    sort_order: int = 0
+    sort_order: Optional[int] = 0
 
 class GroupResponse(BaseModel):
     """Schema for group response."""

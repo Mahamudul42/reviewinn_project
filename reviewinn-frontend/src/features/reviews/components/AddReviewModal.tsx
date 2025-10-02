@@ -13,9 +13,20 @@ interface AddReviewModalProps {
   userName: string;
   userAvatar: string;
   preselectedEntity?: Entity; // NEW: Optional pre-selected entity
+  groupId?: number; // NEW: Optional group ID for group reviews
+  groupName?: string; // NEW: Optional group name for display
 }
 
-const AddReviewModal: React.FC<AddReviewModalProps> = ({ open, onClose, onReviewSubmit, userName, userAvatar, preselectedEntity }) => {
+const AddReviewModal: React.FC<AddReviewModalProps> = ({ 
+  open, 
+  onClose, 
+  onReviewSubmit, 
+  userName, 
+  userAvatar, 
+  preselectedEntity,
+  groupId,
+  groupName
+}) => {
   const [step, setStep] = useState<'search' | 'review'>('search');
   const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null);
 
@@ -58,12 +69,14 @@ const AddReviewModal: React.FC<AddReviewModalProps> = ({ open, onClose, onReview
       isOpen={open}
       onClose={onClose}
       size="md"
-      title="Write a Review"
+      title={groupName ? `Write a Review in ${groupName}` : "Write a Review"}
       showCloseButton={true}
       header={
         <div className="w-full">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-xl font-bold text-gray-900">Write a Review</span>
+            <span className="text-xl font-bold text-gray-900">
+              {groupName ? `Write a Review in ${groupName}` : "Write a Review"}
+            </span>
           </div>
           {/* User Info */}
           <div className="flex items-center gap-3 mb-4">
@@ -106,6 +119,8 @@ const AddReviewModal: React.FC<AddReviewModalProps> = ({ open, onClose, onReview
         {step === 'review' && selectedEntity && (
           <ReviewForm
             entity={selectedEntity}
+            groupId={groupId}
+            groupName={groupName}
             onBack={() => {
               // If we came from a preselected entity, close modal instead of going to search
               if (preselectedEntity) {

@@ -44,9 +44,19 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
   const getWebSocketUrl = useCallback(() => {
     const token = getToken();
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    // WebSocket connects to backend port (8000) not frontend port (5173)
-    const backendHost = window.location.hostname + ':8000';
-    const url = `${protocol}//${backendHost}/ws/${endpoint}/${token}`;
+    
+    // Use the current window location for WebSocket connections
+    // In Docker, this will be the exposed port; in development, it's the dev server
+    let wsHost: string;
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      // Development or local access - use localhost:8000
+      wsHost = `${window.location.hostname}:8000`;
+    } else {
+      // Production or other environments - use current host
+      wsHost = window.location.host;
+    }
+    
+    const url = `${protocol}//${wsHost}/ws/${endpoint}/${token}`;
     console.log('WebSocket URL:', url);
     console.log('Token preview:', token ? token.substring(0, 50) + '...' : 'NO TOKEN');
     return url;

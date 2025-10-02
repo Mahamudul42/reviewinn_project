@@ -42,9 +42,8 @@ const ShareableReviewPage = lazy(() => import('./features/reviews/ShareableRevie
 const NotificationsPage = lazy(() => import('./features/notifications/NotificationsPage'));
 
 // Group pages
-const GroupDiscoveryPage = lazy(() => import('./features/groups/GroupDiscoveryPage'));
 const GroupDetailPage = lazy(() => import('./features/groups/GroupDetailPage'));
-const GroupsFeedPage = lazy(() => import('./features/groups/GroupsFeedPage'));
+const UnifiedGroupsPage = lazy(() => import('./features/groups/UnifiedGroupsPage'));
 
 // Legal pages  
 const AboutPage = lazy(() => import('./features/legal/AboutPage'));
@@ -157,16 +156,7 @@ function App() {
                   description="Join and discover review groups to connect with like-minded reviewers and share experiences."
                   feature="groups"
                 >
-                  <GroupDiscoveryPage />
-                </ProtectedRoute>
-              } />
-              <Route path="groups/feed" element={
-                <ProtectedRoute 
-                  title="Groups Feed Access Required" 
-                  description="View reviews and discussions from your joined groups and discover new content."
-                  feature="groups"
-                >
-                  <GroupsFeedPage />
+                  <UnifiedGroupsPage />
                 </ProtectedRoute>
               } />
               <Route path="groups/:groupId" element={

@@ -35,10 +35,15 @@ class GroupService:
             if not creator:
                 raise HTTPException(status_code=404, detail="Creator not found")
             
-            # Check if group name is unique
-            existing_group = self.db.query(Group).filter(Group.name == group_data.name).first()
+            # Check if group name is unique (case-insensitive)
+            existing_group = self.db.query(Group).filter(
+                Group.name.ilike(group_data.name)
+            ).first()
             if existing_group:
-                raise HTTPException(status_code=400, detail="Group name already exists")
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"A group with the name '{group_data.name}' already exists. Please choose a different name."
+                )
             
             # Create group
             group = Group(
@@ -54,11 +59,18 @@ class GroupService:
                 created_by=creator_id,
                 rules_and_guidelines=group_data.rules_and_guidelines,
                 external_links=group_data.external_links or [],
-                group_metadata=group_data.group_metadata or {}
+                group_metadata=group_data.group_metadata or {},
+                # Initialize count fields explicitly
+                member_count=1,  # Creator is the first member
+                review_count=0,
+                active_members_count=1
             )
             
             self.db.add(group)
             self.db.flush()  # Get the group_id
+            
+            # Refresh to get all database-generated values
+            self.db.refresh(group)
             
             # Add creator as owner
             owner_membership = GroupMembership(
@@ -75,14 +87,20 @@ class GroupService:
             
             self.db.add(owner_membership)
             
-            # Add category mappings
+            # Add category mappings - only for valid categories
             if group_data.category_ids:
                 for category_id in group_data.category_ids:
-                    category_mapping = GroupCategoryMapping(
-                        group_id=group.group_id,
-                        category_id=category_id
-                    )
-                    self.db.add(category_mapping)
+                    # Check if category exists before adding mapping
+                    category_exists = self.db.query(GroupCategory).filter(
+                        GroupCategory.category_id == category_id
+                    ).first()
+                    
+                    if category_exists:
+                        category_mapping = GroupCategoryMapping(
+                            group_id=group.group_id,
+                            category_id=category_id
+                        )
+                        self.db.add(category_mapping)
             
             self.db.commit()
             
@@ -250,6 +268,11 @@ class GroupService:
         )
         
         self.db.add(membership)
+        
+        # Update group member count if the membership is active
+        if membership_status == MembershipStatus.ACTIVE.value:
+            group.member_count += 1
+        
         self.db.commit()
         
         return self._build_membership_response(membership)
@@ -263,9 +286,19 @@ class GroupService:
         if membership.role == MembershipRole.OWNER.value:
             raise HTTPException(status_code=400, detail="Owner cannot leave group. Transfer ownership first.")
         
+        # Get the group to update member count
+        group = self.db.query(Group).filter(Group.group_id == group_id).first()
+        
+        # Decrement member count if the membership was active
+        was_active_member = membership.membership_status == MembershipStatus.ACTIVE.value
+        
         # Update membership status
         membership.membership_status = MembershipStatus.LEFT.value
         membership.updated_at = datetime.utcnow()
+        
+        # Update group member count
+        if was_active_member and group:
+            group.member_count = max(0, group.member_count - 1)
         
         self.db.commit()
         
@@ -498,8 +531,8 @@ class GroupService:
                 creator = {
                     "user_id": creator_user.user_id,
                     "username": creator_user.username,
-                    "display_name": creator_user.display_name,
-                    "avatar_url": getattr(creator_user, 'avatar_url', None)
+                    "display_name": creator_user.display_name or creator_user.username,
+                    "avatar_url": creator_user.avatar  # FIXED: User model has 'avatar' not 'avatar_url'
                 }
         
         # Get user membership if user_id provided
@@ -551,10 +584,10 @@ class GroupService:
             user_data = {
                 "user_id": membership.user.user_id,
                 "username": membership.user.username,
-                "display_name": membership.user.display_name,
+                "display_name": membership.user.display_name or membership.user.username,
                 "first_name": membership.user.first_name,
                 "last_name": membership.user.last_name,
-                "avatar_url": getattr(membership.user, 'avatar_url', None)
+                "avatar_url": membership.user.avatar  # FIXED: User model has 'avatar' not 'avatar_url'
             }
         
         return GroupMembershipResponse(

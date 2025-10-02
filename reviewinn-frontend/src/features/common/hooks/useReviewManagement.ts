@@ -154,7 +154,7 @@ export const useReviewManagement = () => {
       // Test auth before submitting review
       console.log('🧪 Testing authentication...');
       try {
-        const authTestResponse = await fetch('http://localhost:8000/api/v1/reviews/test', createAuthenticatedRequestInit({
+        const authTestResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL || '/api/v1'}/reviews/test`, createAuthenticatedRequestInit({
           method: 'POST'
         }));
         

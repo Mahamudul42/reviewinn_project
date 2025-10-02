@@ -40,19 +40,36 @@ class ProductionAuthConfig:
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 30
     
+    # Environment setting for security decisions
+    ENVIRONMENT: str = None  # Will be set from env var
+    
     def __post_init__(self):
         """Initialize configuration after dataclass creation"""
+        import os
+        
+        # Set environment
+        if self.ENVIRONMENT is None:
+            self.ENVIRONMENT = os.getenv('ENVIRONMENT', 'development')
+        
+        # Initialize JWT secret key
         if self.JWT_SECRET_KEY is None:
-            import os
-            import secrets
             # Try environment variables first, then generate secure default
             self.JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY') or os.getenv('SECRET_KEY') or secrets.token_urlsafe(64)
             
         # Validate minimum key length for security
         if len(self.JWT_SECRET_KEY) < 32:
-            import secrets
             logger.warning("JWT secret key too short - generating secure key")
             self.JWT_SECRET_KEY = secrets.token_urlsafe(64)
+        
+        # SECURITY WARNING: Check if using placeholder secrets in production
+        if self.ENVIRONMENT == "production":
+            if "GENERATE" in self.JWT_SECRET_KEY or "CHANGE" in self.JWT_SECRET_KEY:
+                logger.critical("=" * 80)
+                logger.critical("🚨 CRITICAL SECURITY ERROR 🚨")
+                logger.critical("Production environment is using placeholder JWT_SECRET_KEY!")
+                logger.critical("Generate real secrets with: python -c \"import secrets; print(secrets.token_urlsafe(64))\"")
+                logger.critical("=" * 80)
+                raise ValueError("Placeholder secrets not allowed in production")
     
     # Redis Configuration (Required for production)
     REDIS_URL: str = "redis://localhost:6379/0"  # Default for local dev
@@ -61,7 +78,7 @@ class ProductionAuthConfig:
     
     # Security Configuration
     BCRYPT_ROUNDS: int = 14  # Higher for production
-    PASSWORD_MIN_LENGTH: int = 8  # Simple 8-character minimum
+    PASSWORD_MIN_LENGTH: int = 12  # FIXED: Increased to 12 characters for better security (matches API documentation)
     PASSWORD_MAX_LENGTH: int = 128
     
     # Enterprise Security Features
@@ -426,22 +443,41 @@ class ProductionAuthSystem:
             if payload.get("type") != token_type:
                 raise HTTPException(status_code=401, detail="Invalid token type")
             
-            # Check if token is blacklisted (graceful fallback if Redis unavailable)
+            # Check if token is blacklisted
             jti = payload.get("jti")
             try:
                 if await self._is_token_blacklisted(jti):
                     raise HTTPException(status_code=401, detail="Token has been revoked")
-            except Exception:
-                # Continue if Redis check fails - don't block valid requests
-                logger.warning(f"Redis blacklist check failed for token {jti}")
+            except HTTPException:
+                raise  # Re-raise if token is actually blacklisted
+            except Exception as e:
+                # SECURITY FIX: Fail closed in production if Redis is down
+                # In development, allow graceful degradation
+                logger.error(f"Redis blacklist check failed for token {jti}: {e}")
+                environment = getattr(self.config, 'ENVIRONMENT', 'production')
+                if environment == "production":
+                    raise HTTPException(
+                        status_code=503,
+                        detail="Authentication service temporarily unavailable"
+                    )
+                logger.warning(f"Development mode: Continuing without Redis blacklist check for {jti}")
             
-            # Verify token metadata exists (graceful fallback if Redis unavailable)
+            # Verify token metadata exists
             try:
                 if not await self._verify_token_metadata(jti, payload):
                     raise HTTPException(status_code=401, detail="Token metadata invalid")
-            except Exception:
-                # Continue if Redis metadata check fails - don't block valid requests
-                logger.warning(f"Redis metadata check failed for token {jti}")
+            except HTTPException:
+                raise  # Re-raise if metadata is actually invalid
+            except Exception as e:
+                # SECURITY FIX: Fail closed in production if Redis is down
+                logger.error(f"Redis metadata check failed for token {jti}: {e}")
+                environment = getattr(self.config, 'ENVIRONMENT', 'production')
+                if environment == "production":
+                    raise HTTPException(
+                        status_code=503,
+                        detail="Authentication service temporarily unavailable"
+                    )
+                logger.warning(f"Development mode: Continuing without Redis metadata check for {jti}")
             
             return payload
             
@@ -451,10 +487,11 @@ class ProductionAuthSystem:
             raise HTTPException(status_code=401, detail="Invalid token")
     
     async def refresh_access_token(self, refresh_token: str, db: Session) -> AuthResult:
-        """Refresh access token using refresh token"""
+        """Refresh access token using refresh token with token rotation for security"""
         try:
             payload = await self.verify_token(refresh_token, "refresh")
             user_id = int(payload["sub"])
+            old_jti = payload.get("jti")
             
             # Verify user is still active
             from models.user import User
@@ -466,13 +503,24 @@ class ProductionAuthSystem:
                     error_message="User no longer active"
                 )
             
-            # Generate new access token
+            # Generate new token pair (both access AND refresh tokens)
             device_info = {"fingerprint": "refresh_request"}
-            access_token, _ = await self._generate_token_pair(user, device_info)
+            access_token, new_refresh_token = await self._generate_token_pair(user, device_info)
+            
+            # SECURITY FIX: Blacklist old refresh token (token rotation)
+            # This prevents stolen refresh tokens from being reused
+            try:
+                if old_jti:
+                    await self._blacklist_token(old_jti, "refresh_token_rotated")
+                    logger.info(f"Blacklisted old refresh token for user {user_id}")
+            except Exception as e:
+                logger.warning(f"Failed to blacklist old refresh token: {e}")
+                # Continue anyway - don't block refresh if Redis fails
             
             return AuthResult(
                 success=True,
                 access_token=access_token,
+                refresh_token=new_refresh_token,  # FIXED: Return new refresh token
                 metadata={
                     "expires_in": self.config.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60
                 }

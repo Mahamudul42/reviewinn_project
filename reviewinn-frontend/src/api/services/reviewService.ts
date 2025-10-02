@@ -587,6 +587,9 @@ export class ReviewService {
       cons: reviewData.cons || [],
       images: reviewData.images || [],
       is_anonymous: reviewData.isAnonymous,
+      // Group review fields
+      group_id: reviewData.groupId || null,
+      review_scope: reviewData.reviewScope || 'independent',
       // Send dynamic criteria ratings
       ratings: dynamicRatings,
       // Send additional form fields

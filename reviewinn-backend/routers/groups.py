@@ -29,7 +29,7 @@ def get_group_service(db: Session = Depends(get_db)) -> GroupService:
 @router.post("/", response_model=GroupResponse, status_code=status.HTTP_201_CREATED)
 async def create_group(
     group_data: GroupCreateRequest,
-    current_user = RequiredUser,
+    current_user: RequiredUser,
     group_service: GroupService = Depends(get_group_service)
 ):
     """
@@ -42,7 +42,16 @@ async def create_group(
     - **allow_public_reviews**: Whether members can post public reviews
     - **max_members**: Maximum number of members (5-10000)
     """
-    return group_service.create_group(group_data, current_user.user_id)
+    import logging
+    logger = logging.getLogger(__name__)
+    try:
+        logger.info(f"Creating group: {group_data.name} for user {current_user.user_id}")
+        result = group_service.create_group(group_data, current_user.user_id)
+        logger.info(f"Group created successfully: {result.group_id}")
+        return result
+    except Exception as e:
+        logger.error(f"Error creating group: {type(e).__name__}: {str(e)}", exc_info=True)
+        raise
 
 @router.get("/", response_model=PaginatedAPIResponse[GroupResponse])
 async def get_groups(

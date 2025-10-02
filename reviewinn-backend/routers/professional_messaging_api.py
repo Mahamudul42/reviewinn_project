@@ -89,12 +89,12 @@ def create_conversation(
 
 @router.get("/conversations")
 def get_conversations(
+    current_user: RequiredUser,
     limit: int = Query(20, ge=1, le=100, description="Number of conversations to return"),
     offset: int = Query(0, ge=0, description="Number of conversations to skip"),
     search: Optional[str] = Query(None, description="Search in conversation titles/descriptions"),
     conversation_type: Optional[str] = Query(None, description="Filter by conversation type"),
-    db: Session = Depends(get_db),
-    current_user = RequiredUser
+    db: Session = Depends(get_db)
 ):
     """
     Get user's conversations with advanced filtering and search.

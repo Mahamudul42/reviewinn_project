@@ -34,6 +34,9 @@ import GroupSettings from './components/GroupSettings';
 import GroupReviews from './components/GroupReviews';
 import GroupFeed from './components/GroupFeed';
 import AddReviewStatusBar from '../common/components/AddReviewStatusBar';
+import AddReviewModal from '../reviews/components/AddReviewModal';
+import type { Entity, ReviewFormData } from '../../types';
+import { reviewService } from '../../api/services';
 
 const GROUP_TYPE_ICONS = {
   [GroupType.UNIVERSITY]: GraduationCap,
@@ -57,6 +60,7 @@ const GroupDetailPage: React.FC = () => {
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
   const [joinReason, setJoinReason] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -304,8 +308,16 @@ const GroupDetailPage: React.FC = () => {
                 <AddReviewStatusBar 
                   userAvatar={user?.avatar || 'https://ui-avatars.com/api/?name=User&background=gray&color=ffffff'} 
                   userName={user?.name || 'User'} 
-                  onClick={() => {/* Handle add review */}}
-                  barRef={null}
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      navigate('/login');
+                      return;
+                    }
+                    if (isMember) {
+                      setShowReviewModal(true);
+                    }
+                  }}
+                  barRef={undefined}
                   onSearchResults={() => {/* Handle search results */}}
                 />
                 
@@ -497,6 +509,66 @@ const GroupDetailPage: React.FC = () => {
         <GroupInvitationManagement
           groupId={group.group_id}
           onClose={() => setShowInviteModal(false)}
+        />
+      )}
+
+      {/* Write Review Modal */}
+      {user && isMember && (
+        <AddReviewModal
+          open={showReviewModal}
+          onClose={() => setShowReviewModal(false)}
+          onReviewSubmit={async (entity: Entity, reviewData: ReviewFormData) => {
+            try {
+              console.log('📝 Group review submission from GroupDetailPage:', { 
+                entity: entity.name, 
+                groupId: group.group_id,
+                groupName: group.name
+              });
+              
+              // Call reviewService to create the review with group context
+              const newReview = await reviewService.createReview({
+                ...reviewData,
+                entityId: entity.id,
+                groupId: group.group_id,
+                reviewScope: 'group'
+              });
+              
+              console.log('✅ Review created successfully in group:', newReview.id);
+              
+              setShowReviewModal(false);
+              
+              // Show success notification
+              window.dispatchEvent(new CustomEvent('showNotification', {
+                detail: {
+                  type: 'success',
+                  message: `Review posted in ${group.name}!`
+                }
+              }));
+              
+              // Refresh group data to show updated review count
+              await refresh();
+              
+              return { success: true };
+            } catch (error) {
+              console.error('❌ Error submitting group review:', error);
+              
+              window.dispatchEvent(new CustomEvent('showNotification', {
+                detail: {
+                  type: 'error',
+                  message: error instanceof Error ? error.message : 'Failed to submit review'
+                }
+              }));
+              
+              return { 
+                success: false, 
+                error: error instanceof Error ? error.message : 'Failed to submit review'
+              };
+            }
+          }}
+          userName={user.name || 'User'}
+          userAvatar={user.avatar || ''}
+          groupId={group.group_id}
+          groupName={group.name}
         />
       )}
     </>

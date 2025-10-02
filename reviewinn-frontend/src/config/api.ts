@@ -58,8 +58,25 @@ export const API_ENDPOINTS = {
 // DEPRECATED: Use getAuthHeaders from shared/utils/auth instead
 export const getAuthHeaders = (): Record<string, string> => {
   console.warn('getAuthHeaders is deprecated. Use getAuthHeaders from shared/utils/auth instead');
-  // Basic fallback implementation
-  const token = localStorage.getItem('authToken');
+  // FIXED: Use correct token key from auth store
+  const token = localStorage.getItem('reviewinn_jwt_token') || localStorage.getItem('authToken');
+  
+  // Also try getting from auth store if localStorage fails
+  if (!token) {
+    try {
+      const authState = localStorage.getItem('auth-storage');
+      if (authState) {
+        const parsed = JSON.parse(authState);
+        const storeToken = parsed?.state?.token;
+        if (storeToken) {
+          return { Authorization: `Bearer ${storeToken}` };
+        }
+      }
+    } catch (e) {
+      // Ignore parse errors
+    }
+  }
+  
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 

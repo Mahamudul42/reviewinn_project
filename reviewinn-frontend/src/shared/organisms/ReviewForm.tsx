@@ -16,6 +16,8 @@ interface ReviewFormProps {
   onBack: () => void;
   onSubmit: (data: ReviewFormData) => void;
   isLoading?: boolean;
+  groupId?: number;  // NEW: Optional group ID for group reviews
+  groupName?: string; // NEW: Optional group name for display
 }
 
 
@@ -25,7 +27,9 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
   subcategory: providedSubcategory,
   onBack,
   onSubmit,
-  isLoading = false
+  isLoading = false,
+  groupId,
+  groupName
 }) => {
   // Enhance entity with hierarchical category data for proper display
   const entity = enhanceEntityWithHierarchicalCategories(rawEntity);
@@ -236,19 +240,25 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
         ? ratingValues.reduce((a, b) => a + b, 0) / ratingValues.length
         : 0;
       
-      // Create enhanced form data with overall rating and field data
+      // Create enhanced form data with overall rating, field data, and group context
       const enhancedFormData = {
         ...formData,
         overallRating,
         entityId: entity.id,
-        ...fieldData // Include all dynamic field data
+        ...fieldData, // Include all dynamic field data
+        // Add group-related fields if this is a group review
+        ...(groupId && {
+          groupId,
+          reviewScope: 'group' as const
+        })
       };
       
       console.log('🚀 ReviewForm submitting data:', {
         formData,
         enhancedFormData,
         ratings: formData.ratings,
-        fieldData
+        fieldData,
+        groupContext: groupId ? { groupId, groupName, reviewScope: 'group' } : 'independent'
       });
       
       onSubmit(enhancedFormData);
@@ -295,6 +305,21 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
           Step 2 of 2: Write Review
         </div>
       </div>
+
+      {/* Group Context Banner (if posting in group) */}
+      {groupId && groupName && (
+        <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+          <div className="flex items-center gap-2 text-purple-700">
+            <MessageSquare className="h-4 w-4" />
+            <span className="text-sm font-medium">
+              Posting in group: {groupName}
+            </span>
+          </div>
+          <p className="text-xs text-purple-600 mt-1">
+            This review will be visible to group members
+          </p>
+        </div>
+      )}
 
       {/* Entity Information Card - Using shared EntityListCard */}
       <div className="mb-4">

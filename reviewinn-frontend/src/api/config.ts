@@ -3,7 +3,10 @@ const getBaseURL = (): string => {
   // Get base URL from environment variables with fallback
   const envBaseUrl = import.meta.env.VITE_API_BASE_URL;
   
+  console.log('🔍 DEBUG - VITE_API_BASE_URL from env:', envBaseUrl);
+  
   if (envBaseUrl) {
+    console.log('✅ Using VITE_API_BASE_URL:', envBaseUrl);
     return envBaseUrl;
   }
   
@@ -14,16 +17,19 @@ const getBaseURL = (): string => {
     
     if (hostname === 'reviewinn.com' || hostname === 'www.reviewinn.com') {
       // Use mapped API domain for production (HTTPS required)
+      console.log('🌐 Using production API URL');
       return 'https://api.reviewinn.com/api/v1';
     }
     
     if (hostname === 'admin.reviewinn.com') {
+      console.log('🌐 Using admin production API URL');
       return 'https://api.reviewinn.com/api/v1';
     }
     
   }
   
   // Development fallback - use relative URL to leverage Vite proxy
+  console.log('🔧 Using fallback relative URL: /api/v1');
   return '/api/v1';
 };
 
@@ -38,6 +44,8 @@ const isProduction = (): boolean => {
 };
 
 const baseUrl = getBaseURL();
+
+console.log('🚀 API_CONFIG initialized with BASE_URL:', baseUrl);
 
 export const API_CONFIG = {
   // Base URL for most API endpoints - dynamically determined

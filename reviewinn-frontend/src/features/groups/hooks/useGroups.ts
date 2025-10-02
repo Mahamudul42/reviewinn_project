@@ -1,60 +1,30 @@
-// Custom hooks for group management
-import { useState, useEffect, useCallback } from 'react';
-import { createAuthenticatedRequestInit } from '../../../shared/utils/auth';
+/**
+ * Simplified Groups Hooks
+ * Contains only the hooks needed for UnifiedGroupsPage and GroupDetailPage
+ */
 
-// Helper function for API requests
-const API_BASE_URL = '/api/v1'; // Use relative path to leverage Vite proxy
+import { useState, useEffect, useCallback } from 'react';
+
+const API_BASE_URL = '/api/v1';
+
 const makeApiRequest = async (endpoint: string, options: RequestInit = {}) => {
+  const token = localStorage.getItem('reviewinn_jwt_token');
   const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
   
-  return fetch(url, createAuthenticatedRequestInit({
+  const config: RequestInit = {
     ...options,
-  }));
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` }),
+      ...options.headers,
+    }
+  };
+  
+  return fetch(url, config);
 };
 
-// Inline types to avoid import issues
-interface GroupUser {
-  user_id: number;
-  username: string;
-  email?: string;
-  first_name?: string;
-  last_name?: string;
-  display_name?: string;
-  avatar_url?: string;
-}
-
-interface GroupCategory {
-  category_id: number;
-  name: string;
-  description?: string;
-  icon?: string;
-  color_code?: string;
-  parent_category_id?: number;
-  sort_order: number;
-}
-
-interface GroupMembership {
-  membership_id: number;
-  group_id: number;
-  user_id: number;
-  role: 'owner' | 'admin' | 'moderator' | 'member';
-  membership_status: 'active' | 'pending' | 'banned' | 'left';
-  can_post_reviews: boolean;
-  can_moderate_content: boolean;
-  can_invite_members: boolean;
-  can_manage_group: boolean;
-  reviews_count: number;
-  last_activity_at?: string;
-  contribution_score: number;
-  joined_at?: string;
-  invited_by?: number;
-  join_reason?: string;
-  user?: GroupUser;
-  created_at?: string;
-  updated_at?: string;
-}
-
-interface Group {
+// Interface for group objects
+export interface Group {
   group_id: number;
   name: string;
   description?: string;
@@ -62,26 +32,14 @@ interface Group {
   visibility: 'public' | 'private' | 'invite_only';
   avatar_url?: string;
   cover_image_url?: string;
-  allow_public_reviews: boolean;
-  require_approval_for_reviews: boolean;
-  max_members: number;
-  created_by?: number;
   member_count: number;
-  review_count: number;
-  active_members_count: number;
-  is_active: boolean;
-  is_verified: boolean;
-  rules_and_guidelines?: string;
-  external_links: Array<{ [key: string]: string }>;
-  group_metadata: { [key: string]: any };
-  categories: GroupCategory[];
-  creator?: GroupUser;
-  user_membership?: GroupMembership;
+  max_members: number;
   created_at?: string;
   updated_at?: string;
 }
 
-interface GroupListParams {
+// Interface for group list parameters
+export interface GroupListParams {
   page?: number;
   size?: number;
   group_type?: 'university' | 'company' | 'location' | 'interest_based';
@@ -91,67 +49,19 @@ interface GroupListParams {
   user_groups_only?: boolean;
 }
 
-interface PaginatedResponse<T> {
+// Interface for paginated responses
+export interface PaginatedResponse<T> {
   items: T[];
   total_count: number;
   page: number;
   size: number;
   has_next: boolean;
+  has_prev: boolean;
 }
 
-interface GroupCreateRequest {
-  name: string;
-  description?: string;
-  group_type: 'university' | 'company' | 'location' | 'interest_based';
-  visibility: 'public' | 'private' | 'invite_only';
-  avatar_url?: string;
-  cover_image_url?: string;
-  allow_public_reviews?: boolean;
-  require_approval_for_reviews?: boolean;
-  max_members?: number;
-  rules_and_guidelines?: string;
-  external_links?: Array<{ [key: string]: string }>;
-  group_metadata?: { [key: string]: any };
-  category_ids?: number[];
-}
-
-interface GroupUpdateRequest {
-  name?: string;
-  description?: string;
-  visibility?: 'public' | 'private' | 'invite_only';
-  avatar_url?: string;
-  cover_image_url?: string;
-  allow_public_reviews?: boolean;
-  require_approval_for_reviews?: boolean;
-  max_members?: number;
-  rules_and_guidelines?: string;
-  external_links?: Array<{ [key: string]: string }>;
-  group_metadata?: { [key: string]: any };
-  category_ids?: number[];
-}
-
-// Simple group service to avoid import issues
-const groupService = {
-  async getGroups(params?: GroupListParams): Promise<PaginatedResponse<Group>> {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) {
-          queryParams.append(key, value.toString());
-        }
-      });
-    }
-    
-    const response = await makeApiRequest(`/groups/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`);
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    return response.json();
-  }
-};
-
+/**
+ * Hook for managing multiple groups (lists, pagination, etc.)
+ */
 export const useGroups = (initialParams: GroupListParams = {}) => {
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(false);
@@ -165,15 +75,24 @@ export const useGroups = (initialParams: GroupListParams = {}) => {
     setError(null);
     
     try {
-      const response = await groupService.getGroups({ ...initialParams, ...params });
-      // Handle both old and new API response formats
-      const groups = response.data || response.items || [];
-      const pagination = response.pagination || response;
+      const queryParams = new URLSearchParams();
+      Object.entries({ ...initialParams, ...params }).forEach(([key, value]) => {
+        if (value !== undefined) {
+          queryParams.append(key, value.toString());
+        }
+      });
+
+      const response = await makeApiRequest(`/groups/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`);
       
-      setGroups(groups);
-      setTotalCount(pagination.total || pagination.total_count || 0);
-      setHasNext(pagination.has_next || false);
-      setPage(pagination.page || params.page || 1);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setGroups(data.data || []);
+      setTotalCount(data.pagination?.total_count || 0);
+      setHasNext(data.pagination?.has_next || false);
+      setPage(data.pagination?.page || 1);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch groups');
       setGroups([]);
@@ -182,7 +101,7 @@ export const useGroups = (initialParams: GroupListParams = {}) => {
     }
   }, [initialParams]);
 
-  const createGroup = useCallback(async (groupData: GroupCreateRequest): Promise<Group> => {
+  const createGroup = useCallback(async (groupData: any) => {
     const response = await makeApiRequest('/groups/', {
       method: 'POST',
       body: JSON.stringify(groupData),
@@ -192,27 +111,23 @@ export const useGroups = (initialParams: GroupListParams = {}) => {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const newGroup = await response.json();
-    setGroups(prev => [newGroup, ...prev]);
-    return newGroup;
+    return response.json();
   }, []);
 
-  const updateGroup = useCallback(async (groupId: number, updates: GroupUpdateRequest): Promise<Group> => {
+  const updateGroup = useCallback(async (groupId: number, updateData: any) => {
     const response = await makeApiRequest(`/groups/${groupId}`, {
       method: 'PUT',
-      body: JSON.stringify(updates),
+      body: JSON.stringify(updateData),
     });
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const updatedGroup = await response.json();
-    setGroups(prev => prev.map(group => group.group_id === groupId ? updatedGroup : group));
-    return updatedGroup;
+    return response.json();
   }, []);
 
-  const deleteGroup = useCallback(async (groupId: number): Promise<void> => {
+  const deleteGroup = useCallback(async (groupId: number) => {
     const response = await makeApiRequest(`/groups/${groupId}`, {
       method: 'DELETE',
     });
@@ -243,7 +158,9 @@ export const useGroups = (initialParams: GroupListParams = {}) => {
   };
 };
 
-// Export a single group hook for components that need one group
+/**
+ * Hook for managing a single group (detail page, etc.)
+ */
 export const useGroup = (groupId?: number) => {
   const [group, setGroup] = useState<Group | null>(null);
   const [loading, setLoading] = useState(false);
@@ -257,7 +174,7 @@ export const useGroup = (groupId?: number) => {
     
     try {
       const response = await makeApiRequest(`/groups/${groupId}`);
-
+      
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
