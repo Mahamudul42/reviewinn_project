@@ -6,3 +6,11 @@ export { default as GroupInvitationManagement } from './GroupInvitationManagemen
 export { default as GroupSettings } from './GroupSettings';
 export { default as GroupReviews } from './GroupReviews';
 export { default as GroupFeed } from './GroupFeed';
+
+// New modular components
+export { GroupsTabs } from './GroupsTabs';
+export { YourGroupsTab } from './YourGroupsTab';
+export { DiscoverGroupsTab } from './DiscoverGroupsTab';
+export { CreateGroupTab } from './CreateGroupTab';
+export { UserGroupCard } from './UserGroupCard';
+export { PublicGroupCard } from './PublicGroupCard';
