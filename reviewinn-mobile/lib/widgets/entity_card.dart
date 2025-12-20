@@ -80,7 +80,7 @@ class _EntityCardState extends State<EntityCard> {
                     ratingSize: 18,
                     showDescription: true,
                     showAvatar: true,
-                    showVerifiedIcon: false,
+                    showVerifiedIcon: true,
                     maxDescriptionLines: 2,
                   ),
                 ),

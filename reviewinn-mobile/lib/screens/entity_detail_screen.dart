@@ -52,18 +52,28 @@ class _EntityDetailScreenState extends State<EntityDetailScreen> {
                 pinned: true,
                 backgroundColor: Colors.deepPurple,
                 flexibleSpace: FlexibleSpaceBar(
-                  title: Text(
-                    entity.name,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      shadows: [
-                        Shadow(
-                          offset: Offset(0, 1),
-                          blurRadius: 3.0,
-                          color: Color.fromARGB(255, 0, 0, 0),
+                  title: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          entity.name,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            shadows: [
+                              Shadow(
+                                offset: Offset(0, 1),
+                                blurRadius: 3.0,
+                                color: Color.fromARGB(255, 0, 0, 0),
+                              ),
+                            ],
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ],
-                    ),
+                      ),
+                      SizedBox(width: 4),
+                      Icon(Icons.verified, size: 16, color: Colors.white),
+                    ],
                   ),
                   background: entity.avatar != null
                       ? CachedNetworkImage(

@@ -371,13 +371,27 @@ class _ReviewDetailModalState extends State<ReviewDetailModal> {
             ),
           ),
           const SizedBox(width: AppTheme.spaceM),
-          Expanded(
-            child: Text(
-              widget.review.entityName!,
-              style: AppTheme.labelMedium.copyWith(
-                color: AppTheme.primaryPurpleDark,
-                fontSize: 16,
-              ),
+          Flexible(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(
+                    widget.review.entityName!,
+                    style: AppTheme.labelMedium.copyWith(
+                      color: AppTheme.primaryPurpleDark,
+                      fontSize: 16,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.verified,
+                  size: 16,
+                  color: AppTheme.primaryPurpleDark,
+                ),
+              ],
             ),
           ),
           const SizedBox(width: AppTheme.spaceM),

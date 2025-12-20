@@ -193,24 +193,31 @@ class EntityInfo extends StatelessWidget {
   Widget _buildName() {
     return Row(
       children: [
-        if (showVerifiedIcon) ...[
-          Icon(
-            Icons.verified,
-            size: 16,
-            color: AppTheme.primaryPurple,
-          ),
-          const SizedBox(width: 4),
-        ],
-        Expanded(
-          child: Text(
-            entityName ?? 'Unknown Entity',
-            style: AppTheme.labelMedium.copyWith(
-              fontSize: nameSize,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.textPrimary,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+        Flexible(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Text(
+                  entityName ?? 'Unknown Entity',
+                  style: AppTheme.labelMedium.copyWith(
+                    fontSize: nameSize,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textPrimary,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (showVerifiedIcon) ...[
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.verified,
+                  size: 16,
+                  color: AppTheme.primaryPurple,
+                ),
+              ],
+            ],
           ),
         ),
       ],
