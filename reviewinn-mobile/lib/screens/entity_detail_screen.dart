@@ -4,7 +4,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import '../providers/entity_provider.dart';
 import '../providers/review_provider.dart';
+import '../providers/auth_provider.dart';
 import '../widgets/review_card.dart';
+import '../config/app_theme.dart';
+import 'write_review_screen.dart';
+import 'login_screen.dart';
 
 class EntityDetailScreen extends StatefulWidget {
   final int entityId;
@@ -190,6 +194,43 @@ class _EntityDetailScreenState extends State<EntityDetailScreen> {
                 ),
               ),
             ],
+          );
+        },
+      ),
+      floatingActionButton: Consumer<EntityProvider>(
+        builder: (context, entityProvider, child) {
+          final entity = entityProvider.selectedEntity;
+          if (entity == null) return const SizedBox.shrink();
+
+          return FloatingActionButton.extended(
+            onPressed: () {
+              final authProvider = Provider.of<AuthProvider>(context, listen: false);
+              if (!authProvider.isAuthenticated) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                );
+                return;
+              }
+
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => WriteReviewScreen(
+                    preselectedEntity: entity,
+                  ),
+                ),
+              );
+            },
+            backgroundColor: AppTheme.primaryPurple,
+            icon: const Icon(Icons.rate_review_rounded, color: Colors.white),
+            label: const Text(
+              'Write Review',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           );
         },
       ),

@@ -10,6 +10,7 @@ import 'groups_screen.dart';
 import 'messages_screen.dart';
 import 'profile_screen.dart';
 import 'login_screen.dart';
+import 'write_review_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -96,22 +97,11 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       return;
     }
 
-    // TODO: Show add review modal
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Row(
-          children: [
-            Icon(Icons.rocket_launch_rounded, color: Colors.white),
-            SizedBox(width: 12),
-            Text('Add Review feature coming soon!'),
-          ],
-        ),
-        backgroundColor: AppTheme.primaryPurple,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        margin: const EdgeInsets.all(16),
+    // Navigate to write review screen
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const WriteReviewScreen(),
       ),
     );
   }

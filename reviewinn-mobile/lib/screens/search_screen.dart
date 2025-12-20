@@ -5,7 +5,12 @@ import '../widgets/entity_card.dart';
 import 'entity_detail_screen.dart';
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key});
+  final bool isSelectionMode;
+
+  const SearchScreen({
+    super.key,
+    this.isSelectionMode = false,
+  });
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -146,14 +151,20 @@ class _SearchScreenState extends State<SearchScreen> {
         return EntityCard(
           entity: entity,
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => EntityDetailScreen(
-                  entityId: entity.entityId,
+            if (widget.isSelectionMode) {
+              // Return the selected entity
+              Navigator.pop(context, entity);
+            } else {
+              // Navigate to entity detail
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EntityDetailScreen(
+                    entityId: entity.entityId,
+                  ),
                 ),
-              ),
-            );
+              );
+            }
           },
         );
       },

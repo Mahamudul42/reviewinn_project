@@ -6,6 +6,8 @@ import '../widgets/beautiful_review_card.dart';
 import '../config/app_theme.dart';
 import 'search_screen.dart';
 import 'notifications_screen.dart';
+import 'write_review_screen.dart';
+import 'login_screen.dart';
 
 class HomeFeedScreen extends StatefulWidget {
   const HomeFeedScreen({super.key});
@@ -376,20 +378,22 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> with SingleTickerProvid
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Row(
-                              children: [
-                                Icon(Icons.edit_rounded, color: Colors.white),
-                                SizedBox(width: 12),
-                                Text('Write review feature coming soon!'),
-                              ],
+                        // Check if user is authenticated
+                        if (!authProvider.isAuthenticated) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const LoginScreen(),
                             ),
-                            backgroundColor: AppTheme.accentYellow,
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                          );
+                          return;
+                        }
+                        
+                        // Navigate to write review screen
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const WriteReviewScreen(),
                           ),
                         );
                       },
