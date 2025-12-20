@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 import '../models/review_model.dart';
 import '../config/app_theme.dart';
 import 'purple_star_rating.dart';
 
-class ReviewDetailModal extends StatelessWidget {
+class ReviewDetailModal extends StatefulWidget {
   final Review review;
 
   const ReviewDetailModal({super.key, required this.review});
@@ -17,6 +18,23 @@ class ReviewDetailModal extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (context) => ReviewDetailModal(review: review),
     );
+  }
+
+  @override
+  State<ReviewDetailModal> createState() => _ReviewDetailModalState();
+}
+
+class _ReviewDetailModalState extends State<ReviewDetailModal> {
+  late bool isLiked;
+  late bool isBookmarked;
+  late int likesCount;
+
+  @override
+  void initState() {
+    super.initState();
+    isLiked = widget.review.isLiked ?? false;
+    isBookmarked = false; // Would come from backend
+    likesCount = widget.review.likesCount ?? 0;
   }
 
   String _formatDate(DateTime? date) {
@@ -94,14 +112,14 @@ class ReviewDetailModal extends StatelessWidget {
                     const SizedBox(height: AppTheme.spaceL),
 
                     // Entity badge
-                    if (review.entityName != null) ...[
+                    if (widget.review.entityName != null) ...[
                       _buildEntityBadge(),
                       const SizedBox(height: AppTheme.spaceL),
                     ],
 
                     // Title
                     Text(
-                      review.title,
+                      widget.review.title,
                       style: AppTheme.headingMedium.copyWith(
                         fontSize: 24,
                         height: 1.3,
@@ -110,9 +128,9 @@ class ReviewDetailModal extends StatelessWidget {
                     const SizedBox(height: AppTheme.spaceL),
 
                     // Content
-                    if (review.content != null) ...[
+                    if (widget.review.content != null) ...[
                       Text(
-                        review.content!,
+                        widget.review.content!,
                         style: AppTheme.bodyLarge.copyWith(
                           color: AppTheme.textSecondary,
                           height: 1.8,
@@ -122,10 +140,10 @@ class ReviewDetailModal extends StatelessWidget {
                     ],
 
                     // Pros
-                    if (review.pros != null && review.pros!.isNotEmpty) ...[
+                    if (widget.review.pros != null && widget.review.pros!.isNotEmpty) ...[
                       _buildProsConsSection(
                         'Pros',
-                        review.pros!,
+                        widget.review.pros!,
                         AppTheme.successGreen,
                         Icons.thumb_up_rounded,
                       ),
@@ -133,10 +151,10 @@ class ReviewDetailModal extends StatelessWidget {
                     ],
 
                     // Cons
-                    if (review.cons != null && review.cons!.isNotEmpty) ...[
+                    if (widget.review.cons != null && widget.review.cons!.isNotEmpty) ...[
                       _buildProsConsSection(
                         'Cons',
-                        review.cons!,
+                        widget.review.cons!,
                         AppTheme.errorRed,
                         Icons.thumb_down_rounded,
                       ),
@@ -144,7 +162,7 @@ class ReviewDetailModal extends StatelessWidget {
                     ],
 
                     // Images
-                    if (review.images != null && review.images!.isNotEmpty) ...[
+                    if (widget.review.images != null && widget.review.images!.isNotEmpty) ...[
                       _buildImages(),
                       const SizedBox(height: AppTheme.spaceXL),
                     ],
@@ -186,10 +204,10 @@ class ReviewDetailModal extends StatelessWidget {
           child: CircleAvatar(
             radius: 28,
             backgroundColor: AppTheme.primaryPurpleLight.withOpacity(0.1),
-            child: review.userAvatar != null
+            child: widget.review.userAvatar != null
                 ? ClipOval(
                     child: CachedNetworkImage(
-                      imageUrl: review.userAvatar!,
+                      imageUrl: widget.review.userAvatar!,
                       width: 56,
                       height: 56,
                       fit: BoxFit.cover,
@@ -197,7 +215,7 @@ class ReviewDetailModal extends StatelessWidget {
                         color: AppTheme.borderLight,
                       ),
                       errorWidget: (context, url, error) => Text(
-                        review.username?[0].toUpperCase() ?? 'U',
+                        widget.review.username?[0].toUpperCase() ?? 'U',
                         style: AppTheme.headingSmall.copyWith(
                           color: AppTheme.primaryPurple,
                         ),
@@ -205,7 +223,7 @@ class ReviewDetailModal extends StatelessWidget {
                     ),
                   )
                 : Text(
-                    review.username?[0].toUpperCase() ?? 'U',
+                    widget.review.username?[0].toUpperCase() ?? 'U',
                     style: AppTheme.headingSmall.copyWith(
                       color: AppTheme.primaryPurple,
                     ),
@@ -218,7 +236,7 @@ class ReviewDetailModal extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                review.username ?? 'Anonymous',
+                widget.review.username ?? 'Anonymous',
                 style: AppTheme.labelMedium.copyWith(
                   fontSize: 16,
                 ),
@@ -233,7 +251,7 @@ class ReviewDetailModal extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    _formatDate(review.createdAt),
+                    _formatDate(widget.review.createdAt),
                     style: AppTheme.bodySmall.copyWith(
                       color: AppTheme.textTertiary,
                     ),
@@ -275,7 +293,7 @@ class ReviewDetailModal extends StatelessWidget {
           const SizedBox(width: AppTheme.spaceM),
           Expanded(
             child: Text(
-              review.entityName!,
+              widget.review.entityName!,
               style: AppTheme.labelMedium.copyWith(
                 color: AppTheme.primaryPurpleDark,
                 fontSize: 16,
@@ -284,7 +302,7 @@ class ReviewDetailModal extends StatelessWidget {
           ),
           const SizedBox(width: AppTheme.spaceM),
           PurpleStarRating(
-            rating: review.rating,
+            rating: widget.review.rating,
             maxRating: 5,
             size: 20,
             showValue: true,
@@ -381,12 +399,12 @@ class ReviewDetailModal extends StatelessWidget {
             mainAxisSpacing: AppTheme.spaceM,
             childAspectRatio: 1.5,
           ),
-          itemCount: review.images!.length,
+          itemCount: widget.review.images!.length,
           itemBuilder: (context, index) {
             return ClipRRect(
               borderRadius: AppTheme.radiusMedium,
               child: CachedNetworkImage(
-                imageUrl: review.images![index],
+                imageUrl: widget.review.images![index],
                 fit: BoxFit.cover,
                 placeholder: (context, url) => Container(
                   color: AppTheme.borderLight,
@@ -418,7 +436,7 @@ class ReviewDetailModal extends StatelessWidget {
         children: [
           _buildStatItem(
             Icons.favorite_rounded,
-            '${review.likesCount ?? 0}',
+            '${widget.review.likesCount ?? 0}',
             'Likes',
             AppTheme.errorRed,
           ),
@@ -429,7 +447,7 @@ class ReviewDetailModal extends StatelessWidget {
           ),
           _buildStatItem(
             Icons.mode_comment_rounded,
-            '${review.commentsCount ?? 0}',
+            '${widget.review.commentsCount ?? 0}',
             'Comments',
             AppTheme.infoBlue,
           ),
@@ -440,7 +458,7 @@ class ReviewDetailModal extends StatelessWidget {
           ),
           _buildStatItem(
             Icons.visibility_rounded,
-            '${review.viewCount ?? 0}',
+            '${widget.review.viewCount ?? 0}',
             'Views',
             AppTheme.primaryPurple,
           ),
@@ -471,75 +489,218 @@ class ReviewDetailModal extends StatelessWidget {
   }
 
   Widget _buildActionButtons() {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              vertical: AppTheme.spaceM,
-            ),
-            decoration: BoxDecoration(
-              gradient: AppTheme.purpleGradient,
-              borderRadius: AppTheme.radiusMedium,
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.primaryPurple.withOpacity(0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.favorite_border_rounded,
-                  color: Colors.white,
-                ),
-                SizedBox(width: 8),
-                Text(
-                  'Like',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+        // Primary Actions Row
+        Row(
+          children: [
+            // Like Button
+            Expanded(
+              child: InkWell(
+                onTap: () {
+                  setState(() {
+                    isLiked = !isLiked;
+                    likesCount += isLiked ? 1 : -1;
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(isLiked ? 'Review liked!' : 'Like removed'),
+                      duration: const Duration(seconds: 1),
+                      backgroundColor: AppTheme.successGreen,
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AppTheme.spaceM,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: isLiked ? AppTheme.purpleGradient : null,
+                    color: isLiked ? null : Colors.white,
+                    borderRadius: AppTheme.radiusMedium,
+                    border: Border.all(
+                      color: AppTheme.primaryPurple,
+                      width: 2,
+                    ),
+                    boxShadow: isLiked ? [
+                      BoxShadow(
+                        color: AppTheme.primaryPurple.withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ] : [],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                        color: isLiked ? Colors.white : AppTheme.primaryPurple,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Like ($likesCount)',
+                        style: TextStyle(
+                          color: isLiked ? Colors.white : AppTheme.primaryPurple,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(width: AppTheme.spaceM),
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              vertical: AppTheme.spaceM,
-            ),
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: AppTheme.primaryPurple,
-                width: 2,
               ),
-              borderRadius: AppTheme.radiusMedium,
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.mode_comment_outlined,
-                  color: AppTheme.primaryPurple,
+            const SizedBox(width: AppTheme.spaceM),
+            // Comment Button
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  vertical: AppTheme.spaceM,
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  'Comment',
-                  style: AppTheme.labelMedium.copyWith(
+                decoration: BoxDecoration(
+                  border: Border.all(
                     color: AppTheme.primaryPurple,
-                    fontSize: 16,
+                    width: 2,
+                  ),
+                  borderRadius: AppTheme.radiusMedium,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.mode_comment_outlined,
+                      color: AppTheme.primaryPurple,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Comment',
+                      style: AppTheme.labelMedium.copyWith(
+                        color: AppTheme.primaryPurple,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppTheme.spaceM),
+        // Secondary Actions Row
+        Row(
+          children: [
+            // Bookmark Button
+            Expanded(
+              child: InkWell(
+                onTap: () {
+                  setState(() {
+                    isBookmarked = !isBookmarked;
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(isBookmarked ? 'Review bookmarked!' : 'Bookmark removed'),
+                      duration: const Duration(seconds: 1),
+                      backgroundColor: AppTheme.successGreen,
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AppTheme.spaceM,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isBookmarked 
+                        ? AppTheme.accentYellow.withOpacity(0.1) 
+                        : Colors.white,
+                    border: Border.all(
+                      color: isBookmarked 
+                          ? AppTheme.accentYellow 
+                          : AppTheme.borderLight,
+                      width: 2,
+                    ),
+                    borderRadius: AppTheme.radiusMedium,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                        color: isBookmarked ? AppTheme.accentYellow : AppTheme.textSecondary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        isBookmarked ? 'Saved' : 'Save',
+                        style: AppTheme.labelMedium.copyWith(
+                          color: isBookmarked ? AppTheme.accentYellow : AppTheme.textSecondary,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
+            const SizedBox(width: AppTheme.spaceM),
+            // Share Button
+            Expanded(
+              child: InkWell(
+                onTap: () async {
+                  final reviewText = '''${widget.review.title}
+
+Rating: ${widget.review.rating}/5.0
+
+${widget.review.content ?? ""}
+
+Shared from ReviewInn App''';
+                  
+                  try {
+                    await Share.share(
+                      reviewText,
+                      subject: widget.review.title,
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error sharing: $e'),
+                        backgroundColor: AppTheme.errorRed,
+                      ),
+                    );
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AppTheme.spaceM,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(
+                      color: AppTheme.borderLight,
+                      width: 2,
+                    ),
+                    borderRadius: AppTheme.radiusMedium,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.share_rounded,
+                        color: AppTheme.textSecondary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Share',
+                        style: AppTheme.labelMedium.copyWith(
+                          color: AppTheme.textSecondary,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );

@@ -8,7 +8,7 @@ import 'entities_screen.dart';
 import 'circle_screen.dart';
 import 'groups_screen.dart';
 import 'messages_screen.dart';
-import 'profile_screen.dart';
+import 'user_profile_screen.dart';
 import 'login_screen.dart';
 import 'write_review_screen.dart';
 
@@ -31,7 +31,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     const GroupsScreen(),
     const CircleScreen(),
     const MessagesScreen(),
-    const ProfileScreen(),
+    const UserProfileScreen(),
   ];
 
   @override
