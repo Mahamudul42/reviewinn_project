@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 // ============================================================================
 // CHANGE THIS TO SWITCH THEMES - Available: purple, emerald, teal, coral, cyan, rose
 // ============================================================================
-const String CURRENT_THEME = 'emerald';  // 👈 Change this to test different colors!
+const String CURRENT_THEME = 'purple';  // 👈 Change this to test different colors!
 // ============================================================================
 
 enum ThemeColor {

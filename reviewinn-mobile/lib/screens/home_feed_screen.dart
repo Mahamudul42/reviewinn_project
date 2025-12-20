@@ -106,7 +106,8 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> with SingleTickerProvid
                 elevation: _isCollapsed ? 1 : 0,
                 toolbarHeight: _isCollapsed ? 56 : 120,
                 flexibleSpace: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
                   decoration: BoxDecoration(
                     color: AppTheme.primaryPurple,
                     boxShadow: _isCollapsed
@@ -125,49 +126,82 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> with SingleTickerProvid
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Logo and title (hide when collapsed)
-                          if (!_isCollapsed) ...[
-                            const SizedBox(height: 12),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(6),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Icon(
-                                    Icons.rate_review_rounded,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                const Text(
-                                  'ReviewInn',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                    fontSize: 22,
-                                  ),
-                                ),
-                              ],
+                          // Logo and title (fade and slide animation)
+                          AnimatedOpacity(
+                            opacity: _isCollapsed ? 0.0 : 1.0,
+                            duration: const Duration(milliseconds: 250),
+                            child: AnimatedSlide(
+                              offset: _isCollapsed ? const Offset(0, -0.5) : Offset.zero,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                              child: !_isCollapsed
+                                  ? Column(
+                                      children: [
+                                        const SizedBox(height: 12),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.all(6),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white.withOpacity(0.2),
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: const Icon(
+                                                Icons.rate_review_rounded,
+                                                color: Colors.white,
+                                                size: 20,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            const Text(
+                                              'ReviewInn',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white,
+                                                fontSize: 22,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 16),
+                                      ],
+                                    )
+                                  : const SizedBox.shrink(),
                             ),
-                            const SizedBox(height: 16),
-                          ],
+                          ),
                           // Search bar (Facebook-style)
                           Row(
                             children: [
-                              if (_isCollapsed)
-                                const Padding(
-                                  padding: EdgeInsets.only(right: 12),
-                                  child: Icon(
-                                    Icons.rate_review_rounded,
-                                    color: Colors.white,
-                                    size: 24,
-                                  ),
+                              // Animated review icon that slides in smoothly
+                              AnimatedSize(
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeInOut,
+                                child: AnimatedOpacity(
+                                  opacity: _isCollapsed ? 1.0 : 0.0,
+                                  duration: const Duration(milliseconds: 250),
+                                  child: _isCollapsed
+                                      ? Padding(
+                                          padding: const EdgeInsets.only(right: 12),
+                                          child: TweenAnimationBuilder<double>(
+                                            tween: Tween(begin: 0.0, end: 1.0),
+                                            duration: const Duration(milliseconds: 350),
+                                            curve: Curves.elasticOut,
+                                            builder: (context, value, child) {
+                                              return Transform.scale(
+                                                scale: value,
+                                                child: const Icon(
+                                                  Icons.rate_review_rounded,
+                                                  color: Colors.white,
+                                                  size: 24,
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        )
+                                      : const SizedBox.shrink(),
                                 ),
+                              ),
                               Expanded(
                                 child: GestureDetector(
                                   onTap: () {
@@ -218,7 +252,12 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> with SingleTickerProvid
                               _buildNotificationButton(),
                             ],
                           ),
-                          if (!_isCollapsed) const SizedBox(height: 12),
+                          // Add smooth spacing animation
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                            height: _isCollapsed ? 0 : 12,
+                          ),
                         ],
                       ),
                     ),
