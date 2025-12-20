@@ -30,6 +30,8 @@ class _ReviewDetailModalState extends State<ReviewDetailModal> {
   late int likesCount;
   late bool isHelpful;
   late int helpfulCount;
+  late bool isNotHelpful;
+  late int notHelpfulCount;
 
   @override
   void initState() {
@@ -39,6 +41,8 @@ class _ReviewDetailModalState extends State<ReviewDetailModal> {
     likesCount = widget.review.likesCount ?? 0;
     isHelpful = widget.review.isHelpful ?? false;
     helpfulCount = widget.review.helpfulCount ?? 0;
+    isNotHelpful = widget.review.isNotHelpful ?? false;
+    notHelpfulCount = widget.review.notHelpfulCount ?? 0;
   }
 
   String _formatDate(DateTime? date) {
@@ -707,58 +711,115 @@ Shared from ReviewInn App''';
           ],
         ),
         const SizedBox(height: AppTheme.spaceM),
-        // Helpful Vote Button
-        InkWell(
-          onTap: () {
-            setState(() {
-              isHelpful = !isHelpful;
-              helpfulCount += isHelpful ? 1 : -1;
-            });
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  isHelpful 
-                    ? 'Thank you! Your feedback helps others.' 
-                    : 'Feedback removed'
-                ),
-                duration: const Duration(seconds: 2),
-                backgroundColor: AppTheme.successGreen,
-              ),
-            );
-          },
-          child: Container(
-            padding: const EdgeInsets.all(AppTheme.spaceM),
-            decoration: BoxDecoration(
-              gradient: isHelpful ? AppTheme.greenGradient : null,
-              color: isHelpful ? null : AppTheme.backgroundLight,
-              borderRadius: AppTheme.radiusMedium,
-              border: Border.all(
-                color: isHelpful ? AppTheme.successGreen : AppTheme.borderLight,
-                width: 2,
+        // Helpful Vote Section
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Was this review helpful?',
+              style: AppTheme.labelMedium.copyWith(
+                fontSize: 14,
+                color: AppTheme.textSecondary,
               ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  isHelpful ? Icons.thumb_up_rounded : Icons.thumb_up_outlined,
-                  color: isHelpful ? Colors.white : AppTheme.successGreen,
-                  size: 20,
+            const SizedBox(height: AppTheme.spaceS),
+            // Vote counts and percentage
+            if (helpfulCount > 0 || notHelpfulCount > 0)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppTheme.spaceS),
+                child: Text(
+                  _getHelpfulPercentageText(),
+                  style: AppTheme.bodySmall.copyWith(
+                    color: AppTheme.textTertiary,
+                  ),
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  isHelpful 
-                    ? 'Marked as Helpful ($helpfulCount)' 
-                    : 'Was this review helpful? ($helpfulCount people found this helpful)',
-                  style: AppTheme.labelMedium.copyWith(
-                    color: isHelpful ? Colors.white : AppTheme.textSecondary,
-                    fontSize: 14,
-                    fontWeight: isHelpful ? FontWeight.bold : FontWeight.normal,
+              ),
+            // Helpful and Not Helpful Buttons
+            Row(
+              children: [
+                // Helpful Button
+                Expanded(
+                  child: InkWell(
+                    onTap: _onHelpfulTap,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppTheme.spaceM,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: isHelpful ? AppTheme.greenGradient : null,
+                        color: isHelpful ? null : AppTheme.backgroundLight,
+                        borderRadius: AppTheme.radiusMedium,
+                        border: Border.all(
+                          color: isHelpful ? AppTheme.successGreen : AppTheme.borderLight,
+                          width: 2,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.thumb_up_rounded,
+                            color: isHelpful ? Colors.white : AppTheme.successGreen,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Yes ($helpfulCount)',
+                            style: AppTheme.labelMedium.copyWith(
+                              color: isHelpful ? Colors.white : AppTheme.textSecondary,
+                              fontSize: 14,
+                              fontWeight: isHelpful ? FontWeight.bold : FontWeight.normal,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppTheme.spaceM),
+                // Not Helpful Button
+                Expanded(
+                  child: InkWell(
+                    onTap: _onNotHelpfulTap,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppTheme.spaceM,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isNotHelpful 
+                            ? AppTheme.errorRed.withOpacity(0.1) 
+                            : AppTheme.backgroundLight,
+                        borderRadius: AppTheme.radiusMedium,
+                        border: Border.all(
+                          color: isNotHelpful ? AppTheme.errorRed : AppTheme.borderLight,
+                          width: 2,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.thumb_down_rounded,
+                            color: isNotHelpful ? AppTheme.errorRed : AppTheme.textTertiary,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'No ($notHelpfulCount)',
+                            style: AppTheme.labelMedium.copyWith(
+                              color: isNotHelpful ? AppTheme.errorRed : AppTheme.textSecondary,
+                              fontSize: 14,
+                              fontWeight: isNotHelpful ? FontWeight.bold : FontWeight.normal,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
-          ),
+          ],
         ),
       ],
     );
@@ -1011,6 +1072,237 @@ Shared from ReviewInn App''';
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  // Helper methods for vote handling
+  void _onHelpfulTap() {
+    if (isNotHelpful) {
+      // If user already voted not helpful, remove that vote first
+      setState(() {
+        isNotHelpful = false;
+        notHelpfulCount--;
+      });
+    }
+    
+    setState(() {
+      isHelpful = !isHelpful;
+      helpfulCount += isHelpful ? 1 : -1;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isHelpful 
+            ? 'Thank you! Your feedback helps others.' 
+            : 'Vote removed'
+        ),
+        duration: const Duration(seconds: 2),
+        backgroundColor: AppTheme.successGreen,
+      ),
+    );
+  }
+
+  void _onNotHelpfulTap() {
+    if (isHelpful) {
+      // If user already voted helpful, remove that vote first
+      setState(() {
+        isHelpful = false;
+        helpfulCount--;
+      });
+    }
+
+    if (!isNotHelpful) {
+      // Show reason selection modal when marking as not helpful
+      _showNotHelpfulReasonModal();
+    } else {
+      // Remove not helpful vote
+      setState(() {
+        isNotHelpful = false;
+        notHelpfulCount--;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Vote removed'),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+    }
+  }
+
+  String _getHelpfulPercentageText() {
+    final total = helpfulCount + notHelpfulCount;
+    if (total == 0) return '';
+    
+    final percentage = ((helpfulCount / total) * 100).round();
+    return '$helpfulCount of $total people found this helpful ($percentage%)';
+  }
+
+  void _showNotHelpfulReasonModal() {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(AppTheme.spaceXL),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.flag_outlined,
+                  color: AppTheme.errorRed,
+                ),
+                const SizedBox(width: AppTheme.spaceM),
+                Expanded(
+                  child: Text(
+                    'Why wasn\'t this review helpful?',
+                    style: AppTheme.headingSmall.copyWith(
+                      fontSize: 18,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppTheme.spaceS),
+            Text(
+              'Your feedback helps us improve review quality',
+              style: AppTheme.bodySmall.copyWith(
+                color: AppTheme.textSecondary,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spaceL),
+            _buildReasonOption(
+              icon: Icons.warning_amber_rounded,
+              title: 'Fake or suspicious',
+              subtitle: 'This review appears to be fake or fraudulent',
+              onTap: () => _submitNotHelpfulWithReason('fake'),
+            ),
+            _buildReasonOption(
+              icon: Icons.theater_comedy_rounded,
+              title: 'Misleading information',
+              subtitle: 'Contains false or exaggerated claims',
+              onTap: () => _submitNotHelpfulWithReason('misleading'),
+            ),
+            _buildReasonOption(
+              icon: Icons.edit_off_rounded,
+              title: 'Not relevant',
+              subtitle: 'Review is not about this product/service',
+              onTap: () => _submitNotHelpfulWithReason('not_relevant'),
+            ),
+            _buildReasonOption(
+              icon: Icons.report_outlined,
+              title: 'Inappropriate content',
+              subtitle: 'Contains offensive or inappropriate language',
+              onTap: () => _submitNotHelpfulWithReason('inappropriate'),
+            ),
+            _buildReasonOption(
+              icon: Icons.block_outlined,
+              title: 'Spam',
+              subtitle: 'This review is spam or repetitive',
+              onTap: () => _submitNotHelpfulWithReason('spam'),
+            ),
+            const SizedBox(height: AppTheme.spaceM),
+            SizedBox(
+              width: double.infinity,
+              child: TextButton(
+                onPressed: () => _submitNotHelpfulWithReason('other'),
+                child: Text('Other reason'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReasonOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: AppTheme.radiusMedium,
+      child: Container(
+        padding: const EdgeInsets.all(AppTheme.spaceM),
+        margin: const EdgeInsets.only(bottom: AppTheme.spaceS),
+        decoration: BoxDecoration(
+          border: Border.all(color: AppTheme.borderLight),
+          borderRadius: AppTheme.radiusMedium,
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(AppTheme.spaceS),
+              decoration: BoxDecoration(
+                color: AppTheme.errorRed.withOpacity(0.1),
+                borderRadius: AppTheme.radiusSmall,
+              ),
+              child: Icon(
+                icon,
+                color: AppTheme.errorRed,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: AppTheme.spaceM),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: AppTheme.labelMedium.copyWith(
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: AppTheme.bodySmall.copyWith(
+                      color: AppTheme.textTertiary,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 16,
+              color: AppTheme.textTertiary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _submitNotHelpfulWithReason(String reason) {
+    Navigator.pop(context); // Close reason modal
+    
+    setState(() {
+      isNotHelpful = true;
+      notHelpfulCount++;
+    });
+
+    // TODO: Send reason to backend
+    // API call: POST /reviews/{id}/not-helpful with body: { reason: reason }
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Thank you for your feedback. We\'ll review this.'),
+        duration: const Duration(seconds: 2),
+        backgroundColor: AppTheme.infoBlue,
       ),
     );
   }

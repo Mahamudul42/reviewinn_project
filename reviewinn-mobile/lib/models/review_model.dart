@@ -21,9 +21,11 @@ class Review {
   final int? likesCount;
   final int? commentsCount;
   final int? helpfulCount;
+  final int? notHelpfulCount;
   final int? viewCount;
   final bool? isLiked;
   final bool? isHelpful;
+  final bool? isNotHelpful;
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final List<String>? pros;
@@ -57,9 +59,11 @@ class Review {
     this.likesCount,
     this.commentsCount,
     this.helpfulCount,
+    this.notHelpfulCount,
     this.viewCount,
     this.isLiked,
     this.isHelpful,
+    this.isNotHelpful,
     this.createdAt,
     this.updatedAt,
     this.pros,
@@ -161,9 +165,11 @@ class Review {
       likesCount: json['likes_count'] ?? 0,
       commentsCount: json['comments_count'] ?? 0,
       helpfulCount: json['helpful_count'] ?? 0,
+      notHelpfulCount: json['not_helpful_count'] ?? 0,
       viewCount: json['view_count'] ?? 0,
       isLiked: json['is_liked'] ?? false,
       isHelpful: json['is_helpful'] ?? false,
+      isNotHelpful: json['is_not_helpful'] ?? false,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
           : null,
