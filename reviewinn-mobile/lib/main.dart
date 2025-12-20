@@ -4,6 +4,7 @@ import 'providers/auth_provider.dart';
 import 'providers/entity_provider.dart';
 import 'providers/review_provider.dart';
 import 'providers/theme_provider.dart';
+import 'providers/draft_provider.dart';
 import 'screens/main_screen.dart';
 
 void main() {
@@ -21,6 +22,7 @@ class ReviewInnApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => EntityProvider()),
         ChangeNotifierProvider(create: (_) => ReviewProvider()),
+        ChangeNotifierProvider(create: (_) => DraftProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {

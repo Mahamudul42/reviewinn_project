@@ -100,6 +100,59 @@ class _ReviewDetailModalState extends State<ReviewDetailModal> {
                         style: AppTheme.headingMedium,
                       ),
                     ),
+                    // More Options Menu
+                    PopupMenuButton<String>(
+                      icon: Icon(Icons.more_vert, color: AppTheme.textSecondary),
+                      onSelected: (value) {
+                        switch (value) {
+                          case 'edit':
+                            _handleEditReview();
+                            break;
+                          case 'delete':
+                            _handleDeleteReview();
+                            break;
+                          case 'report':
+                            _handleReportReview();
+                            break;
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        // Show edit/delete only for user's own reviews
+                        if (_isOwnReview()) ...[
+                          PopupMenuItem(
+                            value: 'edit',
+                            child: Row(
+                              children: [
+                                Icon(Icons.edit, color: AppTheme.primaryColor, size: 20),
+                                SizedBox(width: 12),
+                                Text('Edit Review', style: TextStyle(color: AppTheme.textPrimary)),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                Icon(Icons.delete, color: Colors.red, size: 20),
+                                SizedBox(width: 12),
+                                Text('Delete Review', style: TextStyle(color: Colors.red)),
+                              ],
+                            ),
+                          ),
+                        ] else ...[
+                          PopupMenuItem(
+                            value: 'report',
+                            child: Row(
+                              children: [
+                                Icon(Icons.flag, color: Colors.red, size: 20),
+                                SizedBox(width: 12),
+                                Text('Report Review', style: TextStyle(color: AppTheme.textPrimary)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                     // Bookmark Button
                     IconButton(
                       onPressed: () {
@@ -1255,4 +1308,218 @@ Shared from ReviewInn App''';
       ),
     );
   }
-}
+
+  // Check if this review belongs to the current user
+  bool _isOwnReview() {
+    // TODO: Replace with actual user ID check from auth provider
+    // For now, return false to show report option in demo
+    return false; // Return true if widget.review.userId == currentUser.id
+  }
+
+  void _handleEditReview() {
+    Navigator.pop(context); // Close modal
+    // TODO: Navigate to edit review screen with pre-filled data
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Edit review functionality will be implemented'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _handleDeleteReview() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Delete Review', style: TextStyle(color: AppTheme.textPrimary)),
+        content: Text(
+          'Are you sure you want to delete this review? This action cannot be undone.',
+          style: TextStyle(color: AppTheme.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: AppTheme.textSecondary)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // Close dialog
+              Navigator.pop(context); // Close modal
+              
+              // TODO: Implement actual delete API call
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Review deleted successfully'),
+                  duration: const Duration(seconds: 2),
+                  backgroundColor: AppTheme.successGreen,
+                ),
+              );
+            },
+            child: Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _handleReportReview() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppTheme.backgroundLight,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Report Review',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.close, color: AppTheme.textSecondary),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Why are you reporting this review?',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppTheme.textSecondary,
+                ),
+              ),
+              SizedBox(height: 20),
+              
+              // Report Reasons
+              _buildReportOption(
+                icon: Icons.gpp_bad_outlined,
+                title: 'Fake or misleading',
+                subtitle: 'This review appears to be fake or contains false information',
+                onTap: () => _submitReport('fake'),
+              ),
+              _buildReportOption(
+                icon: Icons.not_interested_outlined,
+                title: 'Not relevant',
+                subtitle: 'This review is not relevant to the entity',
+                onTap: () => _submitReport('not_relevant'),
+              ),
+              _buildReportOption(
+                icon: Icons.report_outlined,
+                title: 'Inappropriate content',
+                subtitle: 'Contains offensive, hateful, or inappropriate language',
+                onTap: () => _submitReport('inappropriate'),
+              ),
+              _buildReportOption(
+                icon: Icons.block_outlined,
+                title: 'Spam',
+                subtitle: 'This review is spam, repetitive, or promotional',
+                onTap: () => _submitReport('spam'),
+              ),
+              _buildReportOption(
+                icon: Icons.person_off_outlined,
+                title: 'Harassment',
+                subtitle: 'This review is harassing or threatening',
+                onTap: () => _submitReport('harassment'),
+              ),
+              SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => _submitReport('other'),
+                  child: Text('Other reason', style: TextStyle(color: AppTheme.primaryColor)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReportOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: EdgeInsets.all(16),
+        margin: EdgeInsets.only(bottom: 8),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey[300]!),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: Colors.red, size: 24),
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_forward_ios, size: 16, color: AppTheme.textSecondary),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _submitReport(String reason) {
+    Navigator.pop(context); // Close report modal
+    
+    // TODO: Send report to backend
+    // API call: POST /reviews/{id}/report with body: { reason: reason }
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Thank you for reporting. We\'ll review this content.'),
+        duration: const Duration(seconds: 2),
+        backgroundColor: AppTheme.warningOrange,
+      ),
+    );
+  }

@@ -354,6 +354,9 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
   }
 
   Widget _buildLockedBadge(BadgeModel badge) {
+    // Mock progress data - replace with actual user progress
+    final progress = _getBadgeProgress(badge.type);
+    
     return Opacity(
       opacity: 0.6,
       child: Container(
@@ -427,9 +430,53 @@ class _BadgesScreenState extends State<BadgesScreen> with SingleTickerProviderSt
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
+            const SizedBox(height: AppTheme.spaceS),
+            // Progress Bar
+            Column(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: progress['current'] / progress['total'],
+                    backgroundColor: AppTheme.borderLight,
+                    valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryPurple),
+                    minHeight: 6,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${progress['current']}/${progress['total']}',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: AppTheme.textTertiary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
     );
+  }
+
+  // Mock method to get progress - replace with actual user data
+  Map<String, dynamic> _getBadgeProgress(BadgeType type) {
+    switch (type) {
+      case BadgeType.topReviewer:
+        return {'current': 12, 'total': 50};
+      case BadgeType.helpfulContributor:
+        return {'current': 34, 'total': 100};
+      case BadgeType.photoExpert:
+        return {'current': 8, 'total': 25};
+      case BadgeType.entityCreator:
+        return {'current': 2, 'total': 10};
+      case BadgeType.consistentReviewer:
+        return {'current': 4, 'total': 30};
+      case BadgeType.trendsetter:
+        return {'current': 1, 'total': 5};
+      default:
+        return {'current': 0, 'total': 1};
+    }
   }
 }

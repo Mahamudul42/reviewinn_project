@@ -11,6 +11,8 @@ import '../widgets/beautiful_review_card.dart';
 import '../widgets/entity_card.dart';
 import '../widgets/badge_widget.dart';
 import 'badges_screen.dart';
+import 'settings_screen.dart';
+import 'review_stats_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final int? userId; // If null, show current user's profile
@@ -273,12 +275,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
           IconButton(
             icon: Icon(Icons.settings_rounded, color: Colors.white),
             onPressed: () {
-              // Navigate to settings
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Settings coming soon!'),
-                  duration: Duration(seconds: 1),
-                ),
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SettingsScreen()),
               );
             },
           ),
@@ -332,36 +331,68 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
               
               // Stats
               Expanded(
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                child: GestureDetector(
+                  onTap: _isCurrentUser ? () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => ReviewStatsScreen()),
+                    );
+                  } : null,
+                  child: Container(
+                    padding: EdgeInsets.all(8),
+                    decoration: _isCurrentUser ? BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppTheme.primaryColor.withOpacity(0.2)),
+                    ) : null,
+                    child: Column(
                       children: [
-                        _buildStatItem(
-                          _userData['reviewsCount'].toString(),
-                          'Reviews',
+                        if (_isCurrentUser)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.bar_chart, size: 14, color: AppTheme.primaryColor),
+                              SizedBox(width: 4),
+                              Text(
+                                'View Stats',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppTheme.primaryColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        if (_isCurrentUser) SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _buildStatItem(
+                              _userData['reviewsCount'].toString(),
+                              'Reviews',
+                            ),
+                            _buildStatItem(
+                              _userData['entitiesCount'].toString(),
+                              'Entities',
+                            ),
+                          ],
                         ),
-                        _buildStatItem(
-                          _userData['entitiesCount'].toString(),
-                          'Entities',
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _buildStatItem(
+                              _formatCount(_userData['followersCount'] as int),
+                              'Followers',
+                            ),
+                            _buildStatItem(
+                              _formatCount(_userData['followingCount'] as int),
+                              'Following',
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _buildStatItem(
-                          _formatCount(_userData['followersCount'] as int),
-                          'Followers',
-                        ),
-                        _buildStatItem(
-                          _formatCount(_userData['followingCount'] as int),
-                          'Following',
-                        ),
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ],
