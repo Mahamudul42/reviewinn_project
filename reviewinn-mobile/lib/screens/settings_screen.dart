@@ -282,7 +282,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w600,
-          color: AppTheme.primaryColor,
+          color: AppTheme.primaryPurple,
           letterSpacing: 1,
         ),
       ),
@@ -299,10 +299,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       leading: Container(
         padding: EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: AppTheme.primaryColor.withOpacity(0.1),
+          color: AppTheme.primaryPurple.withOpacity(0.1),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon, color: AppTheme.primaryColor, size: 20),
+        child: Icon(icon, color: AppTheme.primaryPurple, size: 20),
       ),
       title: Text(
         title,
@@ -336,10 +336,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       leading: Container(
         padding: EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: AppTheme.primaryColor.withOpacity(0.1),
+          color: AppTheme.primaryPurple.withOpacity(0.1),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon, color: AppTheme.primaryColor, size: 20),
+        child: Icon(icon, color: AppTheme.primaryPurple, size: 20),
       ),
       title: Text(
         title,
@@ -360,7 +360,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       trailing: Switch(
         value: value,
         onChanged: onChanged,
-        activeColor: AppTheme.primaryColor,
+        activeColor: AppTheme.primaryPurple,
       ),
     );
   }
@@ -393,7 +393,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         setState(() => _language = value!);
         Navigator.pop(context);
       },
-      activeColor: AppTheme.primaryColor,
+      activeColor: AppTheme.primaryPurple,
     );
   }
 
@@ -419,7 +419,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 SnackBar(content: Text('Cache cleared successfully')),
               );
             },
-            child: Text('Clear', style: TextStyle(color: AppTheme.primaryColor)),
+            child: Text('Clear', style: TextStyle(color: AppTheme.primaryPurple)),
           ),
         ],
       ),
@@ -446,7 +446,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Close', style: TextStyle(color: AppTheme.primaryColor)),
+            child: Text('Close', style: TextStyle(color: AppTheme.primaryPurple)),
           ),
         ],
       ),

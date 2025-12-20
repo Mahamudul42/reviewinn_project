@@ -342,7 +342,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
                     padding: EdgeInsets.all(8),
                     decoration: _isCurrentUser ? BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppTheme.primaryColor.withOpacity(0.2)),
+                      border: Border.all(color: AppTheme.primaryPurple.withOpacity(0.2)),
                     ) : null,
                     child: Column(
                       children: [
@@ -350,13 +350,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.bar_chart, size: 14, color: AppTheme.primaryColor),
+                              Icon(Icons.bar_chart, size: 14, color: AppTheme.primaryPurple),
                               SizedBox(width: 4),
                               Text(
                                 'View Stats',
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: AppTheme.primaryColor,
+                                  color: AppTheme.primaryPurple,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),

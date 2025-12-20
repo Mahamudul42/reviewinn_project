@@ -123,7 +123,7 @@ class _ReviewDetailModalState extends State<ReviewDetailModal> {
                             value: 'edit',
                             child: Row(
                               children: [
-                                Icon(Icons.edit, color: AppTheme.primaryColor, size: 20),
+                                Icon(Icons.edit, color: AppTheme.primaryPurple, size: 20),
                                 SizedBox(width: 12),
                                 Text('Edit Review', style: TextStyle(color: AppTheme.textPrimary)),
                               ],
@@ -1442,7 +1442,7 @@ Shared from ReviewInn App''';
                 width: double.infinity,
                 child: TextButton(
                   onPressed: () => _submitReport('other'),
-                  child: Text('Other reason', style: TextStyle(color: AppTheme.primaryColor)),
+                  child: Text('Other reason', style: TextStyle(color: AppTheme.primaryPurple)),
                 ),
               ),
             ],
@@ -1522,4 +1522,4 @@ Shared from ReviewInn App''';
         backgroundColor: AppTheme.warningOrange,
       ),
     );
-  }
+  }}

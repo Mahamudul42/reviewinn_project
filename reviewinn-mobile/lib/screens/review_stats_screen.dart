@@ -72,7 +72,7 @@ class _ReviewStatsScreenState extends State<ReviewStatsScreen> {
                           'Total Reviews',
                           totalReviews.toString(),
                           Icons.rate_review,
-                          AppTheme.primaryColor,
+                          AppTheme.primaryPurple,
                         ),
                       ),
                       SizedBox(width: 12),
@@ -226,7 +226,7 @@ class _ReviewStatsScreenState extends State<ReviewStatsScreen> {
                     padding: EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
+                        colors: [AppTheme.primaryPurple, Color(0xFF8B5CF6)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -340,7 +340,7 @@ class _ReviewStatsScreenState extends State<ReviewStatsScreen> {
                   child: Container(
                     height: 8,
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryColor,
+                      color: AppTheme.primaryPurple,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -409,10 +409,10 @@ class _ReviewStatsScreenState extends State<ReviewStatsScreen> {
           Container(
             padding: EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withOpacity(0.1),
+              color: AppTheme.primaryPurple.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: AppTheme.primaryColor, size: 20),
+            child: Icon(icon, color: AppTheme.primaryPurple, size: 20),
           ),
           SizedBox(width: 12),
           Expanded(
@@ -429,7 +429,7 @@ class _ReviewStatsScreenState extends State<ReviewStatsScreen> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: AppTheme.primaryColor,
+              color: AppTheme.primaryPurple,
             ),
           ),
         ],

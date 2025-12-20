@@ -83,7 +83,7 @@ class _FilterSortBottomSheetState extends State<FilterSortBottomSheet> {
                     _showWithPhotosOnly = false;
                   });
                 },
-                child: Text('Reset', style: TextStyle(color: AppTheme.primaryColor)),
+                child: Text('Reset', style: TextStyle(color: AppTheme.primaryPurple)),
               ),
             ],
           ),
@@ -166,7 +166,7 @@ class _FilterSortBottomSheetState extends State<FilterSortBottomSheet> {
                 });
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
+                backgroundColor: AppTheme.primaryPurple,
                 padding: EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -195,29 +195,29 @@ class _FilterSortBottomSheetState extends State<FilterSortBottomSheet> {
         padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         margin: EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primaryColor.withOpacity(0.1) : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected ? AppTheme.primaryColor : Colors.grey[300]!,
+        color: isSelected ? AppTheme.primaryPurple.withOpacity(0.1) : Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isSelected ? AppTheme.primaryPurple : Colors.grey[300]!,
             width: isSelected ? 2 : 1,
           ),
         ),
         child: Row(
           children: [
-            Icon(icon, color: isSelected ? AppTheme.primaryColor : AppTheme.textSecondary, size: 20),
+            Icon(icon, color: isSelected ? AppTheme.primaryPurple : AppTheme.textSecondary, size: 20),
             SizedBox(width: 12),
             Expanded(
               child: Text(
                 label,
                 style: TextStyle(
                   fontSize: 14,
-                  color: isSelected ? AppTheme.primaryColor : AppTheme.textPrimary,
+                  color: isSelected ? AppTheme.primaryPurple : AppTheme.textPrimary,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                 ),
               ),
             ),
             if (isSelected)
-              Icon(Icons.check_circle, color: AppTheme.primaryColor, size: 20),
+              Icon(Icons.check_circle, color: AppTheme.primaryPurple, size: 20),
           ],
         ),
       ),
@@ -232,10 +232,10 @@ class _FilterSortBottomSheetState extends State<FilterSortBottomSheet> {
         padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         margin: EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primaryColor.withOpacity(0.1) : Colors.transparent,
+          color: isSelected ? AppTheme.primaryPurple.withOpacity(0.1) : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isSelected ? AppTheme.primaryColor : Colors.grey[300]!,
+            color: isSelected ? AppTheme.primaryPurple : Colors.grey[300]!,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -253,13 +253,13 @@ class _FilterSortBottomSheetState extends State<FilterSortBottomSheet> {
                 label,
                 style: TextStyle(
                   fontSize: 14,
-                  color: isSelected ? AppTheme.primaryColor : AppTheme.textPrimary,
+                  color: isSelected ? AppTheme.primaryPurple : AppTheme.textPrimary,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                 ),
               ),
             ),
             if (isSelected)
-              Icon(Icons.check_circle, color: AppTheme.primaryColor, size: 20),
+              Icon(Icons.check_circle, color: AppTheme.primaryPurple, size: 20),
           ],
         ),
       ),
@@ -277,7 +277,7 @@ class _FilterSortBottomSheetState extends State<FilterSortBottomSheet> {
       ),
       value: value,
       onChanged: onChanged,
-      activeColor: AppTheme.primaryColor,
+      activeColor: AppTheme.primaryPurple,
       contentPadding: EdgeInsets.zero,
       controlAffinity: ListTileControlAffinity.leading,
     );

@@ -15,13 +15,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       title: 'Discover Amazing Places',
       description: 'Find the best restaurants, cafes, hotels, and more based on real reviews from real people.',
       image: Icons.explore,
-      color: AppTheme.primaryColor,
+      color: AppTheme.primaryPurple,
     ),
     OnboardingPage(
       title: 'Share Your Experiences',
       description: 'Write reviews, upload photos, and share your experiences to help others make better decisions.',
       image: Icons.rate_review,
-      color: AppTheme.secondaryColor,
+      color: AppTheme.secondaryPurple,
     ),
     OnboardingPage(
       title: 'Join Groups & Communities',
