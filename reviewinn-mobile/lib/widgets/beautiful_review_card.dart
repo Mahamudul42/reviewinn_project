@@ -5,6 +5,7 @@ import '../models/review_model.dart';
 import '../config/app_theme.dart';
 import 'purple_star_rating.dart';
 import 'review_detail_modal.dart';
+import 'entity_info.dart';
 
 class BeautifulReviewCard extends StatefulWidget {
   final Review review;
@@ -439,278 +440,25 @@ class _BeautifulReviewCardState extends State<BeautifulReviewCard>
           ),
         ],
       ),
-      child: Row(
-        children: [
-          // Entity Avatar - Much larger and more prominent
-          if (widget.review.entityAvatar != null)
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: CachedNetworkImage(
-                  imageUrl: widget.review.entityAvatar!,
-                  width: 64,
-                  height: 64,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    width: 64,
-                    height: 64,
-                    color: AppTheme.backgroundLight,
-                    child: Icon(
-                      Icons.business_rounded,
-                      size: 32,
-                      color: AppTheme.primaryPurple.withOpacity(0.4),
-                    ),
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    width: 64,
-                    height: 64,
-                    color: AppTheme.backgroundLight,
-                    child: Icon(
-                      Icons.business_rounded,
-                      size: 32,
-                      color: AppTheme.primaryPurple.withOpacity(0.4),
-                    ),
-                  ),
-                ),
-              ),
-            )
-          else
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: AppTheme.primaryPurple.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.business_rounded,
-                size: 32,
-                color: AppTheme.primaryPurple,
-              ),
-            ),
-          const SizedBox(width: AppTheme.spaceM),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.verified,
-                      size: 16,
-                      color: AppTheme.primaryPurple,
-                    ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        widget.review.entityName!,
-                        style: AppTheme.labelMedium.copyWith(
-                          color: AppTheme.textPrimary,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                // Rating and review count
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 6,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    PurpleStarRating(
-                      rating: widget.review.rating,
-                      maxRating: 5,
-                      size: 20,
-                      showValue: true,
-                    ),
-                    // Entity review count
-                    if (widget.review.entityReviewCount != null)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppTheme.infoBlue.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(
-                            color: AppTheme.infoBlue.withOpacity(0.3),
-                            width: 1,
-                          ),
-                        ),
-                        child: Text(
-                          '${widget.review.entityReviewCount} review${widget.review.entityReviewCount! > 1 ? 's' : ''}',
-                          style: AppTheme.labelSmall.copyWith(
-                            color: AppTheme.infoBlue,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                // Category badges
-                _buildEntityCategoryBadges(),
-              ],
-            ),
-          ),
-        ],
+      child: EntityInfo(
+        entityName: widget.review.entityName,
+        entityAvatar: widget.review.entityAvatar,
+        rootCategoryName: widget.review.entityRootCategoryName,
+        finalCategoryName: widget.review.entityFinalCategoryName,
+        rootCategoryId: widget.review.entityRootCategoryId,
+        finalCategoryId: widget.review.entityFinalCategoryId,
+        rootCategoryIcon: widget.review.entityRootCategoryIcon,
+        finalCategoryIcon: widget.review.entityFinalCategoryIcon,
+        rating: widget.review.rating,
+        reviewCount: widget.review.entityReviewCount,
+        avatarSize: 64,
+        nameSize: 15,
+        ratingSize: 20,
+        showDescription: false,
+        showAvatar: true,
+        showVerifiedIcon: true,
+        maxDescriptionLines: 0,
       ),
-    );
-  }
-
-  Widget _buildEntityCategoryBadges() {
-    final rootCategory = widget.review.entityRootCategoryName;
-    final finalCategory = widget.review.entityFinalCategoryName;
-    final rootCategoryId = widget.review.entityRootCategoryId;
-    final finalCategoryId = widget.review.entityFinalCategoryId;
-    final rootIcon = widget.review.entityRootCategoryIcon ?? '📁';
-    final finalIcon = widget.review.entityFinalCategoryIcon ?? '🏷️';
-
-    // Debug output
-    print('🐛 Entity: ${widget.review.entityName}');
-    print('🐛 Root: $rootCategory (ID: $rootCategoryId, Icon: $rootIcon)');
-    print('🐛 Final: $finalCategory (ID: $finalCategoryId, Icon: $finalIcon)');
-    print('🐛 Review Count: ${widget.review.entityReviewCount}');
-
-    // If no categories, don't show anything
-    if (rootCategory == null && finalCategory == null) {
-      print('🐛 No categories found - returning empty widget');
-      return const SizedBox.shrink();
-    }
-
-    // Check if root and final are the same
-    final isSameCategory = rootCategoryId != null &&
-                           finalCategoryId != null &&
-                           rootCategoryId == finalCategoryId;
-
-    return Wrap(
-      spacing: 6,
-      runSpacing: 6,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        // Show only one purple badge if root and final are the same
-        if (isSameCategory && finalCategory != null)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: AppTheme.primaryPurple.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: AppTheme.primaryPurple.withOpacity(0.3),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  finalIcon,
-                  style: const TextStyle(fontSize: 10),
-                ),
-                const SizedBox(width: 3),
-                Text(
-                  finalCategory,
-                  style: AppTheme.labelSmall.copyWith(
-                    color: AppTheme.primaryPurple,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-        // Show both categories if they're different
-        if (!isSameCategory) ...[
-          // Root Category (Blue)
-          if (rootCategory != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: AppTheme.infoBlue.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: AppTheme.infoBlue.withOpacity(0.3),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    rootIcon,
-                    style: const TextStyle(fontSize: 10),
-                  ),
-                  const SizedBox(width: 3),
-                  Text(
-                    rootCategory,
-                    style: AppTheme.labelSmall.copyWith(
-                      color: AppTheme.infoBlue,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 11,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          // Arrow separator
-          if (rootCategory != null && finalCategory != null)
-            Text(
-              '→',
-              style: TextStyle(
-                fontSize: 11,
-                color: AppTheme.textTertiary,
-              ),
-            ),
-
-          // Final Category (Green)
-          if (finalCategory != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: AppTheme.successGreen.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: AppTheme.successGreen.withOpacity(0.3),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    finalIcon,
-                    style: const TextStyle(fontSize: 10),
-                  ),
-                  const SizedBox(width: 3),
-                  Text(
-                    finalCategory,
-                    style: AppTheme.labelSmall.copyWith(
-                      color: AppTheme.successGreen,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 11,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ],
     );
   }
 

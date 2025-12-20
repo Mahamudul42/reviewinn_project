@@ -52,54 +52,74 @@ is_flutter_running() {
     fi
 }
 
-# Function to hot reload
+# Function to show hot reload instructions
 hot_reload() {
-    print_info "Triggering hot reload..."
+    print_header "Hot Reload Instructions"
+    echo ""
 
-    # Find the Flutter process
-    FLUTTER_PID=$(pgrep -f "flutter run.*web-server" | head -1)
-
-    if [ -z "$FLUTTER_PID" ]; then
+    if is_flutter_running; then
+        print_success "Flutter is running!"
+        echo ""
+        print_info "To hot reload your changes:"
+        echo "  1. Go to the terminal where Flutter is running"
+        echo "  2. Press 'r' (lowercase) and hit Enter"
+        echo "  3. Changes will appear in 1-2 seconds!"
+        echo ""
+        print_info "Your app is at: ${CYAN}http://localhost:8085${NC}"
+    else
         print_error "Flutter is not running"
-        return 1
+        echo ""
+        print_info "Start Flutter first:"
+        echo "  ./run-dev.sh web"
     fi
-
-    # Send 'r' to stdin (hot reload)
-    echo "r" > /proc/$FLUTTER_PID/fd/0 2>/dev/null || {
-        print_warning "Could not send hot reload command"
-        print_info "You can manually press 'r' in the Flutter terminal"
-    }
-
-    print_success "Hot reload triggered!"
 }
 
-# Function to hot restart
+# Function to show hot restart instructions
 hot_restart() {
-    print_info "Triggering hot restart..."
+    print_header "Hot Restart Instructions"
+    echo ""
 
-    # Find the Flutter process
-    FLUTTER_PID=$(pgrep -f "flutter run.*web-server" | head -1)
-
-    if [ -z "$FLUTTER_PID" ]; then
+    if is_flutter_running; then
+        print_success "Flutter is running!"
+        echo ""
+        print_info "To hot restart your app:"
+        echo "  1. Go to the terminal where Flutter is running"
+        echo "  2. Press 'R' (capital R) and hit Enter"
+        echo "  3. App will restart in 5-10 seconds"
+        echo ""
+        print_warning "Hot restart resets app state!"
+        print_info "Use hot reload (r) when possible - it's faster"
+    else
         print_error "Flutter is not running"
-        return 1
+        echo ""
+        print_info "Start Flutter first:"
+        echo "  ./run-dev.sh web"
     fi
-
-    # Send 'R' to stdin (hot restart)
-    echo "R" > /proc/$FLUTTER_PID/fd/0 2>/dev/null || {
-        print_warning "Could not send hot restart command"
-        print_info "You can manually press 'R' in the Flutter terminal"
-    }
-
-    print_success "Hot restart triggered!"
 }
 
 # Function to start Flutter web server
 start_web() {
     print_info "Starting Flutter web server..."
+    echo ""
 
-    # Kill existing Flutter processes
-    pkill -f "flutter run" 2>/dev/null || true
+    # Check if port 8085 is in use
+    if lsof -Pi :8085 -sTCP:LISTEN -t >/dev/null 2>&1 ; then
+        print_warning "Port 8085 is already in use!"
+        print_info "Stopping existing process..."
+
+        # Kill process using port 8085
+        lsof -ti:8085 | xargs kill -9 2>/dev/null || true
+
+        # Also kill any Flutter processes
+        pkill -9 -f "flutter run" 2>/dev/null || true
+
+        sleep 2
+        print_success "Port 8085 is now free"
+        echo ""
+    else
+        # Still kill any stray Flutter processes
+        pkill -f "flutter run" 2>/dev/null || true
+    fi
 
     print_info "Server will start on http://localhost:8085"
     print_info "Press Ctrl+C to stop the server"
@@ -111,15 +131,45 @@ start_web() {
 # Function to start Flutter on Chrome
 start_chrome() {
     print_info "Starting Flutter on Chrome..."
+    echo ""
 
-    # Kill existing Flutter processes
-    pkill -f "flutter run" 2>/dev/null || true
+    # Kill any existing Flutter processes
+    if pgrep -f "flutter run" > /dev/null; then
+        print_warning "Stopping existing Flutter processes..."
+        pkill -9 -f "flutter run" 2>/dev/null || true
+        sleep 1
+        print_success "Existing processes stopped"
+        echo ""
+    fi
 
     print_info "Chrome will open automatically"
     print_info "Press Ctrl+C to stop"
     echo ""
 
     flutter run -d chrome
+}
+
+# Function to stop all Flutter processes
+stop_all() {
+    print_header "Stopping All Flutter Processes"
+    echo ""
+
+    if pgrep -f "flutter run" > /dev/null; then
+        print_info "Found running Flutter processes"
+        pkill -9 -f "flutter run" 2>/dev/null || true
+        sleep 1
+        print_success "All Flutter processes stopped"
+    else
+        print_info "No Flutter processes running"
+    fi
+
+    # Also free up port 8085 if in use
+    if lsof -Pi :8085 -sTCP:LISTEN -t >/dev/null 2>&1 ; then
+        print_info "Freeing up port 8085..."
+        lsof -ti:8085 | xargs kill -9 2>/dev/null || true
+        sleep 1
+        print_success "Port 8085 is now free"
+    fi
 }
 
 # Function to build APK
@@ -152,8 +202,8 @@ show_menu() {
     clear
     print_header "ReviewInn Mobile - Development Menu"
     echo ""
-    echo "  ${CYAN}1${NC}) Hot Reload (if already running)"
-    echo "  ${CYAN}2${NC}) Hot Restart (if already running)"
+    echo "  ${CYAN}1${NC}) Hot Reload Instructions (press 'r' in Flutter terminal)"
+    echo "  ${CYAN}2${NC}) Hot Restart Instructions (press 'R' in Flutter terminal)"
     echo "  ${CYAN}3${NC}) Start Web Server (http://localhost:8085)"
     echo "  ${CYAN}4${NC}) Start on Chrome"
     echo "  ${CYAN}5${NC}) Build APK (release)"
@@ -251,6 +301,9 @@ else
         clean)
             clean_build
             ;;
+        stop|s)
+            stop_all
+            ;;
         open|o)
             xdg-open http://localhost:8085 2>/dev/null || {
                 print_info "Please visit: http://localhost:8085"
@@ -262,12 +315,13 @@ else
             echo "Usage: ./run-dev.sh [command]"
             echo ""
             echo "Commands:"
-            echo "  reload, r       - Hot reload (if running)"
-            echo "  restart, R      - Hot restart (if running)"
+            echo "  reload, r       - Show hot reload instructions"
+            echo "  restart, R      - Show hot restart instructions"
             echo "  web, w          - Start web server"
             echo "  chrome, c       - Start on Chrome"
             echo "  apk, build, b   - Build APK"
             echo "  clean           - Clean and get dependencies"
+            echo "  stop, s         - Stop all Flutter processes and free port 8085"
             echo "  open, o         - Open browser"
             echo "  help, h         - Show this help"
             echo ""
