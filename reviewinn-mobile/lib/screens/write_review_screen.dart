@@ -375,9 +375,11 @@ class _ReviewFormWidgetState extends State<ReviewFormWidget> {
   final _contentController = TextEditingController();
   
   double _overallRating = 5.0;
-  double _serviceRating = 5.0;
   double _qualityRating = 5.0;
+  double _reliabilityRating = 5.0;
   double _valueRating = 5.0;
+  double _experienceRating = 5.0;
+  double _integrityRating = 5.0;
   
   final List<String> _pros = [];
   final List<String> _cons = [];
@@ -422,16 +424,20 @@ class _ReviewFormWidgetState extends State<ReviewFormWidget> {
         'title': _titleController.text.trim(),
         'content': _contentController.text.trim(),
         'overall_rating': _overallRating,
-        'service_rating': _serviceRating,
         'quality_rating': _qualityRating,
+        'reliability_rating': _reliabilityRating,
         'value_rating': _valueRating,
+        'experience_rating': _experienceRating,
+        'integrity_rating': _integrityRating,
         'pros': _pros,
         'cons': _cons,
         'is_anonymous': _isAnonymous,
         'ratings': {
-          'service': _serviceRating,
           'quality': _qualityRating,
+          'reliability': _reliabilityRating,
           'value': _valueRating,
+          'experience': _experienceRating,
+          'integrity': _integrityRating,
         },
       };
 
@@ -624,13 +630,6 @@ class _ReviewFormWidgetState extends State<ReviewFormWidget> {
 
             // Detailed Ratings
             _buildRatingSection(
-              'Service',
-              _serviceRating,
-              (rating) => setState(() => _serviceRating = rating),
-              false,
-            ),
-            
-            _buildRatingSection(
               'Quality',
               _qualityRating,
               (rating) => setState(() => _qualityRating = rating),
@@ -638,9 +637,30 @@ class _ReviewFormWidgetState extends State<ReviewFormWidget> {
             ),
             
             _buildRatingSection(
-              'Value for Money',
+              'Reliability',
+              _reliabilityRating,
+              (rating) => setState(() => _reliabilityRating = rating),
+              false,
+            ),
+            
+            _buildRatingSection(
+              'Value',
               _valueRating,
               (rating) => setState(() => _valueRating = rating),
+              false,
+            ),
+            
+            _buildRatingSection(
+              'Experience',
+              _experienceRating,
+              (rating) => setState(() => _experienceRating = rating),
+              false,
+            ),
+            
+            _buildRatingSection(
+              'Integrity',
+              _integrityRating,
+              (rating) => setState(() => _integrityRating = rating),
               false,
             ),
 
