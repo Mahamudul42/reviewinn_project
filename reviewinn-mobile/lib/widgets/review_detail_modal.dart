@@ -153,6 +153,10 @@ class ReviewDetailModal extends StatelessWidget {
                     _buildStats(),
                     const SizedBox(height: AppTheme.spaceXL),
 
+                    // Comments Section
+                    _buildCommentsSection(context),
+                    const SizedBox(height: AppTheme.spaceXL),
+
                     // Action buttons
                     _buildActionButtons(),
                   ],
@@ -538,6 +542,257 @@ class ReviewDetailModal extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildCommentsSection(BuildContext context) {
+    // Mock comments data for demonstration
+    final mockComments = [
+      {
+        'username': 'Sarah Johnson',
+        'avatar': 'https://i.pravatar.cc/150?img=1',
+        'content': 'Great review! I had a similar experience. The quality was outstanding.',
+        'timeAgo': '2 hours ago',
+        'likes': 5,
+      },
+      {
+        'username': 'Michael Chen',
+        'avatar': 'https://i.pravatar.cc/150?img=3',
+        'content': 'Thanks for sharing this detailed review. Very helpful!',
+        'timeAgo': '5 hours ago',
+        'likes': 3,
+      },
+      {
+        'username': 'Emily Davis',
+        'avatar': 'https://i.pravatar.cc/150?img=5',
+        'content': 'I disagree with some points, but overall a fair assessment.',
+        'timeAgo': '1 day ago',
+        'likes': 1,
+      },
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Comments Header
+        Container(
+          padding: const EdgeInsets.all(AppTheme.spaceL),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppTheme.infoBlue.withOpacity(0.1),
+                AppTheme.primaryPurple.withOpacity(0.1),
+              ],
+            ),
+            borderRadius: AppTheme.radiusMedium,
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppTheme.infoBlue.withOpacity(0.2),
+                  borderRadius: AppTheme.radiusSmall,
+                ),
+                child: Icon(
+                  Icons.forum_rounded,
+                  color: AppTheme.infoBlue,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: AppTheme.spaceM),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Comments & Discussion',
+                      style: AppTheme.headingSmall.copyWith(
+                        fontSize: 18,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${mockComments.length} comments',
+                      style: AppTheme.bodySmall.copyWith(
+                        color: AppTheme.textTertiary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppTheme.spaceL),
+
+        // Comment Input
+        Container(
+          padding: const EdgeInsets.all(AppTheme.spaceM),
+          decoration: BoxDecoration(
+            color: AppTheme.backgroundLight,
+            borderRadius: AppTheme.radiusMedium,
+            border: Border.all(
+              color: AppTheme.borderLight,
+            ),
+          ),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: AppTheme.primaryPurpleLight.withOpacity(0.2),
+                child: Icon(
+                  Icons.person_rounded,
+                  size: 20,
+                  color: AppTheme.primaryPurple,
+                ),
+              ),
+              const SizedBox(width: AppTheme.spaceM),
+              Expanded(
+                child: Text(
+                  'Add a comment...',
+                  style: AppTheme.bodyMedium.copyWith(
+                    color: AppTheme.textTertiary,
+                  ),
+                ),
+              ),
+              Icon(
+                Icons.send_rounded,
+                color: AppTheme.primaryPurple,
+                size: 20,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppTheme.spaceL),
+
+        // Comments List
+        ...mockComments.map((comment) => _buildCommentItem(comment)),
+      ],
+    );
+  }
+
+  Widget _buildCommentItem(Map<String, dynamic> comment) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppTheme.spaceM),
+      padding: const EdgeInsets.all(AppTheme.spaceM),
+      decoration: BoxDecoration(
+        color: AppTheme.backgroundWhite,
+        borderRadius: AppTheme.radiusMedium,
+        border: Border.all(
+          color: AppTheme.borderLight,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Comment Header
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 16,
+                backgroundColor: AppTheme.primaryPurpleLight.withOpacity(0.2),
+                backgroundImage: comment['avatar'] != null
+                    ? CachedNetworkImageProvider(comment['avatar'])
+                    : null,
+                child: comment['avatar'] == null
+                    ? Text(
+                        comment['username'][0].toUpperCase(),
+                        style: AppTheme.bodySmall.copyWith(
+                          color: AppTheme.primaryPurple,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    : null,
+              ),
+              const SizedBox(width: AppTheme.spaceM),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      comment['username'],
+                      style: AppTheme.labelMedium,
+                    ),
+                    Text(
+                      comment['timeAgo'],
+                      style: AppTheme.bodySmall.copyWith(
+                        color: AppTheme.textTertiary,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: () {},
+                icon: const Icon(
+                  Icons.more_vert_rounded,
+                  size: 18,
+                ),
+                color: AppTheme.textTertiary,
+                constraints: const BoxConstraints(),
+                padding: EdgeInsets.zero,
+              ),
+            ],
+          ),
+          const SizedBox(height: AppTheme.spaceM),
+
+          // Comment Content
+          Text(
+            comment['content'],
+            style: AppTheme.bodyMedium.copyWith(
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: AppTheme.spaceM),
+
+          // Comment Actions
+          Row(
+            children: [
+              InkWell(
+                onTap: () {},
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.favorite_border_rounded,
+                      size: 16,
+                      color: AppTheme.textTertiary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${comment['likes']}',
+                      style: AppTheme.bodySmall.copyWith(
+                        color: AppTheme.textTertiary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppTheme.spaceL),
+              InkWell(
+                onTap: () {},
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.reply_rounded,
+                      size: 16,
+                      color: AppTheme.textTertiary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Reply',
+                      style: AppTheme.bodySmall.copyWith(
+                        color: AppTheme.textTertiary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import '../config/app_theme.dart';
 import '../models/entity_model.dart';
 import '../providers/auth_provider.dart';
@@ -386,6 +388,10 @@ class _ReviewFormWidgetState extends State<ReviewFormWidget> {
   final TextEditingController _proController = TextEditingController();
   final TextEditingController _conController = TextEditingController();
   
+  final List<File> _selectedImages = [];
+  final ImagePicker _imagePicker = ImagePicker();
+  static const int _maxImages = 5;
+  
   bool _isAnonymous = false;
   bool _isSubmitting = false;
 
@@ -715,6 +721,11 @@ class _ReviewFormWidgetState extends State<ReviewFormWidget> {
 
             const SizedBox(height: 24),
 
+            // Image Upload Section
+            _buildImageSection(),
+
+            const SizedBox(height: 24),
+
             // Pros
             _buildProsConsSection(
               'Pros',
@@ -983,6 +994,215 @@ class _ReviewFormWidgetState extends State<ReviewFormWidget> {
                       ),
                     );
                   }).toList(),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickImages() async {
+    if (_selectedImages.length >= _maxImages) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Maximum $_maxImages images allowed'),
+          backgroundColor: AppTheme.errorRed,
+        ),
+      );
+      return;
+    }
+
+    try {
+      final List<XFile> images = await _imagePicker.pickMultiImage(
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (images.isNotEmpty) {
+        final int availableSlots = _maxImages - _selectedImages.length;
+        final List<XFile> imagesToAdd = images.take(availableSlots).toList();
+        
+        setState(() {
+          _selectedImages.addAll(imagesToAdd.map((xfile) => File(xfile.path)));
+        });
+
+        if (images.length > availableSlots) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Only $availableSlots images added (maximum $_maxImages allowed)'),
+              backgroundColor: AppTheme.warningOrange,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error picking images: $e'),
+          backgroundColor: AppTheme.errorRed,
+        ),
+      );
+    }
+  }
+
+  void _removeImage(int index) {
+    setState(() {
+      _selectedImages.removeAt(index);
+    });
+  }
+
+  Widget _buildImageSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceL),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.add_photo_alternate_outlined,
+                color: AppTheme.primaryPurple,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Add Photos',
+                style: AppTheme.labelMedium.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryPurpleLight.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${_selectedImages.length}/$_maxImages',
+                  style: AppTheme.bodySmall.copyWith(
+                    color: AppTheme.primaryPurple,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Add up to $_maxImages photos to your review',
+            style: AppTheme.bodySmall.copyWith(
+              color: AppTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(AppTheme.spaceM),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppTheme.borderLight),
+            ),
+            child: Column(
+              children: [
+                // Add Photo Button
+                if (_selectedImages.length < _maxImages)
+                  InkWell(
+                    onTap: _pickImages,
+                    child: Container(
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryPurpleLight.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: AppTheme.primaryPurple.withOpacity(0.3),
+                          width: 2,
+                          style: BorderStyle.solid,
+                        ),
+                      ),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.add_a_photo_outlined,
+                              size: 40,
+                              color: AppTheme.primaryPurple,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Tap to add photos',
+                              style: AppTheme.bodyMedium.copyWith(
+                                color: AppTheme.primaryPurple,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              '${_maxImages - _selectedImages.length} remaining',
+                              style: AppTheme.bodySmall.copyWith(
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                
+                // Selected Images Grid
+                if (_selectedImages.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                      childAspectRatio: 1,
+                    ),
+                    itemCount: _selectedImages.length,
+                    itemBuilder: (context, index) {
+                      return Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.file(
+                              _selectedImages[index],
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                            ),
+                          ),
+                          Positioned(
+                            top: 4,
+                            right: 4,
+                            child: GestureDetector(
+                              onTap: () => _removeImage(index),
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.6),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.close,
+                                  size: 16,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
                 ],
               ],
             ),
