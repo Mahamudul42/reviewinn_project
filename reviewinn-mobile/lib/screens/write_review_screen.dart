@@ -3,8 +3,9 @@ import 'package:provider/provider.dart';
 import '../config/app_theme.dart';
 import '../models/entity_model.dart';
 import '../providers/auth_provider.dart';
+import '../providers/entity_provider.dart';
 import '../services/api_service.dart';
-import 'search_screen.dart';
+import '../widgets/entity_card.dart';
 
 class WriteReviewScreen extends StatefulWidget {
   final Entity? preselectedEntity;
@@ -21,6 +22,10 @@ class WriteReviewScreen extends StatefulWidget {
 class _WriteReviewScreenState extends State<WriteReviewScreen> {
   Entity? _selectedEntity;
   bool _showReviewForm = false;
+  final TextEditingController _searchController = TextEditingController();
+  List<Entity> _searchResults = [];
+  List<Entity> _popularEntities = [];
+  bool _isSearching = false;
 
   @override
   void initState() {
@@ -28,7 +33,44 @@ class _WriteReviewScreenState extends State<WriteReviewScreen> {
     if (widget.preselectedEntity != null) {
       _selectedEntity = widget.preselectedEntity;
       _showReviewForm = true;
+    } else {
+      _loadPopularEntities();
     }
+  }
+
+  Future<void> _loadPopularEntities() async {
+    // Load some popular entities to show initially
+    final entityProvider = Provider.of<EntityProvider>(context, listen: false);
+    final entities = await entityProvider.searchEntities(''); // Empty query returns all
+    setState(() {
+      _popularEntities = entities.take(10).toList(); // Show first 10
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _performSearch(String query) async {
+    if (query.trim().isEmpty) {
+      setState(() {
+        _searchResults = [];
+        _isSearching = false;
+      });
+      return;
+    }
+
+    setState(() => _isSearching = true);
+
+    final entityProvider = Provider.of<EntityProvider>(context, listen: false);
+    final results = await entityProvider.searchEntities(query);
+
+    setState(() {
+      _searchResults = results;
+      _isSearching = false;
+    });
   }
 
   @override
@@ -78,59 +120,235 @@ class _WriteReviewScreenState extends State<WriteReviewScreen> {
   }
 
   Widget _buildEntitySearch() {
-    return Container(
-      padding: const EdgeInsets.all(AppTheme.spaceXL),
-      child: Column(
-        children: [
-          const SizedBox(height: 20),
-          Icon(
-            Icons.rate_review_rounded,
-            size: 64,
-            color: AppTheme.primaryPurple.withOpacity(0.5),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'Who or what do you want to review?',
-            style: AppTheme.headingMedium.copyWith(
-              color: AppTheme.textPrimary,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 32),
-          ElevatedButton.icon(
-            onPressed: () async {
-              final selectedEntity = await Navigator.push<Entity>(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SearchScreen(
-                    isSelectionMode: true,
+    return Column(
+      children: [
+        // Header Section
+        Container(
+          padding: const EdgeInsets.all(AppTheme.spaceXL),
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryPurple.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.rate_review_rounded,
+                  size: 48,
+                  color: AppTheme.primaryPurple,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Who or what do you want to review?',
+                style: AppTheme.headingMedium.copyWith(
+                  color: AppTheme.textPrimary,
+                  fontSize: 20,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              
+              // Search Bar
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (value) {
+                    _performSearch(value);
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Type a name, company, product, or place...',
+                    hintStyle: AppTheme.bodyMedium.copyWith(
+                      color: AppTheme.textTertiary,
+                    ),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: AppTheme.primaryPurple,
+                    ),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: Icon(
+                              Icons.clear,
+                              color: AppTheme.textTertiary,
+                            ),
+                            onPressed: () {
+                              _searchController.clear();
+                              _performSearch('');
+                            },
+                          )
+                        : null,
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
                   ),
                 ),
-              );
+              ),
+            ],
+          ),
+        ),
 
-              if (selectedEntity != null) {
-                setState(() {
-                  _selectedEntity = selectedEntity;
-                  _showReviewForm = true;
-                });
-              }
-            },
-            icon: const Icon(Icons.search),
-            label: const Text('Search for Entity'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryPurple,
-              foregroundColor: Colors.white,
+        // Search Results
+        Expanded(
+          child: _buildSearchResults(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSearchResults() {
+    if (_isSearching) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              color: AppTheme.primaryPurple,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Searching...',
+              style: AppTheme.bodyMedium.copyWith(
+                color: AppTheme.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_searchController.text.isEmpty) {
+      // Show popular entities when search is empty
+      if (_popularEntities.isEmpty) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(
+                color: AppTheme.primaryPurple,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Loading popular entities...',
+                style: AppTheme.bodyMedium.copyWith(
+                  color: AppTheme.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppTheme.spaceL,
+              AppTheme.spaceM,
+              AppTheme.spaceL,
+              AppTheme.spaceS,
+            ),
+            child: Text(
+              'Popular Entities',
+              style: AppTheme.labelMedium.copyWith(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
               padding: const EdgeInsets.symmetric(
-                horizontal: 32,
-                vertical: 16,
+                horizontal: AppTheme.spaceL,
+                vertical: AppTheme.spaceM,
               ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              itemCount: _popularEntities.length,
+              itemBuilder: (context, index) {
+                final entity = _popularEntities[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: AppTheme.spaceM),
+                  child: EntityCard(
+                    entity: entity,
+                    onTap: () {
+                      setState(() {
+                        _selectedEntity = entity;
+                        _showReviewForm = true;
+                      });
+                    },
+                  ),
+                );
+              },
             ),
           ),
         ],
+      );
+    }
+
+    if (_searchResults.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.search_off,
+              size: 64,
+              color: AppTheme.textTertiary.withOpacity(0.5),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No results found',
+              style: AppTheme.bodyLarge.copyWith(
+                color: AppTheme.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Try a different search term',
+              style: AppTheme.bodyMedium.copyWith(
+                color: AppTheme.textTertiary,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spaceL,
+        vertical: AppTheme.spaceM,
       ),
+      itemCount: _searchResults.length,
+      itemBuilder: (context, index) {
+        final entity = _searchResults[index];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: AppTheme.spaceM),
+          child: EntityCard(
+            entity: entity,
+            onTap: () {
+              setState(() {
+                _selectedEntity = entity;
+                _showReviewForm = true;
+              });
+            },
+          ),
+        );
+      },
     );
   }
 }

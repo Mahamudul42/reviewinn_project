@@ -95,7 +95,18 @@ class EntityProvider with ChangeNotifier {
       }
       return [];
     } catch (e) {
-      return [];
+      // Fallback to mock data search
+      final mockEntities = MockData.getMockEntities();
+      if (query.isEmpty) {
+        return mockEntities;
+      }
+      // Filter mock entities by query
+      return mockEntities.where((entity) {
+        final searchQuery = query.toLowerCase();
+        return entity.name.toLowerCase().contains(searchQuery) ||
+            (entity.description?.toLowerCase().contains(searchQuery) ?? false) ||
+            (entity.categoryName?.toLowerCase().contains(searchQuery) ?? false);
+      }).toList();
     }
   }
 
