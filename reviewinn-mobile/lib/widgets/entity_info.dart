@@ -292,7 +292,7 @@ class EntityInfo extends StatelessWidget {
         children: [
           Text(
             icon,
-            style: const TextStyle(fontSize: 10),
+            style: TextStyle(fontSize: 10),
           ),
           const SizedBox(width: 3),
           Text(

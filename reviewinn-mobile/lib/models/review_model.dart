@@ -20,8 +20,10 @@ class Review {
   final List<String>? images;
   final int? likesCount;
   final int? commentsCount;
+  final int? helpfulCount;
   final int? viewCount;
   final bool? isLiked;
+  final bool? isHelpful;
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final List<String>? pros;
@@ -54,8 +56,10 @@ class Review {
     this.images,
     this.likesCount,
     this.commentsCount,
+    this.helpfulCount,
     this.viewCount,
     this.isLiked,
+    this.isHelpful,
     this.createdAt,
     this.updatedAt,
     this.pros,
@@ -156,8 +160,10 @@ class Review {
       images: json['images'] != null ? List<String>.from(json['images']) : null,
       likesCount: json['likes_count'] ?? 0,
       commentsCount: json['comments_count'] ?? 0,
+      helpfulCount: json['helpful_count'] ?? 0,
       viewCount: json['view_count'] ?? 0,
       isLiked: json['is_liked'] ?? false,
+      isHelpful: json['is_helpful'] ?? false,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
           : null,

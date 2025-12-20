@@ -48,8 +48,8 @@ class _EntitiesScreenState extends State<EntitiesScreen> {
         },
         backgroundColor: AppTheme.accentYellow,
         foregroundColor: Colors.white,
-        icon: const Icon(Icons.add_business_rounded),
-        label: const Text(
+        icon: Icon(Icons.add_business_rounded),
+        label: Text(
           'Add Entity',
           style: TextStyle(
             fontWeight: FontWeight.w700,

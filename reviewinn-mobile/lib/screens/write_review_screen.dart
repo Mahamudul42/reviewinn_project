@@ -83,10 +83,10 @@ class _WriteReviewScreenState extends State<WriteReviewScreen> {
         backgroundColor: AppTheme.primaryPurple,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Write a Review',
           style: TextStyle(
             color: Colors.white,
@@ -540,7 +540,7 @@ class _ReviewFormWidgetState extends State<ReviewFormWidget> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close),
+                    icon: Icon(Icons.close),
                     onPressed: widget.onBack,
                   ),
                 ],
@@ -563,7 +563,7 @@ class _ReviewFormWidgetState extends State<ReviewFormWidget> {
                         ? NetworkImage(authProvider.user!.avatar!)
                         : null,
                     child: authProvider.user?.avatar == null
-                        ? const Icon(Icons.person, size: 16)
+                        ? Icon(Icons.person, size: 16)
                         : null,
                   ),
                   const SizedBox(width: 8),
@@ -821,7 +821,7 @@ class _ReviewFormWidgetState extends State<ReviewFormWidget> {
                             color: Colors.white,
                           ),
                         )
-                      : const Text(
+                      : Text(
                           'Submit Review',
                           style: TextStyle(
                             fontSize: 16,
@@ -985,7 +985,7 @@ class _ReviewFormWidgetState extends State<ReviewFormWidget> {
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.close, size: 18),
+                            icon: Icon(Icons.close, size: 18),
                             onPressed: () {
                               setState(() => items.removeAt(entry.key));
                             },
@@ -1191,7 +1191,7 @@ class _ReviewFormWidgetState extends State<ReviewFormWidget> {
                                   color: Colors.black.withOpacity(0.6),
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.close,
                                   size: 16,
                                   color: Colors.white,

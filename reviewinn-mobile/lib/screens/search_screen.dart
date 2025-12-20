@@ -53,7 +53,7 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Search', style: TextStyle(color: Colors.white)),
+        title: Text('Search', style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.deepPurple,
         elevation: 0,
       ),
@@ -65,14 +65,14 @@ class _SearchScreenState extends State<SearchScreen> {
             child: TextField(
               controller: _searchController,
               onChanged: _performSearch,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 hintText: 'Search entities, products, places...',
                 hintStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
-                prefixIcon: const Icon(Icons.search, color: Colors.white),
+                prefixIcon: Icon(Icons.search, color: Colors.white),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear, color: Colors.white),
+                        icon: Icon(Icons.clear, color: Colors.white),
                         onPressed: () {
                           _searchController.clear();
                           _performSearch('');

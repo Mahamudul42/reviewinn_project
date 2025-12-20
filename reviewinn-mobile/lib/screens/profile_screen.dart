@@ -94,7 +94,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         const SizedBox(height: 16),
                         Text(
                           user.username,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -104,7 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           const SizedBox(height: 4),
                           Text(
                             user.email!,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
                               color: Colors.white70,
                             ),
@@ -274,7 +274,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SizedBox(height: 8),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
             color: AppTheme.textSecondary,
@@ -443,7 +443,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Share your first review!',
                     style: TextStyle(
                       fontSize: 14,
@@ -530,7 +530,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Create your first entity!',
                     style: TextStyle(
                       fontSize: 14,

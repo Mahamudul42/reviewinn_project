@@ -128,7 +128,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen>
                       duration: const Duration(milliseconds: 200),
                       child: Text(
                         widget.groupName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -243,7 +243,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen>
                   // Group Name
                   Text(
                     widget.groupName,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w800,
                       color: Colors.white,
@@ -461,7 +461,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen>
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Members List',
               style: AppTheme.headingMedium,
             ),
@@ -549,7 +549,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen>
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'No Reviews Yet',
               style: AppTheme.headingMedium,
             ),
@@ -580,7 +580,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen>
               color: AppTheme.errorRed.withOpacity(0.5),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Oops!',
               style: AppTheme.headingMedium,
             ),
@@ -602,7 +602,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen>
                 backgroundColor: AppTheme.primaryPurple,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Try Again'),
+              child: Text('Try Again'),
             ),
           ],
         ),

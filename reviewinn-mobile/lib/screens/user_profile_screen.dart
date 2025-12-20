@@ -4,9 +4,13 @@ import 'package:provider/provider.dart';
 import '../config/app_theme.dart';
 import '../models/review_model.dart';
 import '../models/entity_model.dart';
+import '../models/badge_model.dart';
 import '../providers/auth_provider.dart';
+import '../providers/theme_provider.dart';
 import '../widgets/beautiful_review_card.dart';
 import '../widgets/entity_card.dart';
+import '../widgets/badge_widget.dart';
+import 'badges_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final int? userId; // If null, show current user's profile
@@ -44,6 +48,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
   List<Review> _userReviews = [];
   List<Review> _savedReviews = [];
   List<Entity> _userEntities = [];
+  List<BadgeModel> _userBadges = [];
 
   @override
   void initState() {
@@ -51,6 +56,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
     _tabController = TabController(length: 4, vsync: this);
     _isCurrentUser = widget.userId == null;
     _loadMockData();
+    _loadMockBadges();
   }
 
   @override
@@ -145,6 +151,32 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
     setState(() {});
   }
 
+  void _loadMockBadges() {
+    final now = DateTime.now();
+    _userBadges = [
+      BadgeModel.fromType(
+        BadgeType.topReviewer,
+        earnedDate: now.subtract(const Duration(days: 45)),
+      ),
+      BadgeModel.fromType(
+        BadgeType.verified,
+        earnedDate: now.subtract(const Duration(days: 120)),
+      ),
+      BadgeModel.fromType(
+        BadgeType.helpfulContributor,
+        earnedDate: now.subtract(const Duration(days: 30)),
+      ),
+      BadgeModel.fromType(
+        BadgeType.photoExpert,
+        earnedDate: now.subtract(const Duration(days: 60)),
+      ),
+      BadgeModel.fromType(
+        BadgeType.earlyAdopter,
+        earnedDate: now.subtract(const Duration(days: 180)),
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -168,7 +200,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
                 indicatorColor: AppTheme.primaryPurple,
                 labelColor: AppTheme.primaryPurple,
                 unselectedLabelColor: AppTheme.textSecondary,
-                labelStyle: const TextStyle(
+                labelStyle: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 15,
                 ),
@@ -206,13 +238,40 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
       pinned: true,
       backgroundColor: AppTheme.primaryPurple,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.white),
+        icon: Icon(Icons.arrow_back, color: Colors.white),
         onPressed: () => Navigator.pop(context),
       ),
       actions: [
+        // Dark Mode Toggle
+        Consumer<ThemeProvider>(
+          builder: (context, themeProvider, _) {
+            return IconButton(
+              icon: Icon(
+                themeProvider.isDarkMode 
+                  ? Icons.light_mode_rounded 
+                  : Icons.dark_mode_rounded,
+                color: Colors.white,
+              ),
+              onPressed: () {
+                themeProvider.toggleTheme();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      themeProvider.isDarkMode 
+                        ? 'Dark mode enabled' 
+                        : 'Light mode enabled'
+                    ),
+                    duration: const Duration(seconds: 1),
+                    backgroundColor: AppTheme.successGreen,
+                  ),
+                );
+              },
+            );
+          },
+        ),
         if (_isCurrentUser)
           IconButton(
-            icon: const Icon(Icons.settings_rounded, color: Colors.white),
+            icon: Icon(Icons.settings_rounded, color: Colors.white),
             onPressed: () {
               // Navigate to settings
               ScaffoldMessenger.of(context).showSnackBar(
@@ -227,7 +286,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
       flexibleSpace: FlexibleSpaceBar(
         title: Text(
           _userData['name'] as String,
-          style: const TextStyle(
+          style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: 20,
@@ -325,41 +384,44 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
           ],
           
           // Badges
-          if (_userData['badges'] != null) ...[
+          if (_userBadges.isNotEmpty) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Badges (${_userBadges.length})',
+                  style: AppTheme.headingSmall.copyWith(
+                    fontSize: 16,
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const BadgesScreen(),
+                      ),
+                    );
+                  },
+                  icon: Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 16,
+                  ),
+                  label: Text('View All'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppTheme.primaryPurple,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppTheme.spaceS),
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: (_userData['badges'] as List).map((badge) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: AppTheme.purpleLightGradient,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: AppTheme.primaryPurple.withOpacity(0.3),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.verified_rounded,
-                        size: 16,
-                        color: AppTheme.primaryPurple,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        badge as String,
-                        style: AppTheme.bodySmall.copyWith(
-                          color: AppTheme.primaryPurple,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
+              children: _userBadges.take(4).map((badge) {
+                return BadgeWidget(
+                  badge: badge,
+                  isCompact: true,
                 );
               }).toList(),
             ),
@@ -381,8 +443,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
                         ),
                       );
                     },
-                    icon: const Icon(Icons.edit_rounded),
-                    label: const Text('Edit Profile'),
+                    icon: Icon(Icons.edit_rounded),
+                    label: Text('Edit Profile'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryPurple,
                       foregroundColor: Colors.white,
@@ -430,8 +492,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
                       ),
                     );
                   },
-                  icon: const Icon(Icons.message_rounded),
-                  label: const Text('Message'),
+                  icon: Icon(Icons.message_rounded),
+                  label: Text('Message'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.backgroundLight,
                     foregroundColor: AppTheme.primaryPurple,

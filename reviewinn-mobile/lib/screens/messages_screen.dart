@@ -131,7 +131,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
           );
         },
         backgroundColor: AppTheme.infoBlue,
-        child: const Icon(Icons.edit, color: Colors.white),
+        child: Icon(Icons.edit, color: Colors.white),
       ),
     );
   }
@@ -165,7 +165,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 ),
               ],
             ),
-            child: const Icon(
+            child: Icon(
               Icons.forum_rounded,
               color: Colors.white,
               size: 24,
@@ -429,7 +429,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                               conversation.unreadCount > 99
                                   ? '99+'
                                   : conversation.unreadCount.toString(),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
@@ -502,7 +502,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
               color: AppTheme.errorRed.withOpacity(0.5),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Oops!',
               style: AppTheme.headingMedium,
             ),
@@ -521,7 +521,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 backgroundColor: AppTheme.infoBlue,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Try Again'),
+              child: Text('Try Again'),
             ),
           ],
         ),

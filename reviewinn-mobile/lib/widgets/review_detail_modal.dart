@@ -28,6 +28,8 @@ class _ReviewDetailModalState extends State<ReviewDetailModal> {
   late bool isLiked;
   late bool isBookmarked;
   late int likesCount;
+  late bool isHelpful;
+  late int helpfulCount;
 
   @override
   void initState() {
@@ -35,6 +37,8 @@ class _ReviewDetailModalState extends State<ReviewDetailModal> {
     isLiked = widget.review.isLiked ?? false;
     isBookmarked = false; // Would come from backend
     likesCount = widget.review.likesCount ?? 0;
+    isHelpful = widget.review.isHelpful ?? false;
+    helpfulCount = widget.review.helpfulCount ?? 0;
   }
 
   String _formatDate(DateTime? date) {
@@ -50,7 +54,7 @@ class _ReviewDetailModalState extends State<ReviewDetailModal> {
       maxChildSize: 0.95,
       builder: (context, scrollController) {
         return Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppTheme.backgroundWhite,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(24),
@@ -86,7 +90,7 @@ class _ReviewDetailModalState extends State<ReviewDetailModal> {
                 ),
                 child: Row(
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Text(
                         'Review Details',
                         style: AppTheme.headingMedium,
@@ -94,7 +98,7 @@ class _ReviewDetailModalState extends State<ReviewDetailModal> {
                     ),
                     IconButton(
                       onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close_rounded),
+                      icon: Icon(Icons.close_rounded),
                       color: AppTheme.textSecondary,
                     ),
                   ],
@@ -411,7 +415,7 @@ class _ReviewDetailModalState extends State<ReviewDetailModal> {
                 ),
                 errorWidget: (context, url, error) => Container(
                   color: AppTheme.borderLight,
-                  child: const Icon(
+                  child: Icon(
                     Icons.image_not_supported_rounded,
                     color: AppTheme.textTertiary,
                   ),
@@ -702,6 +706,60 @@ Shared from ReviewInn App''';
             ),
           ],
         ),
+        const SizedBox(height: AppTheme.spaceM),
+        // Helpful Vote Button
+        InkWell(
+          onTap: () {
+            setState(() {
+              isHelpful = !isHelpful;
+              helpfulCount += isHelpful ? 1 : -1;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  isHelpful 
+                    ? 'Thank you! Your feedback helps others.' 
+                    : 'Feedback removed'
+                ),
+                duration: const Duration(seconds: 2),
+                backgroundColor: AppTheme.successGreen,
+              ),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.all(AppTheme.spaceM),
+            decoration: BoxDecoration(
+              gradient: isHelpful ? AppTheme.greenGradient : null,
+              color: isHelpful ? null : AppTheme.backgroundLight,
+              borderRadius: AppTheme.radiusMedium,
+              border: Border.all(
+                color: isHelpful ? AppTheme.successGreen : AppTheme.borderLight,
+                width: 2,
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  isHelpful ? Icons.thumb_up_rounded : Icons.thumb_up_outlined,
+                  color: isHelpful ? Colors.white : AppTheme.successGreen,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  isHelpful 
+                    ? 'Marked as Helpful ($helpfulCount)' 
+                    : 'Was this review helpful? ($helpfulCount people found this helpful)',
+                  style: AppTheme.labelMedium.copyWith(
+                    color: isHelpful ? Colors.white : AppTheme.textSecondary,
+                    fontSize: 14,
+                    fontWeight: isHelpful ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -887,7 +945,7 @@ Shared from ReviewInn App''';
               ),
               IconButton(
                 onPressed: () {},
-                icon: const Icon(
+                icon: Icon(
                   Icons.more_vert_rounded,
                   size: 18,
                 ),

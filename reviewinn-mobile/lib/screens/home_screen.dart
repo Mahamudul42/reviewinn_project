@@ -26,7 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'ReviewInn',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
@@ -47,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       value: 'profile',
                       child: Row(
                         children: [
-                          const Icon(Icons.person),
+                          Icon(Icons.person),
                           const SizedBox(width: 8),
                           Text(authProvider.user?.username ?? 'Profile'),
                         ],
@@ -70,14 +70,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       backgroundColor: Colors.white,
                       child: Text(
                         authProvider.user?.username[0].toUpperCase() ?? 'U',
-                        style: const TextStyle(color: Colors.deepPurple),
+                        style: TextStyle(color: Colors.deepPurple),
                       ),
                     ),
                   ),
                 );
               } else {
                 return IconButton(
-                  icon: const Icon(Icons.login),
+                  icon: Icon(Icons.login),
                   onPressed: () {
                     Navigator.push(
                       context,
@@ -105,7 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.error_outline, size: 60, color: Colors.red),
+                  Icon(Icons.error_outline, size: 60, color: Colors.red),
                   const SizedBox(height: 16),
                   Text(
                     'Error loading entities',
@@ -118,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     onPressed: () {
                       entityProvider.fetchEntities();
                     },
-                    child: const Text('Retry'),
+                    child: Text('Retry'),
                   ),
                 ],
               ),
@@ -130,14 +130,14 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.inbox, size: 60, color: Colors.grey),
+                  Icon(Icons.inbox, size: 60, color: Colors.grey),
                   const SizedBox(height: 16),
                   Text(
                     'No entities found',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),
-                  const Text('Check your backend connection'),
+                  Text('Check your backend connection'),
                 ],
               ),
             );
@@ -174,8 +174,8 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
-        icon: const Icon(Icons.refresh),
-        label: const Text('Refresh'),
+        icon: Icon(Icons.refresh),
+        label: Text('Refresh'),
       ),
     );
   }

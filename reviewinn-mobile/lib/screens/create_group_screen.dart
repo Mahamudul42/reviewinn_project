@@ -55,7 +55,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     return [
       // Step 1: Basic Info
       Step(
-        title: const Text('Basic'),
+        title: Text('Basic'),
         isActive: _currentStep >= 0,
         state: _currentStep > 0 ? StepState.complete : StepState.indexed,
         content: _buildBasicInfoStep(),
@@ -63,7 +63,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
 
       // Step 2: Category & Privacy
       Step(
-        title: const Text('Settings'),
+        title: Text('Settings'),
         isActive: _currentStep >= 1,
         state: _currentStep > 1 ? StepState.complete : StepState.indexed,
         content: _buildSettingsStep(),
@@ -71,7 +71,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
 
       // Step 3: Review
       Step(
-        title: const Text('Review'),
+        title: Text('Review'),
         isActive: _currentStep >= 2,
         state: _currentStep > 2 ? StepState.complete : StepState.indexed,
         content: _buildReviewStep(),
@@ -86,7 +86,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 16),
-          const Text(
+          Text(
             '👥 Group Details',
             style: TextStyle(
               fontSize: 20,
@@ -95,7 +95,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Give your group a unique name and description',
             style: TextStyle(
               color: AppTheme.textSecondary,
@@ -169,7 +169,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
             },
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Describe the purpose and rules of your group',
             style: TextStyle(
               color: AppTheme.textTertiary,
@@ -187,7 +187,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 16),
-        const Text(
+        Text(
           '⚙️ Group Settings',
           style: TextStyle(
             fontSize: 20,
@@ -196,7 +196,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        const Text(
+        Text(
           'Choose category and privacy settings',
           style: TextStyle(
             color: AppTheme.textSecondary,
@@ -206,7 +206,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
         const SizedBox(height: 24),
 
         // Category Selection
-        const Text(
+        Text(
           'Category',
           style: TextStyle(
             fontSize: 16,
@@ -254,7 +254,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                   children: [
                     Text(
                       category['icon']!,
-                      style: const TextStyle(fontSize: 20),
+                      style: TextStyle(fontSize: 20),
                     ),
                     const SizedBox(width: 8),
                     Flexible(
@@ -277,7 +277,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
         const SizedBox(height: 32),
 
         // Privacy Selection
-        const Text(
+        Text(
           'Privacy',
           style: TextStyle(
             fontSize: 16,
@@ -316,7 +316,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                     children: [
                       Text(
                         privacy['icon']!,
-                        style: const TextStyle(fontSize: 24),
+                        style: TextStyle(fontSize: 24),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -365,7 +365,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 16),
-        const Text(
+        Text(
           '✅ Review & Create',
           style: TextStyle(
             fontSize: 20,
@@ -374,7 +374,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        const Text(
+        Text(
           'Please review your group details',
           style: TextStyle(
             color: AppTheme.textSecondary,
@@ -421,7 +421,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
             children: [
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: AppTheme.textTertiary,
@@ -430,7 +430,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
               const SizedBox(height: 4),
               Text(
                 value,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   color: AppTheme.textPrimary,
                 ),
@@ -476,9 +476,9 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
             SnackBar(
               content: Row(
                 children: [
-                  const Icon(Icons.check_circle, color: Colors.white),
+                  Icon(Icons.check_circle, color: Colors.white),
                   const SizedBox(width: 12),
-                  const Text('Group created successfully!'),
+                  Text('Group created successfully!'),
                 ],
               ),
               backgroundColor: AppTheme.successGreen,
@@ -508,7 +508,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Create New Group',
           style: TextStyle(
             fontWeight: FontWeight.bold,
@@ -581,7 +581,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                       ),
                       child: Text(
                         _currentStep == 2 ? 'Create Group' : 'Continue',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),

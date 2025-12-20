@@ -149,14 +149,14 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> with SingleTickerProvid
                                                 color: Colors.white.withOpacity(0.2),
                                                 borderRadius: BorderRadius.circular(8),
                                               ),
-                                              child: const Icon(
+                                              child: Icon(
                                                 Icons.rate_review_rounded,
                                                 color: Colors.white,
                                                 size: 20,
                                               ),
                                             ),
                                             const SizedBox(width: 8),
-                                            const Text(
+                                            Text(
                                               'ReviewInn',
                                               style: TextStyle(
                                                 fontWeight: FontWeight.bold,
@@ -192,7 +192,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> with SingleTickerProvid
                                             builder: (context, value, child) {
                                               return Transform.scale(
                                                 scale: value,
-                                                child: const Icon(
+                                                child: Icon(
                                                   Icons.rate_review_rounded,
                                                   color: Colors.white,
                                                   size: 24,
@@ -303,7 +303,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> with SingleTickerProvid
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'Loading amazing reviews...',
                   style: AppTheme.bodyMedium,
                 ),
@@ -337,7 +337,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> with SingleTickerProvid
                   style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'Be the first to share a review!',
                   style: TextStyle(color: Colors.grey),
                 ),
@@ -514,7 +514,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> with SingleTickerProvid
                 color: Colors.white.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.notifications_none_rounded,
                 color: Colors.white,
                 size: 24,
@@ -550,7 +550,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> with SingleTickerProvid
                 ),
                 child: Text(
                   _unreadNotifications > 99 ? '99+' : _unreadNotifications.toString(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,

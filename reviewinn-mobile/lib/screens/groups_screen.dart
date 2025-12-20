@@ -283,8 +283,8 @@ class _GroupsScreenState extends State<GroupsScreen> {
         },
         backgroundColor: AppTheme.successGreen,
         foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: const Text(
+        icon: Icon(Icons.add),
+        label: Text(
           'Create Group',
           style: TextStyle(
             fontWeight: FontWeight.w700,

@@ -146,7 +146,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                             gradient: AppTheme.purpleGradient,
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.edit_rounded,
                             color: Colors.white,
                             size: 28,

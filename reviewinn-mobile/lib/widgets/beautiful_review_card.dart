@@ -390,7 +390,7 @@ class _BeautifulReviewCardState extends State<BeautifulReviewCard>
 
           // Three-dot menu (Facebook-style)
           IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.more_horiz,
               color: AppTheme.textTertiary,
               size: 24,

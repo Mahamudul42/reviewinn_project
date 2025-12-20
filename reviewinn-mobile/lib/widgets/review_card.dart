@@ -66,7 +66,7 @@ class ReviewCard extends StatelessWidget {
                     child: review.userAvatar == null
                         ? Text(
                             review.username?[0].toUpperCase() ?? 'U',
-                            style: const TextStyle(fontSize: 14),
+                            style: TextStyle(fontSize: 14),
                           )
                         : null,
                   ),
@@ -77,7 +77,7 @@ class ReviewCard extends StatelessWidget {
                       children: [
                         Text(
                           review.username ?? 'Anonymous',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
                           ),
@@ -148,7 +148,7 @@ class ReviewCard extends StatelessWidget {
                     ),
                     RatingBarIndicator(
                       rating: review.rating,
-                      itemBuilder: (context, index) => const Icon(
+                      itemBuilder: (context, index) => Icon(
                         Icons.star,
                         color: Colors.amber,
                       ),
@@ -163,7 +163,7 @@ class ReviewCard extends StatelessWidget {
             // Review Title and Content
             Text(
               review.title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF1F2937),
@@ -198,7 +198,7 @@ class ReviewCard extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('• ', style: TextStyle(fontSize: 16)),
+                      Text('• ', style: TextStyle(fontSize: 16)),
                       Expanded(child: Text(pro)),
                     ],
                   ),
@@ -224,7 +224,7 @@ class ReviewCard extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('• ', style: TextStyle(fontSize: 16)),
+                      Text('• ', style: TextStyle(fontSize: 16)),
                       Expanded(child: Text(con)),
                     ],
                   ),

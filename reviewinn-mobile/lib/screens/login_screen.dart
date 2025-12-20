@@ -80,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 40),
-                  const Icon(
+                  Icon(
                     Icons.rate_review,
                     size: 80,
                     color: Colors.deepPurple,
@@ -99,7 +99,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     controller: _usernameController,
                     decoration: InputDecoration(
                       labelText: 'Username',
-                      prefixIcon: const Icon(Icons.person),
+                      prefixIcon: Icon(Icons.person),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -117,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: _emailController,
                       decoration: InputDecoration(
                         labelText: 'Email',
-                        prefixIcon: const Icon(Icons.email),
+                        prefixIcon: Icon(Icons.email),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -140,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     obscureText: _obscurePassword,
                     decoration: InputDecoration(
                       labelText: 'Password',
-                      prefixIcon: const Icon(Icons.lock),
+                      prefixIcon: Icon(Icons.lock),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscurePassword
@@ -189,7 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           )
                         : Text(
                             _isLoginMode ? 'Login' : 'Register',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -206,7 +206,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       _isLoginMode
                           ? "Don't have an account? Register"
                           : 'Already have an account? Login',
-                      style: const TextStyle(color: Colors.deepPurple),
+                      style: TextStyle(color: Colors.deepPurple),
                     ),
                   ),
                 ],

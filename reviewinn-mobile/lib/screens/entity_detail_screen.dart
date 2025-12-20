@@ -54,7 +54,7 @@ class _EntityDetailScreenState extends State<EntityDetailScreen> {
                 flexibleSpace: FlexibleSpaceBar(
                   title: Text(
                     entity.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       shadows: [
                         Shadow(
@@ -74,12 +74,12 @@ class _EntityDetailScreenState extends State<EntityDetailScreen> {
                           ),
                           errorWidget: (context, url, error) => Container(
                             color: Colors.grey[300],
-                            child: const Icon(Icons.image, size: 50),
+                            child: Icon(Icons.image, size: 50),
                           ),
                         )
                       : Container(
                           color: Colors.grey[300],
-                          child: const Icon(Icons.business, size: 50),
+                          child: Icon(Icons.business, size: 50),
                         ),
                 ),
               ),
@@ -97,7 +97,7 @@ class _EntityDetailScreenState extends State<EntityDetailScreen> {
                               children: [
                                 RatingBarIndicator(
                                   rating: entity.averageRating!,
-                                  itemBuilder: (context, index) => const Icon(
+                                  itemBuilder: (context, index) => Icon(
                                     Icons.star,
                                     color: Colors.amber,
                                   ),
@@ -107,7 +107,7 @@ class _EntityDetailScreenState extends State<EntityDetailScreen> {
                                 const SizedBox(width: 8),
                                 Text(
                                   entity.averageRating!.toStringAsFixed(1),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -223,8 +223,8 @@ class _EntityDetailScreenState extends State<EntityDetailScreen> {
               );
             },
             backgroundColor: AppTheme.primaryPurple,
-            icon: const Icon(Icons.rate_review_rounded, color: Colors.white),
-            label: const Text(
+            icon: Icon(Icons.rate_review_rounded, color: Colors.white),
+            label: Text(
               'Write Review',
               style: TextStyle(
                 color: Colors.white,

@@ -6,6 +6,18 @@ import 'package:flutter/material.dart';
 const String CURRENT_THEME = 'purple';  // 👈 Change this to test different colors!
 // ============================================================================
 
+// ============================================================================
+// DARK MODE SETTING
+// ============================================================================
+bool _isDarkMode = false;  // Global dark mode state
+
+void setDarkMode(bool value) {
+  _isDarkMode = value;
+}
+
+bool get isDarkMode => _isDarkMode;
+// ============================================================================
+
 enum ThemeColor {
   purple,
   emerald,
@@ -118,19 +130,28 @@ class AppTheme {
     ],
   );
 
+  static const LinearGradient greenGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xFF10B981), // green-500
+      Color(0xFF059669), // green-600
+    ],
+  );
+
   // Text Colors
-  static const Color textPrimary = Color(0xFF1F2937); // gray-800
-  static const Color textSecondary = Color(0xFF6B7280); // gray-500
-  static const Color textTertiary = Color(0xFF9CA3AF); // gray-400
+  static Color get textPrimary => _isDarkMode ? const Color(0xFFF9FAFB) : const Color(0xFF1F2937); // gray-800 / gray-50
+  static Color get textSecondary => _isDarkMode ? const Color(0xFFD1D5DB) : const Color(0xFF6B7280); // gray-500 / gray-300
+  static Color get textTertiary => _isDarkMode ? const Color(0xFF9CA3AF) : const Color(0xFF9CA3AF); // gray-400
 
   // Background Colors
-  static const Color backgroundLight = Color(0xFFFAFAFA); // gray-50
-  static const Color backgroundWhite = Color(0xFFFFFFFF);
-  static const Color cardBackground = Color(0xFFFFFFFF);
+  static Color get backgroundLight => _isDarkMode ? const Color(0xFF111827) : const Color(0xFFFAFAFA); // gray-900 / gray-50
+  static Color get backgroundWhite => _isDarkMode ? const Color(0xFF1F2937) : const Color(0xFFFFFFFF); // gray-800 / white
+  static Color get cardBackground => _isDarkMode ? const Color(0xFF1F2937) : const Color(0xFFFFFFFF); // gray-800 / white
 
   // Border Colors
-  static const Color borderLight = Color(0xFFE5E7EB); // gray-200
-  static const Color borderMedium = Color(0xFFD1D5DB); // gray-300
+  static Color get borderLight => _isDarkMode ? const Color(0xFF374151) : const Color(0xFFE5E7EB); // gray-700 / gray-200
+  static Color get borderMedium => _isDarkMode ? const Color(0xFF4B5563) : const Color(0xFFD1D5DB); // gray-600 / gray-300
 
   // Status Colors
   static const Color successGreen = Color(0xFF10B981); // green-500
@@ -182,53 +203,53 @@ class AppTheme {
   ];
 
   // Text Styles
-  static const TextStyle headingLarge = TextStyle(
+  static TextStyle get headingLarge => TextStyle(
     fontSize: 28,
     fontWeight: FontWeight.bold,
     color: textPrimary,
     letterSpacing: -0.5,
   );
 
-  static const TextStyle headingMedium = TextStyle(
+  static TextStyle get headingMedium => TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.bold,
     color: textPrimary,
     letterSpacing: -0.3,
   );
 
-  static const TextStyle headingSmall = TextStyle(
+  static TextStyle get headingSmall => TextStyle(
     fontSize: 18,
     fontWeight: FontWeight.w700,
     color: textPrimary,
   );
 
-  static const TextStyle bodyLarge = TextStyle(
+  static TextStyle get bodyLarge => TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.normal,
     color: textPrimary,
     height: 1.6,
   );
 
-  static const TextStyle bodyMedium = TextStyle(
+  static TextStyle get bodyMedium => TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.normal,
     color: textSecondary,
     height: 1.5,
   );
 
-  static const TextStyle bodySmall = TextStyle(
+  static TextStyle get bodySmall => TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.normal,
     color: textTertiary,
   );
 
-  static const TextStyle labelMedium = TextStyle(
+  static TextStyle get labelMedium => TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w600,
     color: textPrimary,
   );
 
-  static const TextStyle labelSmall = TextStyle(
+  static TextStyle get labelSmall => TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.w600,
     color: textSecondary,

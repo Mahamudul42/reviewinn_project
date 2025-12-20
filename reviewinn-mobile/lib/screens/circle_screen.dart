@@ -311,7 +311,7 @@ class _CircleScreenState extends State<CircleScreen>
                 ),
               ],
             ),
-            child: const Icon(
+            child: Icon(
               Icons.people_rounded,
               color: Colors.white,
               size: 24,
@@ -371,7 +371,7 @@ class _CircleScreenState extends State<CircleScreen>
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('Members'),
+                Text('Members'),
                 if (_members.isNotEmpty) ...[
                   const SizedBox(width: 6),
                   Container(
@@ -397,7 +397,7 @@ class _CircleScreenState extends State<CircleScreen>
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('Invites'),
+                Text('Invites'),
                 if (_invites.isNotEmpty) ...[
                   const SizedBox(width: 6),
                   Container(
@@ -423,7 +423,7 @@ class _CircleScreenState extends State<CircleScreen>
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('Sent'),
+                Text('Sent'),
                 if (_sentRequests.isNotEmpty) ...[
                   const SizedBox(width: 6),
                   Container(
@@ -475,7 +475,7 @@ class _CircleScreenState extends State<CircleScreen>
               backgroundColor: AppTheme.primaryPurple,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Retry'),
+            child: Text('Retry'),
           ),
         ],
       ),
@@ -835,7 +835,7 @@ class _CircleScreenState extends State<CircleScreen>
                     backgroundColor: AppTheme.successGreen,
                     foregroundColor: Colors.white,
                   ),
-                  child: const Text('Accept'),
+                  child: Text('Accept'),
                 ),
               ),
               const SizedBox(width: 8),
@@ -846,7 +846,7 @@ class _CircleScreenState extends State<CircleScreen>
                     foregroundColor: AppTheme.errorRed,
                     side: BorderSide(color: AppTheme.errorRed),
                   ),
-                  child: const Text('Decline'),
+                  child: Text('Decline'),
                 ),
               ),
             ],
@@ -909,7 +909,7 @@ class _CircleScreenState extends State<CircleScreen>
                   foregroundColor: AppTheme.errorRed,
                   side: BorderSide(color: AppTheme.errorRed),
                 ),
-                child: const Text('Cancel Request'),
+                child: Text('Cancel Request'),
               ),
             ),
           ],
@@ -1028,7 +1028,7 @@ class _CircleScreenState extends State<CircleScreen>
                 backgroundColor: AppTheme.primaryPurple,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Send Request'),
+              child: Text('Send Request'),
             ),
           ),
         ],

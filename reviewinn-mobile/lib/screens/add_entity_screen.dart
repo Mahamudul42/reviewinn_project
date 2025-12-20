@@ -43,7 +43,7 @@ class _AddEntityScreenState extends State<AddEntityScreen> {
     return [
       // Step 1: Basic Info
       Step(
-        title: const Text('Basic Info'),
+        title: Text('Basic Info'),
         isActive: _currentStep >= 0,
         state: _currentStep > 0 ? StepState.complete : StepState.indexed,
         content: _buildBasicInfoStep(),
@@ -51,7 +51,7 @@ class _AddEntityScreenState extends State<AddEntityScreen> {
 
       // Step 2: Category
       Step(
-        title: const Text('Category'),
+        title: Text('Category'),
         isActive: _currentStep >= 1,
         state: _currentStep > 1 ? StepState.complete : StepState.indexed,
         content: _buildCategoryStep(),
@@ -59,7 +59,7 @@ class _AddEntityScreenState extends State<AddEntityScreen> {
 
       // Step 3: Review
       Step(
-        title: const Text('Review'),
+        title: Text('Review'),
         isActive: _currentStep >= 2,
         state: _currentStep > 2 ? StepState.complete : StepState.indexed,
         content: _buildReviewStep(),
@@ -74,7 +74,7 @@ class _AddEntityScreenState extends State<AddEntityScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 16),
-          const Text(
+          Text(
             '📝 Entity Details',
             style: TextStyle(
               fontSize: 20,
@@ -83,7 +83,7 @@ class _AddEntityScreenState extends State<AddEntityScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Let\'s start with the essential information',
             style: TextStyle(
               color: AppTheme.textSecondary,
@@ -157,7 +157,7 @@ class _AddEntityScreenState extends State<AddEntityScreen> {
             },
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Tell us what makes this entity unique and important',
             style: TextStyle(
               color: AppTheme.textTertiary,
@@ -175,7 +175,7 @@ class _AddEntityScreenState extends State<AddEntityScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 16),
-        const Text(
+        Text(
           '🏷️ Select Category',
           style: TextStyle(
             fontSize: 20,
@@ -184,7 +184,7 @@ class _AddEntityScreenState extends State<AddEntityScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        const Text(
+        Text(
           'Choose the most appropriate category',
           style: TextStyle(
             color: AppTheme.textSecondary,
@@ -234,7 +234,7 @@ class _AddEntityScreenState extends State<AddEntityScreen> {
                   children: [
                     Text(
                       category['icon']!,
-                      style: const TextStyle(fontSize: 32),
+                      style: TextStyle(fontSize: 32),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -275,7 +275,7 @@ class _AddEntityScreenState extends State<AddEntityScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 16),
-        const Text(
+        Text(
           '✅ Review & Submit',
           style: TextStyle(
             fontSize: 20,
@@ -284,7 +284,7 @@ class _AddEntityScreenState extends State<AddEntityScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        const Text(
+        Text(
           'Please review your entity details',
           style: TextStyle(
             color: AppTheme.textSecondary,
@@ -333,7 +333,7 @@ class _AddEntityScreenState extends State<AddEntityScreen> {
             children: [
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: AppTheme.textTertiary,
@@ -342,7 +342,7 @@ class _AddEntityScreenState extends State<AddEntityScreen> {
               const SizedBox(height: 4),
               Text(
                 value,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   color: AppTheme.textPrimary,
                 ),
@@ -389,9 +389,9 @@ class _AddEntityScreenState extends State<AddEntityScreen> {
             SnackBar(
               content: Row(
                 children: [
-                  const Icon(Icons.check_circle, color: Colors.white),
+                  Icon(Icons.check_circle, color: Colors.white),
                   const SizedBox(width: 12),
-                  const Text('Entity created successfully!'),
+                  Text('Entity created successfully!'),
                 ],
               ),
               backgroundColor: AppTheme.successGreen,
@@ -424,7 +424,7 @@ class _AddEntityScreenState extends State<AddEntityScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Add New Entity',
           style: TextStyle(
             fontWeight: FontWeight.bold,
@@ -497,7 +497,7 @@ class _AddEntityScreenState extends State<AddEntityScreen> {
                       ),
                       child: Text(
                         _currentStep == 2 ? 'Submit Entity' : 'Continue',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),

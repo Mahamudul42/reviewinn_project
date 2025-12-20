@@ -193,7 +193,7 @@ class _ChatScreenState extends State<ChatScreen> {
       backgroundColor: Colors.white,
       elevation: 1,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
+        icon: Icon(Icons.arrow_back, color: AppTheme.textPrimary),
         onPressed: () => Navigator.pop(context),
       ),
       title: Row(
@@ -294,7 +294,7 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.more_vert, color: AppTheme.textPrimary),
+          icon: Icon(Icons.more_vert, color: AppTheme.textPrimary),
           onPressed: () {
             _showMoreOptions(context);
           },
@@ -502,7 +502,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               color: Colors.white,
                             ),
                           )
-                        : const Icon(
+                        : Icon(
                             Icons.send_rounded,
                             color: Colors.white,
                             size: 20,
@@ -537,7 +537,7 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Start Chatting',
               style: AppTheme.headingMedium,
             ),
@@ -568,7 +568,7 @@ class _ChatScreenState extends State<ChatScreen> {
               color: AppTheme.errorRed.withOpacity(0.5),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Oops!',
               style: AppTheme.headingMedium,
             ),
@@ -592,7 +592,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 backgroundColor: AppTheme.infoBlue,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Try Again'),
+              child: Text('Try Again'),
             ),
           ],
         ),
@@ -621,7 +621,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             ListTile(
               leading: Icon(Icons.refresh, color: AppTheme.infoBlue),
-              title: const Text('Refresh Messages'),
+              title: Text('Refresh Messages'),
               onTap: () async {
                 Navigator.pop(context);
                 final token = await _authService.getToken();
@@ -655,21 +655,21 @@ class _ChatScreenState extends State<ChatScreen> {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Conversation'),
-        content: const Text(
+        title: Text('Delete Conversation'),
+        content: Text(
           'Are you sure you want to delete this conversation? This action cannot be undone.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(
               foregroundColor: AppTheme.errorRed,
             ),
-            child: const Text('Delete'),
+            child: Text('Delete'),
           ),
         ],
       ),

@@ -157,10 +157,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
         backgroundColor: AppTheme.primaryPurple,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Notifications',
           style: TextStyle(
             color: Colors.white,
@@ -171,7 +171,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
           if (_unreadNotifications.isNotEmpty)
             TextButton(
               onPressed: _markAllAsRead,
-              child: const Text(
+              child: Text(
                 'Mark all read',
                 style: TextStyle(
                   color: Colors.white,
@@ -186,7 +186,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
           indicatorWeight: 3,
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white70,
-          labelStyle: const TextStyle(
+          labelStyle: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 16,
           ),
@@ -195,7 +195,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('All'),
+                  Text('All'),
                   if (_allNotifications.isNotEmpty) ...[
                     const SizedBox(width: 8),
                     Container(
@@ -206,7 +206,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
                       ),
                       child: Text(
                         '${_allNotifications.length}',
-                        style: const TextStyle(fontSize: 12),
+                        style: TextStyle(fontSize: 12),
                       ),
                     ),
                   ],
@@ -217,7 +217,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('Unread'),
+                  Text('Unread'),
                   if (_unreadNotifications.isNotEmpty) ...[
                     const SizedBox(width: 8),
                     Container(
@@ -228,7 +228,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
                       ),
                       child: Text(
                         '${_unreadNotifications.length}',
-                        style: const TextStyle(fontSize: 12),
+                        style: TextStyle(fontSize: 12),
                       ),
                     ),
                   ],
