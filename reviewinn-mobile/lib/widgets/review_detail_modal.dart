@@ -100,6 +100,25 @@ class _ReviewDetailModalState extends State<ReviewDetailModal> {
                         style: AppTheme.headingMedium,
                       ),
                     ),
+                    // Bookmark Button
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          isBookmarked = !isBookmarked;
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(isBookmarked ? 'Review saved!' : 'Bookmark removed'),
+                            duration: const Duration(seconds: 1),
+                            backgroundColor: AppTheme.successGreen,
+                          ),
+                        );
+                      },
+                      icon: Icon(
+                        isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                      ),
+                      color: isBookmarked ? AppTheme.accentYellow : AppTheme.textSecondary,
+                    ),
                     IconButton(
                       onPressed: () => Navigator.pop(context),
                       icon: Icon(Icons.close_rounded),
@@ -470,6 +489,49 @@ class _ReviewDetailModalState extends State<ReviewDetailModal> {
             'Views',
             AppTheme.primaryPurple,
           ),
+          Container(
+            width: 1,
+            height: 40,
+            color: AppTheme.borderLight,
+          ),
+          // Share as stat item
+          InkWell(
+            onTap: () async {
+              final reviewText = '''${widget.review.title}
+
+Rating: ${widget.review.rating}/5.0
+
+${widget.review.content ?? ""}
+
+Shared from ReviewInn App''';
+              
+              try {
+                await Share.share(
+                  reviewText,
+                  subject: widget.review.title,
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Error sharing: \$e'),
+                    backgroundColor: AppTheme.errorRed,
+                  ),
+                );
+              }
+            },
+            child: Column(
+              children: [
+                Icon(Icons.share_rounded, color: AppTheme.successGreen, size: 24),
+                const SizedBox(height: 4),
+                Text(
+                  'Share',
+                  style: AppTheme.bodySmall.copyWith(
+                    color: AppTheme.textTertiary,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -589,122 +651,6 @@ class _ReviewDetailModalState extends State<ReviewDetailModal> {
                       ),
                     ),
                   ],
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppTheme.spaceM),
-        // Secondary Actions Row
-        Row(
-          children: [
-            // Bookmark Button
-            Expanded(
-              child: InkWell(
-                onTap: () {
-                  setState(() {
-                    isBookmarked = !isBookmarked;
-                  });
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(isBookmarked ? 'Review bookmarked!' : 'Bookmark removed'),
-                      duration: const Duration(seconds: 1),
-                      backgroundColor: AppTheme.successGreen,
-                    ),
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: AppTheme.spaceM,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isBookmarked 
-                        ? AppTheme.accentYellow.withOpacity(0.1) 
-                        : Colors.white,
-                    border: Border.all(
-                      color: isBookmarked 
-                          ? AppTheme.accentYellow 
-                          : AppTheme.borderLight,
-                      width: 2,
-                    ),
-                    borderRadius: AppTheme.radiusMedium,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-                        color: isBookmarked ? AppTheme.accentYellow : AppTheme.textSecondary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        isBookmarked ? 'Saved' : 'Save',
-                        style: AppTheme.labelMedium.copyWith(
-                          color: isBookmarked ? AppTheme.accentYellow : AppTheme.textSecondary,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: AppTheme.spaceM),
-            // Share Button
-            Expanded(
-              child: InkWell(
-                onTap: () async {
-                  final reviewText = '''${widget.review.title}
-
-Rating: ${widget.review.rating}/5.0
-
-${widget.review.content ?? ""}
-
-Shared from ReviewInn App''';
-                  
-                  try {
-                    await Share.share(
-                      reviewText,
-                      subject: widget.review.title,
-                    );
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Error sharing: $e'),
-                        backgroundColor: AppTheme.errorRed,
-                      ),
-                    );
-                  }
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: AppTheme.spaceM,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(
-                      color: AppTheme.borderLight,
-                      width: 2,
-                    ),
-                    borderRadius: AppTheme.radiusMedium,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.share_rounded,
-                        color: AppTheme.textSecondary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Share',
-                        style: AppTheme.labelMedium.copyWith(
-                          color: AppTheme.textSecondary,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
               ),
             ),
@@ -1142,15 +1088,17 @@ Shared from ReviewInn App''';
   void _showNotHelpfulReasonModal() {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(AppTheme.spaceXL),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      builder: (context) => SingleChildScrollView(
+        child: Container(
+          padding: const EdgeInsets.all(AppTheme.spaceXL),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             Row(
               children: [
                 Icon(
@@ -1221,7 +1169,8 @@ Shared from ReviewInn App''';
           ],
         ),
       ),
-    );
+      ), // closes SingleChildScrollView
+    ); // closes showModalBottomSheet
   }
 
   Widget _buildReasonOption({
