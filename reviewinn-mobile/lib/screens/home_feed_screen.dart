@@ -5,6 +5,7 @@ import '../providers/auth_provider.dart';
 import '../widgets/beautiful_review_card.dart';
 import '../config/app_theme.dart';
 import 'search_screen.dart';
+import 'notifications_screen.dart';
 
 class HomeFeedScreen extends StatefulWidget {
   const HomeFeedScreen({super.key});
@@ -13,14 +14,36 @@ class HomeFeedScreen extends StatefulWidget {
   State<HomeFeedScreen> createState() => _HomeFeedScreenState();
 }
 
-class _HomeFeedScreenState extends State<HomeFeedScreen> {
+class _HomeFeedScreenState extends State<HomeFeedScreen> with SingleTickerProviderStateMixin {
   final ScrollController _scrollController = ScrollController();
   bool _isCollapsed = false;
+  late AnimationController _notificationAnimationController;
+  late Animation<double> _notificationPulseAnimation;
+  int _unreadNotifications = 3; // TODO: Get from API/Provider
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    
+    // Setup notification icon animation
+    _notificationAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+    
+    _notificationPulseAnimation = Tween<double>(begin: 1.0, end: 1.15).animate(
+      CurvedAnimation(
+        parent: _notificationAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+    
+    // Pulse animation if there are unread notifications
+    if (_unreadNotifications > 0) {
+      _notificationAnimationController.repeat(reverse: true);
+    }
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ReviewProvider>(context, listen: false).fetchReviews(refresh: true);
     });
@@ -53,6 +76,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
+    _notificationAnimationController.dispose();
     super.dispose();
   }
 
@@ -190,14 +214,8 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                                   ),
                                 ),
                               ),
-                              if (_isCollapsed) ...[
-                                const SizedBox(width: 12),
-                                Icon(
-                                  Icons.notifications_none,
-                                  color: Colors.white,
-                                  size: 24,
-                                ),
-                              ],
+                              const SizedBox(width: 12),
+                              _buildNotificationButton(),
                             ],
                           ),
                           if (!_isCollapsed) const SizedBox(height: 12),
@@ -426,6 +444,80 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildNotificationButton() {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const NotificationsScreen(),
+          ),
+        );
+      },
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Notification icon with subtle animation
+          ScaleTransition(
+            scale: _unreadNotifications > 0
+                ? _notificationPulseAnimation
+                : const AlwaysStoppedAnimation(1.0),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.notifications_none_rounded,
+                color: Colors.white,
+                size: 24,
+              ),
+            ),
+          ),
+          
+          // Badge for unread count
+          if (_unreadNotifications > 0)
+            Positioned(
+              right: -4,
+              top: -4,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                constraints: const BoxConstraints(
+                  minWidth: 18,
+                  minHeight: 18,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.errorRed,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: AppTheme.primaryPurple,
+                    width: 2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.errorRed.withOpacity(0.5),
+                      blurRadius: 4,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: Text(
+                  _unreadNotifications > 99 ? '99+' : _unreadNotifications.toString(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
