@@ -5,6 +5,7 @@ import '../config/app_theme.dart';
 import '../providers/auth_provider.dart';
 import 'create_group_screen.dart';
 import 'login_screen.dart';
+import 'group_detail_screen.dart';
 
 class GroupsScreen extends StatefulWidget {
   const GroupsScreen({super.key});
@@ -231,6 +232,20 @@ class _GroupsScreenState extends State<GroupsScreen> {
                       group: group,
                       onTap: () {
                         // Navigate to group detail
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => GroupDetailScreen(
+                              groupId: group.id,
+                              groupName: group.name,
+                              groupDescription: group.description,
+                              groupAvatar: group.avatar,
+                              groupCategory: group.category,
+                              memberCount: group.memberCount,
+                              postCount: group.postCount,
+                            ),
+                          ),
+                        );
                       },
                       onJoinToggle: () {
                         setState(() {

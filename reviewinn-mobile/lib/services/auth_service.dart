@@ -137,4 +137,9 @@ class AuthService {
   Future<String?> getToken() async {
     return await _storage.getToken();
   }
+
+  // Get stored user ID
+  Future<String?> getUserId() async {
+    return await _storage.getUserId();
+  }
 }
