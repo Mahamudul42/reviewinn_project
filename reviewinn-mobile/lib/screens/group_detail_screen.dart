@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/review_provider.dart';
-import '../providers/auth_provider.dart';
 import '../widgets/beautiful_review_card.dart';
 import '../config/app_theme.dart';
 
@@ -34,6 +33,8 @@ class _GroupDetailScreenState extends State<GroupDetailScreen>
   late TabController _tabController;
   final ScrollController _scrollController = ScrollController();
   bool _isCollapsed = false;
+  bool _isMember = false; // Track if user is a member
+  bool _isAdmin = false; // Track if user is admin
 
   // Get relevant entity types based on group category
   List<String> get _relevantEntityTypes {
@@ -56,14 +57,24 @@ class _GroupDetailScreenState extends State<GroupDetailScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _scrollController.addListener(_onScroll);
+
+    // TODO: Check if user is member/admin from backend
+    _isMember = true; // Mock: assume user is member
+    _isAdmin = false; // Mock: user is not admin
 
     // Load group-specific reviews
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ReviewProvider>(context, listen: false)
-          .fetchReviews(refresh: true);
+      _loadGroupReviews();
     });
+  }
+
+  Future<void> _loadGroupReviews() async {
+    // TODO: Load reviews specific to this group from backend
+    // For now, load all reviews
+    await Provider.of<ReviewProvider>(context, listen: false)
+        .fetchReviews(refresh: true);
   }
 
   void _onScroll() {
@@ -150,6 +161,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen>
                       indicatorWeight: 3,
                       tabs: const [
                         Tab(text: 'Reviews'),
+                        Tab(text: 'Discussion'),
                         Tab(text: 'About'),
                         Tab(text: 'Members'),
                       ],
@@ -162,12 +174,166 @@ class _GroupDetailScreenState extends State<GroupDetailScreen>
               controller: _tabController,
               children: [
                 _buildReviewsTab(),
+                _buildDiscussionTab(),
                 _buildAboutTab(),
                 _buildMembersTab(),
               ],
             ),
           ),
         ),
+      ),
+      floatingActionButton: _buildFloatingActionButton(),
+    );
+  }
+
+  Widget? _buildFloatingActionButton() {
+    if (!_isMember) return null;
+
+    // Show FAB based on active tab
+    if (_tabController.index == 0) {
+      // Reviews tab - Add Review
+      return FloatingActionButton.extended(
+        onPressed: _showAddReviewDialog,
+        backgroundColor: AppTheme.primaryPurple,
+        icon: Icon(Icons.rate_review, color: Colors.white),
+        label: Text('Add Review', style: TextStyle(color: Colors.white)),
+      );
+    } else if (_tabController.index == 1) {
+      // Discussion tab - New Post
+      return FloatingActionButton.extended(
+        onPressed: _showNewPostDialog,
+        backgroundColor: AppTheme.primaryPurple,
+        icon: Icon(Icons.add_comment, color: Colors.white),
+        label: Text('New Post', style: TextStyle(color: Colors.white)),
+      );
+    }
+    return null;
+  }
+
+  void _showAddReviewDialog() {
+    // TODO: Navigate to write review screen with group context
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Opening review form for ${widget.groupName}...'),
+        action: SnackBarAction(
+          label: 'Cancel',
+          onPressed: () {},
+        ),
+      ),
+    );
+  }
+
+  void _showNewPostDialog() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _buildNewPostSheet(),
+    );
+  }
+
+  Widget _buildNewPostSheet() {
+    final TextEditingController postController = TextEditingController();
+    
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.7,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Column(
+        children: [
+          // Handle bar
+          Container(
+            margin: EdgeInsets.symmetric(vertical: 12),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          
+          // Header
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'New Discussion Post',
+                  style: AppTheme.headingMedium,
+                ),
+                IconButton(
+                  icon: Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          ),
+          
+          Divider(),
+          
+          // Post input
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.all(20),
+              child: TextField(
+                controller: postController,
+                maxLines: null,
+                expands: true,
+                textAlignVertical: TextAlignVertical.top,
+                decoration: InputDecoration(
+                  hintText: 'Share your thoughts with the group...',
+                  border: InputBorder.none,
+                ),
+              ),
+            ),
+          ),
+          
+          // Action buttons
+          Container(
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: Colors.grey[300]!)),
+            ),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: Icon(Icons.image, color: AppTheme.primaryPurple),
+                  onPressed: () {
+                    // TODO: Add image picker
+                  },
+                ),
+                IconButton(
+                  icon: Icon(Icons.link, color: AppTheme.primaryPurple),
+                  onPressed: () {
+                    // TODO: Add link
+                  },
+                ),
+                Spacer(),
+                ElevatedButton(
+                  onPressed: () {
+                    // TODO: Post to group
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Post shared!')),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryPurple,
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  ),
+                  child: Text('Post'),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -272,18 +438,42 @@ class _GroupDetailScreenState extends State<GroupDetailScreen>
                   ),
                   const SizedBox(height: 12),
 
-                  // Stats
+                  // Stats and Join Button
                   Row(
                     children: [
-                      _buildStat(
-                        Icons.people_rounded,
-                        '${_formatCount(widget.memberCount)} members',
+                      Expanded(
+                        child: Row(
+                          children: [
+                            _buildStat(
+                              Icons.people_rounded,
+                              '${_formatCount(widget.memberCount)} members',
+                            ),
+                            const SizedBox(width: 16),
+                            _buildStat(
+                              Icons.chat_bubble_rounded,
+                              '${_formatCount(widget.postCount)} posts',
+                            ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(width: 16),
-                      _buildStat(
-                        Icons.chat_bubble_rounded,
-                        '${_formatCount(widget.postCount)} posts',
-                      ),
+                      if (!_isMember)
+                        ElevatedButton.icon(
+                          onPressed: _joinGroup,
+                          icon: Icon(Icons.add, size: 18),
+                          label: Text('Join'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.accentYellow,
+                            foregroundColor: AppTheme.accentYellowDark,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 10,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            elevation: 2,
+                          ),
+                        ),
                     ],
                   ),
                 ],
@@ -291,6 +481,25 @@ class _GroupDetailScreenState extends State<GroupDetailScreen>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _joinGroup() {
+    setState(() {
+      _isMember = true;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Welcome to ${widget.groupName}! 🎉'),
+        backgroundColor: AppTheme.primaryPurple,
+        action: SnackBarAction(
+          label: 'Explore',
+          textColor: Colors.white,
+          onPressed: () {
+            _tabController.animateTo(0); // Go to reviews tab
+          },
+        ),
       ),
     );
   }
@@ -322,40 +531,255 @@ class _GroupDetailScreenState extends State<GroupDetailScreen>
   Widget _buildReviewsTab() {
     return Consumer<ReviewProvider>(
       builder: (context, reviewProvider, child) {
-        if (reviewProvider.isLoading && reviewProvider.reviews.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
+        // Filter reviews for this group
+        final groupReviews = reviewProvider.reviews
+            .where((review) => review.groupId == widget.groupId)
+            .toList();
+
+        if (reviewProvider.isLoading && groupReviews.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(color: AppTheme.primaryPurple),
+                SizedBox(height: 16),
+                Text('Loading group reviews...', style: AppTheme.bodyMedium),
+              ],
+            ),
+          );
         }
 
-        if (reviewProvider.error != null && reviewProvider.reviews.isEmpty) {
+        if (reviewProvider.error != null && groupReviews.isEmpty) {
           return _buildErrorState(reviewProvider.error!);
         }
 
-        if (reviewProvider.reviews.isEmpty) {
+        if (groupReviews.isEmpty) {
           return _buildEmptyState();
         }
 
         return RefreshIndicator(
-          onRefresh: () => reviewProvider.fetchReviews(refresh: true),
-          child: ListView.builder(
-            padding: const EdgeInsets.all(AppTheme.spaceL),
-            itemCount: reviewProvider.reviews.length +
-                (reviewProvider.isLoadingMore ? 1 : 0),
-            itemBuilder: (context, index) {
-              if (index >= reviewProvider.reviews.length) {
-                return const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: CircularProgressIndicator(),
+          onRefresh: _loadGroupReviews,
+          color: AppTheme.primaryPurple,
+          child: Column(
+            children: [
+              // Filter/Sort Bar
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppTheme.spaceL,
+                  vertical: AppTheme.spaceM,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border(
+                    bottom: BorderSide(
+                      color: AppTheme.border,
+                      width: 1,
+                    ),
                   ),
-                );
-              }
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.reviews_rounded,
+                      size: 18,
+                      color: AppTheme.textSecondary,
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      '${groupReviews.length} ${groupReviews.length == 1 ? 'Review' : 'Reviews'}',
+                      style: AppTheme.labelMedium.copyWith(
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                    Spacer(),
+                    TextButton.icon(
+                      onPressed: () {
+                        // TODO: Show filter/sort bottom sheet
+                      },
+                      icon: Icon(Icons.tune, size: 18),
+                      label: Text('Filter'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppTheme.primaryPurple,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              // Reviews List
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(AppTheme.spaceL),
+                  itemCount: groupReviews.length +
+                      (reviewProvider.isLoadingMore ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index >= groupReviews.length) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }
 
-              final review = reviewProvider.reviews[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: AppTheme.spaceL),
-                child: BeautifulReviewCard(review: review),
-              );
+                    final review = groupReviews[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: AppTheme.spaceL),
+                      child: BeautifulReviewCard(review: review),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDiscussionTab() {
+    // Mock discussion posts
+    final discussions = [
+      {
+        'author': 'Sarah Johnson',
+        'avatar': 'https://i.pravatar.cc/150?img=1',
+        'time': '2 hours ago',
+        'isPinned': true,
+        'content': 'Welcome to our group! Please read the guidelines before posting.',
+        'likes': 24,
+        'comments': 5,
+      },
+      {
+        'author': 'Mike Chen',
+        'avatar': 'https://i.pravatar.cc/150?img=3',
+        'time': '5 hours ago',
+        'isPinned': false,
+        'content': 'Just had an amazing experience at the new Italian restaurant downtown. Anyone else tried it?',
+        'likes': 12,
+        'comments': 8,
+      },
+      {
+        'author': 'Emma Davis',
+        'avatar': 'https://i.pravatar.cc/150?img=5',
+        'time': '1 day ago',
+        'isPinned': false,
+        'content': 'Looking for recommendations for family-friendly restaurants with good vegetarian options.',
+        'likes': 7,
+        'comments': 15,
+      },
+    ];
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(AppTheme.spaceL),
+      itemCount: discussions.length,
+      itemBuilder: (context, index) {
+        final post = discussions[index];
+        return Card(
+          margin: EdgeInsets.only(bottom: AppTheme.spaceL),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: AppTheme.border),
+          ),
+          child: InkWell(
+            onTap: () {
+              // TODO: Open discussion detail
             },
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.all(AppTheme.spaceL),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 20,
+                        backgroundImage: NetworkImage(post['avatar'] as String),
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  post['author'] as String,
+                                  style: AppTheme.labelLarge,
+                                ),
+                                if (post['isPinned'] as bool) ...[
+                                  SizedBox(width: 8),
+                                  Icon(
+                                    Icons.push_pin,
+                                    size: 16,
+                                    color: AppTheme.primaryPurple,
+                                  ),
+                                ],
+                              ],
+                            ),
+                            Text(
+                              post['time'] as String,
+                              style: AppTheme.labelSmall.copyWith(
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (_isAdmin)
+                        IconButton(
+                          icon: Icon(Icons.more_vert, size: 20),
+                          onPressed: () {
+                            // TODO: Show admin options
+                          },
+                        ),
+                    ],
+                  ),
+                  
+                  SizedBox(height: 12),
+                  
+                  // Content
+                  Text(
+                    post['content'] as String,
+                    style: AppTheme.bodyMedium,
+                  ),
+                  
+                  SizedBox(height: 16),
+                  
+                  // Actions
+                  Row(
+                    children: [
+                      TextButton.icon(
+                        onPressed: () {},
+                        icon: Icon(Icons.thumb_up_outlined, size: 18),
+                        label: Text('${post['likes']}'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppTheme.textSecondary,
+                          padding: EdgeInsets.symmetric(horizontal: 12),
+                        ),
+                      ),
+                      TextButton.icon(
+                        onPressed: () {},
+                        icon: Icon(Icons.comment_outlined, size: 18),
+                        label: Text('${post['comments']}'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppTheme.textSecondary,
+                          padding: EdgeInsets.symmetric(horizontal: 12),
+                        ),
+                      ),
+                      Spacer(),
+                      IconButton(
+                        icon: Icon(Icons.share_outlined, size: 20),
+                        onPressed: () {},
+                        color: AppTheme.textSecondary,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
         );
       },
@@ -442,38 +866,404 @@ class _GroupDetailScreenState extends State<GroupDetailScreen>
   }
 
   Widget _buildMembersTab() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppTheme.spaceXL),
+    // Mock members data
+    final members = [
+      {
+        'name': 'Sarah Johnson',
+        'avatar': 'https://i.pravatar.cc/150?img=1',
+        'role': 'Admin',
+        'joinedDate': 'Founder',
+        'reviewsCount': 45,
+        'isAdmin': true,
+      },
+      {
+        'name': 'Mike Chen',
+        'avatar': 'https://i.pravatar.cc/150?img=3',
+        'role': 'Moderator',
+        'joinedDate': 'Joined 6 months ago',
+        'reviewsCount': 32,
+        'isAdmin': false,
+      },
+      {
+        'name': 'Emma Davis',
+        'avatar': 'https://i.pravatar.cc/150?img=5',
+        'role': 'Member',
+        'joinedDate': 'Joined 3 months ago',
+        'reviewsCount': 18,
+        'isAdmin': false,
+      },
+      {
+        'name': 'John Smith',
+        'avatar': 'https://i.pravatar.cc/150?img=8',
+        'role': 'Member',
+        'joinedDate': 'Joined 1 month ago',
+        'reviewsCount': 7,
+        'isAdmin': false,
+      },
+      {
+        'name': 'Lisa Wong',
+        'avatar': 'https://i.pravatar.cc/150?img=9',
+        'role': 'Member',
+        'joinedDate': 'Joined 2 weeks ago',
+        'reviewsCount': 3,
+        'isAdmin': false,
+      },
+    ];
+
+    return Column(
+      children: [
+        // Header with actions
+        if (_isMember)
+          Container(
+            padding: EdgeInsets.all(AppTheme.spaceL),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border(
+                bottom: BorderSide(color: AppTheme.border),
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _showInviteDialog,
+                    icon: Icon(Icons.person_add_outlined),
+                    label: Text('Invite Members'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.primaryPurple,
+                      side: BorderSide(color: AppTheme.primaryPurple),
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 12),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    _showLeaveGroupDialog();
+                  },
+                  icon: Icon(Icons.logout, size: 18),
+                  label: Text('Leave'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: BorderSide(color: Colors.red.shade200),
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+        // Members list
+        Expanded(
+          child: ListView.builder(
+            padding: EdgeInsets.all(AppTheme.spaceL),
+            itemCount: members.length,
+            itemBuilder: (context, index) {
+              final member = members[index];
+              return Card(
+                margin: EdgeInsets.only(bottom: AppTheme.spaceM),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(color: AppTheme.border),
+                ),
+                child: ListTile(
+                  contentPadding: EdgeInsets.all(12),
+                  leading: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 28,
+                        backgroundImage: NetworkImage(member['avatar'] as String),
+                      ),
+                      if (member['isAdmin'] as bool)
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: Container(
+                            padding: EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: AppTheme.accentYellow,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                            child: Icon(
+                              Icons.verified,
+                              size: 12,
+                              color: AppTheme.accentYellowDark,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  title: Row(
+                    children: [
+                      Text(
+                        member['name'] as String,
+                        style: AppTheme.labelLarge,
+                      ),
+                      SizedBox(width: 8),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: (member['role'] == 'Admin')
+                              ? AppTheme.accentYellow.withOpacity(0.2)
+                              : (member['role'] == 'Moderator')
+                                  ? AppTheme.primaryPurple.withOpacity(0.1)
+                                  : Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          member['role'] as String,
+                          style: AppTheme.labelSmall.copyWith(
+                            color: (member['role'] == 'Admin')
+                                ? AppTheme.accentYellowDark
+                                : (member['role'] == 'Moderator')
+                                    ? AppTheme.primaryPurple
+                                    : AppTheme.textSecondary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: 4),
+                      Text(
+                        member['joinedDate'] as String,
+                        style: AppTheme.labelSmall.copyWith(
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.rate_review,
+                            size: 14,
+                            color: AppTheme.textSecondary,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            '${member['reviewsCount']} reviews',
+                            style: AppTheme.labelSmall.copyWith(
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  trailing: _isAdmin && !(member['isAdmin'] as bool)
+                      ? PopupMenuButton(
+                          icon: Icon(Icons.more_vert, size: 20),
+                          itemBuilder: (context) => [
+                            PopupMenuItem(
+                              child: Row(
+                                children: [
+                                  Icon(Icons.admin_panel_settings, size: 18),
+                                  SizedBox(width: 12),
+                                  Text('Make Moderator'),
+                                ],
+                              ),
+                              onTap: () {
+                                // TODO: Make moderator
+                              },
+                            ),
+                            PopupMenuItem(
+                              child: Row(
+                                children: [
+                                  Icon(Icons.remove_circle_outline, size: 18, color: Colors.red),
+                                  SizedBox(width: 12),
+                                  Text('Remove Member', style: TextStyle(color: Colors.red)),
+                                ],
+                              ),
+                              onTap: () {
+                                // TODO: Remove member
+                              },
+                            ),
+                          ],
+                        )
+                      : null,
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showInviteDialog() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.6,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // Handle bar
             Container(
-              padding: const EdgeInsets.all(32),
+              margin: EdgeInsets.symmetric(vertical: 12),
+              width: 40,
+              height: 4,
               decoration: BoxDecoration(
-                color: AppTheme.primaryPurple.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.people_outline,
-                size: 64,
-                color: AppTheme.primaryPurple.withOpacity(0.5),
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const SizedBox(height: 24),
-            Text(
-              'Members List',
-              style: AppTheme.headingMedium,
+            
+            // Header
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Invite to Group',
+                    style: AppTheme.headingMedium,
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 12),
-            Text(
-              'Coming Soon',
-              style: AppTheme.bodyLarge.copyWith(
-                color: AppTheme.textSecondary,
+            
+            Divider(),
+            
+            Padding(
+              padding: EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Share link section
+                  Text(
+                    'Share Group Link',
+                    style: AppTheme.labelLarge,
+                  ),
+                  SizedBox(height: 12),
+                  Container(
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppTheme.border),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'reviewinn.com/groups/${widget.groupId}',
+                            style: AppTheme.bodyMedium.copyWith(
+                              color: AppTheme.primaryPurple,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.copy, color: AppTheme.primaryPurple),
+                          onPressed: () {
+                            // TODO: Copy to clipboard
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Link copied!')),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  SizedBox(height: 24),
+                  
+                  // Share via section
+                  Text(
+                    'Share Via',
+                    style: AppTheme.labelLarge,
+                  ),
+                  SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildShareOption(Icons.message, 'Message'),
+                      _buildShareOption(Icons.email, 'Email'),
+                      _buildShareOption(Icons.share, 'More'),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildShareOption(IconData icon, String label) {
+    return InkWell(
+      onTap: () {
+        // TODO: Implement sharing
+      },
+      child: Column(
+        children: [
+          Container(
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryPurple.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: AppTheme.primaryPurple),
+          ),
+          SizedBox(height: 8),
+          Text(label, style: AppTheme.labelSmall),
+        ],
+      ),
+    );
+  }
+
+  void _showLeaveGroupDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Leave Group?'),
+        content: Text(
+          'Are you sure you want to leave ${widget.groupName}? You can always rejoin later.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pop(context); // Go back to groups list
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Left ${widget.groupName}')),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: Text('Leave'),
+          ),
+        ],
       ),
     );
   }
@@ -537,30 +1327,62 @@ class _GroupDetailScreenState extends State<GroupDetailScreen>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(32),
+              width: 120,
+              height: 120,
               decoration: BoxDecoration(
                 color: AppTheme.primaryPurple.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                Icons.reviews_outlined,
-                size: 64,
+                _isMember ? Icons.rate_review_outlined : Icons.lock_outline,
+                size: 60,
                 color: AppTheme.primaryPurple.withOpacity(0.5),
               ),
             ),
             const SizedBox(height: 24),
             Text(
-              'No Reviews Yet',
+              _isMember ? 'No Reviews Yet' : 'Join to View Reviews',
               style: AppTheme.headingMedium,
             ),
             const SizedBox(height: 12),
             Text(
-              'Be the first to share a review in this group!',
-              style: AppTheme.bodyLarge.copyWith(
+              _isMember
+                  ? 'Be the first to share a review in this group!'
+                  : 'Join ${widget.groupName} to see and share reviews with the community.',
+              style: AppTheme.bodyMedium.copyWith(
                 color: AppTheme.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
+            const SizedBox(height: 24),
+            if (_isMember)
+              ElevatedButton.icon(
+                onPressed: _showAddReviewDialog,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryPurple,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: Icon(Icons.add),
+                label: Text('Write First Review'),
+              )
+            else
+              ElevatedButton.icon(
+                onPressed: _joinGroup,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryPurple,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: Icon(Icons.group_add),
+                label: Text('Join Group'),
+              ),
           ],
         ),
       ),

@@ -152,6 +152,7 @@ class AppTheme {
   // Border Colors
   static Color get borderLight => _isDarkMode ? const Color(0xFF374151) : const Color(0xFFE5E7EB); // gray-700 / gray-200
   static Color get borderMedium => _isDarkMode ? const Color(0xFF4B5563) : const Color(0xFFD1D5DB); // gray-600 / gray-300
+  static Color get border => borderLight; // Alias for borderLight
 
   // Status Colors
   static const Color successGreen = Color(0xFF10B981); // green-500
@@ -241,6 +242,12 @@ class AppTheme {
     fontSize: 12,
     fontWeight: FontWeight.normal,
     color: textTertiary,
+  );
+
+  static TextStyle get labelLarge => TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w600,
+    color: textPrimary,
   );
 
   static TextStyle get labelMedium => TextStyle(
