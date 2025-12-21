@@ -1,0 +1,125 @@
+╔════════════════════════════════════════════════════════════════════════╗
+║                  ReviewInn App Icon - Quick Reference                  ║
+╚════════════════════════════════════════════════════════════════════════╝
+
+📱 ICON DESIGN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Background:  Purple gradient (#7C3AED → #6D28D9)
+  Main Icon:   Yellow star (#EAB308)
+  Letter:      White "R" for ReviewInn
+  Style:       Modern, minimalist, professional
+
+
+🚀 QUICK SETUP (3 STEPS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  STEP 1: Convert SVG to PNG
+  ─────────────────────────────────────────────────────────────────────
+  Option A - Online (Easiest):
+    1. Visit: https://convertio.co/svg-png/
+    2. Upload: assets/icon/icon_template.svg
+    3. Size: 1024x1024px
+    4. Download as: app_icon.png
+    5. Repeat for: icon_foreground_template.svg → app_icon_foreground.png
+    6. Place in: assets/icon/ folder
+
+  Option B - Command Line (Inkscape):
+    inkscape assets/icon/icon_template.svg \
+             -w 1024 -h 1024 \
+             -o assets/icon/app_icon.png
+
+
+  STEP 2: Generate Icons
+  ─────────────────────────────────────────────────────────────────────
+    flutter pub get
+    flutter pub run flutter_launcher_icons
+
+
+  STEP 3: Test
+  ─────────────────────────────────────────────────────────────────────
+    flutter run -d android
+    # or
+    flutter build apk --release
+
+
+📦 WHAT GETS GENERATED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ✓ Android icons    (mdpi, hdpi, xhdpi, xxhdpi, xxxhdpi)
+  ✓ iOS icons        (all 10+ required sizes)
+  ✓ Adaptive icons   (Android 8.0+)
+  ✓ Web icons        (favicon, PWA icons)
+
+
+🎨 CUSTOMIZE ICON
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Edit SVG files or create your own design:
+  
+  Requirements:
+    • Size: 1024x1024 pixels
+    • Format: PNG
+    • Files: app_icon.png + app_icon_foreground.png
+    • Location: assets/icon/
+
+  Design Tools:
+    • Figma:        https://figma.com (Free)
+    • Canva:        https://canva.com (Easy)
+    • Adobe Express: https://express.adobe.com
+    • Inkscape:     https://inkscape.org (Desktop)
+
+
+🛠️  TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Icon not updating?
+    flutter clean
+    flutter pub get
+    flutter pub run flutter_launcher_icons
+    flutter run
+
+  Package not found?
+    flutter pub get
+
+
+📱 PLAY STORE REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ✓ App Icon:       512x512px (auto-generated)
+  ✓ Feature Graphic: 1024x500px (create separately)
+  ✓ Screenshots:     At least 2 required
+
+
+🍎 APP STORE REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ✓ All sizes (auto-generated)
+  ✓ No transparency (handled)
+  ✓ No rounded corners (iOS adds them)
+
+
+📁 FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  assets/icon/
+    ├── icon_template.svg              (Edit this)
+    ├── icon_foreground_template.svg   (Edit this)
+    ├── app_icon.png                   (Generated from SVG)
+    ├── app_icon_foreground.png        (Generated from SVG)
+    └── README.md                      (Full guide)
+
+
+🎨 COLOR REFERENCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Primary Purple:    #7C3AED
+  Purple Dark:       #6D28D9
+  Accent Yellow:     #EAB308
+  Yellow Light:      #FBBF24
+  White:             #FFFFFF
+
+
+📚 MORE HELP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Full Guide:     ICON_SETUP.md
+  Detailed Info:  assets/icon/README.md
+  Package Docs:   https://pub.dev/packages/flutter_launcher_icons
+
+
+╔════════════════════════════════════════════════════════════════════════╗
+║  TIP: Use the setup_icon.sh script for automated setup!               ║
+║       Run: ./setup_icon.sh                                             ║
+╚════════════════════════════════════════════════════════════════════════╝

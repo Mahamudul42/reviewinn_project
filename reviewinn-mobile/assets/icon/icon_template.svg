@@ -1,0 +1,44 @@
+<svg width="1024" height="1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gradient Background -->
+  <defs>
+    <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7C3AED;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6D28D9;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Shadow filter -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- Rounded rectangle background -->
+  <rect width="1024" height="1024" rx="226" fill="url(#purpleGrad)"/>
+  
+  <!-- Main star (large, yellow) -->
+  <g filter="url(#shadow)">
+    <path d="M512 220 L590 420 L810 420 L640 550 L710 750 L512 620 L314 750 L384 550 L214 420 L434 420 Z" 
+          fill="#EAB308" 
+          stroke="#FBBF24" 
+          stroke-width="12"
+          stroke-linejoin="round"/>
+  </g>
+  
+  <!-- Letter R (white, bold) -->
+  <text x="512" y="880" 
+        font-family="Arial, Helvetica, sans-serif" 
+        font-size="260" 
+        font-weight="900" 
+        fill="#FFFFFF" 
+        text-anchor="middle"
+        filter="url(#shadow)">R</text>
+  
+  <!-- Small rating stars at bottom -->
+  <g opacity="0.9">
+    <path d="M392 920 L402 940 L424 940 L406 952 L412 972 L392 960 L372 972 L378 952 L360 940 L382 940 Z" fill="#EAB308"/>
+    <path d="M462 920 L472 940 L494 940 L476 952 L482 972 L462 960 L442 972 L448 952 L430 940 L452 940 Z" fill="#EAB308"/>
+    <path d="M532 920 L542 940 L564 940 L546 952 L552 972 L532 960 L512 972 L518 952 L500 940 L522 940 Z" fill="#EAB308"/>
+    <path d="M602 920 L612 940 L634 940 L616 952 L622 972 L602 960 L582 972 L588 952 L570 940 L592 940 Z" fill="#EAB308"/>
+    <path d="M672 920 L682 940 L704 940 L686 952 L692 972 L672 960 L652 972 L658 952 L640 940 L662 940 Z" fill="#EAB308"/>
+  </g>
+</svg>
