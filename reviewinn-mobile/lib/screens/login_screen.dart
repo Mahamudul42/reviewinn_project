@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import 'registration_screen.dart';
+import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -167,7 +169,26 @@ class _LoginScreenState extends State<LoginScreen> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 24),
+                  if (_isLoginMode) ...[
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ForgotPasswordScreen(),
+                            ),
+                          );
+                        },
+                        child: Text(
+                          'Forgot Password?',
+                          style: TextStyle(color: Colors.deepPurple),
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 8),
                   ElevatedButton(
                     onPressed: authProvider.isLoading ? null : _submit,
                     style: ElevatedButton.styleFrom(
@@ -196,18 +217,40 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                   ),
                   const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _isLoginMode = !_isLoginMode;
-                      });
-                    },
-                    child: Text(
-                      _isLoginMode
-                          ? "Don't have an account? Register"
-                          : 'Already have an account? Login',
-                      style: TextStyle(color: Colors.deepPurple),
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        _isLoginMode
+                            ? "Don't have an account? "
+                            : 'Already have an account? ',
+                        style: TextStyle(color: Colors.grey.shade700),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          if (_isLoginMode) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const RegistrationScreen(),
+                              ),
+                            );
+                          } else {
+                            setState(() {
+                              _isLoginMode = true;
+                            });
+                          }
+                        },
+                        child: Text(
+                          _isLoginMode ? 'Sign Up' : 'Login',
+                          style: TextStyle(
+                            color: Colors.deepPurple,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

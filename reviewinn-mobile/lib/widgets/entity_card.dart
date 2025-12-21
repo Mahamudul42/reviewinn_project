@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/entity_model.dart';
 import '../config/app_theme.dart';
+import '../providers/bookmark_provider.dart';
 import 'entity_info.dart';
 
 /// Unified Entity Card Component
@@ -83,6 +85,31 @@ class _EntityCardState extends State<EntityCard> {
                     showVerifiedIcon: true,
                     maxDescriptionLines: 2,
                   ),
+                ),
+
+                // Bookmark button
+                Consumer<BookmarkProvider>(
+                  builder: (context, bookmarkProvider, child) {
+                    final isBookmarked = bookmarkProvider.isEntityBookmarked(widget.entity.entityId);
+                    return IconButton(
+                      icon: Icon(
+                        isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                        color: isBookmarked ? AppTheme.primaryPurple : AppTheme.textTertiary,
+                        size: 22,
+                      ),
+                      onPressed: () {
+                        bookmarkProvider.toggleEntityBookmark(widget.entity);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              isBookmarked ? 'Removed from bookmarks' : 'Added to bookmarks',
+                            ),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                    );
+                  },
                 ),
 
                 // Navigation Arrow

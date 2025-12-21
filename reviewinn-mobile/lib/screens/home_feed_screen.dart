@@ -8,6 +8,7 @@ import 'search_screen.dart';
 import 'notifications_screen.dart';
 import 'write_review_screen.dart';
 import 'login_screen.dart';
+import 'bookmarks_screen.dart';
 
 class HomeFeedScreen extends StatefulWidget {
   const HomeFeedScreen({super.key});
@@ -251,6 +252,8 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> with SingleTickerProvid
                                 ),
                               ),
                               const SizedBox(width: 12),
+                              _buildBookmarkButton(),
+                              const SizedBox(width: 8),
                               _buildNotificationButton(),
                             ],
                           ),
@@ -489,7 +492,30 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> with SingleTickerProvid
       },
     );
   }
-
+  Widget _buildBookmarkButton() {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const BookmarksScreen(),
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(
+          Icons.bookmark_border_rounded,
+          color: Colors.white,
+          size: 24,
+        ),
+      ),
+    );
+  }
   Widget _buildNotificationButton() {
     return GestureDetector(
       onTap: () {

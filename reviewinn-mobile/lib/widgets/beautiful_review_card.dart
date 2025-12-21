@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../models/review_model.dart';
 import '../config/app_theme.dart';
+import '../providers/bookmark_provider.dart';
 import 'purple_star_rating.dart';
 import 'review_detail_modal.dart';
 import 'entity_info.dart';
@@ -386,6 +388,31 @@ class _BeautifulReviewCardState extends State<BeautifulReviewCard>
                 ),
               ],
             ),
+          ),
+
+          // Bookmark button
+          Consumer<BookmarkProvider>(
+            builder: (context, bookmarkProvider, child) {
+              final isBookmarked = bookmarkProvider.isReviewBookmarked(widget.review.reviewId);
+              return IconButton(
+                icon: Icon(
+                  isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                  color: isBookmarked ? AppTheme.primaryPurple : AppTheme.textTertiary,
+                  size: 24,
+                ),
+                onPressed: () {
+                  bookmarkProvider.toggleReviewBookmark(widget.review);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        isBookmarked ? 'Removed from bookmarks' : 'Added to bookmarks',
+                      ),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              );
+            },
           ),
 
           // Three-dot menu (Facebook-style)

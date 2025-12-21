@@ -5,8 +5,13 @@ import 'providers/entity_provider.dart';
 import 'providers/review_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/draft_provider.dart';
+import 'providers/bookmark_provider.dart';
 import 'screens/main_screen.dart';
 import 'screens/legal_information_screen.dart';
+import 'screens/registration_screen.dart';
+import 'screens/forgot_password_screen.dart';
+import 'screens/edit_profile_screen.dart';
+import 'screens/bookmarks_screen.dart';
 
 void main() {
   runApp(const ReviewInnApp());
@@ -24,6 +29,7 @@ class ReviewInnApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => EntityProvider()),
         ChangeNotifierProvider(create: (_) => ReviewProvider()),
         ChangeNotifierProvider(create: (_) => DraftProvider()),
+        ChangeNotifierProvider(create: (_) => BookmarkProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
@@ -34,6 +40,10 @@ class ReviewInnApp extends StatelessWidget {
             home: const SplashScreen(),
             routes: {
               '/legal': (context) => const LegalInformationScreen(),
+              '/registration': (context) => const RegistrationScreen(),
+              '/forgot-password': (context) => const ForgotPasswordScreen(),
+              '/edit-profile': (context) => const EditProfileScreen(),
+              '/bookmarks': (context) => const BookmarksScreen(),
             },
           );
         },
