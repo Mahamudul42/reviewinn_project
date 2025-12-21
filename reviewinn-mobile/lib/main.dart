@@ -6,6 +6,7 @@ import 'providers/review_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/draft_provider.dart';
 import 'screens/main_screen.dart';
+import 'screens/legal_information_screen.dart';
 
 void main() {
   runApp(const ReviewInnApp());
@@ -31,6 +32,9 @@ class ReviewInnApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             theme: themeProvider.currentTheme,
             home: const SplashScreen(),
+            routes: {
+              '/legal': (context) => const LegalInformationScreen(),
+            },
           );
         },
       ),

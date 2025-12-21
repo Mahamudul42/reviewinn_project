@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../providers/entity_provider.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/entity_card.dart';
+import '../widgets/reviewinn_info_card.dart';
+import '../widgets/support_center_card.dart';
 import 'entity_detail_screen.dart';
 import 'login_screen.dart';
 
@@ -147,22 +149,39 @@ class _HomeScreenState extends State<HomeScreen> {
             onRefresh: () => entityProvider.fetchEntities(),
             child: ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: entityProvider.entities.length,
+              itemCount: entityProvider.entities.length + 2, // +2 for the info cards
               itemBuilder: (context, index) {
-                final entity = entityProvider.entities[index];
-                return EntityCard(
-                  entity: entity,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EntityDetailScreen(
-                          entityId: entity.entityId,
+                // Show entities first
+                if (index < entityProvider.entities.length) {
+                  final entity = entityProvider.entities[index];
+                  return EntityCard(
+                    entity: entity,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EntityDetailScreen(
+                            entityId: entity.entityId,
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                );
+                      );
+                    },
+                  );
+                }
+                // Then show ReviewInn Info Card
+                else if (index == entityProvider.entities.length) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8, bottom: 8),
+                    child: ReviewInnInfoCard(),
+                  );
+                }
+                // Finally show Support Center Card
+                else {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 80), // Space for FAB
+                    child: SupportCenterCard(),
+                  );
+                }
               },
             ),
           );

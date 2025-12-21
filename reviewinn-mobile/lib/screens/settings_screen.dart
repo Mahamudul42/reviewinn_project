@@ -227,17 +227,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
           _buildListTile(
-            icon: Icons.description,
-            title: 'Terms of Service',
+            icon: Icons.gavel,
+            title: 'Legal & Policies',
+            subtitle: 'Terms, Privacy, and more',
             onTap: () {
-              // TODO: Navigate to terms
-            },
-          ),
-          _buildListTile(
-            icon: Icons.privacy_tip,
-            title: 'Privacy Policy',
-            onTap: () {
-              // TODO: Navigate to privacy policy
+              Navigator.pushNamed(context, '/legal');
             },
           ),
           
