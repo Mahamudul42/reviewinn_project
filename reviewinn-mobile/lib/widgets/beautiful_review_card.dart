@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../models/review_model.dart';
 import '../config/app_theme.dart';
 import '../providers/bookmark_provider.dart';
+import '../providers/review_provider.dart';
 import 'purple_star_rating.dart';
 import 'review_detail_modal.dart';
 import 'entity_info.dart';
@@ -670,18 +671,14 @@ class _BeautifulReviewCardState extends State<BeautifulReviewCard>
       ),
       child: Row(
         children: [
-          _buildActionButton(
-            Icons.favorite_border_rounded,
-            '${widget.review.likesCount ?? 0}',
-            AppTheme.errorRed,
-            'Like',
-          ),
+          _buildLikeButton(),
           const SizedBox(width: AppTheme.spaceXL),
           _buildActionButton(
             Icons.mode_comment_outlined,
             '${widget.review.commentsCount ?? 0}',
             AppTheme.infoBlue,
             'Comment',
+            null,
           ),
           const SizedBox(width: AppTheme.spaceXL),
           _buildActionButton(
@@ -689,6 +686,7 @@ class _BeautifulReviewCardState extends State<BeautifulReviewCard>
             '${widget.review.viewCount ?? 0}',
             AppTheme.textTertiary,
             'Views',
+            null,
           ),
           const Spacer(),
           InkWell(
@@ -738,11 +736,10 @@ class _BeautifulReviewCardState extends State<BeautifulReviewCard>
     String count,
     Color color,
     String label,
+    VoidCallback? onTap,
   ) {
     return InkWell(
-      onTap: () {
-        // Action functionality
-      },
+      onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       child: Padding(
         padding: const EdgeInsets.symmetric(
@@ -781,6 +778,96 @@ class _BeautifulReviewCardState extends State<BeautifulReviewCard>
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildLikeButton() {
+    return Consumer<ReviewProvider>(
+      builder: (context, reviewProvider, child) {
+        final isLiked = widget.review.isLiked ?? false;
+        final likesCount = widget.review.likesCount ?? 0;
+
+        return TweenAnimationBuilder<double>(
+          tween: Tween(begin: 1.0, end: isLiked ? 1.2 : 1.0),
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutBack,
+          builder: (context, scale, child) {
+            return Transform.scale(
+              scale: scale,
+              child: InkWell(
+                onTap: () async {
+                  // Haptic feedback
+                  await reviewProvider.toggleLike(widget.review.reviewId);
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 4,
+                  ),
+                  child: Row(
+                    children: [
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        transitionBuilder: (child, animation) {
+                          return ScaleTransition(
+                            scale: animation,
+                            child: child,
+                          );
+                        },
+                        child: Icon(
+                          isLiked ? Icons.favorite : Icons.favorite_border_rounded,
+                          key: ValueKey(isLiked),
+                          size: 22,
+                          color: isLiked ? AppTheme.errorRed : AppTheme.errorRed,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 200),
+                            transitionBuilder: (child, animation) {
+                              return FadeTransition(
+                                opacity: animation,
+                                child: SlideTransition(
+                                  position: Tween<Offset>(
+                                    begin: const Offset(0, -0.5),
+                                    end: Offset.zero,
+                                  ).animate(animation),
+                                  child: child,
+                                ),
+                              );
+                            },
+                            child: Text(
+                              '$likesCount',
+                              key: ValueKey(likesCount),
+                              style: AppTheme.labelMedium.copyWith(
+                                color: isLiked ? AppTheme.errorRed : AppTheme.textPrimary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            'Like',
+                            style: AppTheme.bodySmall.copyWith(
+                              color: AppTheme.textTertiary,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
