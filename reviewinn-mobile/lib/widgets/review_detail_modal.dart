@@ -32,6 +32,7 @@ class _ReviewDetailModalState extends State<ReviewDetailModal> {
   late int helpfulCount;
   late bool isNotHelpful;
   late int notHelpfulCount;
+  bool _showComments = false; // Track if comments should be loaded
 
   @override
   void initState() {
@@ -247,16 +248,22 @@ class _ReviewDetailModalState extends State<ReviewDetailModal> {
                       const SizedBox(height: AppTheme.spaceXL),
                     ],
 
-                    // Stats
-                    _buildStats(),
+                    // Beautiful Action Bar (Like, Comment, Share, Views)
+                    _buildBeautifulActionBar(),
+                    const SizedBox(height: AppTheme.spaceL),
+
+                    // Helpful Vote Section
+                    _buildHelpfulVoteSection(),
                     const SizedBox(height: AppTheme.spaceXL),
 
-                    // Comments Section
-                    _buildCommentsSection(context),
-                    const SizedBox(height: AppTheme.spaceXL),
+                    // Comments Section (Load on demand)
+                    if (_showComments) ...[
+                      _buildCommentsSection(context),
+                      const SizedBox(height: AppTheme.spaceXL),
+                    ],
 
-                    // Action buttons
-                    _buildActionButtons(),
+                    // Bottom padding for safe area
+                    SizedBox(height: MediaQuery.of(context).padding.bottom + AppTheme.spaceL),
                   ],
                 ),
               ),
@@ -625,7 +632,440 @@ Shared from ReviewInn App''';
     );
   }
 
-  Widget _buildActionButtons() {
+  // Beautiful Action Bar with Like, Comment, Share
+  Widget _buildBeautifulActionBar() {
+    return Container(
+      padding: const EdgeInsets.all(AppTheme.spaceM),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.black.withOpacity(0.1),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Like Button
+          Expanded(
+            child: _buildActionButton(
+              icon: isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+              label: 'Like',
+              count: likesCount,
+              isActive: isLiked,
+              activeColor: Colors.red,
+              onTap: () {
+                setState(() {
+                  isLiked = !isLiked;
+                  likesCount += isLiked ? 1 : -1;
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(isLiked ? '❤️ Review liked!' : 'Like removed'),
+                    duration: const Duration(seconds: 1),
+                    backgroundColor: isLiked ? Colors.red : AppTheme.textSecondary,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(width: AppTheme.spaceS),
+          
+          // Comment Button
+          Expanded(
+            child: _buildActionButton(
+              icon: Icons.mode_comment_outlined,
+              label: 'Comment',
+              count: widget.review.commentsCount ?? 0,
+              isActive: _showComments,
+              activeColor: AppTheme.infoBlue,
+              onTap: () {
+                setState(() {
+                  _showComments = !_showComments;
+                });
+                if (_showComments) {
+                  // TODO: Load comments from API
+                  // This is where you'll fetch comments separately
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('💬 Loading comments...'),
+                      duration: const Duration(seconds: 1),
+                      backgroundColor: AppTheme.infoBlue,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  );
+                }
+              },
+            ),
+          ),
+          const SizedBox(width: AppTheme.spaceS),
+          
+          // Views Button
+          Expanded(
+            child: _buildActionButton(
+              icon: Icons.visibility_rounded,
+              label: 'Views',
+              count: widget.review.viewCount ?? 0,
+              isActive: false,
+              activeColor: Colors.black,
+              onTap: () {},
+            ),
+          ),
+          const SizedBox(width: AppTheme.spaceS),
+          
+          // Share Button
+          Expanded(
+            child: _buildActionButton(
+              icon: Icons.share_rounded,
+              label: 'Share',
+              count: null,
+              isActive: false,
+              activeColor: AppTheme.successGreen,
+              onTap: () {
+                _handleShare();
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Reusable Action Button Widget
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required int? count,
+    required bool isActive,
+    required Color activeColor,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            vertical: AppTheme.spaceM,
+            horizontal: AppTheme.spaceS,
+          ),
+          decoration: BoxDecoration(
+            color: isActive ? activeColor.withOpacity(0.1) : Colors.transparent,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isActive ? activeColor.withOpacity(0.3) : Colors.transparent,
+              width: 1.5,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                color: isActive ? activeColor : Colors.black,
+                size: 24,
+              ),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: isActive ? activeColor : Colors.black,
+                      fontSize: 12,
+                      fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                    ),
+                  ),
+                  if (count != null && count > 0) ...[
+                    const SizedBox(width: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: isActive ? activeColor : AppTheme.textTertiary,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        count > 999 ? '${(count / 1000).toStringAsFixed(1)}k' : count.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Helpful Vote Section
+  Widget _buildHelpfulVoteSection() {
+    final totalVotes = helpfulCount + notHelpfulCount;
+    final helpfulPercentage = totalVotes > 0 ? (helpfulCount / totalVotes * 100).round() : 0;
+
+    return Container(
+      padding: const EdgeInsets.all(AppTheme.spaceL),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.black.withOpacity(0.1),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.thumb_up_rounded,
+                  color: Colors.green,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: AppTheme.spaceM),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Was this review helpful?',
+                      style: AppTheme.labelMedium.copyWith(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (totalVotes > 0) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        '$helpfulPercentage% found this helpful ($totalVotes votes)',
+                        style: AppTheme.bodySmall.copyWith(
+                          color: Colors.black,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppTheme.spaceM),
+
+              // Vote Buttons
+              Row(
+                children: [
+                  // Yes Button
+                  Expanded(
+                    child: _buildVoteButton(
+                      icon: Icons.thumb_up_rounded,
+                      label: 'Yes',
+                      count: helpfulCount,
+                      isActive: isHelpful,
+                      color: AppTheme.successGreen,
+                      onTap: () {
+                        if (!isNotHelpful) {
+                          setState(() {
+                            if (isHelpful) {
+                              isHelpful = false;
+                              helpfulCount--;
+                            } else {
+                              isHelpful = true;
+                              helpfulCount++;
+                            }
+                          });
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text('You already voted this as not helpful'),
+                              duration: const Duration(seconds: 2),
+                              backgroundColor: AppTheme.errorRed,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: AppTheme.spaceM),
+                  
+                  // No Button
+                  Expanded(
+                    child: _buildVoteButton(
+                      icon: Icons.thumb_down_rounded,
+                      label: 'No',
+                      count: notHelpfulCount,
+                      isActive: isNotHelpful,
+                      color: AppTheme.errorRed,
+                      onTap: () {
+                        if (!isHelpful) {
+                          setState(() {
+                            if (isNotHelpful) {
+                              isNotHelpful = false;
+                              notHelpfulCount--;
+                            } else {
+                              isNotHelpful = true;
+                              notHelpfulCount++;
+                            }
+                          });
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text('You already voted this as helpful'),
+                              duration: const Duration(seconds: 2),
+                              backgroundColor: AppTheme.errorRed,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      }
+
+  // Reusable Vote Button
+  Widget _buildVoteButton({
+    required IconData icon,
+    required String label,
+    required int count,
+    required bool isActive,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            vertical: 12,
+            horizontal: 16,
+          ),
+          decoration: BoxDecoration(
+            color: isActive ? color : Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isActive ? color : AppTheme.borderLight,
+              width: 1.5,
+            ),
+            boxShadow: isActive
+                ? [
+                    BoxShadow(
+                      color: color.withOpacity(0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                color: isActive ? Colors.white : Colors.black,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  color: isActive ? Colors.white : Colors.black,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              if (count > 0) ...[
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: isActive ? Colors.white.withOpacity(0.25) : AppTheme.backgroundLight,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    count.toString(),
+                    style: TextStyle(
+                      color: isActive ? Colors.white : AppTheme.textSecondary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Handle Share Action
+  void _handleShare() {
+    // TODO: Implement share functionality
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.share_rounded, color: Colors.white, size: 20),
+            const SizedBox(width: 12),
+            const Text('Review link copied to clipboard!'),
+          ],
+        ),
+        duration: const Duration(seconds: 2),
+        backgroundColor: AppTheme.successGreen,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOldActionButtons() {
     return Column(
       children: [
         // Primary Actions Row
@@ -839,6 +1279,11 @@ Shared from ReviewInn App''';
   }
 
   Widget _buildCommentsSection(BuildContext context) {
+    // TODO: Replace with actual API call
+    // Backend endpoint: GET /api/v1/reviews/{reviewId}/comments
+    // Query params: ?page=1&limit=20 (for pagination)
+    // DO NOT load comments with review data to avoid expensive nested JOINs
+    
     // Mock comments data for demonstration
     final mockComments = [
       {
@@ -864,104 +1309,200 @@ Shared from ReviewInn App''';
       },
     ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Comments Header
-        Container(
-          padding: const EdgeInsets.all(AppTheme.spaceL),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                AppTheme.infoBlue.withOpacity(0.1),
-                AppTheme.primaryPurple.withOpacity(0.1),
-              ],
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Divider before comments section
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: AppTheme.spaceL),
+            child: Divider(
+              color: AppTheme.borderLight,
+              thickness: 1,
+              height: 1,
             ),
-            borderRadius: AppTheme.radiusMedium,
           ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppTheme.infoBlue.withOpacity(0.2),
-                  borderRadius: AppTheme.radiusSmall,
-                ),
-                child: Icon(
-                  Icons.forum_rounded,
-                  color: AppTheme.infoBlue,
-                  size: 20,
-                ),
+
+          // Comments Header with Collapse Button
+          Container(
+            padding: const EdgeInsets.all(AppTheme.spaceL),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: Colors.black.withOpacity(0.1),
+                width: 1.5,
               ),
-              const SizedBox(width: AppTheme.spaceM),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Comments & Discussion',
-                      style: AppTheme.headingSmall.copyWith(
-                        fontSize: 18,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.infoBlue,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.forum_rounded,
+                    color: Colors.white,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: AppTheme.spaceM),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Comments & Discussion',
+                        style: AppTheme.headingSmall.copyWith(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        '${mockComments.length} ${mockComments.length == 1 ? 'comment' : 'comments'}',
+                        style: AppTheme.bodySmall.copyWith(
+                          color: Colors.black,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      setState(() {
+                        _showComments = false;
+                      });
+                    },
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        Icons.keyboard_arrow_up_rounded,
+                        color: AppTheme.infoBlue,
+                        size: 24,
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${mockComments.length} comments',
-                      style: AppTheme.bodySmall.copyWith(
-                        color: AppTheme.textTertiary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppTheme.spaceL),
+
+          // Comment Input with beautiful design
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                // TODO: Open comment input bottom sheet or navigate to comment page
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        Icon(Icons.edit_rounded, color: Colors.white, size: 20),
+                        const SizedBox(width: 12),
+                        const Text('Comment feature coming soon!'),
+                      ],
+                    ),
+                    backgroundColor: AppTheme.infoBlue,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                );
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                padding: const EdgeInsets.all(AppTheme.spaceL),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.black.withOpacity(0.1),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 15,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryPurple,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.person_rounded,
+                        size: 20,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: AppTheme.spaceM),
+                    Expanded(
+                      child: Text(
+                        'Add your comment...',
+                        style: AppTheme.bodyMedium.copyWith(
+                          color: Colors.black,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryPurple.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        Icons.send_rounded,
+                        color: AppTheme.primaryPurple,
+                        size: 20,
                       ),
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
-        ),
-        const SizedBox(height: AppTheme.spaceL),
-
-        // Comment Input
-        Container(
-          padding: const EdgeInsets.all(AppTheme.spaceM),
-          decoration: BoxDecoration(
-            color: AppTheme.backgroundLight,
-            borderRadius: AppTheme.radiusMedium,
-            border: Border.all(
-              color: AppTheme.borderLight,
             ),
           ),
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: AppTheme.primaryPurpleLight.withOpacity(0.2),
-                child: Icon(
-                  Icons.person_rounded,
-                  size: 20,
-                  color: AppTheme.primaryPurple,
-                ),
-              ),
-              const SizedBox(width: AppTheme.spaceM),
-              Expanded(
-                child: Text(
-                  'Add a comment...',
-                  style: AppTheme.bodyMedium.copyWith(
-                    color: AppTheme.textTertiary,
-                  ),
-                ),
-              ),
-              Icon(
-                Icons.send_rounded,
-                color: AppTheme.primaryPurple,
-                size: 20,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: AppTheme.spaceL),
+          const SizedBox(height: AppTheme.spaceL),
 
-        // Comments List
-        ...mockComments.map((comment) => _buildCommentItem(comment)),
-      ],
+          // Comments List
+          ...mockComments.map((comment) => _buildCommentItem(comment)),
+        ],
+      ),
     );
   }
 

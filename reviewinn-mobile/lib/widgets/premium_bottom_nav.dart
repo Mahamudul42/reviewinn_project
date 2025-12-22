@@ -180,16 +180,7 @@ class _PremiumBottomNavState extends State<PremiumBottomNav>
                       curve: Curves.easeOutCubic,
                       padding: EdgeInsets.all(isSelected ? 8 : 6),
                       decoration: BoxDecoration(
-                        gradient: isSelected
-                            ? LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  item.color.withOpacity(0.15),
-                                  item.color.withOpacity(0.08),
-                                ],
-                              )
-                            : null,
+                        color: isSelected ? item.color.withOpacity(0.1) : null,
                         borderRadius: BorderRadius.circular(14),
                         boxShadow: isSelected
                             ? [
@@ -206,7 +197,7 @@ class _PremiumBottomNavState extends State<PremiumBottomNav>
                         scale: _scaleAnimations[index].value,
                         child: Icon(
                           isSelected ? item.activeIcon : item.icon,
-                          color: isSelected ? item.color : AppTheme.textTertiary,
+                          color: isSelected ? item.color : Colors.black,
                           size: 24,
                         ),
                       ),
@@ -219,7 +210,7 @@ class _PremiumBottomNavState extends State<PremiumBottomNav>
                       style: TextStyle(
                         fontSize: isSelected ? 10.5 : 9.5,
                         fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                        color: isSelected ? item.color : AppTheme.textTertiary,
+                        color: isSelected ? item.color : Colors.black,
                         letterSpacing: isSelected ? 0.2 : 0.1,
                         height: 1.1,
                       ),
