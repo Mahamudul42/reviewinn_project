@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import '../providers/entity_provider.dart';
 import '../providers/review_provider.dart';
 import '../providers/auth_provider.dart';
-import '../widgets/review_card.dart';
+import '../providers/bookmark_provider.dart';
+import '../widgets/beautiful_review_card.dart';
+import '../widgets/purple_star_rating.dart';
 import '../config/app_theme.dart';
+import '../models/review_model.dart';
 import 'write_review_screen.dart';
 import 'login_screen.dart';
 
@@ -20,6 +22,8 @@ class EntityDetailScreen extends StatefulWidget {
 }
 
 class _EntityDetailScreenState extends State<EntityDetailScreen> {
+  int? _selectedRatingFilter; // null means "All Reviews"
+  
   @override
   void initState() {
     super.initState();
@@ -34,174 +38,615 @@ class _EntityDetailScreenState extends State<EntityDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey.shade50,
       body: Consumer<EntityProvider>(
         builder: (context, entityProvider, child) {
           if (entityProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: CircularProgressIndicator(
+                color: AppTheme.primaryPurple,
+              ),
+            );
           }
 
           final entity = entityProvider.selectedEntity;
           if (entity == null) {
-            return const Center(child: Text('Entity not found'));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.business_outlined,
+                    size: 80,
+                    color: Colors.grey.shade400,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Entity not found',
+                    style: AppTheme.headingMedium.copyWith(
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            );
           }
 
           return CustomScrollView(
             slivers: [
+              // Modern App Bar with Entity Info
               SliverAppBar(
-                expandedHeight: 200,
+                expandedHeight: 180,
                 pinned: true,
-                backgroundColor: Colors.deepPurple,
-                flexibleSpace: FlexibleSpaceBar(
-                  title: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          entity.name,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            shadows: [
-                              Shadow(
-                                offset: Offset(0, 1),
-                                blurRadius: 3.0,
-                                color: Color.fromARGB(255, 0, 0, 0),
-                              ),
-                            ],
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                backgroundColor: Colors.white,
+                elevation: 0,
+                leading: Container(
+                  margin: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
-                      SizedBox(width: 4),
-                      Icon(Icons.verified, size: 16, color: Colors.white),
                     ],
                   ),
-                  background: entity.avatar != null
-                      ? CachedNetworkImage(
-                          imageUrl: entity.avatar!,
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) => Container(
-                            color: Colors.grey[300],
-                          ),
-                          errorWidget: (context, url, error) => Container(
-                            color: Colors.grey[300],
-                            child: Icon(Icons.image, size: 50),
-                          ),
-                        )
-                      : Container(
-                          color: Colors.grey[300],
-                          child: Icon(Icons.business, size: 50),
-                        ),
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.black),
+                    onPressed: () => Navigator.pop(context),
+                  ),
                 ),
-              ),
-              SliverToBoxAdapter(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (entity.averageRating != null) ...[
-                            Row(
-                              children: [
-                                RatingBarIndicator(
-                                  rating: entity.averageRating!,
-                                  itemBuilder: (context, index) => Icon(
-                                    Icons.star,
-                                    color: Colors.amber,
+                actions: [
+                  Container(
+                    margin: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Consumer<BookmarkProvider>(
+                      builder: (context, bookmarkProvider, child) {
+                        final isBookmarked = bookmarkProvider.isEntityBookmarked(entity.entityId);
+                        return IconButton(
+                          icon: Icon(
+                            isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                            color: isBookmarked ? AppTheme.primaryPurple : Colors.black,
+                          ),
+                          onPressed: () {
+                            bookmarkProvider.toggleEntityBookmark(entity);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  isBookmarked ? 'Removed from bookmarks' : 'Added to bookmarks',
+                                ),
+                                behavior: SnackBarBehavior.floating,
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: SafeArea(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 60, 16, 16),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            // Entity Avatar - Larger and More Prominent
+                            Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: AppTheme.primaryPurple.withOpacity(0.2),
+                                  width: 3,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppTheme.primaryPurple.withOpacity(0.1),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
                                   ),
-                                  itemCount: 5,
-                                  itemSize: 24.0,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  entity.averageRating!.toStringAsFixed(1),
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '(${entity.reviewCount ?? 0} reviews)',
-                                  style: TextStyle(color: Colors.grey[600]),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                          ],
-                          if (entity.description != null) ...[
-                            Text(
-                              'About',
-                              style: Theme.of(context).textTheme.titleLarge,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              entity.description!,
-                              style: TextStyle(
-                                color: Colors.grey[700],
-                                height: 1.5,
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(17),
+                                child: entity.avatar != null
+                                    ? CachedNetworkImage(
+                                        imageUrl: entity.avatar!,
+                                        width: 90,
+                                        height: 90,
+                                        fit: BoxFit.cover,
+                                        placeholder: (context, url) => Container(
+                                          width: 90,
+                                          height: 90,
+                                          color: Colors.grey.shade100,
+                                          child: Center(
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: AppTheme.primaryPurple,
+                                            ),
+                                          ),
+                                        ),
+                                        errorWidget: (context, url, error) => Container(
+                                          width: 90,
+                                          height: 90,
+                                          color: Colors.grey.shade100,
+                                          child: Icon(
+                                            Icons.business_rounded,
+                                            size: 45,
+                                            color: Colors.grey.shade400,
+                                          ),
+                                        ),
+                                      )
+                                    : Container(
+                                        width: 90,
+                                        height: 90,
+                                        color: AppTheme.primaryPurple.withOpacity(0.1),
+                                        child: Icon(
+                                          Icons.business_rounded,
+                                          size: 45,
+                                          color: AppTheme.primaryPurple,
+                                        ),
+                                      ),
                               ),
                             ),
-                            const SizedBox(height: 16),
-                          ],
-                          if (entity.categoryName != null) ...[
-                            Chip(
-                              label: Text(entity.categoryName!),
-                              backgroundColor: Colors.deepPurple.shade50,
+                            const SizedBox(width: 16),
+                            // Entity Name and Categories
+                            Expanded(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  // Entity Name with Verified Badge
+                                  Row(
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          entity.name,
+                                          style: AppTheme.headingMedium.copyWith(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            height: 1.2,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Icon(
+                                        Icons.verified,
+                                        color: Colors.blue,
+                                        size: 18,
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  // Category Badges
+                                  if (entity.rootCategoryName != null || entity.finalCategoryName != null)
+                                    SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: Row(
+                                        children: [
+                                          if (entity.rootCategoryName != null)
+                                            _buildSmallCategoryChip(
+                                              entity.rootCategoryName!,
+                                              entity.rootCategoryIcon ?? '📁',
+                                            ),
+                                          if (entity.finalCategoryName != null &&
+                                              entity.rootCategoryId != entity.finalCategoryId) ...[
+                                            const SizedBox(width: 6),
+                                            _buildSmallCategoryChip(
+                                              entity.finalCategoryName!,
+                                              entity.finalCategoryIcon ?? '🏷️',
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                ],
+                              ),
                             ),
-                            const SizedBox(height: 16),
                           ],
-                          const Divider(),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Reviews',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          const SizedBox(height: 8),
-                        ],
+                        ),
                       ),
                     ),
-                    Consumer<ReviewProvider>(
-                      builder: (context, reviewProvider, child) {
-                        if (reviewProvider.isLoading) {
-                          return const Center(
-                            child: Padding(
-                              padding: EdgeInsets.all(32.0),
-                              child: CircularProgressIndicator(),
+                  ),
+                ),
+              ),
+              
+              // Entity Description (if available)
+              if (entity.description != null && entity.description!.isNotEmpty)
+                SliverToBoxAdapter(
+                  child: Container(
+                    margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.grey.shade200,
+                        width: 1,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryPurple.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                Icons.info_outline,
+                                size: 14,
+                                color: AppTheme.primaryPurple,
+                              ),
                             ),
-                          );
-                        }
-
-                        if (reviewProvider.entityReviews.isEmpty) {
-                          return Padding(
-                            padding: const EdgeInsets.all(32.0),
-                            child: Center(
-                              child: Column(
+                            const SizedBox(width: 8),
+                            Text(
+                              'About',
+                              style: AppTheme.headingSmall.copyWith(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          entity.description!,
+                          style: AppTheme.bodyMedium.copyWith(
+                            color: Colors.grey.shade700,
+                            height: 1.6,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              
+              // Rating and Filter Section - Compact Clickable Card
+              SliverToBoxAdapter(
+                child: Container(
+                  margin: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.grey.shade200,
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            // Compact Rating Box
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryPurple.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.rate_review,
-                                      size: 50, color: Colors.grey[400]),
-                                  const SizedBox(height: 8),
                                   Text(
-                                    'No reviews yet',
-                                    style: TextStyle(color: Colors.grey[600]),
+                                    entity.averageRating?.toStringAsFixed(1) ?? '0.0',
+                                    style: AppTheme.headingLarge.copyWith(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryPurple,
+                                      height: 1,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Icon(
+                                    Icons.star,
+                                    color: AppTheme.primaryPurple,
+                                    size: 20,
                                   ),
                                 ],
                               ),
                             ),
+                            const SizedBox(width: 12),
+                            // Stars and Count
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: List.generate(
+                                      5,
+                                      (index) => Icon(
+                                        index < (entity.averageRating?.floor() ?? 0)
+                                            ? Icons.star
+                                            : Icons.star_border,
+                                        color: AppTheme.primaryPurple,
+                                        size: 16,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Consumer<ReviewProvider>(
+                                    builder: (context, reviewProvider, child) {
+                                      return Text(
+                                        '${reviewProvider.entityReviews.length} reviews',
+                                        style: AppTheme.bodySmall.copyWith(
+                                          color: Colors.grey.shade600,
+                                          fontSize: 12,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      // Clickable Rating Breakdown Bars
+                      Consumer<ReviewProvider>(
+                        builder: (context, reviewProvider, child) {
+                          return Column(
+                            children: List.generate(5, (index) {
+                              final rating = 5 - index;
+                              final count = _getReviewCountByRating(reviewProvider.entityReviews, rating);
+                              final total = reviewProvider.entityReviews.length;
+                              final percentage = total > 0 ? count / total : 0.0;
+                              final isSelected = _selectedRatingFilter == rating;
+                              
+                              return InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    _selectedRatingFilter = isSelected ? null : rating;
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  color: isSelected ? AppTheme.primaryPurple.withOpacity(0.05) : Colors.transparent,
+                                  child: Row(
+                                    children: [
+                                      // Rating label
+                                      SizedBox(
+                                        width: 30,
+                                        child: Row(
+                                          children: [
+                                            Text(
+                                              '$rating',
+                                              style: AppTheme.bodyMedium.copyWith(
+                                                color: isSelected ? AppTheme.primaryPurple : Colors.black,
+                                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 2),
+                                            Icon(
+                                              Icons.star,
+                                              size: 12,
+                                              color: isSelected ? AppTheme.primaryPurple : Colors.grey.shade400,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      // Progress bar
+                                      Expanded(
+                                        child: Container(
+                                          height: 6,
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey.shade200,
+                                            borderRadius: BorderRadius.circular(3),
+                                          ),
+                                          child: FractionallySizedBox(
+                                            alignment: Alignment.centerLeft,
+                                            widthFactor: percentage,
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: isSelected ? AppTheme.primaryPurple : AppTheme.primaryPurple.withOpacity(0.6),
+                                                borderRadius: BorderRadius.circular(3),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      // Count
+                                      SizedBox(
+                                        width: 35,
+                                        child: Text(
+                                          '$count',
+                                          style: AppTheme.bodySmall.copyWith(
+                                            color: isSelected ? AppTheme.primaryPurple : Colors.grey.shade600,
+                                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                          ),
+                                          textAlign: TextAlign.right,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }),
                           );
-                        }
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                  ),
+                ),
+              ),
+              
+              // Reviews Section Header
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.rate_review_rounded,
+                        color: AppTheme.primaryPurple,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _selectedRatingFilter == null 
+                            ? 'All Reviews' 
+                            : '$_selectedRatingFilter-Star Reviews',
+                        style: AppTheme.headingMedium.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      if (_selectedRatingFilter != null) ...[
+                        const Spacer(),
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              _selectedRatingFilter = null;
+                            });
+                          },
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: Text(
+                            'Clear',
+                            style: AppTheme.bodySmall.copyWith(
+                              color: AppTheme.primaryPurple,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              
+              // Reviews List
+              Consumer<ReviewProvider>(
+                builder: (context, reviewProvider, child) {
+                  if (reviewProvider.isLoading) {
+                    return SliverToBoxAdapter(
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(32.0),
+                          child: CircularProgressIndicator(
+                            color: AppTheme.primaryPurple,
+                          ),
+                        ),
+                      ),
+                    );
+                  }
 
-                        return Column(
-                          children: reviewProvider.entityReviews
-                              .map((review) => ReviewCard(review: review))
-                              .toList(),
+                  // Filter reviews by selected rating
+                  final filteredReviews = _selectedRatingFilter == null
+                      ? reviewProvider.entityReviews
+                      : reviewProvider.entityReviews.where((review) {
+                          return review.rating.toInt() == _selectedRatingFilter;
+                        }).toList();
+
+                  if (filteredReviews.isEmpty) {
+                    return SliverToBoxAdapter(
+                      child: Container(
+                        margin: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(40),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.grey.shade200,
+                            width: 1,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.rate_review_outlined,
+                                size: 50,
+                                color: Colors.grey.shade400,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              _selectedRatingFilter == null 
+                                  ? 'No reviews yet'
+                                  : 'No ${_selectedRatingFilter}-star reviews',
+                              style: AppTheme.headingSmall.copyWith(
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _selectedRatingFilter == null
+                                  ? 'Be the first to review this entity'
+                                  : 'Try selecting a different rating',
+                              style: AppTheme.bodyMedium.copyWith(
+                                color: Colors.grey.shade500,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+
+                  return SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        return BeautifulReviewCard(
+                          review: filteredReviews[index],
                         );
                       },
+                      childCount: filteredReviews.length,
                     ),
-                  ],
-                ),
+                  );
+                },
+              ),
+              
+              // Bottom Padding
+              const SliverToBoxAdapter(
+                child: SizedBox(height: 100),
               ),
             ],
           );
@@ -233,16 +678,91 @@ class _EntityDetailScreenState extends State<EntityDetailScreen> {
               );
             },
             backgroundColor: AppTheme.primaryPurple,
-            icon: Icon(Icons.rate_review_rounded, color: Colors.white),
-            label: Text(
+            elevation: 4,
+            icon: const Icon(Icons.edit_rounded, color: Colors.white, size: 22),
+            label: const Text(
               'Write Review',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
+                fontSize: 16,
               ),
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildCategoryChip(String label, String icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            icon,
+            style: const TextStyle(fontSize: 14),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Helper method to count reviews by rating
+  int _getReviewCountByRating(List<Review> reviews, int rating) {
+    return reviews.where((review) {
+      return review.rating.toInt() == rating;
+    }).length;
+  }
+
+  // Helper method to build small category chips
+  Widget _buildSmallCategoryChip(String label, String icon) {
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryPurple.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppTheme.primaryPurple.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            icon,
+            style: const TextStyle(fontSize: 12),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: AppTheme.bodySmall.copyWith(
+              color: AppTheme.primaryPurple,
+              fontWeight: FontWeight.w600,
+              fontSize: 11,
+            ),
+          ),
+        ],
       ),
     );
   }

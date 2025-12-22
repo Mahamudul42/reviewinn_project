@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import '../models/review_model.dart';
 import '../config/app_theme.dart';
 import '../providers/bookmark_provider.dart';
+import '../screens/entity_detail_screen.dart';
+import '../screens/user_profile_screen.dart';
 import 'purple_star_rating.dart';
 import 'review_detail_modal.dart';
 import 'entity_info.dart';
@@ -246,74 +248,121 @@ class _BeautifulReviewCardState extends State<BeautifulReviewCard>
       ),
       child: Row(
         children: [
-          // Avatar - Larger with subtle border
-          Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: AppTheme.primaryPurple.withOpacity(0.2),
-                width: 2,
+          // Avatar - Larger with subtle border (clickable)
+          GestureDetector(
+            onTap: () {
+              // Only navigate if not anonymous
+              if (widget.review.username != null && 
+                  widget.review.username!.toLowerCase() != 'anonymous' &&
+                  widget.review.userId != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => UserProfileScreen(
+                      userId: widget.review.userId!,
+                    ),
+                  ),
+                );
+              }
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppTheme.primaryPurple.withOpacity(0.2),
+                  width: 2,
+                ),
               ),
-            ),
-            child: CircleAvatar(
-              radius: 24,
-              backgroundColor: AppTheme.backgroundLight,
-              child: widget.review.userAvatar != null
-                  ? ClipOval(
-                      child: CachedNetworkImage(
-                        imageUrl: widget.review.userAvatar!,
-                        width: 48,
-                        height: 48,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          color: AppTheme.borderLight,
-                        ),
-                        errorWidget: (context, url, error) => Text(
-                          widget.review.username?[0].toUpperCase() ?? 'U',
-                          style: AppTheme.labelMedium.copyWith(
-                            color: AppTheme.primaryPurple,
-                            fontSize: 18,
+              child: CircleAvatar(
+                radius: 24,
+                backgroundColor: AppTheme.backgroundLight,
+                child: widget.review.userAvatar != null
+                    ? ClipOval(
+                        child: CachedNetworkImage(
+                          imageUrl: widget.review.userAvatar!,
+                          width: 48,
+                          height: 48,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            color: AppTheme.borderLight,
+                          ),
+                          errorWidget: (context, url, error) => Text(
+                            widget.review.username?[0].toUpperCase() ?? 'U',
+                            style: AppTheme.labelMedium.copyWith(
+                              color: AppTheme.primaryPurple,
+                              fontSize: 18,
+                            ),
                           ),
                         ),
+                      )
+                    : Text(
+                        widget.review.username?[0].toUpperCase() ?? 'U',
+                        style: AppTheme.labelMedium.copyWith(
+                          color: AppTheme.primaryPurple,
+                          fontSize: 18,
+                        ),
                       ),
-                    )
-                  : Text(
-                      widget.review.username?[0].toUpperCase() ?? 'U',
-                      style: AppTheme.labelMedium.copyWith(
-                        color: AppTheme.primaryPurple,
-                        fontSize: 18,
-                      ),
-                    ),
+              ),
             ),
           ),
           const SizedBox(width: AppTheme.spaceM),
 
-          // User info
+          // User info (clickable)
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.review.username ?? 'Anonymous',
-                  style: AppTheme.labelMedium.copyWith(
-                    fontSize: 15,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.access_time_rounded,
-                      size: 14,
-                      color: AppTheme.textTertiary,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      _formatDate(widget.review.createdAt),
-                      style: AppTheme.bodySmall.copyWith(
-                        color: AppTheme.textTertiary,
+            child: GestureDetector(
+              onTap: () {
+                // Only navigate if not anonymous
+                if (widget.review.username != null && 
+                    widget.review.username!.toLowerCase() != 'anonymous' &&
+                    widget.review.userId != null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UserProfileScreen(
+                        userId: widget.review.userId!,
                       ),
                     ),
+                  );
+                }
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        widget.review.username ?? 'Anonymous',
+                        style: AppTheme.labelMedium.copyWith(
+                          fontSize: 15,
+                          color: (widget.review.username != null && 
+                                 widget.review.username!.toLowerCase() != 'anonymous' &&
+                                 widget.review.userId != null) 
+                              ? AppTheme.primaryPurple 
+                              : AppTheme.textPrimary,
+                          decoration: (widget.review.username != null && 
+                                      widget.review.username!.toLowerCase() != 'anonymous' &&
+                                      widget.review.userId != null)
+                              ? TextDecoration.underline
+                              : TextDecoration.none,
+                        ),
+                      ),
+                    ],
+                  ),
+                    const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.access_time_rounded,
+                        size: 14,
+                        color: AppTheme.textTertiary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _formatDate(widget.review.createdAt),
+                        style: AppTheme.bodySmall.copyWith(
+                          color: AppTheme.textTertiary,
+                        ),
+                      ),
                     // Group badge if review belongs to a group
                     if (widget.review.groupId != null && widget.review.groupName != null) ...[
                       const SizedBox(width: 8),
@@ -384,9 +433,10 @@ class _BeautifulReviewCardState extends State<BeautifulReviewCard>
                         ),
                       ),
                     ],
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
 
@@ -430,61 +480,169 @@ class _BeautifulReviewCardState extends State<BeautifulReviewCard>
   }
 
   Widget _buildEntityBadge() {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(
-        AppTheme.spaceL,
-        AppTheme.spaceS,
-        AppTheme.spaceL,
-        AppTheme.spaceM,
-      ),
-      padding: const EdgeInsets.all(AppTheme.spaceM),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppTheme.primaryPurple.withOpacity(0.03),
-            AppTheme.accentYellow.withOpacity(0.02),
+    return GestureDetector(
+      onTap: () {
+        // Navigate to entity detail screen if entityId is available
+        if (widget.review.entityId != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EntityDetailScreen(
+                entityId: widget.review.entityId!,
+              ),
+            ),
+          );
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(
+          AppTheme.spaceL,
+          AppTheme.spaceS,
+          AppTheme.spaceL,
+          AppTheme.spaceM,
+        ),
+        padding: const EdgeInsets.all(AppTheme.spaceM),
+        decoration: BoxDecoration(
+          color: AppTheme.primaryPurple.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            // Entity Icon
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryPurple.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                Icons.business_rounded,
+                color: AppTheme.primaryPurple,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Entity Details
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Entity Name with Verified Badge
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          widget.review.entityName ?? 'Unknown',
+                          style: AppTheme.labelMedium.copyWith(
+                            color: Colors.black,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.verified,
+                        size: 16,
+                        color: Colors.blue,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  // Category Badges
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: [
+                      if (widget.review.entityRootCategoryName != null)
+                        _buildCategoryBadge(
+                          widget.review.entityRootCategoryIcon ?? '📁',
+                          widget.review.entityRootCategoryName!,
+                          AppTheme.infoBlue,
+                        ),
+                      if (widget.review.entityFinalCategoryName != null &&
+                          widget.review.entityRootCategoryId != widget.review.entityFinalCategoryId)
+                        _buildCategoryBadge(
+                          widget.review.entityFinalCategoryIcon ?? '🏷️',
+                          widget.review.entityFinalCategoryName!,
+                          AppTheme.successGreen,
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  // Star Rating and Review Count
+                  Row(
+                    children: [
+                      ...List.generate(
+                        5,
+                        (index) => Icon(
+                          index < (widget.review.rating?.floor() ?? 0)
+                              ? Icons.star
+                              : Icons.star_border,
+                          size: 16,
+                          color: AppTheme.primaryPurple,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${widget.review.rating?.toStringAsFixed(1) ?? '0.0'}',
+                        style: AppTheme.labelMedium.copyWith(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '(${widget.review.entityReviewCount ?? 0} reviews)',
+                        style: AppTheme.bodySmall.copyWith(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Arrow Icon
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: AppTheme.textTertiary,
+              size: 16,
+            ),
           ],
         ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppTheme.primaryPurple.withOpacity(0.15),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primaryPurple.withOpacity(0.1),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-            spreadRadius: 0,
+      ),
+    );
+  }
+
+  Widget _buildCategoryBadge(String icon, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            icon,
+            style: const TextStyle(fontSize: 11),
           ),
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-            spreadRadius: 0,
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: AppTheme.bodySmall.copyWith(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: color.withOpacity(0.9),
+            ),
           ),
         ],
-      ),
-      child: EntityInfo(
-        entityName: widget.review.entityName,
-        entityAvatar: widget.review.entityAvatar,
-        rootCategoryName: widget.review.entityRootCategoryName,
-        finalCategoryName: widget.review.entityFinalCategoryName,
-        rootCategoryId: widget.review.entityRootCategoryId,
-        finalCategoryId: widget.review.entityFinalCategoryId,
-        rootCategoryIcon: widget.review.entityRootCategoryIcon,
-        finalCategoryIcon: widget.review.entityFinalCategoryIcon,
-        rating: widget.review.rating,
-        reviewCount: widget.review.entityReviewCount,
-        avatarSize: 64,
-        nameSize: 15,
-        ratingSize: 20,
-        showDescription: false,
-        showAvatar: true,
-        showVerifiedIcon: true,
-        maxDescriptionLines: 0,
       ),
     );
   }

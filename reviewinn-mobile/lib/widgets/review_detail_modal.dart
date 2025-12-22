@@ -354,59 +354,151 @@ class _ReviewDetailModalState extends State<ReviewDetailModal> {
 
   Widget _buildEntityBadge() {
     return Container(
+      margin: const EdgeInsets.fromLTRB(
+        AppTheme.spaceL,
+        AppTheme.spaceS,
+        AppTheme.spaceL,
+        AppTheme.spaceM,
+      ),
       padding: const EdgeInsets.all(AppTheme.spaceM),
       decoration: BoxDecoration(
-        gradient: AppTheme.purpleLightGradient,
-        borderRadius: AppTheme.radiusMedium,
-        border: Border.all(
-          color: AppTheme.primaryPurpleLight.withOpacity(0.3),
-          width: 1.5,
-        ),
+        color: AppTheme.primaryPurple.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         children: [
+          // Entity Icon
           Container(
-            padding: const EdgeInsets.all(AppTheme.spaceM),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppTheme.primaryPurpleLight.withOpacity(0.2),
-              borderRadius: AppTheme.radiusSmall,
+              color: AppTheme.primaryPurple.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
               Icons.business_rounded,
-              size: 20,
-              color: AppTheme.primaryPurpleDark,
+              color: AppTheme.primaryPurple,
+              size: 24,
             ),
           ),
-          const SizedBox(width: AppTheme.spaceM),
-          Flexible(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
+          const SizedBox(width: 12),
+          // Entity Details
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Flexible(
-                  child: Text(
-                    widget.review.entityName!,
-                    style: AppTheme.labelMedium.copyWith(
-                      color: AppTheme.primaryPurpleDark,
-                      fontSize: 16,
+                // Entity Name with Verified Badge
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        widget.review.entityName!,
+                        style: AppTheme.labelMedium.copyWith(
+                          color: Colors.black,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.verified,
+                      size: 16,
+                      color: Colors.blue,
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 4),
-                Icon(
-                  Icons.verified,
-                  size: 16,
-                  color: AppTheme.primaryPurpleDark,
+                const SizedBox(height: 6),
+                // Category Badges
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: [
+                    if (widget.review.entityRootCategoryName != null)
+                      _buildCategoryBadge(
+                        widget.review.entityRootCategoryIcon ?? '📁',
+                        widget.review.entityRootCategoryName!,
+                        AppTheme.infoBlue,
+                      ),
+                    if (widget.review.entityFinalCategoryName != null &&
+                        widget.review.entityRootCategoryId != widget.review.entityFinalCategoryId)
+                      _buildCategoryBadge(
+                        widget.review.entityFinalCategoryIcon ?? '🏷️',
+                        widget.review.entityFinalCategoryName!,
+                        AppTheme.successGreen,
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                // Star Rating and Review Count
+                Row(
+                  children: [
+                    ...List.generate(
+                      5,
+                      (index) => Icon(
+                        index < (widget.review.rating?.floor() ?? 0)
+                            ? Icons.star
+                            : Icons.star_border,
+                        size: 16,
+                        color: AppTheme.primaryPurple,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${widget.review.rating?.toStringAsFixed(1) ?? '0.0'}',
+                      style: AppTheme.labelMedium.copyWith(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '(${widget.review.entityReviewCount ?? 0} reviews)',
+                      style: AppTheme.bodySmall.copyWith(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-          const SizedBox(width: AppTheme.spaceM),
-          PurpleStarRating(
-            rating: widget.review.rating,
-            maxRating: 5,
-            size: 20,
-            showValue: true,
+          const SizedBox(width: 8),
+          // Arrow Icon
+          Icon(
+            Icons.arrow_forward_ios_rounded,
+            color: AppTheme.textTertiary,
+            size: 16,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryBadge(String icon, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            icon,
+            style: const TextStyle(fontSize: 11),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: AppTheme.bodySmall.copyWith(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: color.withOpacity(0.9),
+            ),
           ),
         ],
       ),
