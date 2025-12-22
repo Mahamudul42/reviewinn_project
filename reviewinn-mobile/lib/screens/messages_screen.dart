@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../config/app_theme.dart';
 import '../models/message_models.dart';
-import '../services/messaging_service.dart';
-import '../services/auth_service.dart';
+import '../services/mock_messaging_service.dart';
 import 'chat_screen.dart';
 
 class MessagesScreen extends StatefulWidget {
@@ -14,8 +13,7 @@ class MessagesScreen extends StatefulWidget {
 }
 
 class _MessagesScreenState extends State<MessagesScreen> {
-  final MessagingService _messagingService = MessagingService();
-  final AuthService _authService = AuthService();
+  final MockMessagingService _messagingService = MockMessagingService();
   final TextEditingController _searchController = TextEditingController();
 
   List<Conversation> _conversations = [];
@@ -37,20 +35,11 @@ class _MessagesScreenState extends State<MessagesScreen> {
   }
 
   Future<void> _loadConversations() async {
-    final token = await _authService.getToken();
-
-    if (token == null) {
-      setState(() {
-        _isLoading = false;
-        _error = 'Not authenticated';
-      });
-      return;
-    }
-
     setState(() => _isLoading = true);
 
     try {
-      final conversations = await _messagingService.getConversations(token);
+      // Using mock service - no token needed
+      final conversations = await _messagingService.getConversations('mock_token');
       setState(() {
         _conversations = conversations;
         _filteredConversations = conversations;

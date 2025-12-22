@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../config/app_theme.dart';
 import '../models/message_models.dart';
-import '../services/messaging_service.dart';
-import '../services/auth_service.dart';
+import '../services/mock_messaging_service.dart';
 
 class ChatScreen extends StatefulWidget {
   final Conversation conversation;
@@ -18,8 +17,7 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final MessagingService _messagingService = MessagingService();
-  final AuthService _authService = AuthService();
+  final MockMessagingService _messagingService = MockMessagingService();
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
@@ -27,7 +25,7 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isLoading = true;
   bool _isSending = false;
   String? _error;
-  String? _currentUserId;
+  final String _currentUserId = MockMessagingService.currentUserId;
 
   @override
   void initState() {
@@ -43,37 +41,25 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _initializeChat() async {
-    final token = await _authService.getToken();
-    final userId = await _authService.getUserId();
-
-    if (token == null || userId == null) {
-      setState(() {
-        _isLoading = false;
-        _error = 'Not authenticated';
-      });
-      return;
-    }
-
-    setState(() => _currentUserId = userId);
-
-    await _loadMessages(token);
-    await _markAsRead(token);
+    await _loadMessages();
+    await _markAsRead();
   }
 
-  Future<void> _loadMessages(String token) async {
+  Future<void> _loadMessages() async {
     setState(() {
       _isLoading = true;
       _error = null;
     });
 
     try {
+      // Using mock service - no token needed
       final messages = await _messagingService.getMessages(
-        token,
+        'mock_token',
         widget.conversation.id,
       );
 
       setState(() {
-        _messages = messages.reversed.toList();
+        _messages = messages;
         _isLoading = false;
       });
 
@@ -95,9 +81,9 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  Future<void> _markAsRead(String token) async {
+  Future<void> _markAsRead() async {
     try {
-      await _messagingService.markAsRead(token, widget.conversation.id);
+      await _messagingService.markAsRead('mock_token', widget.conversation.id);
     } catch (e) {
       // Silently fail - not critical
       print('Failed to mark as read: $e');
@@ -108,9 +94,6 @@ class _ChatScreenState extends State<ChatScreen> {
     final content = _messageController.text.trim();
     if (content.isEmpty || _isSending) return;
 
-    final token = await _authService.getToken();
-    if (token == null) return;
-
     setState(() {
       _isSending = true;
       _messageController.clear();
@@ -118,7 +101,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     try {
       final message = await _messagingService.sendMessage(
-        token,
+        'mock_token',
         widget.conversation.id,
         content,
       );
@@ -583,10 +566,7 @@ class _ChatScreenState extends State<ChatScreen> {
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () async {
-                final token = await _authService.getToken();
-                if (token != null) {
-                  await _loadMessages(token);
-                }
+                await _loadMessages();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.infoBlue,
@@ -624,10 +604,7 @@ class _ChatScreenState extends State<ChatScreen> {
               title: Text('Refresh Messages'),
               onTap: () async {
                 Navigator.pop(context);
-                final token = await _authService.getToken();
-                if (token != null) {
-                  await _loadMessages(token);
-                }
+                await _loadMessages();
               },
             ),
             ListTile(
@@ -677,12 +654,9 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _deleteConversation() async {
-    final token = await _authService.getToken();
-    if (token == null) return;
-
     try {
       final success = await _messagingService.deleteConversation(
-        token,
+        'mock_token',
         widget.conversation.id,
       );
 
