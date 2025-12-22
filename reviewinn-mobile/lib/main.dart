@@ -12,8 +12,15 @@ import 'screens/registration_screen.dart';
 import 'screens/forgot_password_screen.dart';
 import 'screens/edit_profile_screen.dart';
 import 'screens/bookmarks_screen.dart';
+import 'config/environment.dart';
+import 'utils/logger.dart';
 
 void main() {
+  // Print environment info on startup
+  WidgetsFlutterBinding.ensureInitialized();
+  Environment.printInfo();
+  Logger.section('ReviewInn Mobile App Starting');
+  
   runApp(const ReviewInnApp());
 }
 
@@ -35,7 +42,7 @@ class ReviewInnApp extends StatelessWidget {
         builder: (context, themeProvider, child) {
           return MaterialApp(
             title: 'ReviewInn Mobile',
-            debugShowCheckedModeBanner: false,
+            debugShowCheckedModeBanner: Environment.enableDebugBanner,
             theme: themeProvider.currentTheme,
             home: const SplashScreen(),
             routes: {

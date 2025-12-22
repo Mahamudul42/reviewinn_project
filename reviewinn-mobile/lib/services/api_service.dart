@@ -1,7 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
+import '../config/environment.dart';
 import '../services/storage_service.dart';
+import '../utils/network_utils.dart';
+import '../utils/logger.dart';
 
 class ApiService {
   final StorageService _storage = StorageService();
@@ -25,16 +28,26 @@ class ApiService {
 
   // Generic GET request
   Future<dynamic> get(String endpoint, {bool includeAuth = true}) async {
+    final url = Uri.parse(ApiConfig.buildUrl(endpoint));
+    final startTime = Logger.startTimer('GET $endpoint');
+    
     try {
-      final url = Uri.parse(ApiConfig.buildUrl(endpoint));
-      final headers = await _getHeaders(includeAuth: includeAuth);
+      Logger.apiRequest('GET', endpoint);
+      
+      return await NetworkUtils.executeWithRetry(() async {
+        final headers = await _getHeaders(includeAuth: includeAuth);
+        
+        final response = await http
+            .get(url, headers: headers)
+            .timeout(Environment.connectionTimeout);
 
-      final response = await http
-          .get(url, headers: headers)
-          .timeout(ApiConfig.connectionTimeout);
-
-      return _handleResponse(response);
+        final result = _handleResponse(response);
+        Logger.apiResponse(response.statusCode, endpoint);
+        Logger.endTimer('GET $endpoint', startTime);
+        return result;
+      });
     } catch (e) {
+      Logger.error('GET request failed', tag: 'ApiService', error: e);
       throw _handleError(e);
     }
   }
@@ -45,20 +58,30 @@ class ApiService {
     Map<String, dynamic>? body,
     bool includeAuth = true,
   }) async {
+    final url = Uri.parse(ApiConfig.buildUrl(endpoint));
+    final startTime = Logger.startTimer('POST $endpoint');
+    
     try {
-      final url = Uri.parse(ApiConfig.buildUrl(endpoint));
-      final headers = await _getHeaders(includeAuth: includeAuth);
+      Logger.apiRequest('POST', endpoint, body: body);
+      
+      return await NetworkUtils.executeWithRetry(() async {
+        final headers = await _getHeaders(includeAuth: includeAuth);
+        
+        final response = await http
+            .post(
+              url,
+              headers: headers,
+              body: body != null ? json.encode(body) : null,
+            )
+            .timeout(Environment.connectionTimeout);
 
-      final response = await http
-          .post(
-            url,
-            headers: headers,
-            body: body != null ? json.encode(body) : null,
-          )
-          .timeout(ApiConfig.connectionTimeout);
-
-      return _handleResponse(response);
+        final result = _handleResponse(response);
+        Logger.apiResponse(response.statusCode, endpoint);
+        Logger.endTimer('POST $endpoint', startTime);
+        return result;
+      }, maxRetries: 1); // Don't retry POST by default (not idempotent)
     } catch (e) {
+      Logger.error('POST request failed', tag: 'ApiService', error: e);
       throw _handleError(e);
     }
   }
@@ -140,7 +163,7 @@ class ApiService {
     if (error is ApiException) {
       return error.message;
     }
-    return 'Network error: ${error.toString()}';
+    return NetworkUtils.getErrorMessage(error);
   }
 }
 

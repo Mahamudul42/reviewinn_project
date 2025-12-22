@@ -291,33 +291,4 @@ class ReviewProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
   }
-
-  // Toggle like on a review
-  Future<void> toggleLike(int reviewId) async {
-    // Find the review in the list
-    final index = _reviews.indexWhere((r) => r.reviewId == reviewId);
-    if (index == -1) return;
-
-    final review = _reviews[index];
-    final wasLiked = review.isLiked ?? false;
-    final currentLikes = review.likesCount ?? 0;
-
-    // Optimistic update
-    _reviews[index] = review.copyWith(
-      isLiked: !wasLiked,
-      likesCount: wasLiked ? currentLikes - 1 : currentLikes + 1,
-    );
-    notifyListeners();
-
-    try {
-      // Make API call
-      final endpoint = wasLiked ? '/reviews/$reviewId/unlike' : '/reviews/$reviewId/like';
-      await _api.post(endpoint, includeAuth: true);
-    } catch (e) {
-      // Revert on error
-      _reviews[index] = review;
-      notifyListeners();
-      print('Error toggling like: $e');
-    }
-  }
 }

@@ -1,12 +1,12 @@
-class ApiConfig {
-  // Change this to your backend URL
-  // For development: Use your computer's IP address (not localhost) when running on a physical device
-  // For production: Use your production API URL
-  static const String baseUrl = 'http://localhost:8000/api/v1';
+import 'environment.dart';
 
-  // Timeout configurations
-  static const Duration connectionTimeout = Duration(seconds: 30);
-  static const Duration receiveTimeout = Duration(seconds: 30);
+class ApiConfig {
+  // Get base URL from environment configuration
+  static String get baseUrl => Environment.apiBaseUrl;
+
+  // Timeout configurations (from environment)
+  static Duration get connectionTimeout => Environment.connectionTimeout;
+  static Duration get receiveTimeout => Environment.receiveTimeout;
 
   // API Endpoints
   static const String login = '/auth-production/login';
