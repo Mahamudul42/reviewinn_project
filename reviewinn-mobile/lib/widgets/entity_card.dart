@@ -35,14 +35,7 @@ class _EntityCardState extends State<EntityCard> {
         duration: const Duration(milliseconds: 200),
         margin: const EdgeInsets.only(bottom: AppTheme.spaceL),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.white,
-              _isHovered ? Colors.grey.shade50 : Colors.white,
-            ],
-          ),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: _isHovered

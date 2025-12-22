@@ -635,22 +635,14 @@ Shared from ReviewInn App''';
   // Beautiful Action Bar with Like, Comment, Share
   Widget _buildBeautifulActionBar() {
     return Container(
-      padding: const EdgeInsets.all(AppTheme.spaceM),
+      padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.grey.shade50,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.black.withOpacity(0.1),
-          width: 1.5,
+          color: Colors.grey.shade200,
+          width: 1,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-            spreadRadius: 0,
-          ),
-        ],
       ),
       child: Row(
         children: [
@@ -746,7 +738,6 @@ Shared from ReviewInn App''';
     );
   }
 
-  // Reusable Action Button Widget
   Widget _buildActionButton({
     required IconData icon,
     required String label,
@@ -755,66 +746,95 @@ Shared from ReviewInn App''';
     required Color activeColor,
     required VoidCallback onTap,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            vertical: AppTheme.spaceM,
-            horizontal: AppTheme.spaceS,
-          ),
-          decoration: BoxDecoration(
-            color: isActive ? activeColor.withOpacity(0.1) : Colors.transparent,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isActive ? activeColor.withOpacity(0.3) : Colors.transparent,
-              width: 1.5,
+    // Define colors for each button type
+    Color buttonColor;
+    Color iconColor;
+    Color textColor;
+    
+    if (isActive) {
+      buttonColor = activeColor;
+      iconColor = Colors.white;
+      textColor = Colors.white;
+    } else {
+      // Different colors for different button types
+      if (label == 'Like') {
+        buttonColor = Colors.white;
+        iconColor = Colors.red.shade400;
+        textColor = Colors.black87;
+      } else if (label == 'Comment') {
+        buttonColor = Colors.white;
+        iconColor = Colors.blue.shade400;
+        textColor = Colors.black87;
+      } else if (label == 'Views') {
+        buttonColor = Colors.white;
+        iconColor = Colors.purple.shade400;
+        textColor = Colors.black87;
+      } else { // Share
+        buttonColor = Colors.white;
+        iconColor = Colors.green.shade400;
+        textColor = Colors.black87;
+      }
+    }
+
+    return Expanded(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+            decoration: BoxDecoration(
+              color: buttonColor,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: isActive
+                  ? [
+                      BoxShadow(
+                        color: activeColor.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : null,
             ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                color: isActive ? activeColor : Colors.black,
-                size: 24,
-              ),
-              const SizedBox(height: 4),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    label,
-                    style: TextStyle(
-                      color: isActive ? activeColor : Colors.black,
-                      fontSize: 12,
-                      fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  color: iconColor,
+                  size: 26,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: textColor,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+                if (count != null && count > 0) ...[
+                  const SizedBox(height: 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: isActive ? Colors.white.withOpacity(0.3) : iconColor.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      count > 999 ? '${(count / 1000).toStringAsFixed(1)}k' : count.toString(),
+                      style: TextStyle(
+                        color: isActive ? Colors.white : iconColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                  if (count != null && count > 0) ...[
-                    const SizedBox(width: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: isActive ? activeColor : AppTheme.textTertiary,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        count > 999 ? '${(count / 1000).toStringAsFixed(1)}k' : count.toString(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
                 ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

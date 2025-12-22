@@ -74,18 +74,6 @@ class PurpleStarRating extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      decoration: isFilled
-          ? BoxDecoration(
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.primaryPurple.withOpacity(0.25),
-                  blurRadius: 4,
-                  spreadRadius: 0,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-            )
-          : null,
       child: CustomPaint(
         size: Size(size, size),
         painter: _StarPainter(color),
