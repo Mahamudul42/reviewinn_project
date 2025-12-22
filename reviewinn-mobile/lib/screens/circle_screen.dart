@@ -3,8 +3,7 @@ import 'package:provider/provider.dart';
 import '../config/app_theme.dart';
 import '../providers/auth_provider.dart';
 import '../models/circle_models.dart';
-import '../services/circle_service.dart';
-import '../services/auth_service.dart';
+import '../services/mock_circle_service.dart';
 import '../widgets/user_display.dart';
 
 class CircleScreen extends StatefulWidget {
@@ -17,14 +16,20 @@ class CircleScreen extends StatefulWidget {
 class _CircleScreenState extends State<CircleScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final CircleService _circleService = CircleService();
-  final AuthService _authService = AuthService();
+  final MockCircleService _circleService = MockCircleService();
 
   // Data
+
   List<CircleMember> _members = [];
   List<CircleInvite> _invites = [];
   List<CircleRequest> _sentRequests = [];
   List<CircleSuggestion> _suggestions = [];
+
+  // Search controllers
+  final TextEditingController _memberSearchController = TextEditingController();
+  String _memberSearchQuery = '';
+  final TextEditingController _suggestionSearchController = TextEditingController();
+  String _suggestionSearchQuery = '';
 
   bool _isLoading = true;
   String? _error;
@@ -42,28 +47,21 @@ class _CircleScreenState extends State<CircleScreen>
   @override
   void dispose() {
     _tabController.dispose();
+    _memberSearchController.dispose();
+    _suggestionSearchController.dispose();
     super.dispose();
   }
 
   Future<void> _loadData() async {
-    final token = await _authService.getToken();
-
-    if (token == null) {
-      setState(() {
-        _isLoading = false;
-        _error = 'Not authenticated';
-      });
-      return;
-    }
-
     setState(() => _isLoading = true);
 
     try {
+      // Using mock service - no token needed
       final results = await Future.wait([
-        _circleService.getMembers(token),
-        _circleService.getInvites(token),
-        _circleService.getSentRequests(token),
-        _circleService.getSuggestions(token),
+        _circleService.getMembers('mock_token'),
+        _circleService.getInvites('mock_token'),
+        _circleService.getSentRequests('mock_token'),
+        _circleService.getSuggestions('mock_token'),
       ]);
 
       setState(() {
@@ -98,12 +96,8 @@ class _CircleScreenState extends State<CircleScreen>
     TrustLevel trustLevel,
     String userName,
   ) async {
-    final token = await _authService.getToken();
-
-    if (token == null) return;
-
-    final success =
-        await _circleService.updateTrustLevel(token, connectionId, trustLevel);
+    final success = await _circleService.updateTrustLevel(
+        'mock_token', connectionId, trustLevel);
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -124,11 +118,7 @@ class _CircleScreenState extends State<CircleScreen>
   }
 
   Future<void> _removeMember(String connectionId, String userName) async {
-    final token = await _authService.getToken();
-
-    if (token == null) return;
-
-    final success = await _circleService.removeMember(token, connectionId);
+    final success = await _circleService.removeMember('mock_token', connectionId);
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -142,11 +132,7 @@ class _CircleScreenState extends State<CircleScreen>
   }
 
   Future<void> _blockUser(String userId, String userName) async {
-    final token = await _authService.getToken();
-
-    if (token == null) return;
-
-    final success = await _circleService.blockUser(token, userId);
+    final success = await _circleService.blockUser('mock_token', userId);
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -160,11 +146,7 @@ class _CircleScreenState extends State<CircleScreen>
   }
 
   Future<void> _acceptInvite(CircleInvite invite) async {
-    final token = await _authService.getToken();
-
-    if (token == null) return;
-
-    final success = await _circleService.acceptInvite(token, invite.inviteId);
+    final success = await _circleService.acceptInvite('mock_token', invite.inviteId);
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -178,11 +160,7 @@ class _CircleScreenState extends State<CircleScreen>
   }
 
   Future<void> _rejectInvite(CircleInvite invite) async {
-    final token = await _authService.getToken();
-
-    if (token == null) return;
-
-    final success = await _circleService.rejectInvite(token, invite.inviteId);
+    final success = await _circleService.rejectInvite('mock_token', invite.inviteId);
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -195,11 +173,7 @@ class _CircleScreenState extends State<CircleScreen>
   }
 
   Future<void> _cancelRequest(CircleRequest request) async {
-    final token = await _authService.getToken();
-
-    if (token == null) return;
-
-    final success = await _circleService.cancelRequest(token, request.requestId);
+    final success = await _circleService.cancelRequest('mock_token', request.requestId);
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -212,12 +186,8 @@ class _CircleScreenState extends State<CircleScreen>
   }
 
   Future<void> _sendRequest(CircleSuggestion suggestion) async {
-    final token = await _authService.getToken();
-
-    if (token == null) return;
-
     final success = await _circleService.sendRequest(
-      token,
+      'mock_token',
       suggestion.user.id,
       'I would like to connect!',
     );
@@ -483,25 +453,50 @@ class _CircleScreenState extends State<CircleScreen>
   }
 
   Widget _buildMembersTab() {
-    if (_members.isEmpty) {
-      return _buildEmptyState(
-        icon: Icons.people_outline,
-        title: 'No Circle Members Yet',
-        description:
-            'Your review circle is ready to grow! Start building your trusted network.',
-      );
-    }
+    final filteredMembers = _memberSearchQuery.isEmpty
+        ? _members
+        : _members.where((m) => m.user.name.toLowerCase().contains(_memberSearchQuery.toLowerCase())).toList();
 
-    return RefreshIndicator(
-      onRefresh: _loadData,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(AppTheme.spaceL),
-        itemCount: _members.length,
-        itemBuilder: (context, index) {
-          final member = _members[index];
-          return _buildMemberCard(member);
-        },
-      ),
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+          child: TextField(
+            controller: _memberSearchController,
+            onChanged: (value) => setState(() => _memberSearchQuery = value),
+            decoration: InputDecoration(
+              hintText: 'Search friends...',
+              prefixIcon: Icon(Icons.search, color: AppTheme.primaryPurple),
+              filled: true,
+              fillColor: AppTheme.primaryPurple.withOpacity(0.06),
+              contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+        ),
+        Expanded(
+          child: filteredMembers.isEmpty
+              ? _buildEmptyState(
+                  icon: Icons.people_outline,
+                  title: 'No Circle Members Yet',
+                  description: 'Your review circle is ready to grow! Start building your trusted network.',
+                )
+              : RefreshIndicator(
+                  onRefresh: _loadData,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(AppTheme.spaceL),
+                    itemCount: filteredMembers.length,
+                    itemBuilder: (context, index) {
+                      final member = filteredMembers[index];
+                      return _buildMemberCard(member);
+                    },
+                  ),
+                ),
+        ),
+      ],
     );
   }
 
@@ -954,24 +949,53 @@ class _CircleScreenState extends State<CircleScreen>
   }
 
   Widget _buildSuggestionsTab() {
-    if (_suggestions.isEmpty) {
-      return _buildEmptyState(
-        icon: Icons.lightbulb_outline,
-        title: 'No Suggestions',
-        description: 'We\'ll suggest people you might want to connect with.',
-      );
-    }
+    final filteredSuggestions = _suggestionSearchQuery.isEmpty
+        ? _suggestions
+        : _suggestions.where((s) =>
+            s.user.name.toLowerCase().contains(_suggestionSearchQuery.toLowerCase()) ||
+            s.reason.toLowerCase().contains(_suggestionSearchQuery.toLowerCase())
+          ).toList();
 
-    return RefreshIndicator(
-      onRefresh: _loadData,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(AppTheme.spaceL),
-        itemCount: _suggestions.length,
-        itemBuilder: (context, index) {
-          final suggestion = _suggestions[index];
-          return _buildSuggestionCard(suggestion);
-        },
-      ),
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+          child: TextField(
+            controller: _suggestionSearchController,
+            onChanged: (value) => setState(() => _suggestionSearchQuery = value),
+            decoration: InputDecoration(
+              hintText: 'Search suggestions...',
+              prefixIcon: Icon(Icons.search, color: AppTheme.successGreen),
+              filled: true,
+              fillColor: AppTheme.successGreen.withOpacity(0.07),
+              contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+        ),
+        Expanded(
+          child: filteredSuggestions.isEmpty
+              ? _buildEmptyState(
+                  icon: Icons.lightbulb_outline,
+                  title: 'No Suggestions',
+                  description: 'We\'ll suggest people you might want to connect with.',
+                )
+              : RefreshIndicator(
+                  onRefresh: _loadData,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(AppTheme.spaceL),
+                    itemCount: filteredSuggestions.length,
+                    itemBuilder: (context, index) {
+                      final suggestion = filteredSuggestions[index];
+                      return _buildSuggestionCard(suggestion);
+                    },
+                  ),
+                ),
+        ),
+      ],
     );
   }
 
