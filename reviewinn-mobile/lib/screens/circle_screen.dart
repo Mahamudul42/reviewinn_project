@@ -288,24 +288,26 @@ class _CircleScreenState extends State<CircleScreen>
             ),
           ),
           const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Circle Dashboard',
-                style: AppTheme.headingMedium.copyWith(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: AppTheme.primaryPurple,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Circle Dashboard',
+                  style: AppTheme.headingMedium.copyWith(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.primaryPurple,
+                  ),
                 ),
-              ),
-              Text(
-                'Manage your review connections',
-                style: AppTheme.bodySmall.copyWith(
-                  color: AppTheme.textSecondary,
+                Text(
+                  'Manage your review connections',
+                  style: AppTheme.bodySmall.copyWith(
+                    color: AppTheme.textSecondary,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),

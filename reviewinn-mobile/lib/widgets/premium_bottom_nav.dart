@@ -29,6 +29,12 @@ class _PremiumBottomNavState extends State<PremiumBottomNav>
       color: AppTheme.primaryPurple,
     ),
     NavItem(
+      icon: Icons.public_outlined,
+      activeIcon: Icons.public,
+      label: 'Community',
+      color: AppTheme.successGreen,
+    ),
+    NavItem(
       icon: Icons.business_outlined,
       activeIcon: Icons.business,
       label: 'Entities',
@@ -38,19 +44,19 @@ class _PremiumBottomNavState extends State<PremiumBottomNav>
       icon: Icons.groups_outlined,
       activeIcon: Icons.groups,
       label: 'Groups',
-      color: AppTheme.successGreen,
+      color: AppTheme.infoBlue,
     ),
     NavItem(
       icon: Icons.people_outline,
       activeIcon: Icons.people,
       label: 'Circle',
-      color: AppTheme.infoBlue,
+      color: AppTheme.errorRed,
     ),
     NavItem(
       icon: Icons.forum_outlined,
       activeIcon: Icons.forum,
       label: 'Messages',
-      color: AppTheme.errorRed,
+      color: AppTheme.accentYellow,
     ),
     NavItem(
       icon: Icons.person_outline,

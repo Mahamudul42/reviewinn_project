@@ -6,6 +6,8 @@ import 'providers/review_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/draft_provider.dart';
 import 'providers/bookmark_provider.dart';
+import 'providers/community_provider.dart';
+import 'providers/entity_qa_provider.dart';
 import 'screens/main_screen.dart';
 import 'screens/legal_information_screen.dart';
 import 'screens/registration_screen.dart';
@@ -37,6 +39,8 @@ class ReviewInnApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ReviewProvider()),
         ChangeNotifierProvider(create: (_) => DraftProvider()),
         ChangeNotifierProvider(create: (_) => BookmarkProvider()),
+        ChangeNotifierProvider(create: (_) => CommunityProvider()),
+        ChangeNotifierProvider(create: (_) => EntityQAProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {

@@ -9,6 +9,7 @@ import 'circle_screen.dart';
 import 'groups_screen.dart';
 import 'messages_screen.dart';
 import 'user_profile_screen.dart';
+import 'community_screen.dart';
 import 'login_screen.dart';
 import 'write_review_screen.dart';
 
@@ -27,6 +28,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
 
   final List<Widget> _screens = [
     const HomeFeedScreen(),
+    const CommunityScreen(),
     const EntitiesScreen(),
     const GroupsScreen(),
     const CircleScreen(),
@@ -69,7 +71,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     // Check if user is trying to access protected screens
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    if (index >= 2 && !authProvider.isAuthenticated) {
+    if (index >= 4 && !authProvider.isAuthenticated) {
       // Show login for Circle, Messages, and Profile
       Navigator.push(
         context,
@@ -106,6 +108,25 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     );
   }
 
+  void _handleNewPost() {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    if (!authProvider.isAuthenticated) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      );
+      return;
+    }
+
+    // Show new post modal (will be implemented)
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('New post feature coming soon!'),
+        backgroundColor: AppTheme.primaryPurple,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -114,7 +135,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
       ),
-      floatingActionButton: _selectedIndex == 0
+      floatingActionButton: (_selectedIndex == 0 || _selectedIndex == 1)
           ? AnimatedBuilder(
               animation: _fabAnimationController,
               builder: (context, child) {
@@ -136,7 +157,9 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                         ],
                       ),
                       child: FloatingActionButton(
-                        onPressed: _handleFabPressed,
+                        onPressed: _selectedIndex == 0
+                            ? _handleFabPressed
+                            : _handleNewPost,
                         backgroundColor: Colors.transparent,
                         elevation: 0,
                         child: Container(
@@ -147,7 +170,9 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
-                            Icons.edit_rounded,
+                            _selectedIndex == 0
+                                ? Icons.edit_rounded
+                                : Icons.add_comment_rounded,
                             color: Colors.white,
                             size: 28,
                           ),

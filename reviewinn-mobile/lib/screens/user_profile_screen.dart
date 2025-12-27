@@ -5,11 +5,13 @@ import '../config/app_theme.dart';
 import '../models/review_model.dart';
 import '../models/entity_model.dart';
 import '../models/badge_model.dart';
+import '../models/community_post_model.dart';
 import '../providers/auth_provider.dart';
 import '../providers/theme_provider.dart';
 import '../widgets/beautiful_review_card.dart';
 import '../widgets/entity_card.dart';
 import '../widgets/badge_widget.dart';
+import '../widgets/post_detail_modal.dart';
 import 'badges_screen.dart';
 import 'settings_screen.dart';
 import 'review_stats_screen.dart';
@@ -50,12 +52,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
   List<Review> _userReviews = [];
   List<Review> _savedReviews = [];
   List<Entity> _userEntities = [];
+  List<Entity> _savedEntities = [];
+  List<CommunityPost> _userPosts = [];
+  List<CommunityPost> _savedPosts = [];
   List<BadgeModel> _userBadges = [];
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
     _isCurrentUser = widget.userId == null;
     _loadMockData();
     _loadMockBadges();
@@ -150,6 +155,73 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
       ),
     ];
 
+    _userPosts = [
+      CommunityPost(
+        postId: 201,
+        title: 'Best laptops for programming in 2025?',
+        content: 'I\'m looking for a reliable laptop for full-stack development. What are your recommendations?',
+        userId: 1,
+        username: 'John Doe',
+        userAvatar: 'https://i.pravatar.cc/150?img=7',
+        tags: ['tech', 'laptops', 'programming'],
+        likesCount: 34,
+        commentsCount: 18,
+        viewCount: 256,
+        isLiked: false,
+        isPinned: false,
+        postType: PostType.general,
+        createdAt: now.subtract(const Duration(days: 4)),
+      ),
+      CommunityPost(
+        postId: 202,
+        title: 'Anyone know good Italian restaurants nearby?',
+        content: 'Visiting the downtown area this weekend. Looking for authentic Italian food recommendations!',
+        userId: 1,
+        username: 'John Doe',
+        userAvatar: 'https://i.pravatar.cc/150?img=7',
+        tags: ['food', 'italian', 'recommendations'],
+        likesCount: 21,
+        commentsCount: 12,
+        viewCount: 145,
+        isLiked: false,
+        isPinned: false,
+        postType: PostType.general,
+        createdAt: now.subtract(const Duration(days: 9)),
+      ),
+    ];
+
+    _savedPosts = [
+      CommunityPost(
+        postId: 203,
+        title: 'Coffee shop with best WiFi for remote work?',
+        content: 'Need a good place to work from. Strong WiFi is a must. Any suggestions?',
+        userId: 2,
+        username: 'Alice Smith',
+        userAvatar: 'https://i.pravatar.cc/150?img=2',
+        tags: ['coffee', 'remote-work', 'wifi'],
+        likesCount: 42,
+        commentsCount: 27,
+        viewCount: 312,
+        isLiked: true,
+        isPinned: false,
+        postType: PostType.general,
+        createdAt: now.subtract(const Duration(days: 2)),
+      ),
+    ];
+
+    _savedEntities = [
+      Entity(
+        entityId: 104,
+        name: 'Apple AirPods Pro',
+        description: 'Premium wireless earbuds with active noise cancellation',
+        avatar: 'https://images.unsplash.com/photo-1606841837239-c5a1a4a07af7?w=400',
+        categoryName: 'Electronics',
+        averageRating: 4.6,
+        reviewCount: 234,
+        createdAt: now.subtract(const Duration(days: 5)),
+      ),
+    ];
+
     setState(() {});
   }
 
@@ -181,86 +253,103 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.backgroundLight,
-      body: CustomScrollView(
-        slivers: [
-          // App Bar
-          _buildSliverAppBar(),
-          
-          // Profile Info
-          SliverToBoxAdapter(
-            child: _buildProfileInfo(),
-          ),
-          
-          // Tabs
-          SliverPersistentHeader(
-            pinned: true,
-            delegate: _SliverTabBarDelegate(
-              TabBar(
-                controller: _tabController,
-                indicatorColor: AppTheme.primaryPurple,
-                labelColor: AppTheme.primaryPurple,
-                unselectedLabelColor: AppTheme.textSecondary,
-                labelStyle: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
+        final isDark = themeProvider.isDarkMode;
+        final backgroundColor = isDark ? const Color(0xFF1F2937) : AppTheme.backgroundLight;
+        final cardColor = isDark ? const Color(0xFF374151) : Colors.white;
+
+        return Scaffold(
+          backgroundColor: backgroundColor,
+          body: NestedScrollView(
+            headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+              return [
+                // App Bar
+                _buildSliverAppBar(),
+
+                // Profile Info
+                SliverToBoxAdapter(
+                  child: _buildProfileInfo(cardColor),
                 ),
-                tabs: const [
-                  Tab(text: 'Reviews'),
-                  Tab(text: 'Entities'),
-                  Tab(text: 'Saved'),
-                  Tab(text: 'About'),
-                ],
-              ),
-            ),
-          ),
-          
-          // Tab Views
-          SliverFillRemaining(
-            child: TabBarView(
+
+                // Tabs
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _SliverTabBarDelegate(
+                    TabBar(
+                      controller: _tabController,
+                      indicatorColor: AppTheme.primaryPurple,
+                      labelColor: AppTheme.primaryPurple,
+                      unselectedLabelColor: isDark ? Colors.grey[400] : AppTheme.textSecondary,
+                      labelStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                      tabs: const [
+                        Tab(text: 'Reviews'),
+                        Tab(text: 'Entities'),
+                        Tab(text: 'Posts'),
+                        Tab(text: 'Saved'),
+                        Tab(text: 'About'),
+                      ],
+                    ),
+                    cardColor,
+                  ),
+                ),
+              ];
+            },
+            body: TabBarView(
               controller: _tabController,
               children: [
                 _buildReviewsTab(),
                 _buildEntitiesTab(),
-                _buildSavedTab(),
-                _buildAboutTab(),
+                _buildPostsTab(),
+                _buildSavedTab(cardColor),
+                _buildAboutTab(cardColor),
               ],
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
   Widget _buildSliverAppBar() {
-    return SliverAppBar(
-      expandedHeight: 120,
-      floating: false,
-      pinned: true,
-      backgroundColor: AppTheme.primaryPurple,
-      leading: IconButton(
-        icon: Icon(Icons.arrow_back, color: Colors.white),
-        onPressed: () => Navigator.pop(context),
-      ),
-      actions: [
-        // Dark Mode Toggle
-        Consumer<ThemeProvider>(
-          builder: (context, themeProvider, _) {
-            return IconButton(
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
+        final isDark = themeProvider.isDarkMode;
+        final backgroundColor = isDark ? const Color(0xFF374151) : AppTheme.primaryPurple;
+        final textColor = Colors.white;
+
+        return SliverAppBar(
+          expandedHeight: 120,
+          floating: false,
+          pinned: true,
+          backgroundColor: backgroundColor,
+          // Only show back button when viewing another user's profile
+          automaticallyImplyLeading: !_isCurrentUser,
+          leading: !_isCurrentUser
+              ? IconButton(
+                  icon: Icon(Icons.arrow_back, color: textColor),
+                  onPressed: () => Navigator.pop(context),
+                )
+              : null,
+          actions: [
+            // Dark Mode Toggle
+            IconButton(
               icon: Icon(
-                themeProvider.isDarkMode 
-                  ? Icons.light_mode_rounded 
+                themeProvider.isDarkMode
+                  ? Icons.light_mode_rounded
                   : Icons.dark_mode_rounded,
-                color: Colors.white,
+                color: textColor,
               ),
               onPressed: () {
                 themeProvider.toggleTheme();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      themeProvider.isDarkMode 
-                        ? 'Dark mode enabled' 
+                      themeProvider.isDarkMode
+                        ? 'Dark mode enabled'
                         : 'Light mode enabled'
                     ),
                     duration: const Duration(seconds: 1),
@@ -268,37 +357,37 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
                   ),
                 );
               },
-            );
-          },
-        ),
-        if (_isCurrentUser)
-          IconButton(
-            icon: Icon(Icons.settings_rounded, color: Colors.white),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => SettingsScreen()),
-              );
-            },
+            ),
+            if (_isCurrentUser)
+              IconButton(
+                icon: Icon(Icons.settings_rounded, color: textColor),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => SettingsScreen()),
+                  );
+                },
+              ),
+          ],
+          flexibleSpace: FlexibleSpaceBar(
+            title: Text(
+              _userData['name'] as String,
+              style: TextStyle(
+                color: textColor,
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
+            ),
+            centerTitle: false,
           ),
-      ],
-      flexibleSpace: FlexibleSpaceBar(
-        title: Text(
-          _userData['name'] as String,
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-        ),
-        centerTitle: false,
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildProfileInfo() {
+  Widget _buildProfileInfo(Color cardColor) {
     return Container(
-      color: Colors.white,
+      color: cardColor,
       padding: const EdgeInsets.all(AppTheme.spaceL),
       child: Column(
         children: [
@@ -666,7 +755,199 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
     );
   }
 
-  Widget _buildSavedTab() {
+  Widget _buildPostsTab() {
+    if (_userPosts.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.forum_outlined,
+              size: 64,
+              color: AppTheme.textTertiary.withOpacity(0.5),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No posts yet',
+              style: AppTheme.bodyLarge.copyWith(
+                color: AppTheme.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Start discussions in the community',
+              style: AppTheme.bodyMedium.copyWith(
+                color: AppTheme.textTertiary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(AppTheme.spaceM),
+      itemCount: _userPosts.length,
+      itemBuilder: (context, index) {
+        final post = _userPosts[index];
+        return Container(
+          margin: const EdgeInsets.only(bottom: AppTheme.spaceM),
+          child: InkWell(
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (context) => PostDetailModal(post: post),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title
+                  Text(
+                    post.title,
+                    style: AppTheme.headingSmall.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Content preview
+                  Text(
+                    post.content,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Tags
+                  if (post.tags != null && post.tags!.isNotEmpty)
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: post.tags!.take(3).map((tag) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryPurple.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '#$tag',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppTheme.primaryPurple,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  const SizedBox(height: 12),
+                  Divider(height: 1, color: Colors.grey[200]),
+                  const SizedBox(height: 12),
+
+                  // Stats
+                  Row(
+                    children: [
+                      Icon(
+                        post.isLiked
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                        size: 18,
+                        color:
+                            post.isLiked ? Colors.red : Colors.grey,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${post.likesCount}',
+                        style: AppTheme.bodySmall,
+                      ),
+                      const SizedBox(width: 16),
+                      Icon(
+                        Icons.comment_outlined,
+                        size: 18,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${post.commentsCount}',
+                        style: AppTheme.bodySmall,
+                      ),
+                      const SizedBox(width: 16),
+                      Icon(
+                        Icons.visibility_outlined,
+                        size: 18,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${post.viewCount}',
+                        style: AppTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSavedTab(Color cardColor) {
+    return DefaultTabController(
+      length: 3,
+      child: Column(
+        children: [
+          Container(
+            color: cardColor,
+            child: TabBar(
+              indicatorColor: AppTheme.primaryPurple,
+              labelColor: AppTheme.primaryPurple,
+              unselectedLabelColor: AppTheme.textSecondary,
+              labelStyle: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+              tabs: const [
+                Tab(text: 'Reviews'),
+                Tab(text: 'Entities'),
+                Tab(text: 'Posts'),
+              ],
+            ),
+          ),
+          Expanded(
+            child: TabBarView(
+              children: [
+                _buildSavedReviewsList(),
+                _buildSavedEntitiesList(),
+                _buildSavedPostsList(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSavedReviewsList() {
     if (_savedReviews.isEmpty) {
       return Center(
         child: Column(
@@ -708,7 +989,156 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
     );
   }
 
-  Widget _buildAboutTab() {
+  Widget _buildSavedEntitiesList() {
+    if (_savedEntities.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.bookmark_border_rounded,
+              size: 64,
+              color: AppTheme.textTertiary.withOpacity(0.5),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No saved entities',
+              style: AppTheme.bodyLarge.copyWith(
+                color: AppTheme.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Save entities to view them later',
+              style: AppTheme.bodyMedium.copyWith(
+                color: AppTheme.textTertiary,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(AppTheme.spaceM),
+      itemCount: _savedEntities.length,
+      itemBuilder: (context, index) {
+        final entity = _savedEntities[index];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: AppTheme.spaceM),
+          child: EntityCard(
+            entity: entity,
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Opening ${entity.name}...'),
+                  duration: const Duration(seconds: 1),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSavedPostsList() {
+    if (_savedPosts.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.bookmark_border_rounded,
+              size: 64,
+              color: AppTheme.textTertiary.withOpacity(0.5),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No saved posts',
+              style: AppTheme.bodyLarge.copyWith(
+                color: AppTheme.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Save posts to view them later',
+              style: AppTheme.bodyMedium.copyWith(
+                color: AppTheme.textTertiary,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(AppTheme.spaceM),
+      itemCount: _savedPosts.length,
+      itemBuilder: (context, index) {
+        final post = _savedPosts[index];
+        return Container(
+          margin: const EdgeInsets.only(bottom: AppTheme.spaceM),
+          child: InkWell(
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (context) => PostDetailModal(post: post),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    post.title,
+                    style: AppTheme.headingSmall.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    post.content,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 12),
+                  Divider(height: 1, color: Colors.grey[200]),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Icon(Icons.favorite_border, size: 16, color: Colors.grey),
+                      const SizedBox(width: 4),
+                      Text('${post.likesCount}', style: AppTheme.bodySmall),
+                      const SizedBox(width: 16),
+                      Icon(Icons.comment_outlined, size: 16, color: Colors.grey),
+                      const SizedBox(width: 4),
+                      Text('${post.commentsCount}', style: AppTheme.bodySmall),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAboutTab(Color cardColor) {
     return ListView(
       padding: const EdgeInsets.all(AppTheme.spaceL),
       children: [
@@ -719,6 +1149,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
             _buildAboutItem(Icons.favorite_rounded, 'Likes Received', _formatCount(_userData['likesReceived'] as int)),
             _buildAboutItem(Icons.star_rounded, 'Avg Rating', '4.6'),
           ],
+          cardColor,
         ),
         const SizedBox(height: AppTheme.spaceXL),
         _buildAboutSection(
@@ -728,12 +1159,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
             _buildAboutItem(Icons.update_rounded, 'Last Active', '2 hours ago'),
             _buildAboutItem(Icons.trending_up_rounded, 'Response Rate', '95%'),
           ],
+          cardColor,
         ),
       ],
     );
   }
 
-  Widget _buildAboutSection(String title, List<Widget> items) {
+  Widget _buildAboutSection(String title, List<Widget> items, Color cardColor) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -746,7 +1178,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
         const SizedBox(height: AppTheme.spaceM),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: cardColor,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppTheme.borderLight),
           ),
@@ -805,12 +1237,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
 
 class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
   final TabBar _tabBar;
+  final Color _backgroundColor;
 
-  _SliverTabBarDelegate(this._tabBar);
+  _SliverTabBarDelegate(this._tabBar, this._backgroundColor);
 
   @override
   double get minExtent => _tabBar.preferredSize.height;
-  
+
   @override
   double get maxExtent => _tabBar.preferredSize.height;
 
@@ -821,7 +1254,7 @@ class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
     bool overlapsContent,
   ) {
     return Container(
-      color: Colors.white,
+      color: _backgroundColor,
       child: _tabBar,
     );
   }

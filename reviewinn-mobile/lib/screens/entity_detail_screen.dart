@@ -3,10 +3,13 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../providers/entity_provider.dart';
 import '../providers/review_provider.dart';
+import '../providers/entity_qa_provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/bookmark_provider.dart';
 import '../widgets/beautiful_review_card.dart';
 import '../widgets/purple_star_rating.dart';
+import '../widgets/question_card.dart';
+import '../widgets/question_detail_modal.dart';
 import '../config/app_theme.dart';
 import '../models/review_model.dart';
 import 'write_review_screen.dart';
@@ -21,18 +24,32 @@ class EntityDetailScreen extends StatefulWidget {
   State<EntityDetailScreen> createState() => _EntityDetailScreenState();
 }
 
-class _EntityDetailScreenState extends State<EntityDetailScreen> {
+class _EntityDetailScreenState extends State<EntityDetailScreen>
+    with SingleTickerProviderStateMixin {
   int? _selectedRatingFilter; // null means "All Reviews"
-  
+  late TabController _tabController;
+
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      setState(() {}); // Rebuild when tab changes
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<EntityProvider>(context, listen: false)
           .fetchEntity(widget.entityId);
       Provider.of<ReviewProvider>(context, listen: false)
           .fetchEntityReviews(widget.entityId);
+      Provider.of<EntityQAProvider>(context, listen: false)
+          .fetchQuestions(widget.entityId);
     });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
@@ -507,8 +524,27 @@ class _EntityDetailScreenState extends State<EntityDetailScreen> {
                   ),
                 ),
               ),
-              
-              // Reviews Section Header
+
+              // Tab Bar
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _SliverAppBarDelegate(
+                  TabBar(
+                    controller: _tabController,
+                    labelColor: AppTheme.primaryPurple,
+                    unselectedLabelColor: Colors.grey[600],
+                    indicatorColor: AppTheme.primaryPurple,
+                    indicatorWeight: 3,
+                    tabs: const [
+                      Tab(text: 'Reviews'),
+                      Tab(text: 'Q&A'),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Reviews Section Header (only show on Reviews tab)
+              if (_tabController.index == 0)
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
@@ -556,7 +592,8 @@ class _EntityDetailScreenState extends State<EntityDetailScreen> {
                 ),
               ),
               
-              // Reviews List
+              // Reviews List (only show on Reviews tab)
+              if (_tabController.index == 0)
               Consumer<ReviewProvider>(
                 builder: (context, reviewProvider, child) {
                   if (reviewProvider.isLoading) {
@@ -643,7 +680,81 @@ class _EntityDetailScreenState extends State<EntityDetailScreen> {
                   );
                 },
               ),
-              
+
+              // Q&A List (only show on Q&A tab)
+              if (_tabController.index == 1)
+              Consumer<EntityQAProvider>(
+                builder: (context, qaProvider, child) {
+                  final questions = qaProvider.getQuestionsForEntity(widget.entityId);
+
+                  if (qaProvider.isLoading && questions.isEmpty) {
+                    return SliverToBoxAdapter(
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(32.0),
+                          child: CircularProgressIndicator(
+                            color: AppTheme.primaryPurple,
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+
+                  if (questions.isEmpty) {
+                    return SliverToBoxAdapter(
+                      child: Container(
+                        margin: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(40),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.help_outline,
+                              size: 60,
+                              color: Colors.grey[400],
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No questions yet',
+                              style: AppTheme.headingMedium,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Be the first to ask a question',
+                              style: AppTheme.bodyMedium.copyWith(
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+
+                  return SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        return QuestionCard(
+                          question: questions[index],
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => QuestionDetailModal(
+                                question: questions[index],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                      childCount: questions.length,
+                    ),
+                  );
+                },
+              ),
+
               // Bottom Padding
               const SliverToBoxAdapter(
                 child: SizedBox(height: 100),
@@ -668,20 +779,35 @@ class _EntityDetailScreenState extends State<EntityDetailScreen> {
                 return;
               }
 
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => WriteReviewScreen(
-                    preselectedEntity: entity,
+              if (_tabController.index == 0) {
+                // Reviews tab - Write Review
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => WriteReviewScreen(
+                      preselectedEntity: entity,
+                    ),
                   ),
-                ),
-              );
+                );
+              } else {
+                // Q&A tab - Ask Question
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Ask question feature coming soon!'),
+                    backgroundColor: AppTheme.primaryPurple,
+                  ),
+                );
+              }
             },
             backgroundColor: AppTheme.primaryPurple,
             elevation: 4,
-            icon: const Icon(Icons.edit_rounded, color: Colors.white, size: 22),
-            label: const Text(
-              'Write Review',
+            icon: Icon(
+              _tabController.index == 0 ? Icons.edit_rounded : Icons.help_outline,
+              color: Colors.white,
+              size: 22,
+            ),
+            label: Text(
+              _tabController.index == 0 ? 'Write Review' : 'Ask Question',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -765,5 +891,35 @@ class _EntityDetailScreenState extends State<EntityDetailScreen> {
         ],
       ),
     );
+  }
+}
+
+// SliverPersistentHeaderDelegate for pinned tab bar
+class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
+  _SliverAppBarDelegate(this._tabBar);
+
+  final TabBar _tabBar;
+
+  @override
+  double get minExtent => _tabBar.preferredSize.height;
+
+  @override
+  double get maxExtent => _tabBar.preferredSize.height;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return Container(
+      color: Colors.white,
+      child: _tabBar,
+    );
+  }
+
+  @override
+  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
+    return false;
   }
 }

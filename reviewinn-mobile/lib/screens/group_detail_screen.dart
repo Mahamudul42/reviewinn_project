@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/review_provider.dart';
 import '../widgets/beautiful_review_card.dart';
+import '../widgets/post_detail_modal.dart';
+import '../models/community_post_model.dart';
 import '../config/app_theme.dart';
 
 class GroupDetailScreen extends StatefulWidget {
@@ -35,6 +37,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen>
   bool _isCollapsed = false;
   bool _isMember = false; // Track if user is a member
   bool _isAdmin = false; // Track if user is admin
+  List<CommunityPost> _discussions = [];
 
   // Get relevant entity types based on group category
   List<String> get _relevantEntityTypes {
@@ -64,9 +67,72 @@ class _GroupDetailScreenState extends State<GroupDetailScreen>
     _isMember = true; // Mock: assume user is member
     _isAdmin = false; // Mock: user is not admin
 
-    // Load group-specific reviews
+    // Load group-specific reviews and discussions
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadGroupReviews();
+      _loadMockDiscussions();
+    });
+  }
+
+  void _loadMockDiscussions() {
+    final now = DateTime.now();
+    setState(() {
+      _discussions = [
+        CommunityPost(
+          postId: 301,
+          title: 'Welcome to our group!',
+          content: 'Please read the guidelines before posting. Let\'s keep this community helpful and respectful.',
+          userId: 501,
+          username: 'Sarah Johnson',
+          userAvatar: 'https://i.pravatar.cc/150?img=1',
+          likesCount: 24,
+          commentsCount: 5,
+          viewCount: 145,
+          isLiked: false,
+          isPinned: true,
+          postType: PostType.group,
+          groupId: widget.groupId,
+          groupName: widget.groupName,
+          groupAvatar: widget.groupAvatar,
+          createdAt: now.subtract(const Duration(hours: 2)),
+        ),
+        CommunityPost(
+          postId: 302,
+          title: 'Great resources for beginners',
+          content: 'I found these tutorials really helpful when I was starting out. Hope it helps someone!',
+          userId: 502,
+          username: 'Mike Chen',
+          userAvatar: 'https://i.pravatar.cc/150?img=12',
+          likesCount: 18,
+          commentsCount: 9,
+          viewCount: 98,
+          isLiked: true,
+          isPinned: false,
+          postType: PostType.group,
+          groupId: widget.groupId,
+          groupName: widget.groupName,
+          groupAvatar: widget.groupAvatar,
+          createdAt: now.subtract(const Duration(hours: 5)),
+        ),
+        CommunityPost(
+          postId: 303,
+          title: 'Anyone interested in a meetup?',
+          content: 'Thinking of organizing a meetup next month. Who would be interested?',
+          userId: 503,
+          username: 'Emma Davis',
+          userAvatar: 'https://i.pravatar.cc/150?img=5',
+          likesCount: 32,
+          commentsCount: 15,
+          viewCount: 167,
+          isLiked: false,
+          isPinned: false,
+          postType: PostType.group,
+          groupId: widget.groupId,
+          groupName: widget.groupName,
+          groupAvatar: widget.groupAvatar,
+          createdAt: now.subtract(const Duration(days: 1)),
+        ),
+      ];
     });
   }
 
@@ -638,142 +704,151 @@ class _GroupDetailScreenState extends State<GroupDetailScreen>
   }
 
   Widget _buildDiscussionTab() {
-    // Mock discussion posts
-    final discussions = [
-      {
-        'author': 'Sarah Johnson',
-        'avatar': 'https://i.pravatar.cc/150?img=1',
-        'time': '2 hours ago',
-        'isPinned': true,
-        'content': 'Welcome to our group! Please read the guidelines before posting.',
-        'likes': 24,
-        'comments': 5,
-      },
-      {
-        'author': 'Mike Chen',
-        'avatar': 'https://i.pravatar.cc/150?img=3',
-        'time': '5 hours ago',
-        'isPinned': false,
-        'content': 'Just had an amazing experience at the new Italian restaurant downtown. Anyone else tried it?',
-        'likes': 12,
-        'comments': 8,
-      },
-      {
-        'author': 'Emma Davis',
-        'avatar': 'https://i.pravatar.cc/150?img=5',
-        'time': '1 day ago',
-        'isPinned': false,
-        'content': 'Looking for recommendations for family-friendly restaurants with good vegetarian options.',
-        'likes': 7,
-        'comments': 15,
-      },
-    ];
+    if (_discussions.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.forum_outlined,
+              size: 64,
+              color: AppTheme.textTertiary.withOpacity(0.5),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No discussions yet',
+              style: AppTheme.bodyLarge.copyWith(
+                color: AppTheme.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Start a discussion with the group',
+              style: AppTheme.bodyMedium.copyWith(
+                color: AppTheme.textTertiary,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return ListView.builder(
       padding: const EdgeInsets.all(AppTheme.spaceL),
-      itemCount: discussions.length,
+      itemCount: _discussions.length,
       itemBuilder: (context, index) {
-        final post = discussions[index];
-        return Card(
+        final post = _discussions[index];
+        return Container(
           margin: EdgeInsets.only(bottom: AppTheme.spaceL),
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: AppTheme.border),
-          ),
           child: InkWell(
             onTap: () {
-              // TODO: Open discussion detail
+              showDialog(
+                context: context,
+                builder: (context) => PostDetailModal(post: post),
+              );
             },
-            borderRadius: BorderRadius.circular(16),
-            child: Padding(
-              padding: const EdgeInsets.all(AppTheme.spaceL),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.border),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 20,
-                        backgroundImage: NetworkImage(post['avatar'] as String),
+                  // Pinned badge
+                  if (post.isPinned)
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppTheme.accentYellow.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(4),
                       ),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  post['author'] as String,
-                                  style: AppTheme.labelLarge,
-                                ),
-                                if (post['isPinned'] as bool) ...[
-                                  SizedBox(width: 8),
-                                  Icon(
-                                    Icons.push_pin,
-                                    size: 16,
-                                    color: AppTheme.primaryPurple,
-                                  ),
-                                ],
-                              ],
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.push_pin,
+                            size: 12,
+                            color: AppTheme.accentYellow,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Pinned',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppTheme.accentYellow,
+                              fontWeight: FontWeight.bold,
                             ),
-                            Text(
-                              post['time'] as String,
-                              style: AppTheme.labelSmall.copyWith(
-                                color: AppTheme.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                      if (_isAdmin)
-                        IconButton(
-                          icon: Icon(Icons.more_vert, size: 20),
-                          onPressed: () {
-                            // TODO: Show admin options
-                          },
-                        ),
-                    ],
-                  ),
-                  
-                  SizedBox(height: 12),
-                  
-                  // Content
+                    ),
+
+                  // Title
                   Text(
-                    post['content'] as String,
+                    post.title,
+                    style: AppTheme.headingSmall.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Content preview
+                  Text(
+                    post.content,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                     style: AppTheme.bodyMedium,
                   ),
-                  
-                  SizedBox(height: 16),
-                  
-                  // Actions
+                  const SizedBox(height: 12),
+                  Divider(height: 1, color: Colors.grey[200]),
+                  const SizedBox(height: 12),
+
+                  // Stats
                   Row(
                     children: [
-                      TextButton.icon(
-                        onPressed: () {},
-                        icon: Icon(Icons.thumb_up_outlined, size: 18),
-                        label: Text('${post['likes']}'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: AppTheme.textSecondary,
-                          padding: EdgeInsets.symmetric(horizontal: 12),
-                        ),
+                      Icon(
+                        post.isLiked ? Icons.favorite : Icons.favorite_border,
+                        size: 18,
+                        color: post.isLiked ? Colors.red : Colors.grey,
                       ),
-                      TextButton.icon(
-                        onPressed: () {},
-                        icon: Icon(Icons.comment_outlined, size: 18),
-                        label: Text('${post['comments']}'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: AppTheme.textSecondary,
-                          padding: EdgeInsets.symmetric(horizontal: 12),
-                        ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${post.likesCount}',
+                        style: AppTheme.bodySmall,
                       ),
-                      Spacer(),
-                      IconButton(
-                        icon: Icon(Icons.share_outlined, size: 20),
-                        onPressed: () {},
-                        color: AppTheme.textSecondary,
+                      const SizedBox(width: 16),
+                      Icon(
+                        Icons.comment_outlined,
+                        size: 18,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${post.commentsCount}',
+                        style: AppTheme.bodySmall,
+                      ),
+                      const SizedBox(width: 16),
+                      Icon(
+                        Icons.visibility_outlined,
+                        size: 18,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${post.viewCount}',
+                        style: AppTheme.bodySmall,
                       ),
                     ],
                   ),
