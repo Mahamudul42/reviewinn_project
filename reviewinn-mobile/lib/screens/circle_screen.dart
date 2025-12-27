@@ -5,6 +5,10 @@ import '../providers/auth_provider.dart';
 import '../models/circle_models.dart';
 import '../services/mock_circle_service.dart';
 import '../widgets/user_display.dart';
+import '../widgets/common/empty_state.dart';
+import '../widgets/common/loading_indicator.dart';
+import '../widgets/common/error_view.dart';
+import '../utils/formatters/date_formatter.dart';
 
 class CircleScreen extends StatefulWidget {
   const CircleScreen({super.key});
@@ -229,9 +233,9 @@ class _CircleScreenState extends State<CircleScreen>
               // Content
               Expanded(
                 child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
+                    ? const LoadingIndicator()
                     : _error != null
-                        ? _buildError()
+                        ? ErrorView(message: _error, onRetry: _loadData)
                         : TabBarView(
                             controller: _tabController,
                             children: [
@@ -423,37 +427,6 @@ class _CircleScreenState extends State<CircleScreen>
     );
   }
 
-  Widget _buildError() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.error_outline,
-            size: 64,
-            color: AppTheme.errorRed.withOpacity(0.5),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            _error ?? 'Something went wrong',
-            style: AppTheme.bodyLarge.copyWith(
-              color: AppTheme.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: _loadData,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryPurple,
-              foregroundColor: Colors.white,
-            ),
-            child: Text('Retry'),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildMembersTab() {
     final filteredMembers = _memberSearchQuery.isEmpty
         ? _members
@@ -481,7 +454,7 @@ class _CircleScreenState extends State<CircleScreen>
         ),
         Expanded(
           child: filteredMembers.isEmpty
-              ? _buildEmptyState(
+              ? const EmptyState(
                   icon: Icons.people_outline,
                   title: 'No Circle Members Yet',
                   description: 'Your review circle is ready to grow! Start building your trusted network.',
@@ -766,7 +739,7 @@ class _CircleScreenState extends State<CircleScreen>
 
   Widget _buildInvitesTab() {
     if (_invites.isEmpty) {
-      return _buildEmptyState(
+      return const EmptyState(
         icon: Icons.mail_outline,
         title: 'No Pending Invites',
         description: 'You don\'t have any circle invitations at the moment.',
@@ -803,7 +776,7 @@ class _CircleScreenState extends State<CircleScreen>
         children: [
           UserDisplay(
             user: invite.sender,
-            subtitle: _formatDate(invite.createdAt),
+            subtitle: DateFormatter.smartDate(invite.createdAt),
             avatarSize: 48,
           ),
           if (invite.message.isNotEmpty) ...[
@@ -855,7 +828,7 @@ class _CircleScreenState extends State<CircleScreen>
 
   Widget _buildSentRequestsTab() {
     if (_sentRequests.isEmpty) {
-      return _buildEmptyState(
+      return const EmptyState(
         icon: Icons.send_outlined,
         title: 'No Sent Requests',
         description: 'You haven\'t sent any connection requests yet.',
@@ -892,7 +865,7 @@ class _CircleScreenState extends State<CircleScreen>
         children: [
           UserDisplay(
             user: request.user,
-            subtitle: _formatDate(request.createdAt),
+            subtitle: DateFormatter.smartDate(request.createdAt),
             badge: _buildStatusBadge(request.status),
             avatarSize: 48,
           ),
@@ -980,7 +953,7 @@ class _CircleScreenState extends State<CircleScreen>
         ),
         Expanded(
           child: filteredSuggestions.isEmpty
-              ? _buildEmptyState(
+              ? const EmptyState(
                   icon: Icons.lightbulb_outline,
                   title: 'No Suggestions',
                   description: 'We\'ll suggest people you might want to connect with.',
@@ -1062,65 +1035,4 @@ class _CircleScreenState extends State<CircleScreen>
     );
   }
 
-  Widget _buildEmptyState({
-    required IconData icon,
-    required String title,
-    required String description,
-  }) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppTheme.spaceXL),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryPurple.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
-                size: 64,
-                color: AppTheme.primaryPurple.withOpacity(0.5),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              title,
-              style: AppTheme.headingMedium.copyWith(
-                color: AppTheme.textPrimary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              description,
-              style: AppTheme.bodyLarge.copyWith(
-                color: AppTheme.textSecondary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
-
-    if (difference.inDays > 7) {
-      return '${date.day}/${date.month}/${date.year}';
-    } else if (difference.inDays > 0) {
-      return '${difference.inDays}d ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours}h ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m ago';
-    } else {
-      return 'Just now';
-    }
-  }
 }

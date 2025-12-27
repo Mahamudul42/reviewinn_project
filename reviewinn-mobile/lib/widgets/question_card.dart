@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/entity_question_model.dart';
 import '../config/app_theme.dart';
+import '../utils/formatters/date_formatter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class QuestionCard extends StatelessWidget {
@@ -12,25 +13,6 @@ class QuestionCard extends StatelessWidget {
     required this.question,
     this.onTap,
   });
-
-  String _formatTimeAgo(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
-
-    if (difference.inDays > 365) {
-      return '${(difference.inDays / 365).floor()}y ago';
-    } else if (difference.inDays > 30) {
-      return '${(difference.inDays / 30).floor()}mo ago';
-    } else if (difference.inDays > 0) {
-      return '${difference.inDays}d ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours}h ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m ago';
-    } else {
-      return 'Just now';
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +67,7 @@ class QuestionCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        _formatTimeAgo(question.createdAt),
+                        DateFormatter.timeAgo(question.createdAt),
                         style: AppTheme.bodySmall.copyWith(
                           color: Colors.grey[600],
                         ),

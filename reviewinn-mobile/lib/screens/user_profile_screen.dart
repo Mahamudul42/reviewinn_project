@@ -12,6 +12,7 @@ import '../widgets/beautiful_review_card.dart';
 import '../widgets/entity_card.dart';
 import '../widgets/badge_widget.dart';
 import '../widgets/post_detail_modal.dart';
+import '../utils/formatters/number_formatter.dart';
 import 'badges_screen.dart';
 import 'settings_screen.dart';
 import 'review_stats_screen.dart';
@@ -470,11 +471,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
                             _buildStatItem(
-                              _formatCount(_userData['followersCount'] as int),
+                              NumberFormatter.compact(_userData['followersCount'] as int),
                               'Followers',
                             ),
                             _buildStatItem(
-                              _formatCount(_userData['followingCount'] as int),
+                              NumberFormatter.compact(_userData['followingCount'] as int),
                               'Following',
                             ),
                           ],
@@ -656,13 +657,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
         ),
       ],
     );
-  }
-
-  String _formatCount(int count) {
-    if (count >= 1000) {
-      return '${(count / 1000).toStringAsFixed(1)}K';
-    }
-    return count.toString();
   }
 
   Widget _buildReviewsTab() {
@@ -1146,7 +1140,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
           'Total Impact',
           [
             _buildAboutItem(Icons.visibility_rounded, 'Profile Views', '2.3K'),
-            _buildAboutItem(Icons.favorite_rounded, 'Likes Received', _formatCount(_userData['likesReceived'] as int)),
+            _buildAboutItem(Icons.favorite_rounded, 'Likes Received', NumberFormatter.compact(_userData['likesReceived'] as int)),
             _buildAboutItem(Icons.star_rounded, 'Avg Rating', '4.6'),
           ],
           cardColor,
