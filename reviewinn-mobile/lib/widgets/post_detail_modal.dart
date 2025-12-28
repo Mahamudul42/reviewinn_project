@@ -7,6 +7,7 @@ import '../providers/community_provider.dart';
 import '../providers/auth_provider.dart';
 import '../config/app_theme.dart';
 import '../screens/login_screen.dart';
+import '../screens/edit_post_screen.dart';
 
 class PostDetailModal extends StatefulWidget {
   final CommunityPost post;
@@ -89,6 +90,110 @@ class _PostDetailModalState extends State<PostDetailModal> {
     }
   }
 
+  bool _isOwnPost() {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    return authProvider.user?.userId == widget.post.userId;
+  }
+
+  Future<void> _handleEditPost() async {
+    Navigator.pop(context); // Close modal
+
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditPostScreen(post: widget.post),
+      ),
+    );
+
+    if (result == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Post updated successfully!'),
+          backgroundColor: AppTheme.successGreen,
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleDeletePost() async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Post'),
+        content: const Text(
+          'Are you sure you want to delete this post? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context); // Close dialog
+              Navigator.pop(context); // Close modal
+
+              try {
+                final communityProvider =
+                    Provider.of<CommunityProvider>(context, listen: false);
+                await communityProvider.deletePost(widget.post.postId);
+
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Post deleted successfully'),
+                      backgroundColor: AppTheme.successGreen,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to delete post: $e'),
+                      backgroundColor: AppTheme.errorRed,
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showOptionsMenu() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.edit, color: AppTheme.primaryPurple),
+              title: const Text('Edit Post'),
+              onTap: () {
+                Navigator.pop(context);
+                _handleEditPost();
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.delete, color: Colors.red),
+              title: const Text('Delete Post', style: TextStyle(color: Colors.red)),
+              onTap: () {
+                Navigator.pop(context);
+                _handleDeletePost();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -126,6 +231,14 @@ class _PostDetailModalState extends State<PostDetailModal> {
                       ),
                     ),
                   ),
+                  // Show edit/delete menu for own posts
+                  if (_isOwnPost())
+                    IconButton(
+                      icon: const Icon(Icons.more_vert),
+                      onPressed: _showOptionsMenu,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
                   IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () => Navigator.pop(context),

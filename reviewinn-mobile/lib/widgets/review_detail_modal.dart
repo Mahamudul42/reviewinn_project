@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:provider/provider.dart';
 import '../models/review_model.dart';
 import '../config/app_theme.dart';
+import '../providers/auth_provider.dart';
+import '../providers/review_provider.dart';
+import '../screens/edit_review_screen.dart';
 import 'purple_star_rating.dart';
 
 class ReviewDetailModal extends StatefulWidget {
@@ -784,7 +788,7 @@ Shared from ReviewInn App''';
                   // This is where you'll fetch comments separately
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: const Text('💬 Loading comments...'),
+                      content: Text('💬 Loading comments...'),
                       duration: const Duration(seconds: 1),
                       backgroundColor: AppTheme.infoBlue,
                       behavior: SnackBarBehavior.floating,
@@ -1020,7 +1024,7 @@ Shared from ReviewInn App''';
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: const Text('You already voted this as not helpful'),
+                              content: Text('You already voted this as not helpful'),
                               duration: const Duration(seconds: 2),
                               backgroundColor: AppTheme.errorRed,
                               behavior: SnackBarBehavior.floating,
@@ -1057,7 +1061,7 @@ Shared from ReviewInn App''';
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: const Text('You already voted this as helpful'),
+                              content: Text('You already voted this as helpful'),
                               duration: const Duration(seconds: 2),
                               backgroundColor: AppTheme.errorRed,
                               behavior: SnackBarBehavior.floating,
@@ -1978,23 +1982,33 @@ Shared from ReviewInn App''';
 
   // Check if this review belongs to the current user
   bool _isOwnReview() {
-    // TODO: Replace with actual user ID check from auth provider
-    // For now, return false to show report option in demo
-    return false; // Return true if widget.review.userId == currentUser.id
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    return authProvider.user?.userId == widget.review.userId;
   }
 
-  void _handleEditReview() {
+  Future<void> _handleEditReview() async {
     Navigator.pop(context); // Close modal
-    // TODO: Navigate to edit review screen with pre-filled data
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Edit review functionality will be implemented'),
-        duration: const Duration(seconds: 2),
+
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditReviewScreen(review: widget.review),
       ),
     );
+
+    // If edit was successful, show success message
+    if (result == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Review updated successfully!'),
+          duration: Duration(seconds: 2),
+          backgroundColor: AppTheme.successGreen,
+        ),
+      );
+    }
   }
 
-  void _handleDeleteReview() {
+  Future<void> _handleDeleteReview() async {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -2009,18 +2023,34 @@ Shared from ReviewInn App''';
             child: Text('Cancel', style: TextStyle(color: AppTheme.textSecondary)),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context); // Close dialog
               Navigator.pop(context); // Close modal
-              
-              // TODO: Implement actual delete API call
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Review deleted successfully'),
-                  duration: const Duration(seconds: 2),
-                  backgroundColor: AppTheme.successGreen,
-                ),
-              );
+
+              try {
+                final reviewProvider = Provider.of<ReviewProvider>(context, listen: false);
+                await reviewProvider.deleteReview(widget.review.reviewId);
+
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Review deleted successfully'),
+                      duration: Duration(seconds: 2),
+                      backgroundColor: AppTheme.successGreen,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to delete review: $e'),
+                      duration: const Duration(seconds: 2),
+                      backgroundColor: AppTheme.errorRed,
+                    ),
+                  );
+                }
+              }
             },
             child: Text('Delete', style: TextStyle(color: Colors.red)),
           ),

@@ -5,8 +5,11 @@ import 'package:provider/provider.dart';
 import '../models/review_model.dart';
 import '../config/app_theme.dart';
 import '../providers/bookmark_provider.dart';
+import '../providers/auth_provider.dart';
+import '../providers/review_provider.dart';
 import '../screens/entity_detail_screen.dart';
 import '../screens/user_profile_screen.dart';
+import '../screens/edit_review_screen.dart';
 import 'purple_star_rating.dart';
 import 'review_detail_modal.dart';
 import 'entity_info.dart';
@@ -88,11 +91,24 @@ class _BeautifulReviewCardState extends State<BeautifulReviewCard>
               ),
             ),
             // Options
-            _buildMenuItem(Icons.edit_outlined, 'Edit Review', () {
+            _buildMenuItem(Icons.edit_outlined, 'Edit Review', () async {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Edit review feature coming soon')),
+
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditReviewScreen(review: widget.review),
+                ),
               );
+
+              if (result == true && mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Review updated successfully!'),
+                    backgroundColor: AppTheme.successGreen,
+                  ),
+                );
+              }
             }),
             _buildMenuItem(Icons.visibility_off_outlined, 'Hide Review', () {
               Navigator.pop(context);
@@ -108,8 +124,51 @@ class _BeautifulReviewCardState extends State<BeautifulReviewCard>
             }),
             _buildMenuItem(Icons.delete_outline, 'Delete Review', () {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Delete review feature coming soon')),
+
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text('Delete Review', style: TextStyle(color: AppTheme.textPrimary)),
+                  content: Text(
+                    'Are you sure you want to delete this review? This action cannot be undone.',
+                    style: TextStyle(color: AppTheme.textSecondary),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text('Cancel', style: TextStyle(color: AppTheme.textSecondary)),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        Navigator.pop(context); // Close dialog
+
+                        try {
+                          final reviewProvider = Provider.of<ReviewProvider>(context, listen: false);
+                          await reviewProvider.deleteReview(widget.review.reviewId);
+
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Review deleted successfully'),
+                                backgroundColor: AppTheme.successGreen,
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Failed to delete review: $e'),
+                                backgroundColor: AppTheme.errorRed,
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      child: Text('Delete', style: TextStyle(color: Colors.red)),
+                    ),
+                  ],
+                ),
               );
             }, isDestructive: true),
             const SizedBox(height: 20),

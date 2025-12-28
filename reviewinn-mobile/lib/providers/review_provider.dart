@@ -291,4 +291,105 @@ class ReviewProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
   }
+
+  // Update a review
+  Future<void> updateReview({
+    required int reviewId,
+    int? rating,
+    String? title,
+    String? content,
+    List<String>? images,
+    List<String>? tags,
+  }) async {
+    try {
+      if (AppConfig.useMockData) {
+        // Mock implementation - update review in local state
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        // Find and update review in all lists
+        final updateReviewInList = (List<Review> reviews) {
+          final index = reviews.indexWhere((r) => r.reviewId == reviewId);
+          if (index != -1) {
+            final oldReview = reviews[index];
+            reviews[index] = Review(
+              reviewId: oldReview.reviewId,
+              title: title ?? oldReview.title,
+              content: content ?? oldReview.content,
+              rating: rating?.toDouble() ?? oldReview.rating,
+              userId: oldReview.userId,
+              username: oldReview.username,
+              userAvatar: oldReview.userAvatar,
+              entityId: oldReview.entityId,
+              entityName: oldReview.entityName,
+              entityAvatar: oldReview.entityAvatar,
+              entityRootCategoryName: oldReview.entityRootCategoryName,
+              entityRootCategoryId: oldReview.entityRootCategoryId,
+              entityRootCategoryIcon: oldReview.entityRootCategoryIcon,
+              entityFinalCategoryName: oldReview.entityFinalCategoryName,
+              entityFinalCategoryId: oldReview.entityFinalCategoryId,
+              entityFinalCategoryIcon: oldReview.entityFinalCategoryIcon,
+              entityReviewCount: oldReview.entityReviewCount,
+              entityAverageRating: oldReview.entityAverageRating,
+              likesCount: oldReview.likesCount,
+              commentsCount: oldReview.commentsCount,
+              viewCount: oldReview.viewCount,
+              isLiked: oldReview.isLiked,
+              reviewScope: oldReview.reviewScope,
+              groupId: oldReview.groupId,
+              groupName: oldReview.groupName,
+              groupAvatar: oldReview.groupAvatar,
+              images: images ?? oldReview.images,
+              createdAt: oldReview.createdAt,
+              updatedAt: DateTime.now(),
+            );
+          }
+        };
+
+        updateReviewInList(_reviews);
+        updateReviewInList(_entityReviews);
+
+        notifyListeners();
+        return;
+      }
+
+      // Real API call would go here
+      // final reviewRepo = ReviewRepository();
+      // await reviewRepo.updateReview(reviewId.toString(), ...);
+
+      notifyListeners();
+    } catch (e) {
+      _error = 'Failed to update review: $e';
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  // Delete a review
+  Future<void> deleteReview(int reviewId) async {
+    try {
+      if (AppConfig.useMockData) {
+        // Mock implementation - remove review from local state
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        _reviews.removeWhere((r) => r.reviewId == reviewId);
+        _entityReviews.removeWhere((r) => r.reviewId == reviewId);
+
+        notifyListeners();
+        return;
+      }
+
+      // Real API call would go here
+      // final reviewRepo = ReviewRepository();
+      // await reviewRepo.deleteReview(reviewId.toString());
+
+      _reviews.removeWhere((r) => r.reviewId == reviewId);
+      _entityReviews.removeWhere((r) => r.reviewId == reviewId);
+
+      notifyListeners();
+    } catch (e) {
+      _error = 'Failed to delete review: $e';
+      notifyListeners();
+      rethrow;
+    }
+  }
 }

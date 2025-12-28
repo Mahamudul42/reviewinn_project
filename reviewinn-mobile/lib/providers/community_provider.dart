@@ -281,6 +281,85 @@ class CommunityProvider with ChangeNotifier {
     }
   }
 
+  // Update a post
+  Future<void> updatePost({
+    required int postId,
+    String? title,
+    String? content,
+    List<String>? tags,
+  }) async {
+    try {
+      if (AppConfig.useMockData) {
+        // Mock implementation - update post in local state
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        final index = _posts.indexWhere((p) => p.postId == postId);
+        if (index != -1) {
+          final oldPost = _posts[index];
+          _posts[index] = CommunityPost(
+            postId: oldPost.postId,
+            title: title ?? oldPost.title,
+            content: content ?? oldPost.content,
+            userId: oldPost.userId,
+            username: oldPost.username,
+            userAvatar: oldPost.userAvatar,
+            tags: tags ?? oldPost.tags,
+            likesCount: oldPost.likesCount,
+            commentsCount: oldPost.commentsCount,
+            viewCount: oldPost.viewCount,
+            isLiked: oldPost.isLiked,
+            isPinned: oldPost.isPinned,
+            postType: oldPost.postType,
+            entityId: oldPost.entityId,
+            entityName: oldPost.entityName,
+            entityAvatar: oldPost.entityAvatar,
+            groupId: oldPost.groupId,
+            groupName: oldPost.groupName,
+            createdAt: oldPost.createdAt,
+          );
+        }
+
+        notifyListeners();
+        return;
+      }
+
+      // Real API call would go here
+      // await _api.put('/community/posts/$postId', body: {...});
+
+      notifyListeners();
+    } catch (e) {
+      _error = 'Failed to update post: $e';
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  // Delete a post
+  Future<void> deletePost(int postId) async {
+    try {
+      if (AppConfig.useMockData) {
+        // Mock implementation - remove post from local state
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        _posts.removeWhere((p) => p.postId == postId);
+
+        notifyListeners();
+        return;
+      }
+
+      // Real API call would go here
+      // await _api.delete('/community/posts/$postId');
+
+      _posts.removeWhere((p) => p.postId == postId);
+
+      notifyListeners();
+    } catch (e) {
+      _error = 'Failed to delete post: $e';
+      notifyListeners();
+      rethrow;
+    }
+  }
+
   void clearError() {
     _error = null;
     notifyListeners();
