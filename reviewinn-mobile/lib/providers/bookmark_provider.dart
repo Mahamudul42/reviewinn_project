@@ -1,20 +1,26 @@
 import 'package:flutter/foundation.dart';
 import '../models/review_model.dart';
 import '../models/entity_model.dart';
+import '../models/community_post_model.dart';
 
 class BookmarkProvider with ChangeNotifier {
   final Set<int> _bookmarkedReviewIds = {};
   final Set<int> _bookmarkedEntityIds = {};
+  final Set<int> _bookmarkedPostIds = {};
   final Map<int, Review> _bookmarkedReviews = {};
   final Map<int, Entity> _bookmarkedEntities = {};
+  final Map<int, CommunityPost> _bookmarkedPosts = {};
 
   Set<int> get bookmarkedReviewIds => _bookmarkedReviewIds;
   Set<int> get bookmarkedEntityIds => _bookmarkedEntityIds;
+  Set<int> get bookmarkedPostIds => _bookmarkedPostIds;
   List<Review> get bookmarkedReviews => _bookmarkedReviews.values.toList();
   List<Entity> get bookmarkedEntities => _bookmarkedEntities.values.toList();
+  List<CommunityPost> get bookmarkedPosts => _bookmarkedPosts.values.toList();
 
   bool isReviewBookmarked(int reviewId) => _bookmarkedReviewIds.contains(reviewId);
   bool isEntityBookmarked(int entityId) => _bookmarkedEntityIds.contains(entityId);
+  bool isPostBookmarked(int postId) => _bookmarkedPostIds.contains(postId);
 
   void toggleReviewBookmark(Review review) {
     if (_bookmarkedReviewIds.contains(review.reviewId)) {
@@ -40,6 +46,18 @@ class BookmarkProvider with ChangeNotifier {
     _saveBookmarks();
   }
 
+  void togglePostBookmark(CommunityPost post) {
+    if (_bookmarkedPostIds.contains(post.postId)) {
+      _bookmarkedPostIds.remove(post.postId);
+      _bookmarkedPosts.remove(post.postId);
+    } else {
+      _bookmarkedPostIds.add(post.postId);
+      _bookmarkedPosts[post.postId] = post;
+    }
+    notifyListeners();
+    _saveBookmarks();
+  }
+
   void removeReviewBookmark(int reviewId) {
     _bookmarkedReviewIds.remove(reviewId);
     _bookmarkedReviews.remove(reviewId);
@@ -54,11 +72,20 @@ class BookmarkProvider with ChangeNotifier {
     _saveBookmarks();
   }
 
+  void removePostBookmark(int postId) {
+    _bookmarkedPostIds.remove(postId);
+    _bookmarkedPosts.remove(postId);
+    notifyListeners();
+    _saveBookmarks();
+  }
+
   void clearAllBookmarks() {
     _bookmarkedReviewIds.clear();
     _bookmarkedEntityIds.clear();
+    _bookmarkedPostIds.clear();
     _bookmarkedReviews.clear();
     _bookmarkedEntities.clear();
+    _bookmarkedPosts.clear();
     notifyListeners();
     _saveBookmarks();
   }

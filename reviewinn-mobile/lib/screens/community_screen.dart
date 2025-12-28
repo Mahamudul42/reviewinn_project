@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../config/app_theme.dart';
+import '../config/app_colors.dart';
 import '../providers/community_provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/bookmark_provider.dart';
+import '../widgets/community/community_post_card.dart';
 import '../widgets/post_detail_modal.dart';
+import '../widgets/review_detail_modal.dart';
 import '../models/community_post_model.dart';
+import '../services/mock_data.dart';
 import 'login_screen.dart';
+
+enum SortOption { latest, trending, popular }
 
 class CommunityScreen extends StatefulWidget {
   const CommunityScreen({super.key});
@@ -14,14 +21,34 @@ class CommunityScreen extends StatefulWidget {
   State<CommunityScreen> createState() => _CommunityScreenState();
 }
 
-class _CommunityScreenState extends State<CommunityScreen> {
+class _CommunityScreenState extends State<CommunityScreen>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   String _searchQuery = '';
+  SortOption _sortOption = SortOption.latest;
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(() {
+      setState(() {
+        switch (_tabController.index) {
+          case 0:
+            _sortOption = SortOption.latest;
+            break;
+          case 1:
+            _sortOption = SortOption.trending;
+            break;
+          case 2:
+            _sortOption = SortOption.popular;
+            break;
+        }
+      });
+    });
+
     _scrollController.addListener(_onScroll);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -44,16 +71,107 @@ class _CommunityScreenState extends State<CommunityScreen> {
   void dispose() {
     _searchController.dispose();
     _scrollController.dispose();
+    _tabController.dispose();
     super.dispose();
+  }
+
+  List<CommunityPost> _getFilteredAndSortedPosts(
+      List<CommunityPost> posts) {
+    // First, filter by search query
+    var filtered = posts;
+    if (_searchQuery.isNotEmpty) {
+      final query = _searchQuery.toLowerCase();
+      filtered = posts.where((post) {
+        return post.title.toLowerCase().contains(query) ||
+            post.content.toLowerCase().contains(query) ||
+            (post.tags?.any((tag) => tag.toLowerCase().contains(query)) ??
+                false);
+      }).toList();
+    }
+
+    // Then, sort based on selected option
+    switch (_sortOption) {
+      case SortOption.latest:
+        filtered.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        break;
+      case SortOption.trending:
+        // Trending = combination of recent + engagement
+        filtered.sort((a, b) {
+          final aScore = a.likesCount + a.commentsCount +
+              (a.viewCount / 10).round() -
+              DateTime.now().difference(a.createdAt).inHours;
+          final bScore = b.likesCount + b.commentsCount +
+              (b.viewCount / 10).round() -
+              DateTime.now().difference(b.createdAt).inHours;
+          return bScore.compareTo(aScore);
+        });
+        break;
+      case SortOption.popular:
+        // Popular = most engagement overall
+        filtered.sort((a, b) {
+          final aScore = a.likesCount + (a.commentsCount * 2);
+          final bScore = b.likesCount + (b.commentsCount * 2);
+          return bScore.compareTo(aScore);
+        });
+        break;
+    }
+
+    return filtered;
+  }
+
+  Future<void> _handleLike(int postId) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    if (!authProvider.isAuthenticated) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      );
+      return;
+    }
+
+    final provider = Provider.of<CommunityProvider>(context, listen: false);
+    await provider.toggleLike(postId);
+  }
+
+  Future<void> _handleBookmark(CommunityPost post) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    if (!authProvider.isAuthenticated) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      );
+      return;
+    }
+
+    final bookmarkProvider =
+        Provider.of<BookmarkProvider>(context, listen: false);
+    bookmarkProvider.togglePostBookmark(post);
+  }
+
+  void _handleReviewPreviewTap(int reviewId) {
+    // Get review from mock data
+    final allReviews = MockData.getMockReviews(0);
+    final review = allReviews.firstWhere(
+      (r) => r.reviewId == reviewId,
+      orElse: () => allReviews.first,
+    );
+
+    // Show review detail modal
+    ReviewDetailModal.show(context, review);
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: Consumer<CommunityProvider>(
           builder: (context, communityProvider, child) {
+            final filteredPosts =
+                _getFilteredAndSortedPosts(communityProvider.posts);
+
             return RefreshIndicator(
               onRefresh: () => communityProvider.fetchPosts(refresh: true),
               color: AppTheme.primaryPurple,
@@ -64,14 +182,19 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   SliverAppBar(
                     floating: true,
                     snap: true,
-                    backgroundColor: Colors.white,
+                    backgroundColor: colors.cardBackground,
                     elevation: 0,
                     title: Row(
                       children: [
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: AppTheme.primaryPurple.withOpacity(0.15),
+                            gradient: LinearGradient(
+                              colors: [
+                                AppTheme.primaryPurple.withOpacity(0.2),
+                                AppTheme.primaryPurple.withOpacity(0.1),
+                              ],
+                            ),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Icon(
@@ -83,7 +206,11 @@ class _CommunityScreenState extends State<CommunityScreen> {
                         const SizedBox(width: 12),
                         Text(
                           'Community',
-                          style: AppTheme.headingMedium.copyWith(fontSize: 22),
+                          style: AppTheme.headingMedium.copyWith(
+                            fontSize: 22,
+                            color: colors.textPrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
@@ -92,7 +219,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   // Search bar
                   SliverToBoxAdapter(
                     child: Container(
-                      color: Colors.white,
+                      color: colors.cardBackground,
                       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
                       child: TextField(
                         controller: _searchController,
@@ -100,16 +227,52 @@ class _CommunityScreenState extends State<CommunityScreen> {
                           setState(() => _searchQuery = value);
                         },
                         decoration: InputDecoration(
-                          hintText: 'Search community discussions...',
-                          prefixIcon: Icon(Icons.search,
-                              color: AppTheme.textTertiary),
+                          hintText: 'Search discussions, tags...',
+                          hintStyle: TextStyle(color: colors.textTertiary),
+                          prefixIcon: Icon(Icons.search, color: colors.iconSecondary),
+                          suffixIcon: _searchQuery.isNotEmpty
+                              ? IconButton(
+                                  icon: Icon(Icons.clear, color: colors.iconSecondary),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() => _searchQuery = '');
+                                  },
+                                )
+                              : null,
                           filled: true,
-                          fillColor: AppTheme.backgroundLight,
+                          fillColor: colors.background,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
                           ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
                         ),
+                      ),
+                    ),
+                  ),
+
+                  // Sort Tabs
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: _SliverAppBarDelegate(
+                      TabBar(
+                        controller: _tabController,
+                        labelColor: AppTheme.primaryPurple,
+                        unselectedLabelColor: colors.textSecondary,
+                        indicatorColor: AppTheme.primaryPurple,
+                        indicatorWeight: 3,
+                        labelStyle: AppTheme.bodyMedium.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        unselectedLabelStyle: AppTheme.bodyMedium,
+                        tabs: const [
+                          Tab(text: 'Latest'),
+                          Tab(text: 'Trending'),
+                          Tab(text: 'Popular'),
+                        ],
                       ),
                     ),
                   ),
@@ -124,28 +287,56 @@ class _CommunityScreenState extends State<CommunityScreen> {
                         ),
                       ),
                     )
-                  else if (communityProvider.posts.isEmpty)
+                  else if (filteredPosts.isEmpty)
                     SliverFillRemaining(
                       child: Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              Icons.forum_outlined,
+                              _searchQuery.isNotEmpty
+                                  ? Icons.search_off
+                                  : Icons.forum_outlined,
                               size: 80,
-                              color: Colors.grey[400],
+                              color: colors.iconSecondary,
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'No posts yet',
-                              style: AppTheme.headingMedium,
+                              _searchQuery.isNotEmpty
+                                  ? 'No posts found'
+                                  : 'No posts yet',
+                              style: AppTheme.headingMedium.copyWith(
+                                color: colors.textPrimary,
+                              ),
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Be the first to start a discussion',
-                              style: AppTheme.bodyMedium
-                                  .copyWith(color: Colors.grey[600]),
+                              _searchQuery.isNotEmpty
+                                  ? 'Try different keywords'
+                                  : 'Be the first to start a discussion',
+                              style: AppTheme.bodyMedium.copyWith(
+                                color: colors.textSecondary,
+                              ),
                             ),
+                            if (_searchQuery.isNotEmpty) ...[
+                              const SizedBox(height: 16),
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() => _searchQuery = '');
+                                },
+                                icon: const Icon(Icons.clear),
+                                label: const Text('Clear Search'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppTheme.primaryPurple,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                    vertical: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -154,7 +345,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                     SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
-                          if (index >= communityProvider.posts.length) {
+                          if (index >= filteredPosts.length) {
                             return Container(
                               padding: const EdgeInsets.all(16),
                               alignment: Alignment.center,
@@ -164,228 +355,50 @@ class _CommunityScreenState extends State<CommunityScreen> {
                             );
                           }
 
-                          final post = communityProvider.posts[index];
+                          final post = filteredPosts[index];
 
-                          // Post card with tap to open modal
-                          return InkWell(
+                          // Check if post is bookmarked
+                          final bookmarkProvider =
+                              Provider.of<BookmarkProvider>(context);
+                          final isBookmarked =
+                              bookmarkProvider.isPostBookmarked(post.postId);
+
+                          // Use beautiful CommunityPostCard widget
+                          return CommunityPostCard(
+                            post: post,
+                            isBookmarked: isBookmarked,
                             onTap: () {
                               showDialog(
                                 context: context,
                                 builder: (context) => PostDetailModal(post: post),
                               );
                             },
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 8),
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Badges row
-                                Row(
-                                  children: [
-                                    // Pinned badge
-                                    if (post.isPinned)
-                                      Container(
-                                        margin: const EdgeInsets.only(right: 8),
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: AppTheme.accentYellow
-                                              .withOpacity(0.2),
-                                          borderRadius: BorderRadius.circular(4),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              Icons.push_pin,
-                                              size: 12,
-                                              color: AppTheme.accentYellow,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              'Pinned',
-                                              style: TextStyle(
-                                                fontSize: 11,
-                                                color: AppTheme.accentYellow,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-
-                                    // Source badge (Group or Entity)
-                                    if (post.postType == PostType.group && post.groupName != null)
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: Colors.blue.withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(4),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              Icons.group,
-                                              size: 12,
-                                              color: Colors.blue,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              post.groupName!,
-                                              style: TextStyle(
-                                                fontSize: 11,
-                                                color: Colors.blue[700],
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-
-                                    if (post.postType == PostType.entity && post.entityName != null)
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: Colors.green.withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(4),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              Icons.help_outline,
-                                              size: 12,
-                                              color: Colors.green,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              post.entityName!,
-                                              style: TextStyle(
-                                                fontSize: 11,
-                                                color: Colors.green[700],
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                                if (post.isPinned || post.postType != PostType.general)
-                                  const SizedBox(height: 8),
-
-                                // Title
-                                Text(
-                                  post.title,
-                                  style: AppTheme.headingSmall.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-
-                                // Content preview
-                                Text(
-                                  post.content,
-                                  maxLines: 3,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: AppTheme.bodyMedium,
-                                ),
-                                const SizedBox(height: 12),
-
-                                // Tags
-                                if (post.tags != null && post.tags!.isNotEmpty)
-                                  Wrap(
-                                    spacing: 8,
-                                    runSpacing: 4,
-                                    children: post.tags!.take(3).map((tag) {
-                                      return Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: AppTheme.primaryPurple
-                                              .withOpacity(0.1),
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                        ),
-                                        child: Text(
-                                          '#$tag',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: AppTheme.primaryPurple,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      );
-                                    }).toList(),
-                                  ),
-                                const SizedBox(height: 12),
-
-                                // Stats row
-                                Row(
-                                  children: [
-                                    Icon(
-                                      post.isLiked
-                                          ? Icons.favorite
-                                          : Icons.favorite_border,
-                                      size: 18,
-                                      color: post.isLiked
-                                          ? Colors.red
-                                          : Colors.grey,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '${post.likesCount}',
-                                      style: AppTheme.bodySmall,
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Icon(
-                                      Icons.comment_outlined,
-                                      size: 18,
-                                      color: Colors.grey,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '${post.commentsCount}',
-                                      style: AppTheme.bodySmall,
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Icon(
-                                      Icons.visibility_outlined,
-                                      size: 18,
-                                      color: Colors.grey,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '${post.viewCount}',
-                                      style: AppTheme.bodySmall,
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            ),
+                            onLikeTap: () => _handleLike(post.postId),
+                            onBookmarkTap: () => _handleBookmark(post),
+                            onReviewPreviewTap: () {
+                              // Extract review ID and show review
+                              final reviewIdMatch = RegExp(
+                                      r'(?:reviewinn\.com)?/review/(\d+)')
+                                  .firstMatch(post.content);
+                              if (reviewIdMatch != null) {
+                                final reviewId =
+                                    int.tryParse(reviewIdMatch.group(1) ?? '');
+                                if (reviewId != null) {
+                                  _handleReviewPreviewTap(reviewId);
+                                }
+                              }
+                            },
                           );
                         },
-                        childCount: communityProvider.posts.length +
+                        childCount: filteredPosts.length +
                             (communityProvider.isLoadingMore ? 1 : 0),
                       ),
                     ),
+
+                  // Bottom padding
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: 80),
+                  ),
                 ],
               ),
             );
@@ -393,5 +406,33 @@ class _CommunityScreenState extends State<CommunityScreen> {
         ),
       ),
     );
+  }
+}
+
+// Helper class for sticky tabs
+class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
+  _SliverAppBarDelegate(this._tabBar);
+
+  final TabBar _tabBar;
+
+  @override
+  double get minExtent => _tabBar.preferredSize.height;
+
+  @override
+  double get maxExtent => _tabBar.preferredSize.height;
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    final colors = context.colors;
+    return Container(
+      color: colors.cardBackground,
+      child: _tabBar,
+    );
+  }
+
+  @override
+  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
+    return false;
   }
 }

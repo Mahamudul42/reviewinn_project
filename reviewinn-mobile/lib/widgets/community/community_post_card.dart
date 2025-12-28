@@ -15,6 +15,8 @@ class CommunityPostCard extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onLikeTap;
   final VoidCallback? onReviewPreviewTap;
+  final VoidCallback? onBookmarkTap;
+  final bool isBookmarked;
 
   const CommunityPostCard({
     super.key,
@@ -22,6 +24,8 @@ class CommunityPostCard extends StatelessWidget {
     this.onTap,
     this.onLikeTap,
     this.onReviewPreviewTap,
+    this.onBookmarkTap,
+    this.isBookmarked = false,
   });
 
   /// Extracts review ID from review links in the post content
@@ -405,12 +409,12 @@ class CommunityPostCard extends StatelessWidget {
                   ],
 
                   // Tags
-                  if (post.tags.isNotEmpty) ...[
+                  if (post.tags != null && post.tags!.isNotEmpty) ...[
                     const SizedBox(height: 16),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: post.tags.take(3).map((tag) {
+                      children: post.tags!.take(3).map((tag) {
                         return Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
@@ -492,13 +496,18 @@ class CommunityPostCard extends StatelessWidget {
                     isActive: false,
                   ),
                   const Spacer(),
-                  // Share button
+                  // Bookmark button
                   _buildStat(
                     context: context,
-                    icon: Icons.share_outlined,
-                    label: 'Share',
-                    color: colors.iconSecondary,
-                    isActive: false,
+                    icon: isBookmarked
+                        ? Icons.bookmark
+                        : Icons.bookmark_border,
+                    label: isBookmarked ? 'Saved' : 'Save',
+                    color: isBookmarked
+                        ? AppTheme.accentYellow
+                        : colors.iconSecondary,
+                    isActive: isBookmarked,
+                    onTap: onBookmarkTap,
                   ),
                 ],
               ),

@@ -125,7 +125,7 @@ class ReviewLinkPreview extends StatelessWidget {
                       children: [
                         // Entity name
                         Text(
-                          review.entityName,
+                          review.entityName ?? 'Unknown Entity',
                           style: AppTheme.bodyMedium.copyWith(
                             color: colors.textPrimary,
                             fontWeight: FontWeight.bold,
