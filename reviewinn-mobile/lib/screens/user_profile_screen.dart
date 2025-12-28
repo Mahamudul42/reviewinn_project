@@ -8,11 +8,15 @@ import '../models/badge_model.dart';
 import '../models/community_post_model.dart';
 import '../providers/auth_provider.dart';
 import '../providers/theme_provider.dart';
+import '../providers/bookmark_provider.dart';
 import '../widgets/beautiful_review_card.dart';
 import '../widgets/entity_card.dart';
 import '../widgets/badge_widget.dart';
 import '../widgets/post_detail_modal.dart';
+import '../widgets/community/community_post_card.dart';
+import '../widgets/review_detail_modal.dart';
 import '../utils/formatters/number_formatter.dart';
+import '../services/mock_data.dart';
 import 'badges_screen.dart';
 import 'settings_screen.dart';
 import 'review_stats_screen.dart';
@@ -175,19 +179,75 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
       ),
       CommunityPost(
         postId: 202,
-        title: 'Anyone know good Italian restaurants nearby?',
-        content: 'Visiting the downtown area this weekend. Looking for authentic Italian food recommendations!',
+        title: 'Amazing Italian experience you must try!',
+        content: 'Just discovered this incredible Italian restaurant in downtown. The pasta is handmade and absolutely delicious! Check out my full review: reviewinn.com/review/1\n\nSeriously recommend trying their signature tiramisu!',
         userId: 1,
         username: 'John Doe',
         userAvatar: 'https://i.pravatar.cc/150?img=7',
         tags: ['food', 'italian', 'recommendations'],
-        likesCount: 21,
-        commentsCount: 12,
-        viewCount: 145,
-        isLiked: false,
+        likesCount: 38,
+        commentsCount: 15,
+        viewCount: 245,
+        isLiked: true,
         isPinned: false,
         postType: PostType.general,
         createdAt: now.subtract(const Duration(days: 9)),
+      ),
+      CommunityPost(
+        postId: 204,
+        title: 'My thoughts on the Tesla Cybertruck',
+        content: 'After owning it for 3 months, I can say this is truly a revolutionary vehicle. The attention it gets is incredible!',
+        userId: 1,
+        username: 'John Doe',
+        userAvatar: 'https://i.pravatar.cc/150?img=7',
+        tags: ['tesla', 'electric-vehicles', 'review'],
+        likesCount: 67,
+        commentsCount: 32,
+        viewCount: 512,
+        isLiked: false,
+        isPinned: false,
+        postType: PostType.entity,
+        entityId: 101,
+        entityName: 'Tesla Cybertruck',
+        entityAvatar: 'https://images.unsplash.com/photo-1617788138017-80ad40651399?w=400',
+        createdAt: now.subtract(const Duration(days: 2)),
+      ),
+      CommunityPost(
+        postId: 205,
+        title: 'Group meetup this Saturday!',
+        content: 'Hey everyone! We\'re organizing a coffee tasting session this Saturday at 3 PM. Who\'s in? ☕',
+        userId: 1,
+        username: 'John Doe',
+        userAvatar: 'https://i.pravatar.cc/150?img=7',
+        tags: ['meetup', 'coffee', 'weekend'],
+        likesCount: 45,
+        commentsCount: 23,
+        viewCount: 189,
+        isLiked: false,
+        isPinned: true,
+        postType: PostType.group,
+        groupId: 1,
+        groupName: 'Coffee Enthusiasts',
+        createdAt: now.subtract(const Duration(days: 1)),
+      ),
+      CommunityPost(
+        postId: 206,
+        title: 'Just tried The Rustic Kitchen - Amazing!',
+        content: 'The farm-to-table concept really shines here. Fresh ingredients, great atmosphere. Highly recommend their signature pasta dish!',
+        userId: 1,
+        username: 'John Doe',
+        userAvatar: 'https://i.pravatar.cc/150?img=7',
+        tags: ['restaurant', 'food', 'farm-to-table'],
+        likesCount: 52,
+        commentsCount: 17,
+        viewCount: 287,
+        isLiked: false,
+        isPinned: false,
+        postType: PostType.entity,
+        entityId: 102,
+        entityName: 'The Rustic Kitchen',
+        entityAvatar: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400',
+        createdAt: now.subtract(const Duration(days: 6)),
       ),
     ];
 
@@ -207,6 +267,59 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
         isPinned: false,
         postType: PostType.general,
         createdAt: now.subtract(const Duration(days: 2)),
+      ),
+      CommunityPost(
+        postId: 207,
+        title: 'Incredible find - TechHub Store Review',
+        content: 'Found the best tech store in the city! Amazing customer service and great prices. Read my detailed review: reviewinn.com/review/5\n\nDefinitely check them out if you need electronics!',
+        userId: 3,
+        username: 'TechGuru',
+        userAvatar: 'https://i.pravatar.cc/150?img=3',
+        tags: ['tech', 'electronics', 'review'],
+        likesCount: 56,
+        commentsCount: 19,
+        viewCount: 278,
+        isLiked: false,
+        isPinned: false,
+        postType: PostType.general,
+        createdAt: now.subtract(const Duration(days: 4)),
+      ),
+      CommunityPost(
+        postId: 208,
+        title: 'Best coding bootcamp experience!',
+        content: 'Just finished Code Academy Pro and it completely changed my career. The instructors are world-class and the curriculum is practical.',
+        userId: 4,
+        username: 'DevLearner',
+        userAvatar: 'https://i.pravatar.cc/150?img=4',
+        tags: ['education', 'coding', 'career'],
+        likesCount: 73,
+        commentsCount: 34,
+        viewCount: 456,
+        isLiked: false,
+        isPinned: false,
+        postType: PostType.entity,
+        entityId: 103,
+        entityName: 'Code Academy Pro',
+        entityAvatar: 'https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=400',
+        createdAt: now.subtract(const Duration(days: 7)),
+      ),
+      CommunityPost(
+        postId: 209,
+        title: 'Book club meeting next week!',
+        content: 'Our next book club meeting is scheduled for next Tuesday at 7 PM. We\'ll be discussing "The Midnight Library". Don\'t forget to bring your thoughts and questions!',
+        userId: 5,
+        username: 'BookLover',
+        userAvatar: 'https://i.pravatar.cc/150?img=5',
+        tags: ['books', 'meetup', 'discussion'],
+        likesCount: 28,
+        commentsCount: 15,
+        viewCount: 134,
+        isLiked: true,
+        isPinned: false,
+        postType: PostType.group,
+        groupId: 2,
+        groupName: 'Book Lovers Club',
+        createdAt: now.subtract(const Duration(days: 1)),
       ),
     ];
 
@@ -250,6 +363,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
         earnedDate: now.subtract(const Duration(days: 180)),
       ),
     ];
+  }
+
+  void _handleReviewPreviewTap(int reviewId) {
+    // Get review from mock data
+    final allReviews = MockData.getMockReviews(0);
+    final review = allReviews.firstWhere(
+      (r) => r.reviewId == reviewId,
+      orElse: () => allReviews.first,
+    );
+
+    // Show review detail modal
+    ReviewDetailModal.show(context, review);
   }
 
   @override
@@ -783,126 +908,66 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(AppTheme.spaceM),
-      itemCount: _userPosts.length,
-      itemBuilder: (context, index) {
-        final post = _userPosts[index];
-        return Container(
-          margin: const EdgeInsets.only(bottom: AppTheme.spaceM),
-          child: InkWell(
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (context) => PostDetailModal(post: post),
-              );
-            },
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title
-                  Text(
-                    post.title,
-                    style: AppTheme.headingSmall.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
+    return Consumer<BookmarkProvider>(
+      builder: (context, bookmarkProvider, child) {
+        return ListView.builder(
+          padding: const EdgeInsets.only(bottom: AppTheme.spaceXL),
+          itemCount: _userPosts.length,
+          itemBuilder: (context, index) {
+            final post = _userPosts[index];
+            final isBookmarked = bookmarkProvider.isPostBookmarked(post.postId);
 
-                  // Content preview
-                  Text(
-                    post.content,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Tags
-                  if (post.tags != null && post.tags!.isNotEmpty)
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 4,
-                      children: post.tags!.take(3).map((tag) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryPurple.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            '#$tag',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppTheme.primaryPurple,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  const SizedBox(height: 12),
-                  Divider(height: 1, color: Colors.grey[200]),
-                  const SizedBox(height: 12),
-
-                  // Stats
-                  Row(
-                    children: [
-                      Icon(
-                        post.isLiked
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                        size: 18,
-                        color:
-                            post.isLiked ? Colors.red : Colors.grey,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${post.likesCount}',
-                        style: AppTheme.bodySmall,
-                      ),
-                      const SizedBox(width: 16),
-                      Icon(
-                        Icons.comment_outlined,
-                        size: 18,
-                        color: Colors.grey,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${post.commentsCount}',
-                        style: AppTheme.bodySmall,
-                      ),
-                      const SizedBox(width: 16),
-                      Icon(
-                        Icons.visibility_outlined,
-                        size: 18,
-                        color: Colors.grey,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${post.viewCount}',
-                        style: AppTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
+            return CommunityPostCard(
+              post: post,
+              isBookmarked: isBookmarked,
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => PostDetailModal(post: post),
+                );
+              },
+              onLikeTap: () {
+                // Handle like - would normally call provider
+                setState(() {
+                  _userPosts[index] = CommunityPost(
+                    postId: post.postId,
+                    title: post.title,
+                    content: post.content,
+                    userId: post.userId,
+                    username: post.username,
+                    userAvatar: post.userAvatar,
+                    tags: post.tags,
+                    likesCount: post.isLiked ? post.likesCount - 1 : post.likesCount + 1,
+                    commentsCount: post.commentsCount,
+                    viewCount: post.viewCount,
+                    isLiked: !post.isLiked,
+                    isPinned: post.isPinned,
+                    postType: post.postType,
+                    entityId: post.entityId,
+                    entityName: post.entityName,
+                    entityAvatar: post.entityAvatar,
+                    groupId: post.groupId,
+                    groupName: post.groupName,
+                    createdAt: post.createdAt,
+                  );
+                });
+              },
+              onBookmarkTap: () {
+                bookmarkProvider.togglePostBookmark(post);
+              },
+              onReviewPreviewTap: () {
+                // Extract review ID and show review
+                final reviewIdMatch = RegExp(r'(?:reviewinn\.com)?/review/(\d+)')
+                    .firstMatch(post.content);
+                if (reviewIdMatch != null) {
+                  final reviewId = int.tryParse(reviewIdMatch.group(1) ?? '');
+                  if (reviewId != null) {
+                    _handleReviewPreviewTap(reviewId);
+                  }
+                }
+              },
+            );
+          },
         );
       },
     );
@@ -1069,67 +1134,66 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(AppTheme.spaceM),
-      itemCount: _savedPosts.length,
-      itemBuilder: (context, index) {
-        final post = _savedPosts[index];
-        return Container(
-          margin: const EdgeInsets.only(bottom: AppTheme.spaceM),
-          child: InkWell(
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (context) => PostDetailModal(post: post),
-              );
-            },
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    post.title,
-                    style: AppTheme.headingSmall.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    post.content,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 12),
-                  Divider(height: 1, color: Colors.grey[200]),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Icon(Icons.favorite_border, size: 16, color: Colors.grey),
-                      const SizedBox(width: 4),
-                      Text('${post.likesCount}', style: AppTheme.bodySmall),
-                      const SizedBox(width: 16),
-                      Icon(Icons.comment_outlined, size: 16, color: Colors.grey),
-                      const SizedBox(width: 4),
-                      Text('${post.commentsCount}', style: AppTheme.bodySmall),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
+    return Consumer<BookmarkProvider>(
+      builder: (context, bookmarkProvider, child) {
+        return ListView.builder(
+          padding: const EdgeInsets.only(bottom: AppTheme.spaceXL),
+          itemCount: _savedPosts.length,
+          itemBuilder: (context, index) {
+            final post = _savedPosts[index];
+            final isBookmarked = bookmarkProvider.isPostBookmarked(post.postId);
+
+            return CommunityPostCard(
+              post: post,
+              isBookmarked: isBookmarked,
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => PostDetailModal(post: post),
+                );
+              },
+              onLikeTap: () {
+                // Handle like - would normally call provider
+                setState(() {
+                  _savedPosts[index] = CommunityPost(
+                    postId: post.postId,
+                    title: post.title,
+                    content: post.content,
+                    userId: post.userId,
+                    username: post.username,
+                    userAvatar: post.userAvatar,
+                    tags: post.tags,
+                    likesCount: post.isLiked ? post.likesCount - 1 : post.likesCount + 1,
+                    commentsCount: post.commentsCount,
+                    viewCount: post.viewCount,
+                    isLiked: !post.isLiked,
+                    isPinned: post.isPinned,
+                    postType: post.postType,
+                    entityId: post.entityId,
+                    entityName: post.entityName,
+                    entityAvatar: post.entityAvatar,
+                    groupId: post.groupId,
+                    groupName: post.groupName,
+                    createdAt: post.createdAt,
+                  );
+                });
+              },
+              onBookmarkTap: () {
+                bookmarkProvider.togglePostBookmark(post);
+              },
+              onReviewPreviewTap: () {
+                // Extract review ID and show review
+                final reviewIdMatch = RegExp(r'(?:reviewinn\.com)?/review/(\d+)')
+                    .firstMatch(post.content);
+                if (reviewIdMatch != null) {
+                  final reviewId = int.tryParse(reviewIdMatch.group(1) ?? '');
+                  if (reviewId != null) {
+                    _handleReviewPreviewTap(reviewId);
+                  }
+                }
+              },
+            );
+          },
         );
       },
     );

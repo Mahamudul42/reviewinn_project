@@ -4,6 +4,8 @@ import '../providers/bookmark_provider.dart';
 import '../config/app_theme.dart';
 import '../widgets/beautiful_review_card.dart';
 import '../widgets/entity_card.dart';
+import '../widgets/community/community_post_card.dart';
+import '../widgets/post_detail_modal.dart';
 import 'entity_detail_screen.dart';
 
 class BookmarksScreen extends StatefulWidget {
@@ -19,7 +21,7 @@ class _BookmarksScreenState extends State<BookmarksScreen> with SingleTickerProv
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -47,6 +49,10 @@ class _BookmarksScreenState extends State<BookmarksScreen> with SingleTickerProv
               text: 'Reviews',
             ),
             Tab(
+              icon: Icon(Icons.forum),
+              text: 'Posts',
+            ),
+            Tab(
               icon: Icon(Icons.business),
               text: 'Entities',
             ),
@@ -57,6 +63,7 @@ class _BookmarksScreenState extends State<BookmarksScreen> with SingleTickerProv
         controller: _tabController,
         children: [
           _buildReviewsTab(),
+          _buildPostsTab(),
           _buildEntitiesTab(),
         ],
       ),
@@ -86,6 +93,46 @@ class _BookmarksScreenState extends State<BookmarksScreen> with SingleTickerProv
               child: BeautifulReviewCard(
                 review: review,
               ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildPostsTab() {
+    return Consumer<BookmarkProvider>(
+      builder: (context, bookmarkProvider, child) {
+        final bookmarkedPosts = bookmarkProvider.bookmarkedPosts;
+
+        if (bookmarkedPosts.isEmpty) {
+          return _buildEmptyState(
+            icon: Icons.bookmark_border,
+            title: 'No Bookmarked Posts',
+            subtitle: 'Save posts to read them later',
+          );
+        }
+
+        return ListView.builder(
+          padding: EdgeInsets.all(8),
+          itemCount: bookmarkedPosts.length,
+          itemBuilder: (context, index) {
+            final post = bookmarkedPosts[index];
+            return CommunityPostCard(
+              post: post,
+              isBookmarked: true,
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => PostDetailModal(post: post),
+                );
+              },
+              onLikeTap: () {
+                // Handle like
+              },
+              onBookmarkTap: () {
+                bookmarkProvider.removePostBookmark(post.postId);
+              },
             );
           },
         );

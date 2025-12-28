@@ -120,6 +120,7 @@ class CommunityProvider with ChangeNotifier {
     List<String>? images,
     List<String>? tags,
     int? linkedEntityId,
+    int? linkedGroupId,
   }) async {
     _isLoading = true;
     _error = null;
@@ -134,6 +135,7 @@ class CommunityProvider with ChangeNotifier {
           'images': images,
           'tags': tags,
           'entity_id': linkedEntityId,
+          'group_id': linkedGroupId,
         },
       );
 

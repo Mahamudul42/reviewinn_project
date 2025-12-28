@@ -3,15 +3,18 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../providers/entity_provider.dart';
 import '../providers/review_provider.dart';
-import '../providers/entity_qa_provider.dart';
+import '../providers/community_provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/bookmark_provider.dart';
 import '../widgets/beautiful_review_card.dart';
 import '../widgets/purple_star_rating.dart';
-import '../widgets/question_card.dart';
-import '../widgets/question_detail_modal.dart';
+import '../widgets/community/community_post_card.dart';
+import '../widgets/post_detail_modal.dart';
+import '../widgets/review_detail_modal.dart';
+import '../widgets/community/new_post_modal.dart';
 import '../config/app_theme.dart';
 import '../models/review_model.dart';
+import '../models/community_post_model.dart';
 import 'write_review_screen.dart';
 import 'login_screen.dart';
 
@@ -41,8 +44,8 @@ class _EntityDetailScreenState extends State<EntityDetailScreen>
           .fetchEntity(widget.entityId);
       Provider.of<ReviewProvider>(context, listen: false)
           .fetchEntityReviews(widget.entityId);
-      Provider.of<EntityQAProvider>(context, listen: false)
-          .fetchQuestions(widget.entityId);
+      Provider.of<CommunityProvider>(context, listen: false)
+          .fetchPosts(refresh: true);
     });
   }
 
@@ -537,7 +540,7 @@ class _EntityDetailScreenState extends State<EntityDetailScreen>
                     indicatorWeight: 3,
                     tabs: const [
                       Tab(text: 'Reviews'),
-                      Tab(text: 'Q&A'),
+                      Tab(text: 'Discussion'),
                     ],
                   ),
                 ),
@@ -681,13 +684,18 @@ class _EntityDetailScreenState extends State<EntityDetailScreen>
                 },
               ),
 
-              // Q&A List (only show on Q&A tab)
+              // Discussion List (only show on Discussion tab)
               if (_tabController.index == 1)
-              Consumer<EntityQAProvider>(
-                builder: (context, qaProvider, child) {
-                  final questions = qaProvider.getQuestionsForEntity(widget.entityId);
+              Consumer<CommunityProvider>(
+                builder: (context, communityProvider, child) {
+                  // Filter posts for this entity
+                  final entityPosts = communityProvider.posts
+                      .where((post) =>
+                          post.postType == PostType.entity &&
+                          post.entityId == widget.entityId)
+                      .toList();
 
-                  if (qaProvider.isLoading && questions.isEmpty) {
+                  if (communityProvider.isLoading && entityPosts.isEmpty) {
                     return SliverToBoxAdapter(
                       child: Center(
                         child: Padding(
@@ -700,7 +708,7 @@ class _EntityDetailScreenState extends State<EntityDetailScreen>
                     );
                   }
 
-                  if (questions.isEmpty) {
+                  if (entityPosts.isEmpty) {
                     return SliverToBoxAdapter(
                       child: Container(
                         margin: const EdgeInsets.all(16),
@@ -712,18 +720,18 @@ class _EntityDetailScreenState extends State<EntityDetailScreen>
                         child: Column(
                           children: [
                             Icon(
-                              Icons.help_outline,
+                              Icons.forum_outlined,
                               size: 60,
                               color: Colors.grey[400],
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'No questions yet',
+                              'No discussions yet',
                               style: AppTheme.headingMedium,
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Be the first to ask a question',
+                              'Be the first to start a discussion',
                               style: AppTheme.bodyMedium.copyWith(
                                 color: Colors.grey[600],
                               ),
@@ -737,23 +745,35 @@ class _EntityDetailScreenState extends State<EntityDetailScreen>
                   return SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
-                        final entityProvider = Provider.of<EntityProvider>(context, listen: false);
-                        final entity = entityProvider.selectedEntity;
+                        final post = entityPosts[index];
+                        final bookmarkProvider = Provider.of<BookmarkProvider>(context);
+                        final isBookmarked = bookmarkProvider.isPostBookmarked(post.postId);
 
-                        return QuestionCard(
-                          question: questions[index],
-                          entityName: entity?.name,
+                        return CommunityPostCard(
+                          post: post,
+                          isBookmarked: isBookmarked,
                           onTap: () {
                             showDialog(
                               context: context,
-                              builder: (context) => QuestionDetailModal(
-                                question: questions[index],
-                              ),
+                              builder: (context) => PostDetailModal(post: post),
                             );
+                          },
+                          onLikeTap: () => communityProvider.toggleLike(post.postId),
+                          onBookmarkTap: () => bookmarkProvider.togglePostBookmark(post),
+                          onReviewPreviewTap: () {
+                            // Extract review ID and show review if present
+                            final reviewIdMatch = RegExp(r'(?:reviewinn\.com)?/review/(\d+)')
+                                .firstMatch(post.content);
+                            if (reviewIdMatch != null) {
+                              final reviewId = int.tryParse(reviewIdMatch.group(1) ?? '');
+                              if (reviewId != null) {
+                                // Show review detail (implementation depends on mock data)
+                              }
+                            }
                           },
                         );
                       },
-                      childCount: questions.length,
+                      childCount: entityPosts.length,
                     ),
                   );
                 },
@@ -794,11 +814,13 @@ class _EntityDetailScreenState extends State<EntityDetailScreen>
                   ),
                 );
               } else {
-                // Q&A tab - Ask Question
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Ask question feature coming soon!'),
-                    backgroundColor: AppTheme.primaryPurple,
+                // Discussion tab - New Post
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => NewPostModal(
+                    preselectedEntity: entity,
                   ),
                 );
               }
@@ -806,12 +828,12 @@ class _EntityDetailScreenState extends State<EntityDetailScreen>
             backgroundColor: AppTheme.primaryPurple,
             elevation: 4,
             icon: Icon(
-              _tabController.index == 0 ? Icons.edit_rounded : Icons.help_outline,
+              _tabController.index == 0 ? Icons.edit_rounded : Icons.add_comment,
               color: Colors.white,
               size: 22,
             ),
             label: Text(
-              _tabController.index == 0 ? 'Write Review' : 'Ask Question',
+              _tabController.index == 0 ? 'Write Review' : 'New Post',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,

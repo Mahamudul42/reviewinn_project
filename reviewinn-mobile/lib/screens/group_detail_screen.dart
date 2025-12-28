@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/review_provider.dart';
+import '../providers/community_provider.dart';
+import '../providers/bookmark_provider.dart';
 import '../widgets/beautiful_review_card.dart';
+import '../widgets/community/community_post_card.dart';
 import '../widgets/post_detail_modal.dart';
+import '../widgets/review_detail_modal.dart';
 import '../models/community_post_model.dart';
+import '../services/mock_data.dart';
 import '../config/app_theme.dart';
 
 class GroupDetailScreen extends StatefulWidget {
@@ -70,7 +75,8 @@ class _GroupDetailScreenState extends State<GroupDetailScreen>
     // Load group-specific reviews and discussions
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadGroupReviews();
-      _loadMockDiscussions();
+      Provider.of<CommunityProvider>(context, listen: false)
+          .fetchPosts(refresh: true);
     });
   }
 
@@ -704,158 +710,89 @@ class _GroupDetailScreenState extends State<GroupDetailScreen>
   }
 
   Widget _buildDiscussionTab() {
-    if (_discussions.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.forum_outlined,
-              size: 64,
-              color: AppTheme.textTertiary.withOpacity(0.5),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No discussions yet',
-              style: AppTheme.bodyLarge.copyWith(
-                color: AppTheme.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Start a discussion with the group',
-              style: AppTheme.bodyMedium.copyWith(
-                color: AppTheme.textTertiary,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+    return Consumer<CommunityProvider>(
+      builder: (context, communityProvider, child) {
+        // Filter posts for this group
+        final groupPosts = communityProvider.posts
+            .where((post) =>
+                post.postType == PostType.group &&
+                post.groupId == widget.groupId)
+            .toList();
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(AppTheme.spaceL),
-      itemCount: _discussions.length,
-      itemBuilder: (context, index) {
-        final post = _discussions[index];
-        return Container(
-          margin: EdgeInsets.only(bottom: AppTheme.spaceL),
-          child: InkWell(
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (context) => PostDetailModal(post: post),
-              );
-            },
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.border),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Pinned badge
-                  if (post.isPinned)
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppTheme.accentYellow.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.push_pin,
-                            size: 12,
-                            color: AppTheme.accentYellow,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Pinned',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: AppTheme.accentYellow,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                  // Title
-                  Text(
-                    post.title,
-                    style: AppTheme.headingSmall.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Content preview
-                  Text(
-                    post.content,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 12),
-                  Divider(height: 1, color: Colors.grey[200]),
-                  const SizedBox(height: 12),
-
-                  // Stats
-                  Row(
-                    children: [
-                      Icon(
-                        post.isLiked ? Icons.favorite : Icons.favorite_border,
-                        size: 18,
-                        color: post.isLiked ? Colors.red : Colors.grey,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${post.likesCount}',
-                        style: AppTheme.bodySmall,
-                      ),
-                      const SizedBox(width: 16),
-                      Icon(
-                        Icons.comment_outlined,
-                        size: 18,
-                        color: Colors.grey,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${post.commentsCount}',
-                        style: AppTheme.bodySmall,
-                      ),
-                      const SizedBox(width: 16),
-                      Icon(
-                        Icons.visibility_outlined,
-                        size: 18,
-                        color: Colors.grey,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${post.viewCount}',
-                        style: AppTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+        if (communityProvider.isLoading && groupPosts.isEmpty) {
+          return Center(
+            child: CircularProgressIndicator(
+              color: AppTheme.primaryPurple,
             ),
-          ),
+          );
+        }
+
+        if (groupPosts.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.forum_outlined,
+                  size: 64,
+                  color: AppTheme.textTertiary.withOpacity(0.5),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'No discussions yet',
+                  style: AppTheme.bodyLarge.copyWith(
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Start a discussion with the group',
+                  style: AppTheme.bodyMedium.copyWith(
+                    color: AppTheme.textTertiary,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(8),
+          itemCount: groupPosts.length,
+          itemBuilder: (context, index) {
+            final post = groupPosts[index];
+            final bookmarkProvider = Provider.of<BookmarkProvider>(context);
+            final isBookmarked = bookmarkProvider.isPostBookmarked(post.postId);
+
+            return CommunityPostCard(
+              post: post,
+              isBookmarked: isBookmarked,
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => PostDetailModal(post: post),
+                );
+              },
+              onLikeTap: () => communityProvider.toggleLike(post.postId),
+              onBookmarkTap: () => bookmarkProvider.togglePostBookmark(post),
+              onReviewPreviewTap: () {
+                // Extract review ID and show review if present
+                final reviewIdMatch = RegExp(r'(?:reviewinn\.com)?/review/(\d+)')
+                    .firstMatch(post.content);
+                if (reviewIdMatch != null) {
+                  final reviewId = int.tryParse(reviewIdMatch.group(1) ?? '');
+                  if (reviewId != null) {
+                    final allReviews = MockData.getMockReviews(0);
+                    final review = allReviews.firstWhere(
+                      (r) => r.reviewId == reviewId,
+                      orElse: () => allReviews.first,
+                    );
+                    ReviewDetailModal.show(context, review);
+                  }
+                }
+              },
+            );
+          },
         );
       },
     );

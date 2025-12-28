@@ -4,10 +4,16 @@ import '../../config/app_theme.dart';
 import '../../config/app_colors.dart';
 import '../../providers/community_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../models/entity_model.dart';
 
 /// Modal for creating a new community post
 class NewPostModal extends StatefulWidget {
-  const NewPostModal({super.key});
+  final Entity? preselectedEntity;
+
+  const NewPostModal({
+    super.key,
+    this.preselectedEntity,
+  });
 
   @override
   State<NewPostModal> createState() => _NewPostModalState();
@@ -76,6 +82,7 @@ class _NewPostModalState extends State<NewPostModal> {
         title: _titleController.text.trim(),
         content: _contentController.text.trim(),
         tags: _tags,
+        linkedEntityId: widget.preselectedEntity?.entityId,
       );
 
       if (mounted) {
