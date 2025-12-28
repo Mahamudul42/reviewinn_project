@@ -737,8 +737,12 @@ class _EntityDetailScreenState extends State<EntityDetailScreen>
                   return SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
+                        final entityProvider = Provider.of<EntityProvider>(context, listen: false);
+                        final entity = entityProvider.selectedEntity;
+
                         return QuestionCard(
                           question: questions[index],
+                          entityName: entity?.name,
                           onTap: () {
                             showDialog(
                               context: context,
