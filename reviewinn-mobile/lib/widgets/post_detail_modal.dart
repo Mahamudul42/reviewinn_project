@@ -8,6 +8,7 @@ import '../providers/auth_provider.dart';
 import '../config/app_theme.dart';
 import '../screens/login_screen.dart';
 import '../screens/edit_post_screen.dart';
+import 'edit_comment_modal.dart';
 
 class PostDetailModal extends StatefulWidget {
   final CommunityPost post;
@@ -186,6 +187,107 @@ class _PostDetailModalState extends State<PostDetailModal> {
               onTap: () {
                 Navigator.pop(context);
                 _handleDeletePost();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Comment helper methods
+  bool _isOwnComment(Comment comment) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    return authProvider.user?.userId == comment.userId;
+  }
+
+  Future<void> _handleEditComment(Comment comment) async {
+    final result = await EditCommentModal.show(context, comment);
+
+    if (result == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Comment updated successfully!'),
+          backgroundColor: AppTheme.successGreen,
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleDeleteComment(Comment comment) async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Comment'),
+        content: const Text(
+          'Are you sure you want to delete this comment? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context); // Close dialog
+
+              try {
+                final communityProvider =
+                    Provider.of<CommunityProvider>(context, listen: false);
+                await communityProvider.deleteComment(
+                  comment.commentId,
+                  widget.post.postId,
+                );
+
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Comment deleted successfully'),
+                      backgroundColor: AppTheme.successGreen,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to delete comment: $e'),
+                      backgroundColor: AppTheme.errorRed,
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCommentOptionsMenu(Comment comment) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.edit, color: AppTheme.primaryPurple),
+              title: const Text('Edit Comment'),
+              onTap: () {
+                Navigator.pop(context);
+                _handleEditComment(comment);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.delete, color: Colors.red),
+              title: const Text('Delete Comment',
+                  style: TextStyle(color: Colors.red)),
+              onTap: () {
+                Navigator.pop(context);
+                _handleDeleteComment(comment);
               },
             ),
           ],
@@ -618,6 +720,15 @@ class _PostDetailModalState extends State<PostDetailModal> {
               ),
               if (comment.isLiked)
                 Icon(Icons.favorite, size: 16, color: Colors.red),
+              // Show menu button for own comments
+              if (_isOwnComment(comment))
+                IconButton(
+                  icon: Icon(Icons.more_vert, size: 18),
+                  onPressed: () => _showCommentOptionsMenu(comment),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  color: Colors.grey[600],
+                ),
             ],
           ),
           const SizedBox(height: 8),

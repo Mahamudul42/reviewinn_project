@@ -281,6 +281,136 @@ class CommunityProvider with ChangeNotifier {
     }
   }
 
+  // Update comment
+  Future<void> updateComment({
+    required int commentId,
+    required String content,
+  }) async {
+    try {
+      if (AppConfig.useMockData) {
+        // Mock implementation - update comment in local state
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        final index = _postComments.indexWhere((c) => c.commentId == commentId);
+        if (index != -1) {
+          final oldComment = _postComments[index];
+          _postComments[index] = Comment(
+            commentId: oldComment.commentId,
+            content: content,
+            userId: oldComment.userId,
+            username: oldComment.username,
+            userAvatar: oldComment.userAvatar,
+            likesCount: oldComment.likesCount,
+            isLiked: oldComment.isLiked,
+            createdAt: oldComment.createdAt,
+            updatedAt: DateTime.now(),
+            parentCommentId: oldComment.parentCommentId,
+          );
+        }
+
+        notifyListeners();
+        return;
+      }
+
+      // Real API call would go here
+      // await _api.put('/community/comments/$commentId', body: {'content': content});
+
+      notifyListeners();
+    } catch (e) {
+      _error = 'Failed to update comment: $e';
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  // Delete comment
+  Future<void> deleteComment(int commentId, int postId) async {
+    try {
+      if (AppConfig.useMockData) {
+        // Mock implementation - remove comment from local state
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        _postComments.removeWhere((c) => c.commentId == commentId);
+
+        // Update comment count in post
+        final postIndex = _posts.indexWhere((p) => p.postId == postId);
+        if (postIndex != -1) {
+          final post = _posts[postIndex];
+          _posts[postIndex] = CommunityPost(
+            postId: post.postId,
+            title: post.title,
+            content: post.content,
+            userId: post.userId,
+            username: post.username,
+            userAvatar: post.userAvatar,
+            images: post.images,
+            tags: post.tags,
+            likesCount: post.likesCount,
+            commentsCount: post.commentsCount - 1,
+            viewCount: post.viewCount,
+            isLiked: post.isLiked,
+            isPinned: post.isPinned,
+            isEdited: post.isEdited,
+            createdAt: post.createdAt,
+            updatedAt: post.updatedAt,
+            postType: post.postType,
+            entityId: post.entityId,
+            entityName: post.entityName,
+            entityAvatar: post.entityAvatar,
+            groupId: post.groupId,
+            groupName: post.groupName,
+            groupAvatar: post.groupAvatar,
+          );
+        }
+
+        notifyListeners();
+        return;
+      }
+
+      // Real API call would go here
+      // await _api.delete('/community/comments/$commentId');
+
+      _postComments.removeWhere((c) => c.commentId == commentId);
+
+      // Update comment count
+      final postIndex = _posts.indexWhere((p) => p.postId == postId);
+      if (postIndex != -1) {
+        final post = _posts[postIndex];
+        _posts[postIndex] = CommunityPost(
+          postId: post.postId,
+          title: post.title,
+          content: post.content,
+          userId: post.userId,
+          username: post.username,
+          userAvatar: post.userAvatar,
+          images: post.images,
+          tags: post.tags,
+          likesCount: post.likesCount,
+          commentsCount: post.commentsCount - 1,
+          viewCount: post.viewCount,
+          isLiked: post.isLiked,
+          isPinned: post.isPinned,
+          isEdited: post.isEdited,
+          createdAt: post.createdAt,
+          updatedAt: post.updatedAt,
+          postType: post.postType,
+          entityId: post.entityId,
+          entityName: post.entityName,
+          entityAvatar: post.entityAvatar,
+          groupId: post.groupId,
+          groupName: post.groupName,
+          groupAvatar: post.groupAvatar,
+        );
+      }
+
+      notifyListeners();
+    } catch (e) {
+      _error = 'Failed to delete comment: $e';
+      notifyListeners();
+      rethrow;
+    }
+  }
+
   // Update a post
   Future<void> updatePost({
     required int postId,

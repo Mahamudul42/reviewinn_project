@@ -1675,7 +1675,7 @@ Shared from ReviewInn App''';
                 ),
               ),
               IconButton(
-                onPressed: () {},
+                onPressed: () => _showCommentOptionsMenu(comment),
                 icon: Icon(
                   Icons.more_vert_rounded,
                   size: 18,
@@ -2055,6 +2055,44 @@ Shared from ReviewInn App''';
             child: Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
+      ),
+    );
+  }
+
+  // Comment menu handler - placeholder for review comments
+  // TODO: Integrate with proper Comment model and ReviewProvider when connecting to backend
+  void _showCommentOptionsMenu(Map<String, dynamic> comment) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.info_outline, color: AppTheme.infoBlue),
+              title: Text(
+                'Comment editing for reviews',
+                style: AppTheme.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text(
+                'Edit and delete functionality will be available when the backend API is connected.',
+                style: AppTheme.bodySmall.copyWith(color: AppTheme.textSecondary),
+              ),
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              leading: Icon(Icons.edit, color: Colors.grey),
+              title: Text('Edit Comment', style: TextStyle(color: Colors.grey)),
+              onTap: null, // Disabled for now
+            ),
+            ListTile(
+              leading: Icon(Icons.delete, color: Colors.grey),
+              title: Text('Delete Comment', style: TextStyle(color: Colors.grey)),
+              onTap: null, // Disabled for now
+            ),
+          ],
+        ),
       ),
     );
   }
