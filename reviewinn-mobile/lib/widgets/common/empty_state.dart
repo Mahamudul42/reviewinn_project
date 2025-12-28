@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
+import '../../config/app_colors.dart';
 
 /// A reusable empty state widget for displaying when there's no content
 class EmptyState extends StatelessWidget {
@@ -22,6 +23,9 @@ class EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+    final effectiveIconColor = iconColor ?? colors.primary;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppTheme.spaceXL),
@@ -31,20 +35,20 @@ class EmptyState extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
-                color: (iconColor ?? AppTheme.primaryPurple).withOpacity(0.1),
+                color: effectiveIconColor.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
                 size: iconSize,
-                color: (iconColor ?? AppTheme.primaryPurple).withOpacity(0.5),
+                color: effectiveIconColor.withOpacity(0.5),
               ),
             ),
             const SizedBox(height: 24),
             Text(
               title,
               style: AppTheme.headingMedium.copyWith(
-                color: AppTheme.textPrimary,
+                color: colors.textPrimary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -52,7 +56,7 @@ class EmptyState extends StatelessWidget {
             Text(
               description,
               style: AppTheme.bodyLarge.copyWith(
-                color: AppTheme.textSecondary,
+                color: colors.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),

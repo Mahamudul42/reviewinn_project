@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
+import '../../config/app_colors.dart';
 
 /// A centralized error display widget
 class ErrorView extends StatelessWidget {
@@ -16,6 +17,8 @@ class ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppTheme.spaceXL),
@@ -25,13 +28,13 @@ class ErrorView extends StatelessWidget {
             Icon(
               icon,
               size: 64,
-              color: AppTheme.errorRed.withOpacity(0.5),
+              color: colors.error.withOpacity(0.5),
             ),
             const SizedBox(height: 16),
             Text(
               message ?? 'Something went wrong',
               style: AppTheme.bodyLarge.copyWith(
-                color: AppTheme.textSecondary,
+                color: colors.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -42,7 +45,7 @@ class ErrorView extends StatelessWidget {
                 icon: const Icon(Icons.refresh),
                 label: const Text('Retry'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryPurple,
+                  backgroundColor: colors.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,

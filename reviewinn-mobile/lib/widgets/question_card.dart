@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/entity_question_model.dart';
 import '../config/app_theme.dart';
+import '../config/app_colors.dart';
 import '../utils/formatters/date_formatter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -16,23 +17,25 @@ class QuestionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return InkWell(
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: colors.cardBackground,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: question.hasOfficialAnswer
-                ? Colors.green.withOpacity(0.3)
-                : Colors.grey.shade200,
+                ? colors.success.withOpacity(0.3)
+                : colors.border,
             width: question.hasOfficialAnswer ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: colors.shadow,
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
@@ -69,7 +72,7 @@ class QuestionCard extends StatelessWidget {
                       Text(
                         DateFormatter.timeAgo(question.createdAt),
                         style: AppTheme.bodySmall.copyWith(
-                          color: Colors.grey[600],
+                          color: colors.textSecondary,
                         ),
                       ),
                     ],
@@ -80,9 +83,9 @@ class QuestionCard extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.1),
+                      color: colors.success.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.green.withOpacity(0.3)),
+                      border: Border.all(color: colors.success.withOpacity(0.3)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -90,14 +93,14 @@ class QuestionCard extends StatelessWidget {
                         Icon(
                           Icons.verified,
                           size: 14,
-                          color: Colors.green,
+                          color: colors.success,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           'Answered',
                           style: TextStyle(
                             fontSize: 11,
-                            color: Colors.green[700],
+                            color: colors.success,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -125,13 +128,13 @@ class QuestionCard extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: AppTheme.bodyMedium.copyWith(
-                  color: Colors.grey[700],
+                  color: colors.textSecondary,
                 ),
               ),
             ],
 
             const SizedBox(height: 12),
-            Divider(height: 1, color: Colors.grey[200]),
+            Divider(height: 1, color: colors.divider),
             const SizedBox(height: 12),
 
             // Stats row (wrapped to prevent overflow)
@@ -145,13 +148,13 @@ class QuestionCard extends StatelessWidget {
                     Icon(
                       Icons.question_answer_outlined,
                       size: 18,
-                      color: Colors.grey[600],
+                      color: colors.iconSecondary,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       '${question.answersCount} ${question.answersCount == 1 ? 'answer' : 'answers'}',
                       style: AppTheme.bodySmall.copyWith(
-                        color: Colors.grey[700],
+                        color: colors.textSecondary,
                       ),
                     ),
                   ],
@@ -162,13 +165,13 @@ class QuestionCard extends StatelessWidget {
                     Icon(
                       Icons.visibility_outlined,
                       size: 18,
-                      color: Colors.grey[600],
+                      color: colors.iconSecondary,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       '${question.viewCount} views',
                       style: AppTheme.bodySmall.copyWith(
-                        color: Colors.grey[700],
+                        color: colors.textSecondary,
                       ),
                     ),
                   ],

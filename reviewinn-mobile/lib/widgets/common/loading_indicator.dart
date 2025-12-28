@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
+import '../../config/app_colors.dart';
 
 /// A centralized loading indicator widget
 class LoadingIndicator extends StatelessWidget {
@@ -16,6 +17,8 @@ class LoadingIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -24,7 +27,7 @@ class LoadingIndicator extends StatelessWidget {
             width: size,
             height: size,
             child: CircularProgressIndicator(
-              color: color ?? AppTheme.primaryPurple,
+              color: color ?? colors.primary,
               strokeWidth: 3,
             ),
           ),
@@ -33,7 +36,7 @@ class LoadingIndicator extends StatelessWidget {
             Text(
               message!,
               style: AppTheme.bodyMedium.copyWith(
-                color: AppTheme.textSecondary,
+                color: colors.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
