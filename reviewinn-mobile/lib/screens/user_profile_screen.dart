@@ -286,6 +286,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
+                      isScrollable: true,
+                      tabAlignment: TabAlignment.start,
+                      labelPadding: const EdgeInsets.symmetric(horizontal: 16),
                       tabs: const [
                         Tab(text: 'Reviews'),
                         Tab(text: 'Entities'),
