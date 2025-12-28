@@ -9,6 +9,7 @@ import 'notifications_screen.dart';
 import 'write_review_screen.dart';
 import 'login_screen.dart';
 import 'bookmarks_screen.dart';
+import 'messages_screen.dart';
 
 class HomeFeedScreen extends StatefulWidget {
   const HomeFeedScreen({super.key});
@@ -252,9 +253,11 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> with SingleTickerProvid
                                 ),
                               ),
                               const SizedBox(width: 12),
-                              _buildBookmarkButton(),
-                              const SizedBox(width: 8),
                               _buildNotificationButton(),
+                              const SizedBox(width: 8),
+                              _buildMessagesButton(),
+                              const SizedBox(width: 8),
+                              _buildBookmarkButton(),
                             ],
                           ),
                           // Add smooth spacing animation
@@ -576,6 +579,85 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> with SingleTickerProvid
                 ),
                 child: Text(
                   _unreadNotifications > 99 ? '99+' : _unreadNotifications.toString(),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMessagesButton() {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final int unreadMessages = 5; // TODO: Get from provider/API
+
+    return GestureDetector(
+      onTap: () {
+        if (!authProvider.isAuthenticated) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
+          );
+          return;
+        }
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const MessagesScreen(),
+          ),
+        );
+      },
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              Icons.forum_outlined,
+              color: Colors.white,
+              size: 24,
+            ),
+          ),
+
+          // Badge for unread messages
+          if (authProvider.isAuthenticated && unreadMessages > 0)
+            Positioned(
+              right: -4,
+              top: -4,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                constraints: const BoxConstraints(
+                  minWidth: 18,
+                  minHeight: 18,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.errorRed,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: AppTheme.primaryPurple,
+                    width: 2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.errorRed.withOpacity(0.5),
+                      blurRadius: 4,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: Text(
+                  unreadMessages > 99 ? '99+' : unreadMessages.toString(),
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 10,

@@ -32,7 +32,6 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     const EntitiesScreen(),
     const GroupsScreen(),
     const CircleScreen(),
-    const MessagesScreen(),
     const UserProfileScreen(),
   ];
 
@@ -72,7 +71,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     if (index >= 4 && !authProvider.isAuthenticated) {
-      // Show login for Circle, Messages, and Profile
+      // Show login for Circle and Profile
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const LoginScreen()),

@@ -53,12 +53,6 @@ class _PremiumBottomNavState extends State<PremiumBottomNav>
       color: AppTheme.errorRed,
     ),
     NavItem(
-      icon: Icons.forum_outlined,
-      activeIcon: Icons.forum,
-      label: 'Messages',
-      color: AppTheme.accentYellow,
-    ),
-    NavItem(
       icon: Icons.person_outline,
       activeIcon: Icons.person,
       label: 'Profile',
