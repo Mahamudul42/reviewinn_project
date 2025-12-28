@@ -12,6 +12,7 @@ import 'user_profile_screen.dart';
 import 'community_screen.dart';
 import 'login_screen.dart';
 import 'write_review_screen.dart';
+import '../widgets/community/new_post_modal.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -117,12 +118,12 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       return;
     }
 
-    // Show new post modal (will be implemented)
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('New post feature coming soon!'),
-        backgroundColor: AppTheme.primaryPurple,
-      ),
+    // Show new post modal
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const NewPostModal(),
     );
   }
 

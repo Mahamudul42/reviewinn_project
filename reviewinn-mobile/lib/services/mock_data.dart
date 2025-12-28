@@ -25,15 +25,51 @@ class MockData {
   // Community Posts Mock Data (Aggregated from all sources)
   static List<CommunityPost> getMockCommunityPosts() {
     return [
-      // General community post
+      // POST WITH REVIEW LINK - Test the review preview feature
       CommunityPost(
         postId: 1,
+        title: 'Amazing Italian experience! You have to try this place',
+        content:
+            'Just had the most incredible dinner at Trattoria Bella! Their pasta is homemade and the tiramisu is to die for. I wrote a detailed review about my experience: reviewinn.com/review/1\n\nSeriously, if you love authentic Italian food, this is your spot!',
+        userId: 101,
+        username: 'foodieexplorer',
+        userAvatar: 'https://i.pravatar.cc/150?img=1',
+        tags: ['italian', 'restaurant', 'recommendation'],
+        likesCount: 45,
+        commentsCount: 18,
+        viewCount: 234,
+        isLiked: true,
+        isPinned: false,
+        postType: PostType.general,
+        createdAt: DateTime.now().subtract(Duration(hours: 2)),
+      ),
+      // ANOTHER POST WITH REVIEW LINK
+      CommunityPost(
+        postId: 15,
+        title: 'Best tech store in the city - hands down!',
+        content:
+            'Someone asked about where to buy laptops yesterday. I just shared my experience at TechHub Store here: /review/5\n\nTheir customer service is incredible and prices are competitive. Check out my full review!',
+        userId: 109,
+        username: 'techreviewer',
+        userAvatar: 'https://i.pravatar.cc/150?img=18',
+        tags: ['tech', 'electronics', 'shopping'],
+        likesCount: 32,
+        commentsCount: 14,
+        viewCount: 187,
+        isLiked: false,
+        isPinned: false,
+        postType: PostType.general,
+        createdAt: DateTime.now().subtract(Duration(hours: 4)),
+      ),
+      // Regular post without review link
+      CommunityPost(
+        postId: 16,
         title: 'Best coffee shops for studying in the city?',
         content:
             'Looking for recommendations for quiet coffee shops with good WiFi and plenty of seating. Bonus points if they have great pastries!',
-        userId: 101,
+        userId: 110,
         username: 'coffeeaddict',
-        userAvatar: 'https://i.pravatar.cc/150?img=1',
+        userAvatar: 'https://i.pravatar.cc/150?img=2',
         tags: ['coffee', 'study', 'recommendations'],
         likesCount: 24,
         commentsCount: 12,
@@ -41,7 +77,7 @@ class MockData {
         isLiked: false,
         isPinned: false,
         postType: PostType.general,
-        createdAt: DateTime.now().subtract(Duration(hours: 2)),
+        createdAt: DateTime.now().subtract(Duration(hours: 6)),
       ),
       // General community post (pinned)
       CommunityPost(
